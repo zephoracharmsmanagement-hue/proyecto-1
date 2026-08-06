@@ -1,0 +1,11 @@
+# Secretos — NUNCA subir a git.
+# El token de Meta vive aquí y solo aquí.
+.env
+.env.*
+!.env.example
+
+# Reportes generados por los scripts de meta/
+meta/salida/
+
+node_modules/
+.DS_Store
