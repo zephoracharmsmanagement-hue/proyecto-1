@@ -25,7 +25,7 @@ export function cargarEnv() {
 }
 cargarEnv();
 
-const VERSION = process.env.META_API_VERSION || 'v19.0';
+const VERSION = process.env.META_API_VERSION || 'v25.0';
 const BASE = `https://graph.facebook.com/${VERSION}`;
 
 function token() {

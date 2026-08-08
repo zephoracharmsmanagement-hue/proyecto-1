@@ -56,9 +56,11 @@ Buenas prácticas:
 
 ## Versión de la API
 
-`META_API_VERSION` en `.env` controla la versión. El valor por defecto es `v19.0`.
+`META_API_VERSION` en `.env` controla la versión. El valor por defecto es `v25.0`.
 
-Meta retira cada versión unos dos años después de publicarla, y v19.0 salió en enero de 2024. Si ves errores de versión no soportada, sube el número a la actual y vuelve a correr.
+Meta retira cada versión unos dos años después de publicarla. **v19.0 expiró el 21 de mayo de 2026** —era el valor por defecto anterior de estos scripts y hoy ya no responde—; v18.0 lo hizo el 26 de enero de 2026. La vigente es v25.0, publicada el 18 de febrero de 2026.
+
+Si ves errores de versión no soportada, sube el número a la actual y vuelve a correr.
 
 ## Estos scripts no se han probado contra la API real
 
