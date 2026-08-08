@@ -14,6 +14,16 @@
 <meta property="og:title" content="Zephora Charms · Joyería con significado">
 <meta property="og:description" content="Charms en Plata 925 verificada y brazaletes con baño de plata. Diseña tu pulsera y pídela por WhatsApp.">
 <meta property="og:url" content="https://zephoracharms.com/">
+<meta property="og:image" content="https://zephoracharms.com/assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg">
+<meta property="og:image:secure_url" content="https://zephoracharms.com/assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="600">
+<meta property="og:image:alt" content="Pulsera Zephora armada con charms en Plata 925">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Zephora Charms · Joyería con significado">
+<meta name="twitter:description" content="Charms en Plata 925 verificada y brazaletes con baño de plata. Diseña tu pulsera y pídela por WhatsApp.">
+<meta name="twitter:image" content="https://zephoracharms.com/assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
@@ -54,15 +64,23 @@ button{font-family:inherit}
 :focus-visible{outline:2px solid var(--rose);outline-offset:3px}
 .vf{vertical-align:-2px;margin-left:3px}
 
-/* barra de avisos rotativa */
-.ann{background:var(--plum);color:#f4ecf6;overflow:hidden;height:38px}
-.ann-slide{height:38px;display:flex;align-items:center;justify-content:center;gap:6px;
-  text-align:center;font-size:12.5px;letter-spacing:.05em;padding:0 14px;line-height:1.3}
+/* barra de avisos rotativa · slides apilados en una celda:
+   la altura la fija el aviso más largo, así ninguno se corta en pantallas de 360px */
+.ann{background:var(--plum);color:#f4ecf6;min-height:38px}
+.ann-track{display:grid}
+/* display:block y no flex: con flex, cada trozo de texto y cada <b> eran ítems
+   independientes y el aviso se partía en columnas raras al envolver. */
+.ann-slide{grid-area:1/1;display:block;text-align:center;font-size:12.5px;letter-spacing:.05em;
+  padding:10px 14px;line-height:1.35;min-height:38px;opacity:0;animation:annf 15s infinite}
+.ann-slide:nth-child(1){animation-delay:0s}
+.ann-slide:nth-child(2){animation-delay:-10s}
+.ann-slide:nth-child(3){animation-delay:-5s}
 .ann b{font-weight:500;color:#fff}
-.ann-track{animation:ann 15s infinite}
-@keyframes ann{0%,28%{transform:translateY(0)}33%,61%{transform:translateY(-38px)}
-  66%,94%{transform:translateY(-76px)}100%{transform:translateY(-114px)}}
-@media(prefers-reduced-motion:reduce){.ann-track{animation:none}}
+@keyframes annf{0%{opacity:0}4%,29%{opacity:1}33%,100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+  .ann-slide{animation:none;opacity:0}
+  .ann-slide:first-child{opacity:1}
+}
 
 /* encabezado */
 .top{position:sticky;top:0;z-index:60;background:rgba(246,243,244,.94);
@@ -89,11 +107,17 @@ button{font-family:inherit}
 .btn--big{width:100%;padding:17px 22px;font-size:14px}
 @media(min-width:700px){.btn--big{width:auto}}
 
-/* 1 · hero */
-.hero{padding:26px 0 36px}
-.hero-in{display:grid;gap:26px}
-.hero-img img{width:100%;border-radius:3px}
-.hero h1{font-size:clamp(36px,9.4vw,64px);line-height:1.06;margin:12px 0 14px}
+/* 1 · hero
+   En móvil el titular y el botón de WhatsApp van primero y la foto debajo, acotada:
+   la foto es 502x900 y ella sola empujaba el <h1> a y=884px, o sea fuera de la
+   primera pantalla de un iPhone. Quien llega de la pauta ve la promesa y el CTA sin scroll. */
+.hero{padding:22px 0 34px}
+.hero-in{display:grid;gap:22px}
+/* El encuadre baja al 72%: la foto trae quemado "La pulsera que todas quieren /
+   Personalízala con tus charms favoritos" en su tercio superior, que repite en otras
+   palabras la promesa del <h1>. Recortándolo, la foto muestra la pulsera y punto. */
+.hero-img img{width:100%;max-height:46dvh;object-fit:cover;object-position:center 72%;border-radius:3px}
+.hero h1{font-size:clamp(34px,8.8vw,64px);line-height:1.06;margin:10px 0 14px}
 .hero h1 i{font-style:italic;color:var(--plum)}
 .hero-sub{max-width:48ch;color:#584a5c;margin:0 0 14px;font-size:16.5px}
 .hero-badges{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 22px;font-size:13.5px}
@@ -256,11 +280,75 @@ section{scroll-margin-top:64px}
 .trust svg{flex:0 0 auto;margin-top:1px}
 .trust b{font-weight:500;color:var(--ink)}
 
+/* cabecera de sección centrada · tratamiento editorial de la referencia */
+.sec-head--c{max-width:700px;margin:0 auto 26px;text-align:center}
+.sec-head--c h2{font-size:clamp(21px,5vw,31px);letter-spacing:.15em;text-transform:uppercase;line-height:1.3}
+.sec-head--c p{margin:11px auto 0;max-width:54ch}
+.sec-top{display:flex;flex-direction:column;align-items:flex-start;gap:15px;margin-bottom:20px}
+.sec-top .sec-head{margin-bottom:0}
+.link-all{flex:0 0 auto;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  text-decoration:none;color:var(--ink);border:1px solid var(--ink);border-radius:2px;
+  padding:11px 16px;background:transparent;cursor:pointer;transition:.18s;font-family:inherit}
+.link-all:hover{background:var(--ink);color:var(--bone)}
+
+/* compra por categoría */
+.cats{padding:44px 0;border-top:1px solid var(--line)}
+.cats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.cat{display:block;text-decoration:none;background:var(--white);border:1px solid var(--line);
+  border-radius:3px;overflow:hidden;transition:border-color .2s}
+.cat:hover{border-color:var(--plum)}
+.cat-ph{aspect-ratio:1;background:#fff;overflow:hidden}
+.cat-ph img{width:100%;height:100%;object-fit:contain;transition:transform .5s ease}
+.cat:hover .cat-ph img{transform:scale(1.06)}
+.cat-label{padding:12px 8px;text-align:center;font-size:10.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink);border-top:1px solid var(--line);background:var(--rose-soft)}
+.cat-label small{display:block;font-size:10px;letter-spacing:.08em;text-transform:none;
+  color:#8a7d8e;margin-top:4px}
+
+/* carrusel horizontal de producto */
+.rail-wrap{position:relative}
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(154px,1fr);gap:11px;
+  overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;
+  margin:0 -16px;padding:2px 16px 8px}
+.rail::-webkit-scrollbar{display:none}
+.rail>.pc{scroll-snap-align:start}
+.rail-btn{display:none;position:absolute;top:calc(50% - 40px);z-index:5;width:42px;height:42px;
+  border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.95);
+  color:var(--ink);cursor:pointer;align-items:center;justify-content:center;
+  box-shadow:0 2px 12px rgba(42,31,46,.1);transition:.18s}
+.rail-btn:hover{background:var(--ink);color:var(--bone);border-color:var(--ink)}
+.rail-btn[disabled]{opacity:.28;cursor:default}
+.rail-btn--prev{left:-8px}
+.rail-btn--next{right:-8px}
+.rail-hint{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);
+  margin:4px 0 0;text-align:center}
+
+/* franja de garantías */
+.guar{background:var(--rose-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.guar-in{max-width:var(--w);margin:0 auto;padding:28px 16px;
+  display:grid;grid-template-columns:repeat(2,1fr);gap:24px 12px}
+.guar-in>div{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.guar span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6b5c70;
+  line-height:1.6;max-width:18ch}
+
 /* pie */
-.foot{border-top:1px solid var(--line);padding:38px 0 30px}
-.foot-in{display:flex;flex-direction:column;gap:12px}
-.foot p{margin:0;font-size:13px;color:#6d6070}
-.foot a{color:var(--plum)}
+.foot{background:var(--ink);color:#cbbfd0;padding:44px 0 26px}
+.foot .brand{color:var(--bone)}
+.foot .brand em{color:#d7a9bd}
+.foot a{color:#e3d6e7}
+.foot-in{display:grid;grid-template-columns:1fr;gap:30px}
+.foot h3{font-family:Jost,sans-serif;font-size:11px;font-weight:400;letter-spacing:.2em;
+  text-transform:uppercase;color:#fff;margin:0 0 14px}
+.foot p{margin:0 0 9px;font-size:13.5px;line-height:1.6}
+.foot-brand p{color:#a495a8;max-width:34ch;margin-top:14px}
+.foot-list{list-style:none;padding:0;margin:0;display:grid;gap:11px;font-size:13.5px}
+.foot-list a{text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px}
+.foot-list a:hover{border-color:#d7a9bd}
+.foot-line{display:flex;align-items:flex-start;gap:9px;margin:0 0 10px;font-size:13.5px;line-height:1.55}
+.foot-line svg{flex:0 0 auto;margin-top:3px;opacity:.75}
+.foot-bot{max-width:var(--w);margin:26px auto 0;padding:18px 16px 0;
+  border-top:1px solid rgba(255,255,255,.13);display:flex;flex-wrap:wrap;gap:8px 18px;
+  justify-content:space-between;font-size:11.5px;color:#93849a;letter-spacing:.04em}
 .foot-ig{display:inline-flex;align-items:center;gap:2px;text-decoration:none}
 
 /* barra fija + hoja */
@@ -340,9 +428,17 @@ body.sheet-open{overflow:hidden}
   .trust div+div{border-top:0;border-left:1px solid var(--line)}
   .trust div:nth-child(n+4){border-top:1px solid var(--line)}
   .trust div:nth-child(4){border-left:0}
-  .sec,.how,.social,.trust-sec{padding:60px 0}
+  .sec,.how,.social,.trust-sec,.cats{padding:60px 0}
   .story{padding:68px 0}
-  .foot-in{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .hero-img img{max-height:72dvh}
+  .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
+  .cats-grid{grid-template-columns:repeat(4,1fr);gap:14px}
+  .guar-in{grid-template-columns:repeat(4,1fr);padding:34px 24px}
+  .rail{grid-auto-columns:minmax(200px,1fr);gap:16px;margin:0;padding:2px 0 10px}
+  .rail-btn{display:flex}
+  .rail-hint{display:none}
+  .foot-in{grid-template-columns:1.3fr 1fr 1fr;gap:44px}
+  .foot-bot{padding:18px 24px 0}
   .sheet{left:auto;right:24px;bottom:calc(var(--dock) + 12px);width:380px;border-radius:8px;
     max-height:min(78dvh,640px)}
   .dock{padding:0 24px}
@@ -360,7 +456,6 @@ body.sheet-open{overflow:hidden}
     <div class="ann-slide">✦ <b>Promo de la semana:</b> brazalete + 3 charms = 30% OFF en el brazalete</div>
     <div class="ann-slide">🚚 Envíos a toda Colombia · <b>gratis desde $180.000</b> · Pago contraentrega disponible</div>
     <div class="ann-slide">Instagram oficial verificado · <b>@zephora_charms</b> <svg class="vf" viewBox="0 0 24 24" width="14" height="14" aria-label="Verificada"><circle cx="12" cy="12" r="11" fill="#fff"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#5C3D63" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div class="ann-slide">✦ <b>Promo de la semana:</b> brazalete + 3 charms = 30% OFF en el brazalete</div>
   </div>
 </div>
 
@@ -369,6 +464,7 @@ body.sheet-open{overflow:hidden}
     <a class="brand" href="#top">Zephora <em>Charms</em></a>
     <nav class="tnav">
       <a href="#promo">Promo</a>
+      <a href="#categorias">Categorías</a>
       <a href="#brazaletes">Brazaletes</a>
       <a href="#charms">Charms</a>
       <a href="#historia">La marca</a>
@@ -381,19 +477,19 @@ body.sheet-open{overflow:hidden}
 <!-- 1 · HERO -->
 <section class="hero wrap">
   <div class="hero-in">
-    <div class="hero-img">
-      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp" alt="Pulsera Zephora armada con charms en plata 925" width="502" height="900" fetchpriority="high" decoding="async">
-    </div>
     <div>
       <span class="eyebrow">Joyería con significado · Colombia</span>
       <h1>Diseña una historia<br><i>tan única como tú</i></h1>
       <p class="hero-sub">Joyería personalizada con charms elaborados en Plata Esterlina 925 verificada y brazaletes con acabado de alta calidad en baño de plata, compatibles con Pandora.</p>
       <p class="hero-badges"><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="dot">·</span><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span><span class="hero-badge-n">+2.400 pulseras creadas</span></p>
       <div class="hero-cta">
-        <a class="btn btn--wa btn--big" href="https://wa.me/573018990672?text=Hola%21%20Quiero%20ayuda%20para%20dise%C3%B1ar%20mi%20pulsera%20%F0%9F%92%9C">💬 Diseñar mi pulsera por WhatsApp</a>
+        <a class="btn btn--wa btn--big" data-wa="hero" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20web%20y%20quiero%20dise%C3%B1ar%20mi%20pulsera%20personalizada.%20%C2%BFMe%20pueden%20asesorar%20con%20los%20charms%20y%20la%20talla%3F">💬 Diseñar mi pulsera por WhatsApp</a>
         <a class="btn btn--ghost" href="#brazaletes">Ver brazaletes y charms</a>
       </div>
       <p class="hero-hint">O ármala tú misma aquí abajo — el precio se calcula solo, con la promo incluida.</p>
+    </div>
+    <div class="hero-img">
+      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp" alt="Pulsera Zephora armada con charms en plata 925" width="502" height="900" fetchpriority="high" decoding="async">
     </div>
   </div>
 </section>
@@ -417,6 +513,41 @@ body.sheet-open{overflow:hidden}
     <h2>Brazalete + 3 charms =<br>30% menos en el brazalete</h2>
     <p>Y por llevar 3 charms, estos también bajan <b>15%</b>. Llévala completa <b>desde $206.350</b> — el descuento se aplica solo mientras la armas, sin códigos ni letra pequeña.</p>
     <a class="btn btn--wa" href="#armar">Armar la mía con descuento</a>
+  </div>
+</section>
+
+<!-- 3b · COMPRA POR CATEGORÍA -->
+<section class="cats wrap" id="categorias">
+  <div class="sec-head sec-head--c">
+    <span class="eyebrow">86 charms en Plata 925</span>
+    <h2>Compra por categoría</h2>
+    <p>Elige el mundo que cuenta tu historia. Cada categoría abre el catálogo filtrado, listo para agregar a tu pulsera.</p>
+  </div>
+  <div class="cats-grid">
+    <a class="cat" href="#charms" data-cat="Símbolos">
+      <div class="cat-ph"><img src="assets/angel-guardian.webp" alt="Charm Ángel Guardián en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Símbolos<small>31 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Disney">
+      <div class="cat-ph"><img src="assets/mickey-mouse.webp" alt="Charm Mickey Mouse en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Disney<small>15 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Zodiaco">
+      <div class="cat-ph"><img src="assets/leo.webp" alt="Charm signo Leo en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Zodiaco<small>12 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Marvel">
+      <div class="cat-ph"><img src="assets/iron-man.webp" alt="Charm de Iron Man en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Marvel<small>9 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Pixar">
+      <div class="cat-ph"><img src="assets/buzz-lightyear.webp" alt="Charm Buzz Lightyear en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Pixar<small>5 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Profesiones">
+      <div class="cat-ph"><img src="assets/charm-medicina.webp" alt="Charm de Medicina en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Profesiones<small>4 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Clips">
+      <div class="cat-ph"><img src="assets/clip-mariposas-de-colores.webp" alt="Clip de Mariposas de Colores en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Clips<small>4 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Muranos">
+      <div class="cat-ph"><img src="assets/bola-rosa-con-flores.webp" alt="Charm murano Bola Rosa con Flores" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Muranos<small>3 charms</small></div></a>
   </div>
 </section>
 
@@ -517,12 +648,18 @@ body.sheet-open{overflow:hidden}
 <!-- 5b · CHARMS DESTACADOS -->
 <section class="sec" id="charms">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Paso dos</span>
-      <h2>Los charms favoritos</h2>
-      <p>Elaborados en Plata Esterlina 925 verificada. Estos son los que más eligen nuestras clientas — y si buscas algo específico, el catálogo completo está a un toque.</p>
+    <div class="sec-top">
+      <div class="sec-head">
+        <span class="eyebrow">Paso dos</span>
+        <h2>Los charms favoritos</h2>
+        <p>Elaborados en Plata Esterlina 925 verificada. Estos son los que más eligen nuestras clientas — y si buscas algo específico, el catálogo completo está a un toque.</p>
+      </div>
+      <button class="link-all" type="button" id="ver-todos">Ver todos</button>
     </div>
-    <div class="grid"><article class="pc pc--top" data-id="mickey-mouse" data-g="Disney">
+    <div class="rail-wrap">
+    <button class="rail-btn rail-btn--prev" type="button" id="rail-prev" aria-label="Charms anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="rail-btn rail-btn--next" type="button" id="rail-next" aria-label="Más charms"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <div class="rail" id="rail-top"><article class="pc pc--top" data-id="mickey-mouse" data-g="Disney">
 <div class="pc-img"><img src="assets/mickey-mouse.webp" alt="Mickey Mouse" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Mickey Mouse</h3><p class="pc-meta">Disney Clásico</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="mickey-mouse" aria-label="Agregar Mickey Mouse">Agregar</button></div></div></article>
@@ -554,8 +691,10 @@ body.sheet-open{overflow:hidden}
 <div class="pc-img"><img src="assets/osito-pave-con-corazon.webp" alt="Osito Pavé con Corazón" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Osito Pavé con Corazón</h3><p class="pc-meta">Dije colgante</p>
 <div class="pc-foot"><span class="pc-price">$80.000</span><button class="pc-add" type="button" data-add="osito-pave-con-corazon" aria-label="Agregar Osito Pavé con Corazón">Agregar</button></div></div></article></div>
+    </div>
+    <p class="rail-hint">Desliza para ver más →</p>
     <div class="more-wrap">
-      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver los 86 charms</button>
+      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver el catálogo completo · 86 charms</button>
     </div>
     <div id="full-cat" hidden>
       <div class="filters" id="filters"><button class="fbtn is-on" type="button" data-f="todos">Todos</button><span class="fgroup">Personajes</span><button class="fbtn" type="button" data-f="Disney">Disney</button><button class="fbtn" type="button" data-f="Pixar">Pixar</button><button class="fbtn" type="button" data-f="Marvel">Marvel</button><span class="fgroup">Clásicos</span><button class="fbtn" type="button" data-f="Zodiaco">Zodiaco</button><button class="fbtn" type="button" data-f="Símbolos">Símbolos</button><button class="fbtn" type="button" data-f="Profesiones">Profesiones</button><button class="fbtn" type="button" data-f="Muranos">Muranos</button><button class="fbtn" type="button" data-f="Clips">Clips</button><button class="fbtn" type="button" data-f="Cadenas">Cadenas</button></div>
@@ -933,18 +1072,61 @@ body.sheet-open{overflow:hidden}
     </div>
     <div class="help">
       <p>¿Tienes dudas antes de pedir? Nuestro equipo te responde de forma personal, sin bots.</p>
-      <a class="btn btn--wa" href="https://wa.me/573018990672?text=Hola%21%20Busco%20un%20regalo%20y%20no%20s%C3%A9%20cu%C3%A1l%20elegir">Hablar con nosotras</a>
+      <a class="btn btn--wa" data-wa="asesoria-regalo" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Busco%20un%20regalo%20y%20quisiera%20asesor%C3%ADa%20para%20elegir%20la%20pulsera%20y%20los%20charms%20indicados.">Hablar con nosotras</a>
     </div>
   </div>
 </section>
 
 </main>
 
+<!-- FRANJA DE GARANTÍAS -->
+<div class="guar">
+  <div class="guar-in">
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5.3 5.5.6-4.2 3.8 1.2 5.6L12 14.5 7 17.3l1.2-5.6L4 7.9l5.5-.6z"/></svg>
+      <span>Plata Esterlina 925 verificada</span>
+    </div>
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/></svg>
+      <span>Compatibles con Pandora</span>
+    </div>
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></svg>
+      <span>Garantía de 30 días</span>
+    </div>
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg>
+      <span>Envío nacional gratis desde $180.000</span>
+    </div>
+  </div>
+</div>
+
 <footer class="foot">
   <div class="wrap foot-in">
-    <a class="brand" href="#top">Zephora <em>Charms</em></a>
-    <p><a href="https://wa.me/573018990672">WhatsApp</a> · <a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
-    <p>Charms en Plata 925 · Brazaletes con baño de plata · Envíos a toda Colombia</p>
+    <div class="foot-brand">
+      <a class="brand" href="#top">Zephora <em>Charms</em></a>
+      <p>Joyería con significado: charms elaborados en Plata Esterlina 925 verificada y brazaletes con elegante acabado en baño de plata, compatibles con Pandora. Enviamos a toda Colombia.</p>
+    </div>
+    <div>
+      <h3>Contáctanos</h3>
+      <p class="foot-line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Horario de atención:<br>lunes a sábado, 9:00 a.m. – 6:00 p.m.</span></p>
+      <p class="foot-line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 01-13.5 7.8L3 21l1.2-4.5A9 9 0 1121 12z"/></svg><a data-wa="pie" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Vengo%20de%20la%20p%C3%A1gina%20web%20y%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20pulseras%20y%20charms.">WhatsApp +57 301 899 0672</a></p>
+      <p class="foot-line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="14" height="14" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
+    </div>
+    <div>
+      <h3>Información</h3>
+      <ul class="foot-list">
+        <li><a href="preguntas-frecuentes.html">Preguntas frecuentes</a></li>
+        <li><a href="envios-y-devoluciones.html">Envíos y devoluciones</a></li>
+        <li><a href="politica-de-privacidad.html">Política de privacidad</a></li>
+        <li><a href="terminos-y-condiciones.html">Términos y condiciones</a></li>
+        <li><a href="politica-de-cookies.html">Política de cookies</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bot">
+    <span>© <span id="year">2026</span> Zephora Charms · Colombia · Todos los derechos reservados</span>
+    <span>Charms en Plata 925 · Brazaletes con baño de plata</span>
   </div>
 </footer>
 
@@ -993,7 +1175,6 @@ const $=s=>document.querySelector(s);
 
 let base=null, sel=[];
 const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
-let icoDone=false;
 
 function imgDe(id){
   const el=document.querySelector('.pc[data-id="'+id+'"] img');
@@ -1070,10 +1251,9 @@ function render(){
   $('#dock-p').textContent=cop(total);
 }
 
+/* Abrir el detalle ya no dispara InitiateCheckout: ese evento ahora marca
+   el salto a WhatsApp, que es donde de verdad empieza la compra. */
 const abrir=v=>{
-  if(v&&!icoDone&&(base||sel.length)){ icoDone=true;
-    track('InitiateCheckout',{num_items:sel.length+(base?1:0),
-      value:+($('#v-tot').textContent.replace(/[^0-9]/g,''))||0}); }
   document.body.classList.toggle('sheet-open',v);
   $('#sheet').setAttribute('aria-hidden',v?'false':'true');
   $('#dock-open').setAttribute('aria-expanded',v?'true':'false');
@@ -1097,18 +1277,21 @@ function pedir(){
   }
   const total=$('#v-tot').textContent;
   const libre=$('#v-ship').textContent==='Gratis';
-  let t='Hola! Quiero pedir esto:\n';
-  if(base) t+='\n· Brazalete '+PU[base].n.replace(/^Pulsera /,'')+' — '+cop(PU[base].p);
+  let t='Hola, Zephora Charms. Armé mi pulsera en la página web y quisiera confirmar este pedido:\n';
+  if(base) t+='\n• Brazalete '+PU[base].n.replace(/^Pulsera /,'')+' — '+cop(PU[base].p);
   const cont={};
   sel.forEach(id=>cont[id]=(cont[id]||0)+1);
   Object.entries(cont).forEach(([id,n])=>{
-    t+='\n· '+CH[id].n+(n>1?' (x'+n+')':'')+' — '+cop(CH[id].p*n);
+    t+='\n• '+CH[id].n+(n>1?' (x'+n+')':'')+' — '+cop(CH[id].p*n);
   });
-  if(document.getElementById('pack').checked) t+='\n· Empaque Premium de Regalo — '+cop(40000);
-  t+='\n\nTotal con descuento: '+total;
-  t+=libre?'\nEnvío: gratis':'\nEnvío: por cotizar según mi ciudad';
-  track('Lead',{content_name:'Pedido armador',num_items:sel.length+(base?1:0),
-    value:+total.replace(/[^0-9]/g,'')||0});
+  if(document.getElementById('pack').checked) t+='\n• Empaque Premium de Regalo — '+cop(40000);
+  t+='\n\nTotal con descuento aplicado: '+total;
+  t+=libre?'\nEnvío: gratis a toda Colombia':'\nEnvío: pendiente de cotizar según mi ciudad';
+  t+='\n\nQuedo atenta a la confirmación de disponibilidad y a la asesoría de talla. Gracias.';
+  const val=+total.replace(/[^0-9]/g,'')||0;
+  const piezas=sel.length+(base?1:0);
+  track('InitiateCheckout',{content_name:'WhatsApp · pedido armador',num_items:piezas,value:val});
+  track('Lead',{content_name:'Pedido armador',num_items:piezas,value:val});
   window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(t),'_blank');
 }
 $('#send').onclick=pedir;
@@ -1143,33 +1326,81 @@ document.getElementById('b-filters').addEventListener('click',e=>{
 });
 
 /* catalogo completo */
-$('#more-btn').addEventListener('click',()=>{
-  const full=$('#full-cat');
-  const v=full.hidden;
+const full=$('#full-cat'), moreBtn=$('#more-btn');
+const CERRADO='Ver el catálogo completo · 86 charms';
+function abrirCat(v){
   full.hidden=!v;
-  $('#more-btn').textContent=v?'Ocultar catálogo completo':'Ver los 86 charms';
-  $('#more-btn').setAttribute('aria-expanded',v?'true':'false');
+  moreBtn.textContent=v?'Ocultar catálogo completo':CERRADO;
+  moreBtn.setAttribute('aria-expanded',v?'true':'false');
+}
+moreBtn.addEventListener('click',()=>abrirCat(full.hidden));
+$('#ver-todos').addEventListener('click',()=>{
+  abrirCat(true);
+  full.scrollIntoView({behavior:'smooth',block:'start'});
 });
 
-/* filtros (solo sobre el resto del catalogo) */
+/* filtros del catálogo
+   El conteo suma los destacados del carrusel, que viven fuera de #resto-grid:
+   si no, "Disney" decía 13 cuando en pantalla hay 15. */
 const grid=document.getElementById('resto-grid');
+const destacados=document.getElementById('rail-top');
 const cuenta=document.getElementById('count');
-document.getElementById('filters').addEventListener('click',e=>{
-  const b=e.target.closest('.fbtn'); if(!b) return;
-  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('is-on'));
-  b.classList.add('is-on');
-  const f=b.dataset.f;
+function aplicarFiltro(f){
+  /* acotado a #filters: sin esto también apagaba el botón activo de #b-filters */
+  document.querySelectorAll('#filters .fbtn').forEach(x=>{
+    x.classList.toggle('is-on',x.dataset.f===f);
+  });
   let v=0;
   grid.querySelectorAll('.pc').forEach(p=>{
     const ok = f==='todos' || p.dataset.g===f;
     p.hidden=!ok; if(ok) v++;
   });
-  cuenta.textContent=f==='todos'?'':v+' charms en esta colección';
+  if(f!=='todos'){
+    destacados.querySelectorAll('.pc').forEach(p=>{ if(p.dataset.g===f) v++; });
+  }
+  cuenta.textContent=f==='todos'?'':v+(v===1?' charm en esta colección':' charms en esta colección');
+}
+document.getElementById('filters').addEventListener('click',e=>{
+  const b=e.target.closest('.fbtn'); if(!b) return;
+  aplicarFiltro(b.dataset.f);
 });
 
-document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
-  a.addEventListener('click',()=>track('Contact',{content_name:a.closest('section')?.id||'general'}));
+/* tarjetas de categoría → abren el catálogo ya filtrado */
+document.querySelectorAll('.cat[data-cat]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    abrirCat(true);
+    aplicarFiltro(a.dataset.cat);
+    full.scrollIntoView({behavior:'smooth',block:'start'});
+    track('ViewContent',{content_type:'product_group',content_name:'Categoría '+a.dataset.cat});
+  });
 });
+
+/* flechas del carrusel de destacados */
+(function(){
+  const rail=document.getElementById('rail-top');
+  const prev=document.getElementById('rail-prev'), next=document.getElementById('rail-next');
+  const paso=()=>Math.max(200,rail.clientWidth*.8);
+  const estado=()=>{
+    prev.disabled = rail.scrollLeft<8;
+    next.disabled = rail.scrollLeft >= rail.scrollWidth-rail.clientWidth-8;
+  };
+  prev.addEventListener('click',()=>rail.scrollBy({left:-paso(),behavior:'smooth'}));
+  next.addEventListener('click',()=>rail.scrollBy({left:paso(),behavior:'smooth'}));
+  rail.addEventListener('scroll',estado,{passive:true});
+  addEventListener('resize',estado);
+  estado();
+})();
+
+/* Todo clic que lleve a WhatsApp cuenta como inicio de compra:
+   el checkout ocurre en el chat, fuera del sitio. */
+document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
+  a.addEventListener('click',()=>track('InitiateCheckout',{
+    content_name:'WhatsApp · '+(a.dataset.wa||a.closest('section')?.id||'general')
+  }));
+});
+
+document.getElementById('year').textContent=new Date().getFullYear();
 
 render();
 })();

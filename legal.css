@@ -1,0 +1,84 @@
+/* Estilos de las páginas de información y legales.
+   Mismo sistema tipográfico y de color que index.html, en una hoja aparte
+   porque las cinco páginas la comparten. */
+:root{
+  --bone:#F6F3F4; --ink:#2A1F2E; --plum:#5C3D63; --rose:#B4657F; --rose-soft:#F3E6EB;
+  --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a; --w:760px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bone);color:var(--ink);
+  font:300 16px/1.7 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--plum)}
+h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;margin:0;letter-spacing:.01em}
+.wrap{max-width:var(--w);margin:0 auto;padding:0 20px}
+:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
+
+.top{position:sticky;top:0;z-index:20;background:rgba(246,243,244,.94);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding:0 20px;height:58px;
+  display:flex;align-items:center;gap:18px}
+.brand{font-family:'Cormorant Garamond',serif;font-size:21px;letter-spacing:.13em;
+  text-transform:uppercase;text-decoration:none;color:var(--ink);white-space:nowrap}
+.brand em{font-style:italic;letter-spacing:.04em;color:var(--plum)}
+.back{margin-left:auto;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+  text-decoration:none;color:var(--ink);opacity:.75}
+.back:hover{opacity:1}
+
+.doc{padding:38px 0 60px}
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--silver)}
+.doc h1{font-size:clamp(30px,7vw,46px);line-height:1.12;margin:10px 0 8px}
+.upd{font-size:12.5px;color:#6d6070;margin:0 0 30px;padding-bottom:22px;
+  border-bottom:1px solid var(--line)}
+.doc h2{font-size:clamp(21px,4.6vw,27px);line-height:1.25;margin:34px 0 10px}
+.doc h3{font-size:19px;margin:24px 0 6px}
+.doc p{margin:0 0 14px;color:#4a3d4e}
+.doc ul,.doc ol{margin:0 0 16px;padding-left:22px;color:#4a3d4e}
+.doc li{margin-bottom:8px}
+.doc b,.doc strong{font-weight:500;color:var(--ink)}
+.doc table{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:14.5px}
+.doc th,.doc td{border:1px solid var(--line);padding:10px 12px;text-align:left;
+  vertical-align:top;background:var(--white)}
+.doc th{background:var(--rose-soft);font-weight:500;font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase}
+
+.note{background:var(--rose-soft);border:1px solid #e9d3dc;border-radius:3px;
+  padding:18px 20px;margin:0 0 26px}
+.note p:last-child{margin-bottom:0}
+
+.qa{border-top:1px solid var(--line)}
+.qa details{border-bottom:1px solid var(--line)}
+.qa summary{cursor:pointer;padding:17px 34px 17px 0;position:relative;
+  font-size:16.5px;line-height:1.45;list-style:none}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::after{content:'+';position:absolute;right:6px;top:15px;
+  font-size:21px;color:var(--rose);line-height:1;transition:transform .2s}
+.qa details[open] summary::after{transform:rotate(45deg)}
+.qa details[open] summary{color:var(--plum)}
+.qa .a{padding:0 6px 18px 0}
+.qa .a p:last-child{margin-bottom:0}
+
+.cta{margin:38px 0 0;background:var(--white);border:1px solid var(--line);
+  border-radius:3px;padding:24px 22px;text-align:center}
+.cta h2{margin:0 0 8px;font-size:25px}
+.cta p{margin:0 0 18px;font-size:14.5px;color:#6d6070}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:15px 26px;border-radius:2px;border:1px solid var(--wa);background:var(--wa);
+  color:#fff;text-decoration:none;font:400 13.5px/1 Jost;letter-spacing:.09em;
+  text-transform:uppercase;transition:background .2s}
+.btn:hover{background:#1e6b58;border-color:#1e6b58}
+
+.foot{background:var(--ink);color:#cbbfd0;padding:34px 0 26px;font-size:13.5px}
+.foot a{color:#e3d6e7}
+.foot-nav{display:flex;flex-wrap:wrap;gap:10px 20px;margin:0 0 16px;padding:0;list-style:none}
+.foot-nav a{text-decoration:none}
+.foot-nav a:hover{text-decoration:underline}
+.foot p{margin:0;color:#93849a;font-size:12px;letter-spacing:.04em}
+
+@media(min-width:700px){
+  .doc{padding:52px 0 76px}
+  .cta{padding:32px 28px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}

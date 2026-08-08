@@ -6,10 +6,25 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 
 | Archivo | Qué es |
 |---|---|
-| `index.html` | El sitio completo: markup, estilos y scripts. Sin build ni dependencias. |
+| `index.html` | La tienda: markup, estilos y scripts. Sin build ni dependencias. |
+| `legal.css` | Estilos de las cinco páginas de información, que la comparten. |
+| `preguntas-frecuentes.html` | FAQ desplegable, con datos estructurados `FAQPage`. |
+| `envios-y-devoluciones.html` | Cobertura, costos, retracto (5 días hábiles) y garantía. |
+| `politica-de-privacidad.html` | Tratamiento de datos según Ley 1581 de 2012. |
+| `terminos-y-condiciones.html` | Condiciones de compra según Ley 1480 de 2011. |
+| `politica-de-cookies.html` | Qué instala el sitio y cómo desactivarlo. |
 | `assets/` | Las 109 imágenes del sitio (106 `.webp`, 3 `.jpg`). |
 | `skills-lock.json` | Skills instaladas en el proyecto (fuente + hash). |
 | `.claude/skills/` | Agent Skills disponibles al trabajar en este repo. |
+
+Las cinco páginas de información se generan desde un shell común para que no se
+desincronicen entre sí (cabecera, pie y `<head>` son idénticos en todas).
+
+> **Pendiente de completar:** las políticas identifican al responsable sólo como
+> "Zephora Charms". La Ley 1581 de 2012 exige razón social, NIT y domicilio; los
+> puntos exactos donde van están marcados con comentarios `<!-- PENDIENTE -->` en
+> `politica-de-privacidad.html` y `terminos-y-condiciones.html`. Tampoco hay correo
+> de contacto: el único canal publicado es WhatsApp.
 
 Las imágenes vivían incrustadas en el HTML como data URIs en base64, lo que hacía el archivo portable pero pesado: 2.5 MB, de los cuales 2.4 MB eran imágenes. Peor todavía, `loading="lazy"` no hace nada sobre un data URI —los bytes ya viajan dentro del HTML—, así que cada visitante descargaba las 109 imágenes antes de ver nada.
 
@@ -17,7 +32,7 @@ Ahora son archivos externos y el HTML pesa 115 KB. El navegador pide solo la ima
 
 ## Despliegue
 
-**Se arrastra la carpeta del proyecto, no `index.html` suelto.** Ese archivo ya no es autocontenido: sin `assets/` al lado, las 109 imágenes salen rotas.
+**Se arrastra la carpeta del proyecto, no `index.html` suelto.** Ese archivo ya no es autocontenido: sin `assets/` al lado las 109 imágenes salen rotas, sin `legal.css` las cinco páginas de información salen sin estilos, y los enlaces del pie quedan en 404.
 
 Netlify publica la raíz de lo que se suelte, así que la carpeta debe tener `index.html` en su primer nivel y `assets/` junto a él.
 
@@ -31,13 +46,23 @@ Meta Pixel `2130673404542988` (dataset "zephora charms pixel 1"). Eventos que di
 
 | Evento | Cuándo |
 |---|---|
-| `PageView`, `ViewContent` | Carga del catálogo |
+| `PageView` | Carga de la página |
+| `ViewContent` | Carga del catálogo, y al abrir una categoría desde las tarjetas |
 | `AddToCart` | Se agrega un charm, o se elige el brazalete base |
-| `InitiateCheckout` | Se empieza a armar la pulsera |
-| `Lead` | Se envía el pedido por WhatsApp |
-| `Contact` | Clics a WhatsApp/Instagram, etiquetados por sección |
+| `InitiateCheckout` | **Cualquier clic que lleve a WhatsApp,** etiquetado por sección en `content_name` |
+| `Lead` | Se envía el pedido armado por WhatsApp (además del `InitiateCheckout`) |
 
-`Lead` es la conversión real a optimizar en campañas: el checkout ocurre en WhatsApp, fuera del sitio.
+`InitiateCheckout` es la conversión a optimizar en campañas: el checkout ocurre en
+WhatsApp, fuera del sitio, así que el salto al chat es lo último medible. `Lead`
+queda como señal de mayor intención —lleva `value` y `num_items` del pedido real—,
+útil para optimizar por valor cuando el volumen lo permita.
+
+Cada enlace a WhatsApp lleva un `data-wa` con su origen (`hero`, `asesoria-regalo`,
+`pie`), que viaja en `content_name` para poder separar en Events Manager qué botón
+trae las conversiones.
+
+Abrir el detalle del pedido ya no dispara `InitiateCheckout`: ese evento pasó a
+marcar el salto a WhatsApp, y mantener ambos habría inflado la cuenta.
 
 Al tocar el pixel, verificar con **Events Manager → Probar eventos** antes de dar por bueno el cambio.
 
