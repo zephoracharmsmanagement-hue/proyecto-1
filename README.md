@@ -20,11 +20,14 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 Las cinco páginas de información se generan desde un shell común para que no se
 desincronicen entre sí (cabecera, pie y `<head>` son idénticos en todas).
 
-> **Pendiente de completar:** las políticas identifican al responsable sólo como
-> "Zephora Charms". La Ley 1581 de 2012 exige razón social, NIT y domicilio; los
-> puntos exactos donde van están marcados con comentarios `<!-- PENDIENTE -->` en
-> `politica-de-privacidad.html` y `terminos-y-condiciones.html`. Tampoco hay correo
-> de contacto: el único canal publicado es WhatsApp.
+El responsable se identifica como **Zephora Charms, NIT 1.019.151.696-3, tienda
+virtual con operación en Bogotá D.C.**
+
+> **Pendiente:** por decisión del propietario no se publica domicilio. El artículo
+> 50 de la Ley 1480 de 2011 pide una *dirección de notificación judicial* en
+> comercio electrónico, así que ese punto queda descubierto; las políticas señalan
+> WhatsApp como canal oficial de notificaciones al consumidor. Tampoco hay correo
+> de contacto publicado.
 
 Las imágenes vivían incrustadas en el HTML como data URIs en base64, lo que hacía el archivo portable pero pesado: 2.5 MB, de los cuales 2.4 MB eran imágenes. Peor todavía, `loading="lazy"` no hace nada sobre un data URI —los bytes ya viajan dentro del HTML—, así que cada visitante descargaba las 109 imágenes antes de ver nada.
 
