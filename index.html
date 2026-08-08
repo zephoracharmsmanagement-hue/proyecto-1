@@ -25,8 +25,13 @@ n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
 document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','2130673404542988');
-fbq('track','PageView');
-fbq('track','ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',currency:'COP'});
+// Cada evento viaja con un event_id unico. Es lo que permite deduplicar el dia
+// que la API de Conversiones mande el mismo evento desde el servidor: sin esto,
+// cada conversion se contaria dos veces.
+window.zcEvId=function(){return 'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10)};
+fbq('track','PageView',{},{eventID:window.zcEvId()});
+// ViewContent se dispara desde el script del armador, donde ya existe el
+// catalogo y puede viajar con content_ids.
 </script>
 <noscript><img height="1" width="1" style="display:none" alt=""
 src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></noscript>
@@ -992,8 +997,14 @@ const escala=n=>n<=0?0:ESC[Math.min(n,4)];
 const $=s=>document.querySelector(s);
 
 let base=null, sel=[];
-const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
+const evId=()=>(window.zcEvId?window.zcEvId():'zc-'+Math.random().toString(36).slice(2,10));
+const track=(ev,d)=>{ if(typeof fbq==='function')
+  fbq('track',ev,Object.assign({currency:'COP'},d||{}),{eventID:evId()}); };
 let icoDone=false;
+// Firma de la ultima seleccion por la que ya se reporto Lead. Evita que volver
+// a tocar "Pedir" —cosa natural, porque WhatsApp abre en otra pestaña— cuente
+// el mismo pedido varias veces e infle la conversion que optimiza la campana.
+let leadSig='';
 
 function imgDe(id){
   const el=document.querySelector('.pc[data-id="'+id+'"] img');
@@ -1107,8 +1118,15 @@ function pedir(){
   if(document.getElementById('pack').checked) t+='\n· Empaque Premium de Regalo — '+cop(40000);
   t+='\n\nTotal con descuento: '+total;
   t+=libre?'\nEnvío: gratis':'\nEnvío: por cotizar según mi ciudad';
-  track('Lead',{content_name:'Pedido armador',num_items:sel.length+(base?1:0),
-    value:+total.replace(/[^0-9]/g,'')||0});
+  const sig=(base||'')+'|'+sel.slice().sort().join(',')+
+    '|'+(document.getElementById('pack').checked?1:0)+'|'+total;
+  if(sig!==leadSig){
+    leadSig=sig;
+    track('Lead',{content_name:'Pedido armador',
+      content_ids:(base?[base]:[]).concat(sel),
+      num_items:sel.length+(base?1:0),
+      value:+total.replace(/[^0-9]/g,'')||0});
+  }
   window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(t),'_blank');
 }
 $('#send').onclick=pedir;
@@ -1172,6 +1190,12 @@ document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
 });
 
 render();
+
+// ViewContent con los ids de los charms destacados. Los ids son los mismos
+// slugs de las tarjetas, asi que cuando se suba el catalogo a Meta usando esos
+// slugs como id de producto, el retargeting dinamico empata sin tocar nada.
+track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',
+  content_ids:[...document.querySelectorAll('.pc--top')].map(p=>p.dataset.id)});
 })();
 </script>
 <div class="lb" id="lb" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Foto ampliada">
