@@ -23,11 +23,12 @@ desincronicen entre sí (cabecera, pie y `<head>` son idénticos en todas).
 El responsable se identifica como **Zephora Charms, NIT 1.019.151.696-3, tienda
 virtual con operación en Bogotá D.C.**
 
+Los canales publicados son WhatsApp +57 301 899 0672 y `zephoracharms@gmail.com`.
+
 > **Pendiente:** por decisión del propietario no se publica domicilio. El artículo
 > 50 de la Ley 1480 de 2011 pide una *dirección de notificación judicial* en
 > comercio electrónico, así que ese punto queda descubierto; las políticas señalan
-> WhatsApp como canal oficial de notificaciones al consumidor. Tampoco hay correo
-> de contacto publicado.
+> WhatsApp y el correo como canales oficiales de notificación al consumidor.
 
 Las imágenes vivían incrustadas en el HTML como data URIs en base64, lo que hacía el archivo portable pero pesado: 2.5 MB, de los cuales 2.4 MB eran imágenes. Peor todavía, `loading="lazy"` no hace nada sobre un data URI —los bytes ya viajan dentro del HTML—, así que cada visitante descargaba las 109 imágenes antes de ver nada.
 
