@@ -1408,7 +1408,8 @@ render();
 </script>
 <div class="lb" id="lb" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Foto ampliada">
   <button class="lb-x" type="button" id="lb-x" aria-label="Cerrar">&#10005;</button>
-  <img id="lb-img" src="" alt="">
+  <!-- sin src: el visor lo pone al abrir. Un src="" dispara una petición extra al propio HTML. -->
+  <img id="lb-img" alt="">
 </div>
 
 <script>
