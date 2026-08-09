@@ -84,6 +84,26 @@ El conteo es a mano, así que la página **nunca promete disponibilidad**: junto
 total dice "Disponibilidad referencial — te confirmamos por WhatsApp antes de que
 pagues", con la fecha del último conteo.
 
+### Piezas sin foto
+
+Tres charms con stock esperan fotografía: **Cenicienta**, **Corazón Mamá e Hija**
+y **Stitch Plateado**. En vez de esconderlos —serían ventas perdidas de
+inventario que sí existe— sus tarjetas llevan un marcador con el monograma de la
+pieza y el rótulo "Foto en camino", y se pueden pedir con normalidad.
+
+Stitch Plateado tenía además una foto equivocada: mostraba `stitch-azul.webp`,
+que era copia byte a byte de `stitch.webp`, o sea el Stitch azul esmaltado. Ese
+archivo se borró: enseñar el azul para vender el plateado induce a error.
+
+Para enchufar una foto: se guarda en `assets/` y en la tarjeta se cambia
+
+```html
+<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">C</span><span class="nofoto-t">Foto en camino</span>
+```
+
+por el `<div class="pc-img"><img …>` que usan las demás. El carrito toma la
+miniatura sola desde `imgDe()`, no hay que tocar nada más.
+
 ### Las letras
 
 Las 27 iniciales (A–Z más Ñ, `letra-a` … `letra-ñ`, con eñe literal en la clave)

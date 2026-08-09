@@ -280,6 +280,18 @@ section{scroll-margin-top:64px}
 .trust svg{flex:0 0 auto;margin-top:1px}
 .trust b{font-weight:500;color:var(--ink)}
 
+/* Piezas con stock cuya foto todavía no llega. Se venden igual: esconderlas sería
+   dejar de vender inventario real, y un <img> roto se ve peor que un marcador. */
+.pc-img--nofoto{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;background:linear-gradient(160deg,#f8f2f5,#ece2e7)}
+.nofoto-m{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(38px,11vw,52px);
+  line-height:1;color:var(--plum);opacity:.5}
+.nofoto-t{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:#9a8ea0}
+.pc.is-out .pc-img--nofoto{opacity:.5}
+.srow-nof{width:46px;height:46px;border-radius:2px;background:#3a2c40;color:#c3b4c6;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  font-family:'Cormorant Garamond',Georgia,serif;font-size:20px}
+
 /* ——— disponibilidad y tallas ——— */
 /* Abajo a la derecha: arriba chocaba con .pc-mark en las tarjetas de 2 columnas */
 .pc-stock{position:absolute;bottom:7px;right:7px;font-size:8.5px;letter-spacing:.09em;
@@ -796,11 +808,11 @@ body.sheet-open{overflow:hidden}
 <div class="pc-body"><h3 class="pc-name">Olaf de Frozen</h3><p class="pc-meta">Frozen</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="olaf-de-frozen" aria-label="Agregar Olaf de Frozen">Agregar</button></div></div></article>
 <article class="pc" data-id="stitch-azul" data-g="Disney">
-<div class="pc-img"><img src="assets/stitch-azul.webp" alt="Stitch Plateado" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">S</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Stitch Plateado</h3><p class="pc-meta">Lilo &amp; Stitch</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="stitch-azul" aria-label="Agregar Stitch Plateado">Agregar</button></div></div></article>
 <article class="pc" data-id="cenicienta" data-g="Disney">
-<div class="pc-img"><img src="assets/cenicienta.webp" alt="Cenicienta" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">C</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Cenicienta</h3><p class="pc-meta">Princesas Disney</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="cenicienta" aria-label="Agregar Cenicienta">Agregar</button></div></div></article>
 <article class="pc" data-id="angel" data-g="Disney">
@@ -952,7 +964,7 @@ body.sheet-open{overflow:hidden}
 <div class="pc-body"><h3 class="pc-name">Mariposas Tricolor Colgantes</h3><p class="pc-meta">Dije colgante</p>
 <div class="pc-foot"><span class="pc-price">$72.000</span><button class="pc-add" type="button" data-add="mariposas-tricolor-colgantes" aria-label="Agregar Mariposas Tricolor Colgantes">Agregar</button></div></div></article>
 <article class="pc" data-id="corazon-mama-e-hija" data-g="Símbolos">
-<div class="pc-img"><img src="assets/corazon-mama-e-hija.webp" alt="Corazón Mamá e Hija" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">M</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Corazón Mamá e Hija</h3><p class="pc-meta">Dije colgante</p>
 <div class="pc-foot"><span class="pc-price">$68.000</span><button class="pc-add" type="button" data-add="corazon-mama-e-hija" aria-label="Agregar Corazón Mamá e Hija">Agregar</button></div></div></article>
 <article class="pc pc--letras" data-id="letras" data-g="Letras">
@@ -1292,7 +1304,11 @@ function imgDe(id){
 
 function fila(id,nombre,meta,precio,quitar){
   const r=document.createElement('div'); r.className='srow';
-  r.innerHTML='<img src="'+imgDe(id)+'" alt="">'+
+  const src=imgDe(id);
+  /* Sin foto va un monograma, no un <img src=""> — eso pedía el HTML otra vez. */
+  const mini = src ? '<img src="'+src+'" alt="">'
+    : '<span class="srow-nof" aria-hidden="true">'+nombre.trim().charAt(0).toUpperCase()+'</span>';
+  r.innerHTML=mini+
     '<div class="srow-n">'+nombre+'<small>'+meta+'</small></div>'+
     '<span class="srow-p">'+cop(precio)+'</span>'+
     '<button class="srow-x" type="button" aria-label="Quitar '+nombre+'">✕</button>';
