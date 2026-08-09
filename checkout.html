@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Finalizar compra · Zephora Charms</title>
+<meta name="description" content="Completa tu pedido de Zephora Charms. Pago seguro con Nequi, Bancolombia, PSE, tarjeta o Addi, y opción de pago contraentrega. Envíos a toda Colombia.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
+<meta name="theme-color" content="#2A1F2E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
+<!-- Meta Pixel · zephora charms pixel 1 · ID 2130673404542988 -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','2130673404542988');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" alt=""
+src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></noscript>
+
+<style>
+:root{
+  --bone:#F6F3F4; --ink:#2A1F2E; --plum:#5C3D63; --rose:#B4657F; --rose-soft:#F3E6EB;
+  --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a; --pagar:#9E4E68;
+  --mal:#B03A48; --bien:#1F7A5C;
+  --w:1080px;
+}
+*{box-sizing:border-box}
+/* Varias piezas de esta página se ocultan con [hidden] pero tienen display
+   propio (flex, grid), que gana contra el display:none del navegador y las deja
+   visibles y vacías. Esta regla decide el empate a favor de [hidden]. */
+[hidden]{display:none!important}
+body{margin:0;background:var(--bone);color:var(--ink);
+  font:300 16px/1.6 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%;height:auto}
+h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;margin:0;letter-spacing:.01em}
+a{color:var(--plum)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
+.wrap{max-width:var(--w);margin:0 auto;padding:0 16px}
+.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);font-weight:400}
+
+/* ——— cabecera ——— */
+.top{background:var(--bone);border-bottom:1px solid var(--line)}
+.top-in{max-width:var(--w);margin:0 auto;padding:0 16px;height:58px;
+  display:flex;align-items:center;gap:12px}
+.brand{font-family:'Cormorant Garamond',serif;font-size:19px;letter-spacing:.13em;
+  text-transform:uppercase;text-decoration:none;color:var(--ink);white-space:nowrap}
+.brand em{font-style:italic;letter-spacing:.04em;color:var(--plum)}
+.seguro{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;
+  letter-spacing:.09em;text-transform:uppercase;color:#6d6070;white-space:nowrap}
+
+/* ——— resumen plegable, pegado arriba ——— */
+.res{position:sticky;top:0;z-index:40;background:var(--white);border-bottom:1px solid var(--line)}
+.res-bar{max-width:var(--w);margin:0 auto;padding:11px 16px;display:flex;align-items:center;
+  gap:10px;width:100%;background:none;border:0;cursor:pointer;text-align:left;color:inherit}
+.res-t{display:block;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--silver)}
+.res-p{display:block;font-family:'Cormorant Garamond',serif;font-size:22px;line-height:1.15;margin-top:2px}
+.res-ver{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--plum);white-space:nowrap}
+.res-ver svg{transition:transform .25s}
+.res.is-on .res-ver svg{transform:rotate(180deg)}
+.res-caja{display:none;border-top:1px solid var(--line);background:#fbf9fa}
+.res.is-on .res-caja{display:block}
+.res-in{max-width:var(--w);margin:0 auto;padding:14px 16px}
+.rrow{display:flex;align-items:center;gap:11px;padding:8px 0}
+.rrow+.rrow{border-top:1px solid var(--line)}
+.rrow img{width:44px;height:44px;object-fit:contain;background:#fff;border:1px solid var(--line);
+  border-radius:2px;flex:0 0 auto}
+.rrow-nof{width:44px;height:44px;border:1px solid var(--line);border-radius:2px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;background:#f4eef1;
+  font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--plum)}
+.rrow-n{font-size:14px;line-height:1.3;min-width:0}
+.rrow-n small{display:block;font-size:10.5px;color:var(--silver);letter-spacing:.05em;
+  text-transform:uppercase;margin-top:1px}
+.rrow-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
+.tot-row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;
+  color:#6d6070;padding:5px 0}
+.tot-row b{font-weight:400;color:var(--ink)}
+.tot-row.save{color:var(--rose)}
+.tot-row.ok b{color:var(--bien)}
+.tot-fin{display:flex;justify-content:space-between;align-items:baseline;
+  border-top:1px solid var(--line);margin-top:9px;padding-top:11px}
+.tot-fin span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver)}
+.tot-fin b{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:300}
+.res-editar{display:inline-block;margin-top:12px;font-size:12.5px}
+
+/* ——— pasos ——— */
+.pasos{display:flex;align-items:center;gap:0;margin:22px 0 26px;padding:0;list-style:none}
+.paso{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;
+  font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--silver);
+  text-align:center}
+.paso::before{content:'';position:absolute;top:14px;left:-50%;width:100%;height:1px;
+  background:var(--line);z-index:0}
+.paso:first-child::before{display:none}
+.paso i{width:29px;height:29px;border-radius:50%;border:1px solid var(--line);background:var(--white);
+  display:flex;align-items:center;justify-content:center;font-style:normal;font-size:13px;
+  color:var(--silver);position:relative;z-index:1;transition:.2s}
+.paso.is-on{color:var(--ink)}
+.paso.is-on i{border-color:var(--pagar);background:var(--pagar);color:#fff}
+.paso.is-ya{color:#6d6070}
+.paso.is-ya i{border-color:var(--plum);background:var(--plum);color:#fff}
+
+/* ——— paneles ——— */
+.panel{background:var(--white);border:1px solid var(--line);border-radius:3px;
+  padding:20px 16px 22px;margin-bottom:16px}
+.panel[hidden]{display:none}
+.panel h2{font-size:clamp(23px,6vw,29px);line-height:1.15;margin:0 0 4px}
+.panel-sub{margin:0 0 18px;font-size:13.5px;color:#6d6070;line-height:1.5}
+
+.campos{display:grid;gap:14px}
+.campo{display:flex;flex-direction:column;gap:5px;min-width:0}
+.campo>label{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#6d6070}
+.campo>label .req{color:var(--rose)}
+.campo input,.campo select,.campo textarea{
+  font:300 15.5px/1.4 Jost,system-ui,sans-serif;color:var(--ink);background:var(--white);
+  border:1px solid var(--line);border-radius:2px;padding:12px 12px;width:100%;
+  min-height:46px;transition:border-color .16s}
+.campo textarea{min-height:80px;resize:vertical}
+.campo select{appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235C3D63' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+.campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--plum);outline:none}
+.campo .pista{font-size:11.5px;color:#8a8290;line-height:1.45}
+.campo.mal input,.campo.mal select,.campo.mal textarea{border-color:var(--mal)}
+.error{font-size:11.5px;color:var(--mal);line-height:1.45;display:none}
+.campo.mal .error{display:block}
+.dos{display:grid;grid-template-columns:1fr;gap:14px}
+.doc{display:grid;grid-template-columns:104px 1fr;gap:9px}
+
+/* ——— opciones (entrega, pago) ——— */
+.ops{display:grid;gap:11px}
+.op{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:3px;
+  padding:15px 14px;cursor:pointer;background:var(--white);transition:.16s;text-align:left;width:100%}
+.op input{margin:2px 0 0;width:19px;height:19px;accent-color:var(--pagar);flex:0 0 auto;cursor:pointer}
+.op-tx{min-width:0;flex:1}
+.op-t{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.op-t b{font-weight:400;font-size:15.5px}
+.op-t .precio{margin-left:auto;font-size:14px;white-space:nowrap}
+.op-d{margin:4px 0 0;font-size:12.5px;color:#6d6070;line-height:1.5}
+.op:has(input:checked){border-color:var(--pagar);box-shadow:0 0 0 1px var(--pagar)}
+.op-logos{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.op-logos span{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#7c7681;
+  border:1px solid var(--line);border-radius:1px;padding:3px 6px;background:#fbf9fa}
+
+/* ——— navegación ——— */
+.nav{display:grid;gap:10px;margin-top:20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:16px 24px;border-radius:2px;border:1px solid var(--ink);background:var(--ink);
+  color:var(--bone);text-decoration:none;font:400 13.5px/1 Jost;letter-spacing:.09em;
+  text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s,border-color .2s;
+  width:100%}
+.btn--pagar{background:var(--pagar);border-color:var(--pagar);color:#fff}
+.btn--ghost{background:transparent;color:var(--ink)}
+@media(hover:hover){
+  .btn--pagar:hover{background:#884057;border-color:#884057}
+  .btn--ghost:hover{background:var(--ink);color:var(--bone)}
+  .op:hover{border-color:var(--silver)}
+}
+.btn[disabled]{opacity:.55;cursor:progress}
+.atras{background:none;border:0;color:var(--plum);font:400 12.5px/1 Jost;letter-spacing:.05em;
+  cursor:pointer;padding:12px;min-height:44px}
+
+/* ——— avisos ——— */
+.aviso{display:flex;gap:10px;align-items:flex-start;border-radius:3px;padding:13px 14px;
+  font-size:13px;line-height:1.5;margin:0 0 16px}
+.aviso svg{flex:0 0 auto;margin-top:2px}
+.aviso--mal{background:#fbeced;border:1px solid #f0cfd3;color:#8d2f3b}
+.aviso--info{background:var(--rose-soft);border:1px solid #e9d3dc;color:#5f4553}
+.aviso--ok{background:#e9f5f0;border:1px solid #c6e5d9;color:#1a6049}
+
+/* ——— vacío ——— */
+.vacio{text-align:center;padding:56px 16px}
+.vacio h1{font-size:clamp(27px,7vw,38px);margin-bottom:10px}
+.vacio p{color:#6d6070;margin:0 0 22px}
+.vacio .btn{max-width:320px;margin:0 auto}
+
+/* ——— pie ——— */
+.pie{border-top:1px solid var(--line);margin-top:26px;padding:22px 0 30px;
+  font-size:12px;color:#6d6070;text-align:center;line-height:1.7}
+.pie a{margin:0 7px;white-space:nowrap}
+.garantias{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:0 0 12px;
+  font-size:11.5px;color:#6d6070}
+.garantias span{display:inline-flex;align-items:center;gap:5px}
+
+@media(min-width:760px){
+  .wrap{padding:0 24px}
+  .top-in{padding:0 24px;height:64px}
+  .res-bar,.res-in{padding-left:24px;padding-right:24px}
+  .panel{padding:28px 28px 30px}
+  .dos{grid-template-columns:1fr 1fr}
+  .nav{grid-template-columns:auto 1fr;align-items:center}
+  .nav .btn{width:auto;justify-self:end}
+  .nav .atras{justify-self:start;text-align:left;padding-left:0}
+  .paso{font-size:11.5px}
+  .cols{display:grid;grid-template-columns:1fr 344px;gap:26px;align-items:start}
+  .res{position:static;border:0;background:none}
+  .res-bar{display:none}
+  .res-caja{display:block;border:1px solid var(--line);border-radius:3px;background:var(--white)}
+  .res-in{padding:20px}
+  .res-lado{position:sticky;top:20px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="index.html">Zephora <em>Charms</em></a>
+    <span class="seguro">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+      Pago seguro
+    </span>
+  </div>
+</header>
+
+<!-- Mientras carga el catálogo no se puede mostrar ni un precio: se avisa. -->
+<main class="wrap" id="cargando" style="padding-top:60px;padding-bottom:60px;text-align:center">
+  <p class="eyebrow">Un momento</p>
+  <p style="color:#6d6070">Cargando tu pedido…</p>
+</main>
+
+<!-- Carrito vacío o perdido -->
+<main class="wrap vacio" id="vacio" hidden>
+  <h1>No hay nada que pagar todavía</h1>
+  <p>Tu selección está vacía o venció. Arma tu pulsera y vuelve — el precio se calcula solo.</p>
+  <a class="btn btn--pagar" href="index.html#brazaletes">Ver brazaletes y charms</a>
+</main>
+
+<main id="app" hidden>
+
+  <!-- resumen: barra plegable en móvil, columna fija en escritorio -->
+  <div class="res" id="res">
+    <button class="res-bar" type="button" id="res-bar" aria-expanded="false" aria-controls="res-caja">
+      <span>
+        <span class="res-t">Resumen del pedido</span>
+        <span class="res-p" id="res-total">$0</span>
+      </span>
+      <span class="res-ver">Ver pedido
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </span>
+    </button>
+    <div class="res-caja" id="res-caja">
+      <div class="res-in">
+        <div id="res-lineas"></div>
+        <div id="res-totales"></div>
+        <a class="res-editar" href="index.html#brazaletes">← Modificar mi selección</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <ol class="pasos" id="pasos">
+          <li class="paso is-on" data-p="1"><i>1</i>Tus datos</li>
+          <li class="paso" data-p="2"><i>2</i>Entrega</li>
+          <li class="paso" data-p="3"><i>3</i>Pago</li>
+        </ol>
+
+        <div class="aviso aviso--mal" id="aviso-error" hidden>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5.5M12 16.3v.2"/></svg>
+          <span id="aviso-error-tx"></span>
+        </div>
+
+        <!-- ——— 1 · datos ——— -->
+        <section class="panel" id="panel-1" aria-labelledby="t1">
+          <h2 id="t1">¿A dónde la enviamos?</h2>
+          <p class="panel-sub">Con estos datos generamos la guía de Inter Rapidísimo. Revisa el celular y el correo: por ahí te llega el número de seguimiento.</p>
+
+          <form class="campos" id="form-1" novalidate>
+            <div class="dos">
+              <div class="campo" data-c="nombre">
+                <label for="nombre">Nombre <span class="req">*</span></label>
+                <input id="nombre" name="nombre" type="text" autocomplete="given-name" maxlength="60" required>
+                <span class="error">Escribe tu nombre</span>
+              </div>
+              <div class="campo" data-c="apellido">
+                <label for="apellido">Apellido <span class="req">*</span></label>
+                <input id="apellido" name="apellido" type="text" autocomplete="family-name" maxlength="60" required>
+                <span class="error">Escribe tu apellido</span>
+              </div>
+            </div>
+
+            <div class="campo" data-c="documento">
+              <label for="documento">Documento de identidad <span class="req">*</span></label>
+              <div class="doc">
+                <select id="tipodoc" name="tipodoc" aria-label="Tipo de documento">
+                  <option value="CC">C.C.</option>
+                  <option value="CE">C.E.</option>
+                  <option value="NIT">NIT</option>
+                  <option value="PP">Pasaporte</option>
+                  <option value="TI">T.I.</option>
+                </select>
+                <input id="documento" name="documento" type="text" inputmode="numeric" autocomplete="off" maxlength="15" required>
+              </div>
+              <span class="pista">Lo pide la transportadora para entregar el paquete.</span>
+              <span class="error">Escribe el número de documento (mínimo 5 caracteres)</span>
+            </div>
+
+            <div class="dos">
+              <div class="campo" data-c="celular">
+                <label for="celular">Celular <span class="req">*</span></label>
+                <input id="celular" name="celular" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="12" placeholder="300 000 0000" required>
+                <span class="error">Un celular colombiano de 10 dígitos que empiece por 3</span>
+              </div>
+              <div class="campo" data-c="correo">
+                <label for="correo">Correo electrónico <span class="req">*</span></label>
+                <input id="correo" name="correo" type="email" autocomplete="email" maxlength="120" placeholder="tucorreo@ejemplo.com" required>
+                <span class="error">Revisa el correo: falta el @ o el dominio</span>
+              </div>
+            </div>
+
+            <div class="dos">
+              <div class="campo" data-c="depto">
+                <label for="depto">Departamento <span class="req">*</span></label>
+                <select id="depto" name="depto" required>
+                  <option value="">Seleccionar</option>
+                </select>
+                <span class="error">Elige el departamento</span>
+              </div>
+              <div class="campo" data-c="ciudad">
+                <label for="ciudad">Ciudad o municipio <span class="req">*</span></label>
+                <select id="ciudad" name="ciudad" required disabled>
+                  <option value="">Primero el departamento</option>
+                </select>
+                <span class="error">Elige la ciudad</span>
+              </div>
+            </div>
+
+            <div class="campo" data-c="ciudadotra" hidden>
+              <label for="ciudadotra">Escribe el municipio <span class="req">*</span></label>
+              <input id="ciudadotra" name="ciudadotra" type="text" maxlength="60">
+              <span class="error">Escribe el nombre del municipio</span>
+            </div>
+
+            <div class="campo" data-c="direccion">
+              <label for="direccion">Dirección <span class="req">*</span></label>
+              <input id="direccion" name="direccion" type="text" autocomplete="street-address" maxlength="120" placeholder="Calle 45 # 12 – 30" required>
+              <span class="error">Escribe la dirección completa</span>
+            </div>
+
+            <div class="dos">
+              <div class="campo" data-c="adicional">
+                <label for="adicional">Torre, apto. u oficina</label>
+                <input id="adicional" name="adicional" type="text" maxlength="80" placeholder="Torre 2, apto. 501">
+              </div>
+              <div class="campo" data-c="barrio">
+                <label for="barrio">Barrio</label>
+                <input id="barrio" name="barrio" type="text" maxlength="80">
+              </div>
+            </div>
+          </form>
+
+          <div class="nav">
+            <a class="atras" href="index.html#brazaletes" style="text-decoration:none">← Seguir viendo el catálogo</a>
+            <button class="btn btn--pagar" type="button" id="ir-2">Continuar a entrega</button>
+          </div>
+        </section>
+
+        <!-- ——— 2 · entrega ——— -->
+        <section class="panel" id="panel-2" hidden aria-labelledby="t2">
+          <h2 id="t2">Cómo te llega</h2>
+          <p class="panel-sub">Enviamos por Inter Rapidísimo a todo el país, con número de guía.</p>
+
+          <div class="aviso aviso--info" id="dir-resumen">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 10-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+            <span id="dir-resumen-tx"></span>
+          </div>
+
+          <div class="ops" role="radiogroup" aria-label="Forma de entrega">
+            <label class="op">
+              <input type="radio" name="entrega" value="normal" checked>
+              <span class="op-tx">
+                <span class="op-t"><b>Envío nacional</b><span class="precio" id="p-envio">—</span></span>
+                <span class="op-d" id="d-envio">Inter Rapidísimo con número de guía.</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="campos" style="margin-top:18px">
+            <div class="campo" data-c="notas">
+              <label for="notas">Indicaciones para la entrega</label>
+              <textarea id="notas" name="notas" maxlength="400" placeholder="Portería, horario en que hay quien reciba, punto de referencia…"></textarea>
+            </div>
+            <div class="campo" data-c="dedicatoria" id="campo-dedicatoria" hidden>
+              <label for="dedicatoria">Dedicatoria para la tarjeta</label>
+              <textarea id="dedicatoria" name="dedicatoria" maxlength="200" placeholder="Va escrita a mano en la tarjeta del empaque de regalo."></textarea>
+              <span class="pista">Elegiste Empaque Premium de Regalo: si escribes algo aquí, va en la tarjeta.</span>
+            </div>
+          </div>
+
+          <div class="nav">
+            <button class="atras" type="button" data-atras="1">← Volver a tus datos</button>
+            <button class="btn btn--pagar" type="button" id="ir-3">Continuar al pago</button>
+          </div>
+        </section>
+
+        <!-- ——— 3 · pago ——— -->
+        <section class="panel" id="panel-3" hidden aria-labelledby="t3">
+          <h2 id="t3">Cómo prefieres pagar</h2>
+          <p class="panel-sub">Elige una y confirmamos el pedido. El envío cambia de precio según la que elijas.</p>
+
+          <div class="ops" id="ops-pago" role="radiogroup" aria-label="Forma de pago">
+            <label class="op">
+              <input type="radio" name="pago" value="anticipado" checked>
+              <span class="op-tx">
+                <span class="op-t"><b>Pagar ahora</b><span class="precio" id="p-anticipado">—</span></span>
+                <span class="op-d">Te llevamos a la pasarela segura de Wompi (Bancolombia). Al volver, el pedido queda confirmado.</span>
+                <span class="op-logos">
+                  <span>Nequi</span><span>Bancolombia</span><span>PSE</span>
+                  <span>Daviplata</span><span>Tarjetas</span><span>Addi a cuotas</span>
+                </span>
+              </span>
+            </label>
+            <label class="op">
+              <input type="radio" name="pago" value="contraentrega">
+              <span class="op-tx">
+                <span class="op-t"><b>Pago contraentrega</b><span class="precio" id="p-contraentrega">—</span></span>
+                <span class="op-d">Pagas en efectivo cuando el mensajero te entregue el paquete. El recaudo lo cobra la transportadora, por eso el envío cuesta más.</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="aviso aviso--info" style="margin:18px 0 0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 10-14 0c0 5.4 7 11 7 11z" style="display:none"/><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+            <span id="nota-pago">Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.</span>
+          </div>
+
+          <div class="campo" style="margin-top:18px" data-c="acepta">
+            <label style="display:flex;gap:10px;align-items:flex-start;text-transform:none;
+                          letter-spacing:0;font-size:13.5px;color:#4a3d4e;cursor:pointer">
+              <input type="checkbox" id="acepta" style="width:19px;height:19px;min-height:0;
+                     accent-color:var(--pagar);flex:0 0 auto;margin-top:2px">
+              <span>He leído y acepto los <a href="terminos-y-condiciones.html" target="_blank" rel="noopener">términos y condiciones</a>, la <a href="politica-de-privacidad.html" target="_blank" rel="noopener">política de privacidad</a> y la <a href="envios-y-devoluciones.html" target="_blank" rel="noopener">política de envíos y devoluciones</a>.</span>
+            </label>
+            <span class="error">Hay que aceptar los términos para poder cobrar</span>
+          </div>
+
+          <div class="nav">
+            <button class="atras" type="button" data-atras="2">← Volver a entrega</button>
+            <button class="btn btn--pagar" type="button" id="confirmar">Confirmar pedido</button>
+          </div>
+        </section>
+      </div>
+
+      <!-- el resumen se mueve aquí en escritorio -->
+      <aside class="res-lado" id="res-lado"></aside>
+    </div>
+
+    <div class="pie">
+      <div class="garantias">
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>Pago procesado por Wompi</span>
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg>Envíos a toda Colombia</span>
+        <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.5 7.8L3 21l1.2-4.5A9 9 0 1121 12z"/></svg>Te acompañamos por WhatsApp</span>
+      </div>
+      <div>
+        <a href="preguntas-frecuentes.html">Preguntas frecuentes</a>·
+        <a href="envios-y-devoluciones.html">Envíos y devoluciones</a>·
+        <a href="terminos-y-condiciones.html">Términos</a>·
+        <a href="politica-de-privacidad.html">Privacidad</a>
+      </div>
+      <div style="margin-top:8px">© 2024–<span id="year">2026</span> Zephora Charms · NIT 1.019.151.696-3 · Bogotá D.C., Colombia</div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const WA='573018990672';
+const LLAVE='zephora.carrito.v1';
+const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
+const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
+
+let CAT=null, GEO=null, carrito=null, paso=1;
+
+/* ——— carrito ——— */
+function leerCarrito(){
+  let d=null;
+  try{ d=JSON.parse(localStorage.getItem(LLAVE)||'null'); }catch(_){ return null; }
+  if(!d||d.v!==1) return null;
+  if(!d.cuando||Date.now()-d.cuando>7*24*3600*1000) return null;
+  const charms=Array.isArray(d.charms)?d.charms.filter(id=>CAT.precios[id]):[];
+  const base=(d.base&&d.base.id&&CAT.precios[d.base.id])
+    ? {id:d.base.id,talla:d.base.talla||null} : null;
+  if(!base&&!charms.length) return null;
+  return {base:base,charms:charms,empaque:d.empaque===true,
+    pago:d.pago==='contraentrega'?'contraentrega':'anticipado'};
+}
+function guardarCarrito(){
+  try{
+    localStorage.setItem(LLAVE,JSON.stringify({v:1,base:carrito.base,charms:carrito.charms,
+      empaque:carrito.empaque,pago:carrito.pago,cuando:Date.now()}));
+  }catch(_){}
+}
+
+/* Las mismas reglas que index.html y que netlify/functions/_precios.js. Aquí
+   solo se muestran: lo que se cobra lo vuelve a calcular el servidor, que es
+   el único que no se puede alterar desde la consola del navegador. */
+function calcular(c){
+  const R=CAT.reglas, nC=c.charms.length;
+  const brutoC=c.charms.reduce((s,id)=>s+CAT.precios[id],0);
+  const escala=nC<=0?0:R.escalaCharms[Math.min(nC,R.escalaCharms.length-1)];
+  const descC=brutoC*escala;
+  const brutoB=c.base?CAT.precios[c.base.id]:0;
+  const descB=(c.base&&nC>=R.minCharmsParaDescuento)?brutoB*R.descuentoBrazalete:0;
+  const empaque=c.empaque?R.empaque:0;
+  const subtotal=brutoC-descC+brutoB-descB+empaque;
+  const gratis=subtotal>=R.envioGratisDesde;
+  const envio=(subtotal<=0||gratis)?0:R.envio[c.pago];
+  return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(descC+descB),empaque:empaque,
+    subtotal:Math.round(subtotal),envio:envio,gratis:gratis,total:Math.round(subtotal+envio)};
+}
+
+function lineas(c){
+  const out=[];
+  if(c.base) out.push({id:c.base.id,
+    n:CAT.nombres[c.base.id].replace(/^Pulsera /,'Brazalete '),
+    m:'Baño de plata'+(c.base.talla?' · Talla '+c.base.talla+' cm':''),
+    p:CAT.precios[c.base.id]});
+  const cuenta={};
+  c.charms.forEach(id=>cuenta[id]=(cuenta[id]||0)+1);
+  Object.keys(cuenta).forEach(id=>{
+    const n=cuenta[id];
+    out.push({id:id,n:CAT.nombres[id]+(n>1?' ×'+n:''),m:'Charm · Plata 925',
+      p:CAT.precios[id]*n});
+  });
+  if(c.empaque) out.push({id:'empaque',n:'Empaque Premium de Regalo',
+    m:'Caja, bolsa y tarjeta',p:CAT.reglas.empaque});
+  return out;
+}
+
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+
+function pintarResumen(){
+  const c=carrito, t=calcular(c);
+  $('#res-total').textContent=cop(t.total);
+
+  $('#res-lineas').innerHTML=lineas(c).map(l=>{
+    /* Los charms sin foto y el empaque no tienen imagen: va la inicial, igual
+       que en el catálogo, en vez de un <img> roto. */
+    const foto=l.id==='empaque'?null:'assets/'+l.id+'.webp';
+    const ini=esc(l.n.trim().charAt(0).toUpperCase());
+    const img=foto
+      ? '<img src="'+esc(foto)+'" alt="" loading="lazy" onerror="this.outerHTML='
+        +'&quot;<span class=\\&quot;rrow-nof\\&quot; aria-hidden=\\&quot;true\\&quot;>'+ini+'</span>&quot;">'
+      : '<span class="rrow-nof" aria-hidden="true">'+ini+'</span>';
+    return '<div class="rrow">'+img+'<span class="rrow-n">'+esc(l.n)
+      +'<small>'+esc(l.m)+'</small></span><span class="rrow-p">'+cop(l.p)+'</span></div>';
+  }).join('');
+
+  let h='';
+  h+='<div class="tot-row"><span>Subtotal</span><b>'+cop(t.brutoC+t.brutoB+t.empaque)+'</b></div>';
+  if(t.descuento>0) h+='<div class="tot-row save"><span>Descuento promo</span><b>− '+cop(t.descuento)+'</b></div>';
+  h+=t.gratis
+    ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
+    : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
+  h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
+  $('#res-totales').innerHTML=h;
+
+  $('#p-envio').textContent=t.gratis?'Gratis':cop(t.envio);
+  $('#d-envio').textContent=t.gratis
+    ? 'Inter Rapidísimo con número de guía. Tu pedido pasó de '+cop(CAT.reglas.envioGratisDesde)+', así que el envío va gratis.'
+    : 'Inter Rapidísimo con número de guía. 1 a 6 días hábiles según el destino.';
+
+  /* Los dos precios del paso 3 se calculan con su propia forma de pago, para
+     que la diferencia se vea antes de elegir y no después. */
+  ['anticipado','contraentrega'].forEach(f=>{
+    const tt=calcular(Object.assign({},c,{pago:f}));
+    $('#p-'+f).textContent=cop(tt.total);
+  });
+
+  $('#campo-dedicatoria').hidden=!c.empaque;
+}
+
+/* ——— geografía ——— */
+const OTRO='__otro__';
+function pintarDeptos(){
+  const sel=$('#depto');
+  Object.keys(GEO.departamentos).sort((a,b)=>a.localeCompare(b,'es'))
+    .forEach(d=>{ const o=document.createElement('option'); o.value=d; o.textContent=d; sel.appendChild(o); });
+}
+function pintarCiudades(){
+  const d=$('#depto').value, sel=$('#ciudad');
+  sel.innerHTML='';
+  if(!d){
+    sel.disabled=true;
+    sel.appendChild(new Option('Primero el departamento',''));
+    $('[data-c="ciudadotra"]').hidden=true;
+    return;
+  }
+  sel.disabled=false;
+  sel.appendChild(new Option('Seleccionar',''));
+  (GEO.departamentos[d]||[]).forEach(c=>sel.appendChild(new Option(c,c)));
+  /* Siempre una salida para el municipio que no esté en la lista: la lista
+     acelera el caso común, no puede impedir una venta. */
+  sel.appendChild(new Option('Otro municipio…',OTRO));
+  verOtra();
+}
+function verOtra(){
+  const otra=$('#ciudad').value===OTRO;
+  $('[data-c="ciudadotra"]').hidden=!otra;
+  if(!otra) $('#ciudadotra').value='';
+}
+
+/* ——— validación ——— */
+const marcar=(nombre,mal)=>{
+  const c=document.querySelector('[data-c="'+nombre+'"]');
+  if(c) c.classList.toggle('mal',!!mal);
+  return !mal;
+};
+const val=id=>$('#'+id).value.trim();
+
+function validarPaso1(){
+  let ok=true;
+  ok=marcar('nombre',val('nombre').length<2)&&ok;
+  ok=marcar('apellido',val('apellido').length<2)&&ok;
+  ok=marcar('documento',val('documento').length<5)&&ok;
+  /* Celular colombiano: 10 dígitos empezando por 3. Se toleran espacios y
+     guiones al escribir, pero lo que se valida y se guarda son los dígitos. */
+  const cel=val('celular').replace(/\D/g,'');
+  ok=marcar('celular',!/^3\d{9}$/.test(cel))&&ok;
+  ok=marcar('correo',!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val('correo')))&&ok;
+  ok=marcar('depto',!val('depto'))&&ok;
+  ok=marcar('ciudad',!val('ciudad'))&&ok;
+  if($('#ciudad').value===OTRO) ok=marcar('ciudadotra',val('ciudadotra').length<3)&&ok;
+  ok=marcar('direccion',val('direccion').length<5)&&ok;
+  return ok;
+}
+
+function datos(){
+  const ciu=$('#ciudad').value===OTRO?val('ciudadotra'):val('ciudad');
+  return {
+    nombre:val('nombre'), apellido:val('apellido'),
+    tipodoc:$('#tipodoc').value, documento:val('documento'),
+    celular:val('celular').replace(/\D/g,''), correo:val('correo').toLowerCase(),
+    depto:val('depto'), ciudad:ciu, direccion:val('direccion'),
+    adicional:val('adicional'), barrio:val('barrio'),
+    notas:val('notas'), dedicatoria:carrito.empaque?val('dedicatoria'):''
+  };
+}
+
+/* ——— navegación entre pasos ——— */
+function ir(n){
+  if(n===2&&paso<2&&!validarPaso1()){
+    error('Revisa los campos marcados en rojo para continuar.');
+    const primero=document.querySelector('.campo.mal input,.campo.mal select');
+    if(primero) primero.focus();
+    return;
+  }
+  paso=n;
+  error(null);
+  [1,2,3].forEach(i=>{ $('#panel-'+i).hidden=(i!==n); });
+  document.querySelectorAll('.paso').forEach(p=>{
+    const i=+p.dataset.p;
+    p.classList.toggle('is-on',i===n);
+    p.classList.toggle('is-ya',i<n);
+  });
+  if(n===2){
+    const d=datos();
+    $('#dir-resumen-tx').innerHTML='<b style="font-weight:400">'+esc(d.nombre+' '+d.apellido)+'</b><br>'
+      +esc(d.direccion+(d.adicional?', '+d.adicional:''))+'<br>'
+      +esc((d.barrio?d.barrio+' · ':'')+d.ciudad+', '+d.depto)+'<br>'
+      +esc(d.celular)+' · '+esc(d.correo);
+  }
+  if(n===3) track('AddPaymentInfo',{value:calcular(carrito).total,
+    num_items:carrito.charms.length+(carrito.base?1:0)});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function error(msg){
+  const caja=$('#aviso-error');
+  caja.hidden=!msg;
+  if(msg) $('#aviso-error-tx').textContent=msg;
+}
+
+/* ——— confirmar ——— */
+let enviando=false;
+async function confirmar(){
+  if(enviando) return;
+  if(!$('#acepta').checked){
+    marcar('acepta',true);
+    error('Hay que aceptar los términos y condiciones para poder cobrar.');
+    $('#acepta').focus();
+    return;
+  }
+  marcar('acepta',false);
+  if(!validarPaso1()){ error('Faltan datos de envío. Vuelve al primer paso.'); ir(1); return; }
+
+  enviando=true;
+  const btn=$('#confirmar');
+  btn.disabled=true;
+  btn.textContent=carrito.pago==='contraentrega'?'Registrando pedido…':'Conectando con Wompi…';
+  error(null);
+
+  const cuerpo={
+    base:carrito.base, charms:carrito.charms, empaque:carrito.empaque,
+    pago:carrito.pago, cliente:datos()
+  };
+
+  try{
+    const r=await fetch('/.netlify/functions/crear-pago',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(cuerpo)
+    });
+    const d=await r.json().catch(()=>null);
+    if(!r.ok||!d||d.error) throw new Error((d&&d.error)||('El servidor respondió '+r.status));
+
+    /* El servidor manda su propio total. Si no coincide con el que la clienta
+       tiene en pantalla, algo cambió entre medias (un precio, el catálogo) y
+       es mejor parar que cobrar una cifra que nadie aceptó. */
+    const mio=calcular(carrito).total;
+    if(d.total!==mio){
+      throw new Error('El total cambió mientras armabas el pedido ('+cop(mio)+' → '
+        +cop(d.total)+'). Vuelve a revisar tu selección.');
+    }
+
+    sessionStorage.setItem('zephora.pedido',JSON.stringify({
+      referencia:d.referencia, total:d.total, pago:carrito.pago, cliente:cuerpo.cliente
+    }));
+
+    if(carrito.pago==='contraentrega'){
+      /* Contraentrega no pasa por la pasarela: el pedido ya quedó registrado. */
+      track('Purchase',{value:d.total,num_items:carrito.charms.length+(carrito.base?1:0),
+        content_name:'Contraentrega'});
+      try{ localStorage.removeItem(LLAVE); }catch(_){}
+      location.href='gracias.html?ref='+encodeURIComponent(d.referencia)+'&modo=contraentrega';
+      return;
+    }
+
+    /* Wompi: el formulario se envía por POST al Web Checkout con la firma que
+       generó el servidor. El monto va en centavos, que es como cobra Wompi. */
+    const f=document.createElement('form');
+    f.method='POST';
+    f.action=d.checkout;
+    const campos={
+      'public-key':d.llavePublica,
+      'currency':'COP',
+      'amount-in-cents':String(d.centavos),
+      'reference':d.referencia,
+      'signature:integrity':d.firma,
+      'redirect-url':d.redirect,
+      'customer-data:email':cuerpo.cliente.correo,
+      'customer-data:full-name':cuerpo.cliente.nombre+' '+cuerpo.cliente.apellido,
+      'customer-data:phone-number':cuerpo.cliente.celular,
+      'customer-data:legal-id':cuerpo.cliente.documento,
+      'customer-data:legal-id-type':cuerpo.cliente.tipodoc,
+      'shipping-address:address-line-1':cuerpo.cliente.direccion,
+      'shipping-address:address-line-2':cuerpo.cliente.adicional,
+      'shipping-address:country':'CO',
+      'shipping-address:city':cuerpo.cliente.ciudad,
+      'shipping-address:region':cuerpo.cliente.depto,
+      'shipping-address:phone-number':cuerpo.cliente.celular
+    };
+    Object.keys(campos).forEach(k=>{
+      if(!campos[k]) return;
+      const i=document.createElement('input');
+      i.type='hidden'; i.name=k; i.value=campos[k];
+      f.appendChild(i);
+    });
+    document.body.appendChild(f);
+    f.submit();
+  }catch(e){
+    enviando=false;
+    btn.disabled=false;
+    btn.textContent='Confirmar pedido';
+    /* Un fallo aquí no puede terminar la visita. Se dice qué pasó y se ofrece
+       la salida que siempre funcionó: cerrar por WhatsApp. */
+    error(e.message+' — puedes intentar de nuevo, o escribirnos y lo cerramos por WhatsApp.');
+    const wa=document.createElement('p');
+    wa.style.margin='10px 0 0';
+    wa.innerHTML='<a href="'+waPedido()+'" target="_blank" rel="noopener">'
+      +'Terminar mi pedido por WhatsApp →</a>';
+    const caja=$('#aviso-error-tx');
+    if(!caja.parentNode.querySelector('a')) caja.parentNode.appendChild(wa);
+  }
+}
+
+/* Respaldo: el mismo pedido, en texto, para WhatsApp. */
+function waPedido(){
+  const t=calcular(carrito), d=datos();
+  let s='Hola, Zephora Charms. Armé este pedido en la página y quiero confirmarlo:\n';
+  lineas(carrito).forEach(l=>{ s+='\n• '+l.n+' — '+cop(l.p); });
+  s+='\n\nEnvío: '+(t.gratis?'gratis':cop(t.envio))+' ('+carrito.pago+')';
+  s+='\nTotal: '+cop(t.total);
+  if(d.nombre) s+='\n\nA nombre de '+d.nombre+' '+d.apellido
+    +'\n'+d.direccion+(d.adicional?', '+d.adicional:'')
+    +'\n'+d.ciudad+', '+d.depto+'\nCel. '+d.celular;
+  return 'https://wa.me/'+WA+'?text='+encodeURIComponent(s);
+}
+
+/* ——— arranque ——— */
+Promise.all([
+  fetch('assets/catalogo.json',{cache:'no-cache'}).then(r=>r.json()),
+  fetch('assets/colombia.json',{cache:'no-cache'}).then(r=>r.json())
+]).then(([cat,geo])=>{
+  CAT=cat; GEO=geo;
+  carrito=leerCarrito();
+  $('#cargando').hidden=true;
+  if(!carrito){ $('#vacio').hidden=false; return; }
+  $('#app').hidden=false;
+
+  pintarDeptos();
+  pintarResumen();
+
+  /* El resumen es una barra plegable arriba en móvil y una columna fija al lado
+     en escritorio. Es el mismo nodo movido, no dos copias que se desincronizan. */
+  const anchoGrande=matchMedia('(min-width:760px)');
+  const colocar=()=>{
+    const res=$('#res'), lado=$('#res-lado');
+    if(anchoGrande.matches){ if(res.parentNode!==lado) lado.appendChild(res); }
+    else if(res.parentNode!==document.body){ document.body.insertBefore(res,$('#app')); }
+  };
+  colocar();
+  anchoGrande.addEventListener('change',colocar);
+
+  $('#res-bar').addEventListener('click',()=>{
+    const on=$('#res').classList.toggle('is-on');
+    $('#res-bar').setAttribute('aria-expanded',on?'true':'false');
+    $('#res-bar').querySelector('.res-ver').firstChild.textContent=on?'Ocultar ':'Ver pedido ';
+  });
+
+  $('#depto').addEventListener('change',()=>{ pintarCiudades(); marcar('depto',false); });
+  $('#ciudad').addEventListener('change',()=>{ verOtra(); marcar('ciudad',false); });
+  $('#ir-2').addEventListener('click',()=>ir(2));
+  $('#ir-3').addEventListener('click',()=>ir(3));
+  document.querySelectorAll('[data-atras]').forEach(b=>
+    b.addEventListener('click',()=>ir(+b.dataset.atras)));
+  $('#confirmar').addEventListener('click',confirmar);
+  $('#acepta').addEventListener('change',()=>marcar('acepta',false));
+
+  /* Quitar el rojo en cuanto la clienta corrige, no al volver a enviar. */
+  document.querySelectorAll('#form-1 input,#form-1 select').forEach(el=>{
+    el.addEventListener('input',()=>{
+      const c=el.closest('.campo'); if(c) c.classList.remove('mal');
+    });
+  });
+
+  $('#ops-pago').addEventListener('change',e=>{
+    if(e.target.name!=='pago') return;
+    carrito.pago=e.target.value;
+    guardarCarrito();
+    pintarResumen();
+    $('#nota-pago').textContent=carrito.pago==='contraentrega'
+      ? 'Pagas en efectivo al mensajero. Confirmamos disponibilidad por WhatsApp antes de despachar.'
+      : 'Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.';
+  });
+  /* La forma de pago que venía del armador manda sobre la marcada por defecto. */
+  const previo=document.querySelector('#ops-pago input[value="'+carrito.pago+'"]');
+  if(previo){ previo.checked=true; previo.dispatchEvent(new Event('change',{bubbles:true})); }
+
+  $('#year').textContent=new Date().getFullYear();
+  track('InitiateCheckout',{value:calcular(carrito).total,
+    num_items:carrito.charms.length+(carrito.base?1:0),content_name:'Checkout paso 1'});
+}).catch(()=>{
+  /* Sin catálogo no se puede mostrar un precio, y mostrar uno inventado sería
+     peor que no mostrar ninguno. Se manda a WhatsApp, que no depende de esto. */
+  $('#cargando').innerHTML='<p class="eyebrow">No cargó</p>'
+    +'<p style="color:#6d6070;max-width:44ch;margin:0 auto 20px">No pudimos cargar tu pedido. '
+    +'Revisa la conexión y recarga, o escríbenos y lo cerramos por chat.</p>'
+    +'<p><a class="btn btn--pagar" style="max-width:320px;margin:0 auto" '
+    +'href="https://wa.me/'+WA+'">Escribirnos por WhatsApp</a></p>';
+});
+})();
+</script>
+</body>
+</html>
