@@ -740,11 +740,18 @@ async function confirmar(){
       return;
     }
 
-    /* Wompi: el formulario se envía por POST al Web Checkout con la firma que
-       generó el servidor. El monto va en centavos, que es como cobra Wompi. */
-    const f=document.createElement('form');
-    f.method='POST';
-    f.action=d.checkout;
+    /* Wompi: se va al Web Checkout con la firma que generó el servidor y el
+       monto en centavos, que es como cobra Wompi.
+
+       Los parámetros viajan en la URL, no en el cuerpo. Enviarlos por POST
+       hace que Wompi responda «Parámetro public-key no proveído» para los
+       cuatro obligatorios: su checkout los lee de la query string y nunca
+       mira el cuerpo de la petición.
+
+       Los nombres con dos puntos (signature:integrity, customer-data:email)
+       se dejan literales. El carácter «:» es válido en una query según la
+       RFC 3986, y es la forma exacta que documenta Wompi; escaparlo a %3A
+       depende de que su servidor lo desescape, que es una suposición de más. */
     const campos={
       'public-key':d.llavePublica,
       'currency':'COP',
@@ -764,14 +771,11 @@ async function confirmar(){
       'shipping-address:region':cuerpo.cliente.depto,
       'shipping-address:phone-number':cuerpo.cliente.celular
     };
-    Object.keys(campos).forEach(k=>{
-      if(!campos[k]) return;
-      const i=document.createElement('input');
-      i.type='hidden'; i.name=k; i.value=campos[k];
-      f.appendChild(i);
-    });
-    document.body.appendChild(f);
-    f.submit();
+    const query=Object.keys(campos)
+      .filter(k=>campos[k])
+      .map(k=>k+'='+encodeURIComponent(campos[k]))
+      .join('&');
+    location.href=d.checkout+'?'+query;
   }catch(e){
     enviando=false;
     btn.disabled=false;

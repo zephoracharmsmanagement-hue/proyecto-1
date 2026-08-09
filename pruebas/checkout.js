@@ -138,11 +138,16 @@ async function llenarPaso1(p, d) {
     p.on('pageerror', e => errores.push(e.message));
     const cap = [];
     await interceptar(p, cap);
-    /* El checkout hace submit a checkout.wompi.co: se atrapa para leer el
-       formulario en vez de salir a internet. */
+    /* El checkout navega a checkout.wompi.co: se atrapa para leer la petición
+       en vez de salir a internet.
+       Se guarda la URL COMPLETA y el método, no solo los campos: la primera
+       versión mandaba los datos por POST y Wompi los rechazaba con «Parámetro
+       public-key no proveído», porque los lee de la query string. La prueba
+       comprobaba que los campos estuvieran bien armados, pero no por dónde
+       viajaban, y por eso pasó en verde algo que en producción no cobraba. */
     let aWompi = null;
     await p.route('https://checkout.wompi.co/**', async route => {
-      aWompi = route.request().postData();
+      aWompi = { url: route.request().url(), metodo: route.request().method() };
       await route.fulfill({ status: 200, contentType: 'text/html', body: '<p>pasarela</p>' });
     });
 
@@ -180,14 +185,30 @@ async function llenarPaso1(p, d) {
       ok(r.firma === esperada, 'la firma de integridad es la que Wompi va a recalcular');
     }
 
-    ok(!!aWompi, 'envía el formulario a la pasarela');
+    ok(!!aWompi, 'llega a la pasarela');
     if (aWompi) {
-      const f = new URLSearchParams(aWompi);
-      ok(f.get('amount-in-cents') === String(r.centavos), 'el formulario lleva el monto firmado');
+      ok(aWompi.metodo === 'GET',
+        'va por GET: Wompi lee los parámetros de la URL, no de un cuerpo POST',
+        aWompi.metodo);
+      ok(aWompi.url.startsWith('https://checkout.wompi.co/p/?'),
+        'con los parámetros en la query string');
+
+      const f = new URLSearchParams(aWompi.url.split('?')[1] || '');
+      /* Los cuatro que Wompi da por obligatorios: si falta uno, su checkout
+         responde «Parámetro … no proveído» y no se puede pagar. */
+      ['public-key', 'currency', 'amount-in-cents', 'reference'].forEach(k => {
+        ok(!!f.get(k), `lleva «${k}», que Wompi exige`, f.get(k) || 'vacío');
+      });
+      ok(f.get('amount-in-cents') === String(r.centavos), 'el monto firmado va en centavos');
       ok(f.get('signature:integrity') === r.firma, 'y la firma que lo respalda');
       ok(f.get('reference') === r.referencia, 'y la referencia del pedido');
       ok((f.get('redirect-url') || '').endsWith('/gracias.html'), 'con la URL de regreso');
       ok(f.get('customer-data:email') === DATOS.correo, 'y los datos de la clienta');
+      /* El nombre del parámetro va con dos puntos literales, como en la
+         documentación de Wompi: escaparlo a %3A depende de que su servidor lo
+         desescape, y no hay por qué apostar a eso. */
+      ok(aWompi.url.includes('signature:integrity='),
+        'los nombres con dos puntos viajan literales, no escapados a %3A');
     }
     await p.close();
   }
