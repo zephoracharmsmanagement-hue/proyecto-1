@@ -173,7 +173,7 @@ section{scroll-margin-top:64px}
 .pc{background:var(--white);border:1px solid var(--line);border-radius:3px;
   display:flex;flex-direction:column;transition:border-color .2s}
 .pc[hidden]{display:none}
-.pc:hover{border-color:var(--silver)}
+@media(hover:hover){.pc:hover{border-color:var(--silver)}}
 .pc.is-sel{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
 .pc-img{position:relative;aspect-ratio:1;overflow:hidden;background:#fff;border-radius:3px 3px 0 0}
 .pc-img img{width:100%;height:100%;object-fit:contain}
@@ -184,12 +184,16 @@ section{scroll-margin-top:64px}
 .pc-body{padding:11px 12px 12px;display:flex;flex-direction:column;flex:1}
 .pc-name{font-size:15.5px;line-height:1.22;margin:0 0 3px}
 .pc-meta{font-size:10.5px;color:var(--silver);letter-spacing:.05em;margin:0 0 9px;text-transform:uppercase}
-.pc-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+/* Apilado, no en fila. En las tarjetas angostas (2 columnas en móvil, y el
+   carrusel) el precio y el botón no caben juntos y el flex-wrap los partía
+   dejando el botón suelto a media fila. Apilados quedan iguales en todas las
+   tarjetas y el botón gana ancho de toque. */
+.pc-foot{margin-top:auto;display:grid;gap:8px}
 .pc-price{font-size:14.5px}
 .pc-add{font:400 11px/1 Jost;letter-spacing:.07em;text-transform:uppercase;
   padding:8px 11px;border:1px solid var(--ink);background:transparent;color:var(--ink);
   border-radius:2px;cursor:pointer;transition:.18s;min-height:32px}
-.pc-add:hover{background:var(--ink);color:var(--bone)}
+@media(hover:hover){.pc-add:hover{background:var(--ink);color:var(--bone)}}
 .pc.is-sel .pc-add{background:var(--plum);border-color:var(--plum);color:#fff}
 .tier{margin-bottom:30px}
 .tier-head{display:flex;align-items:baseline;gap:12px;padding-bottom:9px;margin-bottom:14px;
@@ -293,19 +297,25 @@ section{scroll-margin-top:64px}
   font-family:'Cormorant Garamond',Georgia,serif;font-size:20px}
 
 /* ——— disponibilidad y tallas ——— */
-/* Abajo a la derecha: arriba chocaba con .pc-mark en las tarjetas de 2 columnas */
-.pc-stock{position:absolute;bottom:7px;right:7px;font-size:8.5px;letter-spacing:.09em;
-  text-transform:uppercase;padding:3px 6px;border-radius:1px;background:rgba(255,255,255,.94);
-  border:1px solid var(--rose);color:var(--rose);line-height:1.3;max-width:70%;text-align:right}
-.pc-stock--0{border-color:var(--silver);color:#7c7681}
+/* Va en el cuerpo, no encima de la foto. Flotando sobre la imagen chocaba con
+   «Ver detalle» en las tarjetas de 2 columnas: a 375 px de ancho las dos
+   etiquetas no caben en la misma fila y se montaban una sobre otra. Además la
+   disponibilidad es información de compra, y su sitio es junto al precio. */
+.pc-stock{display:flex;align-items:center;gap:5px;margin:0 0 8px;
+  font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--rose);line-height:1.3}
+.pc-stock::before{content:'';width:5px;height:5px;border-radius:50%;
+  background:currentColor;flex:0 0 auto}
+.pc-stock--0{color:#7c7681}
 .pc.is-out .pc-img img{filter:grayscale(.85);opacity:.5}
 .pc.is-out .pc-name{color:#7c7681}
 .pc-add[disabled],.pc-add[aria-disabled="true"]{border-color:var(--line);color:#948e99;
   background:transparent;cursor:not-allowed}
 .pc-add[disabled]:hover,.pc-add[aria-disabled="true"]:hover{background:transparent;color:#948e99}
 /* Pedir por encargo lo agotado: la venta no se pierde, se mueve al chat */
-.pc-encargo{font-size:10.5px;letter-spacing:.04em;text-decoration:none;color:var(--plum);
-  border-bottom:1px solid currentColor;padding-bottom:1px;white-space:nowrap}
+.pc-encargo{justify-self:start;font-size:11.5px;letter-spacing:.04em;text-decoration:none;
+  color:var(--plum);border-bottom:1px solid currentColor;white-space:nowrap;
+  padding:6px 0;min-height:32px;display:inline-flex;align-items:center}
 
 /* selector de tallas dentro de la tarjeta del brazalete */
 .tallas{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
@@ -409,16 +419,22 @@ section{scroll-margin-top:64px}
 .fx-cta{display:grid;gap:9px}
 .fx-cta .btn{width:100%}
 /* Siempre visible, no en hover: en móvil no hay hover y nadie descubriría
-   que la tarjeta se abre. Va abajo a la izquierda, la única esquina libre. */
+   que la tarjeta se abre. Va abajo a la izquierda, ya sin nada que la estorbe:
+   la disponibilidad se mudó al cuerpo de la tarjeta. */
 .pc-ver{position:absolute;left:7px;bottom:7px;display:flex;align-items:center;gap:4px;
   font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;
   border-radius:1px;border:1px solid var(--line);background:rgba(255,255,255,.9);
-  color:#8a8290;pointer-events:none;transition:.18s}
-.pc:hover .pc-ver{border-color:var(--plum);color:var(--plum)}
+  color:#8a8290;pointer-events:none;transition:.18s;max-width:calc(100% - 14px)}
 .pc-img{cursor:pointer}
 .pc-name{cursor:pointer}
-.pc:hover .pc-name{text-decoration:underline;text-decoration-color:var(--line);
-  text-underline-offset:3px}
+/* Los estados de hover solo donde hay puntero. En una pantalla táctil el
+   :hover se queda pegado después del toque: la tarjeta tocada se quedaba con
+   el nombre subrayado y el borde encendido como si siguiera seleccionada. */
+@media(hover:hover){
+  .pc:hover .pc-ver{border-color:var(--plum);color:var(--plum)}
+  .pc:hover .pc-name{text-decoration:underline;text-decoration-color:var(--line);
+    text-underline-offset:3px}
+}
 
 /* ——— buscador ——— */
 .buscar{position:relative;margin:0 0 14px}
@@ -526,15 +542,19 @@ section{scroll-margin-top:64px}
 /* barra fija + hoja */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:var(--bone);
   border-top:1px solid rgba(255,255,255,.14);height:var(--dock);
-  display:flex;align-items:center;gap:12px;padding:0 14px;cursor:pointer}
-.dock-info{min-width:0}
-.dock-n{font-size:11px;color:#a495a8;letter-spacing:.06em;white-space:nowrap}
+  display:flex;align-items:center;gap:10px;padding:0 12px;cursor:pointer}
+.dock-info{min-width:0;flex:1 1 auto}
+.dock-n{font-size:11px;color:#a495a8;letter-spacing:.06em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
 .dock-p{font-family:'Cormorant Garamond',serif;font-size:23px;line-height:1.05}
-.dock-open{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;
-  letter-spacing:.09em;text-transform:uppercase;color:#c3b4c6;background:none;border:0;
-  cursor:pointer;padding:8px 4px}
+/* nowrap y sin encogerse: a 375 px «Ver detalle» se partía en dos renglones y
+   descuadraba la barra entera */
+.dock-open{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:5px;
+  font-size:11px;white-space:nowrap;
+  letter-spacing:.06em;text-transform:uppercase;color:#c3b4c6;background:none;border:0;
+  cursor:pointer;padding:8px 2px}
 .dock-open svg{transition:transform .25s}
-.dock .btn--wa{padding:11px 16px;font-size:12px}
+.dock .btn--wa{padding:11px 14px;font-size:11.5px;letter-spacing:.07em}
 .veil{position:fixed;inset:0;background:rgba(20,12,24,.5);z-index:85;opacity:0;
   pointer-events:none;transition:opacity .25s}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;background:#231a27;color:var(--bone);
@@ -1591,7 +1611,9 @@ function waEncargo(nombre){
 function etiquetaStock(p,id){
   let vieja=p.querySelector('.pc-stock'); if(vieja) vieja.remove();
   if(!STOCK) return;
-  const cont=p.querySelector('.pc-img'); if(!cont) return;
+  /* Justo encima del pie: queda pegada al precio y al botón, que es la
+     información con la que se decide la compra. */
+  const pie=p.querySelector('.pc-foot'); if(!pie) return;
   const libres=tallasLibres(id), u=unidades(id);
   let txt='', cero=false;
   if(libres){
@@ -1602,10 +1624,10 @@ function etiquetaStock(p,id){
     else if(u<=2) txt=u===1?'Última unidad':'Últimas 2';
   }
   if(!txt) return;
-  const e=document.createElement('span');
+  const e=document.createElement('p');
   e.className='pc-stock'+(cero?' pc-stock--0':'');
   e.textContent=txt;
-  cont.appendChild(e);
+  pie.parentNode.insertBefore(e,pie);
 }
 
 /* Panel de tallas dentro de la tarjeta del brazalete. */
