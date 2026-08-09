@@ -1,0 +1,12 @@
+{
+  "name": "zephora-pruebas",
+  "private": true,
+  "description": "Baterías de comprobación del sitio. Vive en pruebas/ y no en la raíz a propósito: un package.json en la raíz haría que Netlify intente instalar dependencias y construir un sitio que no necesita build.",
+  "scripts": {
+    "test": "bash correr.sh",
+    "capturas": "node capturas.js"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

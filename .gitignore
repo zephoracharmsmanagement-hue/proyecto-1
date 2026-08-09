@@ -9,3 +9,7 @@ meta/salida/
 
 node_modules/
 .DS_Store
+
+# Dependencias de las pruebas
+pruebas/node_modules/
+pruebas/capturas/

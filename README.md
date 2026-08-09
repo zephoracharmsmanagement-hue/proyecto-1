@@ -4,8 +4,12 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 
 ## Estructura
 
+> **¿Retomando el proyecto?** Empieza por [`ESTADO.md`](ESTADO.md): en qué punto
+> está, qué queda pendiente y qué decisiones no conviene deshacer sin querer.
+
 | Archivo | Qué es |
 |---|---|
+| `ESTADO.md` | Dónde va el proyecto, pendientes y decisiones tomadas. |
 | `index.html` | La tienda: markup, estilos y scripts. Sin build ni dependencias. |
 | `legal.css` | Estilos de las cinco páginas de información, que la comparten. |
 | `preguntas-frecuentes.html` | FAQ desplegable, con datos estructurados `FAQPage`. |
@@ -15,6 +19,8 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 | `politica-de-cookies.html` | Qué instala el sitio y cómo desactivarlo. |
 | `assets/stock.json` | El inventario que lee la página: unidades por charm y tallas por brazalete. |
 | `assets/` | Las imágenes del sitio. |
+| `pruebas/` | Baterías Playwright que comprueban lo acordado. `./pruebas/correr.sh` |
+| `herramientas/` | `gen_paginas.py`, que genera las cinco páginas de información. |
 | `skills-lock.json` | Skills instaladas en el proyecto (fuente + hash). |
 | `.claude/skills/` | Agent Skills disponibles al trabajar en este repo. |
 
