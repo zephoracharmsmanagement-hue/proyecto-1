@@ -1,0 +1,83 @@
+# Configuración de despliegue de zephoracharms.com
+#
+# Con este archivo, Netlify publica el sitio desde el repositorio en cada push
+# y despliega las funciones de netlify/functions/ junto a él. Se acaba el
+# arrastrar la carpeta a mano —y con ella el riesgo de soltarla en el proyecto
+# equivocado, que "funciona" sin cambiar nada de lo que ve el público—.
+#
+# El sitio no tiene build: es HTML, CSS y JS servidos tal cual. Lo único que se
+# compila son las funciones, y de eso se encarga Netlify solo.
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+  # Sin comando de build a propósito. Si algún día hace falta, aquí va.
+  command = ""
+
+[functions]
+  node_bundler = "esbuild"
+  # assets/catalogo.json lo carga _precios.js por require; esbuild lo mete en el
+  # paquete. Se declara igualmente para que un cambio de bundler no lo deje
+  # fuera y las funciones se caigan al arrancar.
+  included_files = ["assets/catalogo.json"]
+
+# Las páginas se piden sin .html
+[[redirects]]
+  from = "/checkout"
+  to = "/checkout.html"
+  status = 200
+
+[[redirects]]
+  from = "/gracias"
+  to = "/gracias.html"
+  status = 200
+
+# Nada de esto es parte del sitio: son herramientas, pruebas y scripts internos.
+# Publicar la raíz los expondría en URLs adivinables, así que se bloquean.
+[[redirects]]
+  from = "/pruebas/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/herramientas/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/meta/*"
+  to = "/404.html"
+  status = 404
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+
+# El checkout maneja datos personales: que no quede en ninguna caché intermedia.
+[[headers]]
+  for = "/checkout.html"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[headers]]
+  for = "/gracias.html"
+  [headers.values]
+    Cache-Control = "no-store"
+
+# El inventario y los precios cambian sin que cambie su nombre de archivo:
+# se revalidan siempre en vez de servirse de caché.
+[[headers]]
+  for = "/assets/*.json"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+# Las fotos sí son inmutables en la práctica: cuando cambia una, cambia su
+# contenido y el nombre se mantiene, así que una semana es un término medio
+# entre no repetir descargas y no dejar una foto vieja pegada un mes.
+[[headers]]
+  for = "/assets/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
