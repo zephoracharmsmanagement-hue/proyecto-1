@@ -46,17 +46,31 @@ redacción que pidió el propietario. Conviene que lo valide un contador: con NI
 registrado, la obligación de facturar electrónicamente depende del régimen, y es
 un texto público.
 
-### 4 · Pasarela de pago — la conversación siguiente
+### 4 · Pasarela de pago — construida, falta conectarla
 
-El objetivo declarado es cerrar la venta en la web y dejar WhatsApp para asesoría.
-La ronda anterior preparó el terreno: la página ya responde sola lo que antes
-obligaba a escribir.
+El checkout existe y está probado: `checkout.html` (datos → entrega → pago),
+con dos vías — **Wompi** y **contraentrega** — y dos funciones de servidor que
+firman el cobro y reciben la confirmación. El propietario confirmó que maneja
+la pasarela de Wompi. Para que cobre de verdad faltan tres pasos de panel,
+descritos en la sección *Cobrar en la web* del README:
 
-**El bloqueador no es la pasarela, es el inventario.** `assets/stock.json` se
-genera a mano desde el Excel. Hoy funciona porque una persona confirma por
-WhatsApp antes de cobrar. Con pago en línea, dos clientas compran la última unidad
-el mismo día, ya se les cobró, y toca devolver el dinero — que bajo la Ley 1480 no
-es solo una molestia. Eso se decide **antes** de conectar ningún botón de pago.
+1. Conectar este repo a Netlify (el despliegue por Drop no monta las funciones).
+2. Poner las variables `WOMPI_LLAVE_PUBLICA`, `WOMPI_INTEGRIDAD`, `WOMPI_EVENTOS`
+   y `URL_SITIO` en el entorno del sitio. **Ninguna va al repo.**
+3. En el panel de Wompi, apuntar la URL de eventos a
+   `/.netlify/functions/wompi-webhook`.
+
+Mientras falten las variables, el pago en línea responde 503 con un mensaje que
+manda a contraentrega o a WhatsApp; el sitio sigue vendiendo como hoy.
+
+**El bloqueador del inventario sigue vigente, atenuado pero no resuelto.**
+`assets/stock.json` se genera a mano. El servidor valida catálogo y precios,
+pero **no descuenta stock**: dos clientas aún pueden pagar la última unidad el
+mismo día. Los topes del navegador lo hacen improbable, no imposible. Mientras
+el pedido contraentrega se confirme por WhatsApp antes de despachar (como hoy),
+el riesgo queda contenido en los pagos anticipados de piezas con 1–2 unidades —
+que es justo donde la página ya muestra «Última unidad». Si el volumen crece,
+lo correcto es un almacén de stock con estado; está anotado, no construido.
 
 ---
 
@@ -73,6 +87,10 @@ es solo una molestia. Eso se decide **antes** de conectar ningún botón de pago
 | Las tres **piezas sin foto no están escondidas** | Tienen stock real: ocultarlas es dejar de vender inventario que existe, que es justo el problema que las trajo al catálogo |
 | Los **agotados tampoco se esconden** | Salen en gris con "Pedir por encargo", que manda a WhatsApp con el nombre de la pieza. La venta no se pierde, se mueve al chat |
 | Las etiquetas de urgencia solo con **1 o 2 unidades reales** | No se inventa escasez donde no la hay |
+| El **total a cobrar lo calcula el servidor**, nunca el navegador | El monto que viaja por el cliente se puede alterar desde la consola. `crear-pago` solo acepta identificadores y recalcula; `pruebas/precios.js` vigila que ambas calculadoras coincidan |
+| Al cambiar un precio, **correr `herramientas/extraer_catalogo.py`** | El checkout y el servidor leen `assets/catalogo.json`, que se genera desde index.html. Si se olvida, la batería `precios` sale en rojo |
+| El **webhook de Wompi verifica la firma** de cada evento | Su URL es pública: sin verificación, cualquiera manda un POST diciendo «pagado» |
+| `Purchase` **solo con estado APPROVED consultado a la API** de Wompi | Dispararlo por un parámetro de URL regalaría una página de «pagado» y ensuciaría la optimización de campañas |
 
 ---
 

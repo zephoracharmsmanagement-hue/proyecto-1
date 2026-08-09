@@ -11,6 +11,12 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 |---|---|
 | `ESTADO.md` | Dónde va el proyecto, pendientes y decisiones tomadas. |
 | `index.html` | La tienda: markup, estilos y scripts. Sin build ni dependencias. |
+| `checkout.html` | El checkout en tres pasos: datos, entrega y pago. |
+| `gracias.html` | A donde vuelve la clienta desde Wompi; consulta el estado real del pago. |
+| `netlify/functions/` | Las dos funciones de servidor: firmar el cobro y recibir el aviso de Wompi. |
+| `netlify.toml` | Despliegue: publica el repo y monta las funciones. |
+| `assets/catalogo.json` | Precios y reglas de cobro. Lo generan, no se edita. |
+| `assets/colombia.json` | Departamentos y municipios del selector de envío. |
 | `legal.css` | Estilos de las cinco páginas de información, que la comparten. |
 | `preguntas-frecuentes.html` | FAQ desplegable, con datos estructurados `FAQPage`. |
 | `envios-y-devoluciones.html` | Cobertura, costos, retracto (5 días hábiles) y garantía. |
@@ -20,7 +26,7 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 | `assets/stock.json` | El inventario que lee la página: unidades por charm y tallas por brazalete. |
 | `assets/` | Las imágenes del sitio. |
 | `pruebas/` | Baterías Playwright que comprueban lo acordado. `./pruebas/correr.sh` |
-| `herramientas/` | `gen_paginas.py`, que genera las cinco páginas de información. |
+| `herramientas/` | `gen_paginas.py` (páginas de información) y `extraer_catalogo.py` (precios). |
 | `skills-lock.json` | Skills instaladas en el proyecto (fuente + hash). |
 | `.claude/skills/` | Agent Skills disponibles al trabajar en este repo. |
 
@@ -166,7 +172,69 @@ no son 27 tarjetas: son una grilla compacta dentro de una sola tarjeta. Comparte
 la foto `charms-de-letras-pave.webp`, que es de donde salió la tarjeta única que
 había antes.
 
+## Cobrar en la web
+
+La clienta arma la pulsera en `index.html`, el carrito se guarda en
+`localStorage` y `checkout.html` lo recoge para pedir datos de envío y cobrar.
+Hay dos vías: **Wompi** (Nequi, Bancolombia, PSE, Daviplata, tarjetas, Addi) y
+**contraentrega**, que no toca la pasarela.
+
+### Por qué hace falta un servidor
+
+Wompi acepta un cobro si viene firmado:
+`SHA256(referencia + monto_en_centavos + moneda + secreto_de_integridad)`.
+
+Ese secreto no puede estar en el HTML. Quien lo lea puede firmar un pedido de
+$300.000 como $1.000 y Wompi lo aceptará sin objetar nada: la firma garantiza
+que el monto no cambió en el camino, no que sea el correcto. Por eso el total
+lo calcula `netlify/functions/crear-pago.js`, que solo acepta del navegador
+**qué** se pidió —una lista de identificadores— y nunca **cuánto**.
+
+Lo mismo con el cobro confirmado. La página de gracias no sirve como prueba de
+pago: la clienta puede cerrar el navegador antes de que la redirección ocurra y
+el pago habrá sido bueno igual. Quien decide es el webhook, que Wompi llama por
+su cuenta y reintenta si falla — y que hay que verificar, porque su URL es
+pública y cualquiera puede inventarse un POST diciendo «pagado».
+
+### Variables de entorno
+
+En *Site configuration → Environment variables*. **Ninguna va al repo.**
+
+| Variable | De dónde sale | Para qué |
+|---|---|---|
+| `WOMPI_LLAVE_PUBLICA` | Wompi → Ajustes → Llaves API | Abrir el checkout. Es la única que puede ser pública |
+| `WOMPI_INTEGRIDAD` | íd. (`prod_integrity_…`) | Firmar el monto |
+| `WOMPI_EVENTOS` | íd. (`prod_events_…`) | Verificar que el webhook viene de Wompi |
+| `URL_SITIO` | `https://zephoracharms.com` | Construir la URL de regreso |
+| `PEDIDOS_WEBHOOK` | opcional | A dónde avisar de cada pedido y cada pago |
+
+En el panel de Wompi, la **URL de eventos** apunta a
+`https://zephoracharms.com/.netlify/functions/wompi-webhook`.
+
+Mientras falten `WOMPI_LLAVE_PUBLICA` o `WOMPI_INTEGRIDAD`, el pago en línea
+responde 503 con un mensaje que manda a contraentrega o a WhatsApp. El sitio no
+se cae: se queda vendiendo como antes.
+
+### Al cambiar un precio
+
+Los precios viven en `index.html` y de ahí los saca el extractor. Después de
+tocarlos hay que regenerar el catálogo que usa el servidor:
+
+```
+python3 herramientas/extraer_catalogo.py
+```
+
+Si se olvida, `pruebas/precios.js` lo detecta: compara el total que muestra la
+página contra el que cobraría el servidor en 40 carritos al azar.
+
 ## Despliegue
+
+> Desde que existen las funciones, **el despliegue va por Git**, no arrastrando
+> la carpeta: Netlify Drop no monta `netlify/functions/`, así que un sitio
+> soltado a mano se queda sin cobrar. Se conecta el repo una vez y cada push
+> publica; `netlify.toml` ya trae la configuración.
+
+Lo que sigue vale para el sitio estático, y es lo que aplicaba antes:
 
 **Se arrastra la carpeta del proyecto, no `index.html` suelto.** Ese archivo ya no es autocontenido: sin `assets/` al lado las imágenes salen rotas y el sitio pierde la disponibilidad (`assets/stock.json`), sin `legal.css` las cinco páginas de información salen sin estilos, y los enlaces del pie quedan en 404.
 
@@ -185,13 +253,26 @@ Meta Pixel `2130673404542988` (dataset "zephora charms pixel 1"). Eventos que di
 | `PageView` | Carga de la página |
 | `ViewContent` | Carga del catálogo, y al abrir una categoría desde las tarjetas |
 | `AddToCart` | Se agrega un charm, o se elige el brazalete base |
-| `InitiateCheckout` | **Cualquier clic que lleve a WhatsApp,** etiquetado por sección en `content_name` |
-| `Lead` | Se envía el pedido armado por WhatsApp (además del `InitiateCheckout`) |
+| `InitiateCheckout` | Se entra a `checkout.html`, y también en cualquier clic que lleve a WhatsApp |
+| `AddPaymentInfo` | Se llega al paso 3, el de elegir cómo pagar |
+| `Purchase` | Wompi confirma el pago como aprobado, o se registra un pedido contraentrega |
+| `Lead` | Se envía el pedido armado por WhatsApp |
 
-`InitiateCheckout` es la conversión a optimizar en campañas: el checkout ocurre en
-WhatsApp, fuera del sitio, así que el salto al chat es lo último medible. `Lead`
-queda como señal de mayor intención —lleva `value` y `num_items` del pedido real—,
-útil para optimizar por valor cuando el volumen lo permita.
+**`Purchase` es la conversión a optimizar** desde que existe el checkout: ahora
+la venta se cierra dentro del sitio y hay un evento que lo dice, con su `value`
+real. `InitiateCheckout` y `AddPaymentInfo` sirven para ver dónde se cae el
+embudo entre entrar a pagar y pagar.
+
+`Purchase` se dispara en dos sitios y por dos motivos distintos:
+
+- **Wompi**: en `gracias.html`, y solo si al consultar la transacción el estado
+  es `APPROVED`. No se dispara con un parámetro de la URL — eso le regalaría a
+  cualquiera una página de "pagado" y ensuciaría la cuenta.
+- **Contraentrega**: al registrar el pedido, con `content_name: 'Contraentrega'`
+  para poder separarlo. Todavía no hay plata cobrada, pero sí un pedido real que
+  se despacha; contarlo como venta es lo que hace comparable el embudo.
+
+`Lead` queda para el pedido que se cierra por WhatsApp, que sigue existiendo.
 
 Cada enlace a WhatsApp lleva un `data-wa` con su origen (`hero`, `asesoria-regalo`,
 `pie`), que viaja en `content_name` para poder separar en Events Manager qué botón

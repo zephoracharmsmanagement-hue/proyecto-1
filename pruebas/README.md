@@ -11,7 +11,7 @@ que un charm nunca puede describirse como enchapado.
 ./pruebas/correr.sh
 ```
 
-Levanta un servidor estático sobre la raíz del repo, corre las tres baterías y lo
+Levanta un servidor estático sobre la raíz del repo, corre las cinco baterías y lo
 apaga. La primera vez instala Playwright dentro de `pruebas/node_modules`.
 
 Contra el sitio publicado:
@@ -30,6 +30,8 @@ para un hook o para CI.
 | `regresion.js` | Los cuatro bugs de la auditoría inicial: titular y botón de WhatsApp sobre el pliegue a 360/390/430 px, barra de avisos sin texto cortado, filtros acotados a su contenedor y conteo que incluye los destacados. Más scroll horizontal a cinco anchos y errores de consola |
 | `stock.js` | Disponibilidad y tallas: tallas sin unidades tachadas y no escondidas, agotados bloqueados con opción de encargo, las 27 iniciales, tope por unidades, filtro de solo disponibles, descuentos 30% + 15% intactos, la talla en el mensaje de WhatsApp, y que el sitio siga vendiendo si `stock.json` no carga |
 | `dudas.js` | Calculadora de talla contra los casos de las reglas de negocio, ficha de producto de las cinco familias con sus dos medidas, y buscador combinado con categoría y disponibilidad |
+| `precios.js` | Que el servidor cobre lo que la página prometió: 40 carritos armados al azar tocando el armador de verdad, comparados contra `netlify/functions/_precios.js`. Más los rechazos: ids inventados, brazaletes colados como charms, tallas inexistentes, 500 unidades |
+| `checkout.js` | El camino completo de la compra ejecutando las funciones de Netlify reales dentro de Node: validación de datos de envío, firma de integridad que Wompi va a recalcular, formulario que llega a la pasarela, contraentrega sin firma, carrito que se vacía al confirmar, referencias únicas, y el webhook rechazando eventos con firma falsa |
 
 `capturas.js` no comprueba nada: guarda pantallazos en `pruebas/capturas/` para
 revisar a ojo. Se corre aparte con `npm run capturas`.

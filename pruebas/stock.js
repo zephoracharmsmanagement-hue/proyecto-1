@@ -55,7 +55,10 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   ok(await p.evaluate(() => document.querySelector('.lbtn[data-letra="f"]').getAttribute('aria-disabled') === 'true'), 'Letra F sale agotada');
 
   console.log('5 · descuentos intactos: 30% brazalete, 15% charms');
-  await p.evaluate(() => { location.hash = ''; });
+  /* Desde que el carrito persiste en localStorage, recargar ya no lo vacía:
+     la Letra A del paso 4 volvería y descuadraría los totales de este paso.
+     Se limpia explícito, que es lo que hoy significa «empezar de cero». */
+  await p.evaluate(() => { location.hash = ''; localStorage.removeItem('zephora.carrito.v1'); });
   await p.reload({ waitUntil: 'networkidle' });
   await p.waitForFunction(() => document.body.classList.contains('con-stock'));
   await p.click('#more-btn');
@@ -77,10 +80,12 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   ok(tot.lb.includes('18 cm'), 'el resumen muestra la talla');
 
   console.log('6 · el mensaje de WhatsApp incluye la talla');
+  /* El botón grande (#send) ahora lleva al checkout; el pedido por WhatsApp
+     pasó al enlace alterno #send-wa. Es a ese al que se le mira el texto. */
   const msg = await p.evaluate(() => {
     let u = null;
     const o = window.open; window.open = x => { u = x; };
-    document.getElementById('send').click();
+    document.getElementById('send-wa').click();
     window.open = o;
     return decodeURIComponent(u.split('text=')[1]);
   });
