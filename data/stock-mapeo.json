@@ -1,0 +1,6 @@
+{
+  "_instrucciones": "Overrides manuales para scripts/stock.mjs. Usar SOLO cuando el emparejamiento automático por nombre falla mal (ver 'diagnostico' en data/stock.json) y estés SEGURA de que es la misma pieza física. Para un charm: \"id-del-sitio\": \"SKU-DEL-EXCEL\". Para un brazalete (varias tallas): \"id-del-sitio\": [\"SKU-TALLA-1\", \"SKU-TALLA-2\", ...]. No agregues un ID aquí si tienes dudas — mejor que quede en el diagnóstico para revisión humana que arriesgar una promesa de stock equivocada.",
+
+  "mjolnir-martillo-de-thor": "CH-MAR-MJO",
+  "osito-graduacion": "CH-PRE-OSO-GRA"
+}

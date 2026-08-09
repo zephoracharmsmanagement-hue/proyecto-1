@@ -14,5 +14,11 @@ meta/salida/
 insumos/whatsapp/*
 !insumos/whatsapp/README.md
 
+# El Excel de inventario trae costo unitario y margen por pieza — información
+# financiera interna. Lo que sale de cruzarlo (data/stock.json) sí se versiona:
+# solo tiene disponibilidad, nunca costos.
+insumos/*.xlsx
+insumos/*.xls
+
 node_modules/
 .DS_Store

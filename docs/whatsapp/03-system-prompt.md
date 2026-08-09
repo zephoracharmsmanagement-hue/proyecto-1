@@ -10,12 +10,17 @@ Según lo que decidiste, la IA **nunca envía**. Redacta y una persona aprueba:
 ```
 Mensaje de la clienta
         ↓
-[ inventario.json + System Prompt ]  ← cacheado, no se re-procesa
+[ inventario.json + stock.json + System Prompt ]  ← cacheado, no se re-procesa
         ↓
    Claude redacta un borrador
         ↓
    Una persona lo lee  ──→  edita si hace falta  ──→  envía
 ```
+
+`stock.json` sale de cruzar tu Excel de inventario contra el catálogo del
+sitio (`node scripts/stock.mjs <ruta-al-excel>` — ver §Stock más abajo).
+Corre ese comando cada vez que actualices el Excel; el prompt siempre lee el
+archivo más reciente.
 
 Tres cosas se ganan con esto y vale la pena tenerlas presentes:
 
@@ -27,7 +32,10 @@ Tres cosas se ganan con esto y vale la pena tenerlas presentes:
 
 ## El System Prompt
 
-Copiar tal cual. `{{INVENTARIO_JSON}}` se reemplaza con el contenido de `data/inventario.json`.
+Copiar tal cual. `{{INVENTARIO_JSON}}` se reemplaza con el contenido de
+`data/inventario.json`, y `{{STOCK_JSON}}` con `data/stock.json` **sin la
+clave `diagnostico`** — esa parte es para ti, no para el modelo (ver el
+código de ensamblaje más abajo).
 
 ````text
 Eres la asistente de atención al cliente de Zephora Charms, una boutique
@@ -57,10 +65,24 @@ verdad para precios, nombres y promociones:
    estimados. Si te preguntan por una pieza que no está en el inventario,
    di que la verificas y no inventes un precio.
 
-3. STOCK — No tienes datos de disponibilidad. NUNCA afirmes que algo está
-   disponible o agotado. Cuando el tema aparezca, escribe el borrador
-   pidiendo un momento para confirmar, y añade la nota
-   [VERIFICAR STOCK: <pieza>] al final para que la persona lo revise.
+3. STOCK — Tienes datos reales de disponibilidad en {{STOCK_JSON}}, pero
+   NO para todo el catálogo: es del Excel de inventario, cruzado con este
+   catálogo por nombre, y no todas las piezas se pudieron emparejar todavía.
+
+   · Si el `id` de la pieza aparece en `stock.charms` o `stock.brazaletes`:
+     usa ese dato. `agotado: true` → dilo con claridad y ofrece 1-2
+     alternativas del mismo estilo o grupo, nunca un "no" seco. `bajo: true`
+     (queda 1 unidad o menos del mínimo) → puedes confirmar disponible, pero
+     transmite algo de urgencia ("nos queda 1") sin inventar presión falsa.
+     Para brazaletes, cada `talla` tiene su propio stock — si la clienta ya
+     dio su talla, usa el stock de esa talla exacta, no el `stock_total`.
+   · Si el `id` NO aparece en stock (no fue emparejado con el Excel): no
+     sabes su disponibilidad real. Escribe el borrador pidiendo un momento
+     para confirmar, y añade [VERIFICAR STOCK: <pieza>] al final.
+
+   Nunca inventes un número de unidades que no esté en el JSON.
+
+{{STOCK_JSON}}
 
 4. CHARMS vs ACCESORIOS — En el inventario, `tipo` distingue tres cosas:
    · "charm"  → charm decorativo (desde $72.000)
@@ -153,8 +175,14 @@ import { readFileSync } from 'node:fs';
 
 const client = new Anthropic();                       // lee ANTHROPIC_API_KEY
 const INVENTARIO = readFileSync('data/inventario.json', 'utf8');
+
+// El modelo no necesita "diagnostico" — es la lista de piezas sin
+// emparejar contra el Excel, útil para ti, ruido para el prompt.
+const { diagnostico, ...stockParaPrompt } = JSON.parse(readFileSync('data/stock.json', 'utf8'));
+
 const PROMPT = readFileSync('docs/whatsapp/system-prompt.txt', 'utf8')
-  .replace('{{INVENTARIO_JSON}}', INVENTARIO);
+  .replaceAll('{{INVENTARIO_JSON}}', INVENTARIO)
+  .replaceAll('{{STOCK_JSON}}', JSON.stringify(stockParaPrompt, null, 2));
 
 export async function redactarBorrador(conversacion) {
   const r = await client.messages.create({
@@ -207,20 +235,21 @@ este caso concreto hay una trampa muy fácil de pisar:
 
 ## Lo que cuesta de verdad
 
-El inventario son **9.569 tokens**. Sin caché los pagas completos en cada
-mensaje; con caché los pagas a la décima parte.
+El system prompt completo — inventario + stock (sin el diagnóstico, que es
+para ti) + reglas — son **14.725 tokens**. Sin caché los pagas completos en
+cada mensaje; con caché los pagas a la décima parte.
 
 Por borrador (prompt cacheado + conversación + respuesta), a 4.000 COP/USD:
 
 | Modelo | USD/borrador | COP/borrador | COP/mes a 500 borradores/día |
 |---|---|---|---|
-| **Opus 5** | $0,0161 | **64** | $963.000 |
-| Sonnet 5 *(precio intro, hasta 31-ago-2026)* | $0,0064 | 26 | $385.200 |
-| Sonnet 5 *(precio normal)* | $0,0096 | 39 | $577.800 |
-| Haiku 4.5 | $0,0032 | 13 | $192.600 |
+| **Opus 5** | $0,0176 | **70** | $1.056.750 |
+| Sonnet 5 *(precio intro, hasta 31-ago-2026)* | $0,0070 | 28 | $422.700 |
+| Sonnet 5 *(precio normal)* | $0,0106 | 42 | $634.050 |
+| Haiku 4.5 | $0,0035 | 14 | $211.350 |
 
-**El caché baja el costo un 76%** — sin él, Opus 5 sale a 273 COP por
-borrador en vez de 64. Es la optimización más rentable del sistema y son tres
+**El caché baja el costo un 79%** — sin él, Opus 5 sale a 336 COP por
+borrador en vez de 70. Es la optimización más rentable del sistema y son tres
 líneas de código.
 
 **Mi recomendación: arranca en Opus 5.** Estás empezando y lo que importa
@@ -271,13 +300,61 @@ mucho más que cualquier licencia. Yo no lo usaría para el número principal.
 
 ---
 
+## Stock: cómo se mantiene al día
+
+`scripts/stock.mjs` cruza tu Excel de inventario contra el catálogo del sitio
+por nombre, y escribe `data/stock.json`. Corre esto cada vez que actualices
+el Excel:
+
+```sh
+node scripts/stock.mjs "ruta al Excel de inventario.xlsx"
+```
+
+El cruce **nunca adivina**: solo empareja cuando el nombre coincide (exacto,
+o mismas palabras en otro orden). Cuando el nombre cambió de verdad al migrar
+el catálogo — "Osito Graduación" en el sitio, "Charm Oso Graduación" en el
+Excel — el script no lo empareja solo. Para esos casos existe
+`data/stock-mapeo.json`: le agregas `"id-del-sitio": "SKU-DEL-EXCEL"` a mano,
+una sola vez, y confirma para siempre.
+
+**Con el Excel que me pasaste, el cruce quedó así:**
+
+| | Emparejados | Sin emparejar |
+|---|---|---|
+| Charms | 52 de 86 | 34 |
+| Brazaletes | 14 de 18 | 4 |
+
+Las 34 + 4 referencias sin emparejar no son un error del script — son piezas
+del sitio que, con los nombres de este Excel, no se pueden identificar con
+certeza (o genuinamente no están en el inventario nuevo, como la Luciérnaga
+de Mariale). Revísalas en `data/stock.json → diagnostico` y decide, pieza por
+pieza: ¿es la misma joya con otro nombre → la agregas a `stock-mapeo.json`?
+¿ya no se fabrica → la marcas para retirar del sitio? Ese trabajo es tuyo,
+porque requiere mirar la foto y saber si es la misma pieza — yo no puedo
+adivinarlo sin arriesgarme a prometerle a una clienta un charm que no es.
+
+Mientras una pieza siga sin emparejar, las macros la tratan como antes: piden
+un momento y marcan `[VERIFICAR STOCK]` para que tú confirmes.
+
+## Talla: ya se pregunta en la web
+
+El armador ahora tiene un selector de talla (17–21 cm) en cada brazalete. Se
+guarda en el pedido que llega por WhatsApp — si la clienta no la elige, el
+mensaje dice *"(talla por confirmar)"* en vez de asumir una.
+
+Esto importa porque el Excel nuevo trackea el stock **por talla**, no por
+modelo: la Pulsera Avengers, por ejemplo, solo existe en el sistema con
+stock en 20 cm. Antes de este cambio, la web no tenía forma de preguntar algo
+que ahora es necesario para prometer disponibilidad real.
+
 ## Qué falta para producción
 
 1. **`{{horario}}`** — aparece en dos macros y en el prompt
 2. **Fecha real de fin de promo** — para la macro E5, vía mensaje de sistema
-3. **El Excel de stock** — para que la regla 3 pueda afirmar en vez de verificar
+3. **Resolver las 38 referencias sin emparejar** — ver arriba
 4. **Confirmar el sello S925** con el proveedor
 5. **El export de WhatsApp** — para afinar el tono con conversaciones reales
 
-Los tres primeros los puedes resolver hoy. El cuarto es una llamada. El quinto
-es el que más valor agrega y el único que no puedo sustituir con criterio.
+Los dos primeros los puedes resolver hoy. El tercero es un repaso pieza por
+pieza que solo tú puedes hacer bien. El cuarto es una llamada. El quinto es
+el que más valor agrega y el único que no puedo sustituir con criterio.
