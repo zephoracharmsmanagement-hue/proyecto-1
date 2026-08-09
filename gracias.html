@@ -194,10 +194,13 @@ if(modo==='contraentrega'){
 }else if(idTx){
   /* Se le pregunta a Wompi por el estado real de la transacción. Es una API
      pública de solo lectura: no hace falta llave para consultarla. */
-  const amb=(q.get('env')==='test')?'sandbox':'production';
-  const api=amb==='sandbox'
-    ? 'https://api-sandbox.co.uat.wompi.dev/v1/transactions/'
-    : 'https://api.wompi.co/v1/transactions/';
+  /* Wompi devuelve env=test cuando el pago se hizo con llaves de pruebas.
+     Cada ambiente tiene su propia API y las transacciones no se cruzan:
+     preguntarle a producción por una transacción de sandbox da 404 y la
+     página diría «no pudimos confirmar» de un pago que sí ocurrió. */
+  const api=(q.get('env')==='test')
+    ? 'https://sandbox.wompi.co/v1/transactions/'
+    : 'https://production.wompi.co/v1/transactions/';
   fetch(api+encodeURIComponent(idTx))
     .then(r=>r.json())
     .then(d=>{
