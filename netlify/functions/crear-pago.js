@@ -88,6 +88,39 @@ function leerCliente(c) {
   return cliente;
 }
 
+/* ¿Wompi reconoce este comercio?
+ *
+ * Existe porque pasó: las llaves estaban puestas, la firma era correcta, y aun
+ * así toda clienta que elegía pagar en línea terminaba en una pantalla de
+ * Wompi que decía «No se pudo cargar la información del undefined». La cuenta
+ * no estaba activa en producción, y el sitio no tenía forma de saberlo: la
+ * redirección es un viaje de ida.
+ *
+ * Se le pregunta a Wompi antes de mandar a nadie. Si responde que el comercio
+ * no existe, el checkout ofrece contraentrega o WhatsApp en vez de un callejón
+ * sin salida. Y el día que la cuenta se active, esto empieza a pasar solo, sin
+ * tocar una línea.
+ *
+ * Falla hacia adelante a propósito: solo bloquea con un 404 explícito. Si la
+ * consulta se cae por red o por lentitud, se deja pasar el pago — no vamos a
+ * perder una venta buena por un chequeo que no pudo hacerse. */
+async function comercioActivo(llave) {
+  const host = llave.startsWith('pub_test_') ? 'sandbox' : 'production';
+  try {
+    const r = await fetch(`https://${host}.wompi.co/v1/merchants/${llave}`, {
+      signal: AbortSignal.timeout(4000),
+    });
+    if (r.status === 404) {
+      console.error(`Wompi no reconoce la llave pública (${host}): comercio inexistente`);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('No se pudo verificar el comercio en Wompi, se deja pasar:', e.message);
+    return true;
+  }
+}
+
 /* Aviso de pedido nuevo. Best-effort a propósito: si el aviso falla, el cobro
    sigue su curso. Perder una notificación es molesto; perder una venta porque
    el webhook de avisos estaba caído, no. */
@@ -181,6 +214,13 @@ exports.handler = async (event) => {
     return responder(503, {
       error: 'El pago en línea no está configurado todavía. Puedes pedirlo '
         + 'contraentrega o escribirnos por WhatsApp.',
+    });
+  }
+
+  if (!(await comercioActivo(llave))) {
+    return responder(503, {
+      error: 'El pago en línea no está disponible en este momento. Puedes elegir '
+        + 'pago contraentrega aquí mismo, o escribirnos y lo cerramos por WhatsApp.',
     });
   }
 

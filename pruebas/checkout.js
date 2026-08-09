@@ -26,6 +26,12 @@ process.env.URL_SITIO = BASE;
 const crearPago = require(path.join(RAIZ, 'netlify', 'functions', 'crear-pago.js'));
 const webhook = require(path.join(RAIZ, 'netlify', 'functions', 'wompi-webhook.js'));
 
+/* crear-pago le pregunta a Wompi si el comercio existe antes de mandar a nadie
+   a la pasarela. Por defecto se responde que sí, sin salir a la red: la batería
+   no puede depender de que Wompi esté disponible ni de tener llaves reales.
+   La sección 5 lo cambia a propósito para probar el caso contrario. */
+globalThis.fetch = async () => ({ status: 200 });
+
 const out = [];
 let fallas = 0;
 const ok = (b, t, extra) => {
@@ -257,6 +263,12 @@ async function llenarPaso1(p, d) {
   // ——— 5 · lo que el servidor no puede aceptar ———
   out.push('\n5 · Intentos contra el servidor');
   {
+    /* crear-pago le pregunta a Wompi si el comercio existe. Estas comprobaciones
+       van de otra cosa, así que se responde que sí sin salir a la red: si no,
+       cada uno de los 300 pedidos de más abajo abriría una conexión real. */
+    const fetchReal = globalThis.fetch;
+    globalThis.fetch = async () => ({ status: 200 });
+
     const llamar = async cuerpo => {
       const r = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify(cuerpo) });
       return { codigo: r.statusCode, cuerpo: JSON.parse(r.body) };
@@ -290,6 +302,22 @@ async function llenarPaso1(p, d) {
 
     const get = await crearPago.handler({ httpMethod: 'GET' });
     ok(get.statusCode === 405, 'no responde a GET');
+
+    /* Comercio inexistente en Wompi. Pasó en producción: llaves puestas, firma
+       correcta, y la clienta acababa en «No se pudo cargar la información del
+       undefined» sin vuelta atrás. Ahora se detecta antes de mandarla. */
+    globalThis.fetch = async () => ({ status: 404 });
+    const muerto = await llamar(bueno);
+    ok(muerto.codigo === 503, 'si Wompi no reconoce el comercio, no manda a nadie a la pasarela');
+    ok(/contraentrega/i.test(muerto.cuerpo.error || ''),
+      'y ofrece contraentrega en vez de un callejón sin salida');
+
+    /* Pero un fallo de red no puede costar una venta buena. */
+    globalThis.fetch = async () => { throw new Error('red caída'); };
+    const conRedCaida = await llamar(bueno);
+    ok(conRedCaida.codigo === 200,
+      'si la verificación no se puede hacer, el pago sigue: falla hacia adelante');
+    globalThis.fetch = fetchReal;
 
     /* Dos pedidos seguidos no pueden compartir referencia: Wompi rechazaría el
        segundo, y al conciliar no se distinguirían. */
