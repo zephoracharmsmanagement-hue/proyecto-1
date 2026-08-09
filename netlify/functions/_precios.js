@@ -10,7 +10,7 @@
  * herramientas/extraer_catalogo.py las copia del HTML, y pruebas/precios.js
  * comprueba que este archivo y el navegador den el mismo total.
  */
-const CAT = require('./catalogo.json');
+const CAT = require('../../assets/catalogo.json');
 const { precios, nombres, pulseras, reglas } = CAT;
 const ESP = new Set(pulseras);
 

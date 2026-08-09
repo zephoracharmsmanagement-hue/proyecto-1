@@ -12,8 +12,13 @@ comprueba que lo extraído siga coincidiendo con lo que hace el navegador.
 
     python3 herramientas/extraer_catalogo.py
 
-Escribe `netlify/functions/catalogo.json`. Hay que correrlo cada vez que cambie
-un precio, una escala de descuento o una tarifa de envío.
+Escribe `assets/catalogo.json`, un solo archivo con dos lectores: checkout.html
+lo pide por fetch para mostrar el resumen, y las funciones de Netlify lo cargan
+por require para calcular lo que se cobra. Un único archivo a propósito —dos
+copias del mismo catálogo son dos copias que se desincronizan—.
+
+Hay que correrlo cada vez que cambie un precio, una escala de descuento o una
+tarifa de envío.
 """
 import json
 import pathlib
@@ -22,7 +27,7 @@ import sys
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 FUENTE = RAIZ / 'index.html'
-DESTINO = RAIZ / 'netlify' / 'functions' / 'catalogo.json'
+DESTINO = RAIZ / 'assets' / 'catalogo.json'
 
 
 def saca(patron, texto, que):
@@ -67,7 +72,9 @@ def main():
 
     catalogo = {
         '_': ('Generado por herramientas/extraer_catalogo.py desde index.html. '
-              'No editar a mano: el próximo extractor lo pisa.'),
+              'No editar a mano: el próximo extractor lo pisa. Lo leen '
+              'checkout.html (por fetch) y netlify/functions/_precios.js '
+              '(por require).'),
         'precios': {
             **{c['id']: c['p'] for c in data['charms']},
             **{p['id']: p['p'] for p in data['pulseras']},

@@ -47,7 +47,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
 <style>
 :root{
   --bone:#F6F3F4; --ink:#2A1F2E; --plum:#5C3D63; --rose:#B4657F; --rose-soft:#F3E6EB;
-  --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a;
+  --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a; --pagar:#9E4E68;
   --w:1180px; --dock:64px;
 }
 *{box-sizing:border-box}
@@ -104,6 +104,10 @@ button{font-family:inherit}
 .btn--ghost:hover{background:var(--ink);color:var(--bone)}
 .btn--wa{background:var(--wa);border-color:var(--wa);color:#fff}
 .btn--wa:hover{background:#1e6b58;border-color:#1e6b58}
+/* Comprar. Rosa oscurecido a propósito: el rosa de marca (#B4657F) con texto
+   blanco encima se queda en 3,6:1 y no pasa AA al tamaño de estos botones. */
+.btn--pagar{background:var(--pagar);border-color:var(--pagar);color:#fff}
+.btn--pagar:hover{background:#884057;border-color:#884057}
 .btn--big{width:100%;padding:17px 22px;font-size:14px}
 @media(min-width:700px){.btn--big{width:auto}}
 
@@ -591,7 +595,13 @@ body.sheet-open{overflow:hidden}
 .tot-big{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 12px}
 .tot-big span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8d7f92}
 .tot-big b{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300}
-.sheet-tot .btn--wa{width:100%}
+.sheet-tot .btn--wa,.sheet-tot .btn--pagar{width:100%}
+/* WhatsApp deja de ser el botón grande y pasa a ser la alternativa de al lado */
+.sheet-wa{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  margin-top:9px;padding:11px 12px;background:none;border:1px solid rgba(255,255,255,.22);
+  border-radius:2px;color:#c3b4c6;font:400 12.5px/1 Jost;letter-spacing:.04em;cursor:pointer;
+  transition:.18s}
+@media(hover:hover){.sheet-wa:hover{border-color:var(--wa);color:#8fd6bd}}
 .sheet-note{font-size:11.5px;color:#8d7f92;text-align:center;margin:9px 0 0;line-height:1.5}
 .pack{display:flex;gap:9px;align-items:center;font-size:13px;color:#c3b4c6;
   padding:9px 0 11px;cursor:pointer}
@@ -1446,8 +1456,11 @@ body.sheet-open{overflow:hidden}
     <div class="ship-bar" id="ship-bar"><i></i></div>
     <p class="ship-note" id="ship-note"></p>
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
-    <button class="btn btn--wa" type="button" id="send">Pedir por WhatsApp</button>
-    <p class="sheet-note">Disponibilidad referencial — te confirmamos existencias y entrega por WhatsApp antes de que pagues.</p>
+    <button class="btn btn--pagar" type="button" id="send">Finalizar compra</button>
+    <button class="sheet-wa" type="button" id="send-wa">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.5 7.8L3 21l1.2-4.5A9 9 0 1121 12z"/></svg>
+      Prefiero pedirlo por WhatsApp</button>
+    <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, tarjeta o Addi — o contraentrega, si prefieres pagar al recibir.</p>
     <p class="stock-nota"><span id="stock-fecha"></span></p>
   </div>
 </aside>
@@ -1460,7 +1473,7 @@ body.sheet-open{overflow:hidden}
   <button class="dock-open" type="button" id="dock-open" aria-expanded="false">Ver detalle
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 15l6-6 6 6"/></svg>
   </button>
-  <button class="btn btn--wa" type="button" id="dock-send">Pedir</button>
+  <button class="btn btn--pagar" type="button" id="dock-send">Comprar</button>
 </div>
 
 <div class="fx" id="ficha" hidden role="dialog" aria-modal="true" aria-labelledby="fx-n">
@@ -1858,6 +1871,7 @@ function render(){
   const piezas=nC+(base?1:0);
   $('#dock-n').textContent=piezas?piezas+(piezas===1?' pieza':' piezas')+(libre?' · envío gratis':''):'Tu selección está vacía';
   $('#dock-p').textContent=cop(total);
+  guardar();
 }
 
 /* Abrir el detalle ya no dispara InitiateCheckout: ese evento ahora marca
@@ -1895,6 +1909,50 @@ function marcarVerDetalle(){
   });
 }
 
+/* El carrito se arma aquí y se paga en checkout.html, que es otra página. Se
+   guarda en localStorage para que sobreviva al salto —y para que quien se vaya
+   a mirar otra cosa vuelva y encuentre su pulsera como la dejó—.
+   Si el navegador no deja escribir (modo privado en algunos iOS, cuota llena),
+   no pasa nada: el checkout recibe el mismo pedido por la URL. */
+const LLAVE='zephora.carrito.v1';
+function guardar(){
+  try{
+    localStorage.setItem(LLAVE,JSON.stringify({
+      v:1, base:base, charms:sel,
+      empaque:document.getElementById('pack').checked,
+      pago:pago, cuando:Date.now()
+    }));
+  }catch(_){}
+}
+function recuperar(){
+  let d=null;
+  try{ d=JSON.parse(localStorage.getItem(LLAVE)||'null'); }catch(_){ return; }
+  if(!d||d.v!==1) return;
+  /* Una semana. Más allá, los precios y el inventario ya no son los mismos y
+     devolver un carrito viejo promete algo que puede no existir. */
+  if(!d.cuando||Date.now()-d.cuando>7*24*3600*1000) return;
+  if(d.base&&d.base.id&&PU[d.base.id]) base={id:d.base.id,talla:d.base.talla||null};
+  if(Array.isArray(d.charms)) sel=d.charms.filter(id=>CH[id]);
+  if(d.empaque) document.getElementById('pack').checked=true;
+  if(d.pago==='contraentrega'){
+    const b=document.querySelector('.pbtn[data-pago="contraentrega"]');
+    if(b) b.click();          // click para que el grupo de radio quede coherente
+  }
+}
+
+/* Al checkout con lo que haya en el carrito. */
+function comprar(){
+  if(!base&&!sel.length){
+    document.getElementById('brazaletes').scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  guardar();
+  const piezas=sel.length+(base?1:0);
+  const val=+$('#v-tot').textContent.replace(/[^0-9]/g,'')||0;
+  track('InitiateCheckout',{content_name:'Checkout web',num_items:piezas,value:val});
+  location.href='checkout.html';
+}
+
 function pedir(){
   if(!base&&!sel.length){
     document.getElementById('brazaletes').scrollIntoView({behavior:'smooth'});
@@ -1922,8 +1980,12 @@ function pedir(){
   track('Lead',{content_name:'Pedido armador',num_items:piezas,value:val});
   window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(t),'_blank');
 }
-$('#send').onclick=pedir;
-$('#dock-send').onclick=pedir;
+/* El botón grande lleva al checkout; WhatsApp queda al lado, para asesoría.
+   Es la inversión que pedía el objetivo: cerrar la venta en la web y dejar el
+   chat para las dudas, no al revés. */
+$('#send').onclick=comprar;
+$('#dock-send').onclick=comprar;
+$('#send-wa').onclick=pedir;
 document.getElementById('pack').addEventListener('change',render);
 document.getElementById('pago').addEventListener('click',e=>{
   const b=e.target.closest('.pbtn'); if(!b) return;
@@ -2154,6 +2216,10 @@ document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
 
 document.getElementById('year').textContent=new Date().getFullYear();
 
+/* Antes del primer render: si quedó una pulsera a medio armar de una visita
+   anterior, se pinta ya armada en vez de aparecer y cambiar un instante después.
+   El fetch de inventario que viene abajo la depura contra lo que hay hoy. */
+recuperar();
 render();
 marcarVerDetalle();
 
