@@ -458,6 +458,14 @@ body.sheet-open{overflow:hidden}
   padding:9px 0 11px;cursor:pointer}
 .pack input{width:17px;height:17px;accent-color:var(--rose);flex:0 0 auto}
 .pack b{color:var(--bone);font-weight:400}
+.pago{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.pbtn{font:400 12.5px/1.3 Jost;text-align:left;padding:10px 12px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.22);background:transparent;color:#c3b4c6;
+  border-radius:2px;transition:.16s;min-height:52px}
+.pbtn:hover{border-color:rgba(255,255,255,.45)}
+.pbtn small{display:block;font-size:11px;color:#8d7f92;margin-top:3px}
+.pbtn.is-on{background:rgba(180,101,127,.18);border-color:var(--rose);color:var(--bone)}
+.pbtn.is-on small{color:#e39aae}
 
 /* escritorio */
 @media(min-width:700px){
@@ -511,7 +519,7 @@ body.sheet-open{overflow:hidden}
 <div class="ann" aria-label="Avisos">
   <div class="ann-track">
     <div class="ann-slide">✦ <b>Promo de la semana:</b> brazalete + 3 charms = 30% OFF en el brazalete</div>
-    <div class="ann-slide">🚚 Envíos a toda Colombia · <b>gratis desde $180.000</b> · Pago contraentrega disponible</div>
+    <div class="ann-slide">🚚 Envío a toda Colombia <b>$15.000</b> anticipado · <b>$25.000</b> contraentrega · <b>gratis desde $180.000</b></div>
     <div class="ann-slide">Instagram oficial verificado · <b>@zephora_charms</b> <svg class="vf" viewBox="0 0 24 24" width="14" height="14" aria-label="Verificada"><circle cx="12" cy="12" r="11" fill="#fff"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#5C3D63" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
   </div>
 </div>
@@ -558,7 +566,7 @@ body.sheet-open{overflow:hidden}
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Brazaletes de alta calidad</b> con elegante acabado en baño de plata</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/></svg><span><b>Compatibles con charms Pandora</b> — combina con los que ya tienes</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9.5A4 4 0 0112 8a4 4 0 017 2.5C19 15.7 12 20 12 20z"/></svg><span><b>Personalización total:</b> tú eliges cada pieza de tu historia</span></div>
-    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg><span><b>Envíos a toda Colombia</b> con opción contraentrega — gratis desde $180.000</span></div>
+    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg><span><b>Envío a toda Colombia:</b> $15.000 anticipado o $25.000 contraentrega — gratis desde $180.000</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 01-13.5 7.8L3 21l1.2-4.5A9 9 0 1121 12z"/><path d="M9 10c.5 2 2.5 4 4.5 4.5l1.5-1.5 2.5 1.5c-.5 1.5-2 2-3.5 1.5C11 15 8.5 12.5 7.5 9.5 7 8 7.5 6.5 9 6l1.5 2.5z" fill="#5C3D63" stroke="none" opacity=".85"/></svg><span><b>Asesoría de talla por WhatsApp,</b> de persona a persona</span></div>
   </div>
 </div>
@@ -1164,7 +1172,7 @@ body.sheet-open{overflow:hidden}
     </div>
     <div>
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg>
-      <span>Envío nacional gratis desde $180.000</span>
+      <span>Envío nacional desde $15.000 · gratis desde $180.000</span>
     </div>
   </div>
 </div>
@@ -1208,6 +1216,12 @@ body.sheet-open{overflow:hidden}
   <div class="sheet-body" id="sheet-body"></div>
   <div class="sheet-tot">
     <label class="pack"><input type="checkbox" id="pack"> <span>Empaque Premium de Regalo <b>+$40.000</b></span></label>
+    <div class="pago" id="pago" role="radiogroup" aria-label="Forma de pago">
+      <button class="pbtn is-on" type="button" data-pago="anticipado" role="radio" aria-checked="true">
+        Pago anticipado<small>Envío $15.000</small></button>
+      <button class="pbtn" type="button" data-pago="contraentrega" role="radio" aria-checked="false">
+        Contraentrega<small>Envío $25.000</small></button>
+    </div>
     <div class="tot-row"><span id="l-b">Brazalete</span><span id="v-b">—</span></div>
     <div class="tot-row"><span id="l-c">Charms</span><span id="v-c">—</span></div>
     <div class="tot-row save" id="row-save" hidden><span>Descuento promo</span><span id="v-save">—</span></div>
@@ -1216,8 +1230,8 @@ body.sheet-open{overflow:hidden}
     <p class="ship-note" id="ship-note"></p>
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
     <button class="btn btn--wa" type="button" id="send">Pedir por WhatsApp</button>
-    <p class="sheet-note">Te confirmamos disponibilidad y entrega por chat antes de que pagues.</p>
-    <p class="stock-nota">Disponibilidad referencial — te confirmamos por WhatsApp antes de que pagues. <span id="stock-fecha"></span></p>
+    <p class="sheet-note">Disponibilidad referencial — te confirmamos existencias y entrega por WhatsApp antes de que pagues.</p>
+    <p class="stock-nota"><span id="stock-fecha"></span></p>
   </div>
 </aside>
 
@@ -1235,6 +1249,10 @@ body.sheet-open{overflow:hidden}
 <script>
 (function(){
 const WA='573018990672', LIBRE=180000;
+/* Envío con tarifa plana nacional. La contraentrega cuesta más porque la
+   transportadora cobra el recaudo. Gratis a partir de LIBRE en ambos casos. */
+const ENVIO={anticipado:15000, contraentrega:25000};
+let pago='anticipado';
 const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 85000}, {"id": "dalmata", "n": "Dálmata", "p": 85000}, {"id": "ariel", "n": "Ariel", "p": 85000}, {"id": "jasmine", "n": "Jasmine", "p": 85000}, {"id": "blancanieves", "n": "Blancanieves", "p": 85000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 85000}, {"id": "elsa", "n": "Elsa", "p": 85000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 85000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 85000}, {"id": "stitch", "n": "Stitch", "p": 85000}, {"id": "angel", "n": "Angel", "p": 85000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 85000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 85000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 85000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 85000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 85000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 85000}, {"id": "sulley", "n": "Sulley", "p": 85000}, {"id": "walle", "n": "WALL·E", "p": 85000}, {"id": "capitan-america", "n": "Capitán América", "p": 85000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 85000}, {"id": "spider-man", "n": "Spider-Man", "p": 85000}, {"id": "wolverine", "n": "Wolverine", "p": 85000}, {"id": "hulk", "n": "Hulk", "p": 85000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 85000}, {"id": "iron-man", "n": "Iron Man", "p": 85000}, {"id": "deadpool", "n": "Deadpool", "p": 85000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 85000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 78000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 68000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 68000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 68000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 68000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 65000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 65000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 65000}, {"id": "bola-rosa-con-flores", "n": "Bola Rosa con Flores", "p": 72000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 80000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 76000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 84000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 84000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 72000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 76000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 84000}, {"id": "nina-con-arcoiris", "n": "Niña con Arcoíris", "p": 80000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 72000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 72000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 72000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 72000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 72000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 76000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 72000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 72000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 72000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 72000}, {"id": "bola-roja-remolino", "n": "Bola Roja Remolino", "p": 72000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 72000}, {"id": "virgen-maria", "n": "Virgen María", "p": 76000}, {"id": "bola-azul-con-flor-rosa", "n": "Bola Azul con Flor Rosa", "p": 72000}, {"id": "tortuga-azul-grande", "n": "Tortuga Azul Grande", "p": 72000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 78000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 76000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 72000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 72000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 72000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga \"You Are My Light\"", "p": 72000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 78000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 72000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 72000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 72000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 72000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 82000}, {"id": "aries", "n": "Aries", "p": 76000}, {"id": "tauro", "n": "Tauro", "p": 76000}, {"id": "geminis", "n": "Géminis", "p": 76000}, {"id": "cancer", "n": "Cáncer", "p": 76000}, {"id": "leo", "n": "Leo", "p": 76000}, {"id": "virgo", "n": "Virgo", "p": 76000}, {"id": "libra", "n": "Libra", "p": 76000}, {"id": "escorpio", "n": "Escorpio", "p": 76000}, {"id": "sagitario", "n": "Sagitario", "p": 76000}, {"id": "capricornio", "n": "Capricornio", "p": 76000}, {"id": "acuario", "n": "Acuario", "p": 76000}, {"id": "piscis", "n": "Piscis", "p": 76000}, {"id": "cenicienta", "n": "Cenicienta", "p": 85000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 68000}, {"id": "letra-a", "n": "Letra A", "p": 76000}, {"id": "letra-b", "n": "Letra B", "p": 76000}, {"id": "letra-c", "n": "Letra C", "p": 76000}, {"id": "letra-d", "n": "Letra D", "p": 76000}, {"id": "letra-e", "n": "Letra E", "p": 76000}, {"id": "letra-f", "n": "Letra F", "p": 76000}, {"id": "letra-g", "n": "Letra G", "p": 76000}, {"id": "letra-h", "n": "Letra H", "p": 76000}, {"id": "letra-i", "n": "Letra I", "p": 76000}, {"id": "letra-j", "n": "Letra J", "p": 76000}, {"id": "letra-k", "n": "Letra K", "p": 76000}, {"id": "letra-l", "n": "Letra L", "p": 76000}, {"id": "letra-m", "n": "Letra M", "p": 76000}, {"id": "letra-n", "n": "Letra N", "p": 76000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 76000}, {"id": "letra-o", "n": "Letra O", "p": 76000}, {"id": "letra-p", "n": "Letra P", "p": 76000}, {"id": "letra-q", "n": "Letra Q", "p": 76000}, {"id": "letra-r", "n": "Letra R", "p": 76000}, {"id": "letra-s", "n": "Letra S", "p": 76000}, {"id": "letra-t", "n": "Letra T", "p": 76000}, {"id": "letra-u", "n": "Letra U", "p": 76000}, {"id": "letra-v", "n": "Letra V", "p": 76000}, {"id": "letra-w", "n": "Letra W", "p": 76000}, {"id": "letra-x", "n": "Letra X", "p": 76000}, {"id": "letra-y", "n": "Letra Y", "p": 76000}, {"id": "letra-z", "n": "Letra Z", "p": 76000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 68000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 58000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 58000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 58000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 58000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 68000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 58000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 78000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 68000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 68000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 78000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 68000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 58000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 68000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 78000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 58000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 78000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 58000}]};
 const byId=(a)=>a.reduce((o,x)=>(o[x.id]=x,o),{});
 const CH=byId(DATA.charms), PU=byId(DATA.pulseras);
@@ -1427,9 +1445,13 @@ function render(){
   const brutoB=base?PU[base.id].p:0;
   const descB=(base&&nC>=3)?brutoB*.30:0;
   const pack=document.getElementById('pack').checked?40000:0;
-  const total=brutoC-descC+brutoB-descB+pack;
+  /* El umbral de envío gratis se mide sobre la mercancía, no sobre el total:
+     de lo contrario el propio envío ayudaría a alcanzarlo. */
+  const subtotal=brutoC-descC+brutoB-descB+pack;
   const ahorro=descC+descB;
-  const libre=total>=LIBRE;
+  const libre=subtotal>=LIBRE;
+  const envio=(subtotal<=0||libre)?0:ENVIO[pago];
+  const total=subtotal+envio;
 
   $('#l-b').textContent=base
     ? PU[base.id].n.replace(/^Pulsera /,'Brazalete ')+(base.talla?' · '+base.talla+' cm':'')
@@ -1442,15 +1464,15 @@ function render(){
   $('#v-tot').textContent=cop(total);
 
   const ship=$('#v-ship'), nota=$('#ship-note'), barra=$('#ship-bar i');
-  if(total<=0){ ship.textContent='—'; nota.textContent=''; barra.style.width='0'; }
+  if(subtotal<=0){ ship.textContent='—'; ship.className=''; nota.textContent=''; barra.style.width='0'; }
   else if(libre){
     ship.textContent='Gratis'; ship.className='ship-ok';
     nota.textContent='✓ Tu pedido tiene envío gratis a toda Colombia';
     nota.className='ship-note ship-ok'; barra.style.width='100%';
   }else{
-    ship.textContent='Se cotiza por ciudad'; ship.className='';
-    nota.textContent='Agrega '+cop(LIBRE-total)+' más y el envío es gratis';
-    nota.className='ship-note'; barra.style.width=Math.min(100,total/LIBRE*100)+'%';
+    ship.textContent=cop(envio); ship.className='';
+    nota.textContent='Agrega '+cop(LIBRE-subtotal)+' más y el envío es gratis';
+    nota.className='ship-note'; barra.style.width=Math.min(100,subtotal/LIBRE*100)+'%';
   }
 
   pintarTarjetas();
@@ -1486,7 +1508,8 @@ function pedir(){
     return;
   }
   const total=$('#v-tot').textContent;
-  const libre=$('#v-ship').textContent==='Gratis';
+  const cEnvio=$('#v-ship').textContent;
+  const libre=cEnvio==='Gratis';
   let t='Hola, Zephora Charms. Armé mi pulsera en la página web y quisiera confirmar este pedido:\n';
   if(base) t+='\n• Brazalete '+PU[base.id].n.replace(/^Pulsera /,'')+
     (base.talla?' — talla '+base.talla+' cm':'')+' — '+cop(PU[base.id].p);
@@ -1496,8 +1519,9 @@ function pedir(){
     t+='\n• '+CH[id].n+(n>1?' (x'+n+')':'')+' — '+cop(CH[id].p*n);
   });
   if(document.getElementById('pack').checked) t+='\n• Empaque Premium de Regalo — '+cop(40000);
-  t+='\n\nTotal con descuento aplicado: '+total;
-  t+=libre?'\nEnvío: gratis a toda Colombia':'\nEnvío: pendiente de cotizar según mi ciudad';
+  t+='\n\nForma de pago: '+(pago==='anticipado'?'anticipado':'contraentrega');
+  t+='\nEnvío: '+(libre?'gratis a toda Colombia':cEnvio);
+  t+='\nTotal con descuento aplicado: '+total;
   t+='\n\nQuedo atenta a la confirmación de disponibilidad y a la asesoría de talla. Gracias.';
   const val=+total.replace(/[^0-9]/g,'')||0;
   const piezas=sel.length+(base?1:0);
@@ -1508,6 +1532,16 @@ function pedir(){
 $('#send').onclick=pedir;
 $('#dock-send').onclick=pedir;
 document.getElementById('pack').addEventListener('change',render);
+document.getElementById('pago').addEventListener('click',e=>{
+  const b=e.target.closest('.pbtn'); if(!b) return;
+  pago=b.dataset.pago;
+  document.querySelectorAll('#pago .pbtn').forEach(x=>{
+    const on=x===b;
+    x.classList.toggle('is-on',on);
+    x.setAttribute('aria-checked',on?'true':'false');
+  });
+  render();
+});
 
 const bloqueado = el => el.getAttribute('aria-disabled')==='true';
 function sumarCharm(id){

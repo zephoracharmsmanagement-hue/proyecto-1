@@ -35,6 +35,24 @@ Las imágenes vivían incrustadas en el HTML como data URIs en base64, lo que ha
 
 Ahora son archivos externos y el HTML pesa 115 KB. El navegador pide solo la imagen del hero al cargar y el resto conforme aparecen en pantalla.
 
+## Envío
+
+Tarifa plana nacional, sin cotizar por ciudad:
+
+| Forma de pago | Envío |
+|---|---|
+| Anticipado | $15.000 |
+| Contraentrega | $25.000 — la transportadora cobra por recaudar |
+| Cualquiera, desde $180.000 de mercancía | Gratis |
+
+El costo **se suma al total** que ve la clienta, así que lo que muestra la página
+es lo que paga. El umbral de envío gratis se mide sobre la mercancía y no sobre el
+total: si contara el total, el propio envío ayudaría a alcanzarlo.
+
+Al cambiar estas tarifas hay que tocar `ENVIO` en `index.html` **y** la copia en
+tres sitios que las repiten: la barra de avisos, la franja de beneficios y la de
+garantías, más `envios-y-devoluciones.html` y `preguntas-frecuentes.html`.
+
 ## Inventario
 
 `assets/stock.json` se regenera desde el Excel cuando cambia el stock. **No vive
