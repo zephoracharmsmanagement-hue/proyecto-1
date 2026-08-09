@@ -18,8 +18,13 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 | `skills-lock.json` | Skills instaladas en el proyecto (fuente + hash). |
 | `.claude/skills/` | Agent Skills disponibles al trabajar en este repo. |
 
-Las cinco páginas de información se generan desde un shell común para que no se
-desincronicen entre sí (cabecera, pie y `<head>` son idénticos en todas).
+Las cinco páginas de información **no se editan a mano**: las genera
+`herramientas/gen_paginas.py` desde un shell común, para que cabecera, pie y
+`<head>` no se desincronicen entre sí. Se toca el generador y se ejecuta:
+
+```
+python3 herramientas/gen_paginas.py
+```
 
 El responsable se identifica como **Zephora Charms, NIT 1.019.151.696-3, tienda
 virtual con operación en Bogotá D.C.**
@@ -34,6 +39,50 @@ Los canales publicados son WhatsApp +57 301 899 0672 y `zephoracharms@gmail.com`
 Las imágenes vivían incrustadas en el HTML como data URIs en base64, lo que hacía el archivo portable pero pesado: 2.5 MB, de los cuales 2.4 MB eran imágenes. Peor todavía, `loading="lazy"` no hace nada sobre un data URI —los bytes ya viajan dentro del HTML—, así que cada visitante descargaba las 109 imágenes antes de ver nada.
 
 Ahora son archivos externos y el HTML pesa 115 KB. El navegador pide solo la imagen del hero al cargar y el resto conforme aparecen en pantalla.
+
+## Tallas y capacidad
+
+La calculadora de `index.html#talla` no adivina: aplica las reglas del negocio.
+El cliente escribe su muñeca ajustada y se calcula el **margen** para cada talla.
+
+```
+margen = talla − muñeca
+```
+
+| Margen | Qué pasa | Capacidad |
+|---|---|---|
+| ≥ 3 cm | Llena completa, cae suelta. La ideal si va a usar muranos | 15–20 charms |
+| 2 a 3 cm | **La recomendada.** Llena completa, justa y cómoda | 15–20 charms |
+| 1 a 2 cm | Sirve con pocos charms; si la llena más, aprieta | 5–8 charms |
+| < 1 cm | No recomendable: apretada aun sin charms, o no cierra | — |
+
+Son tramos, no igualdades: una muñeca de 16,5 cm da márgenes fraccionarios.
+
+**Los +2 cm no son sobrante.** Al llenarse de charms, el grosor de las piezas se
+come unos 2 cm del diámetro interior útil de la cadena. Ese es el argumento que la
+página explica y que evita la mitad de las consultas de talla.
+
+## Familias de pieza
+
+Cada charm lleva `familia` en `assets/stock.json` —dato, no código, para poder
+corregir una clasificación sin tocar el HTML—. De ahí salen las dos medidas que
+muestra la ficha de producto, que son distintas: lo que **mide** la pieza y lo que
+**ocupa** de cadena, que es lo que determina cuántos charms caben.
+
+| Familia | Piezas | Mide | Ocupa |
+|---|---:|---|---|
+| `pasador` | 79 | 0,8–1,2 cm | 8–10 mm |
+| `colgante` | 24 | 1,5–2,5 cm de largo | 4–6 mm en el aro |
+| `murano` | 4 | 0,9–1,1 cm | 9–11 mm |
+| `clip` | 4 | 0,5–0,9 cm | 4–6 mm |
+| `cadena` | 3 | — | 4–5 mm por aro |
+
+Son **promedios por familia**, y la ficha lo dice: no hay medición pieza a pieza.
+
+> **Materiales — no mezclar.** Los charms son **Plata 925**; solo los **brazaletes**
+> son latón con baño de plata y e-coating. Ambos, libres de níquel y plomo.
+> Describir un charm como enchapado es publicidad engañosa sobre el producto que
+> más margen deja. Hay una comprobación por `grep` en la verificación para eso.
 
 ## Envío
 

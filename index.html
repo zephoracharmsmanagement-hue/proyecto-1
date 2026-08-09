@@ -345,6 +345,113 @@ section{scroll-margin-top:64px}
 .stock-nota{font-size:11.5px;color:#8d7f92;text-align:center;margin:10px 0 0;line-height:1.5}
 .sheet .stock-nota{color:#9b8ca0}
 
+/* ——— calculadora de talla ——— */
+.talla-sec{padding:44px 0;border-top:1px solid var(--line);background:var(--white)}
+.calc{display:grid;gap:20px;max-width:760px;margin:0 auto}
+.calc-in{background:var(--rose-soft);border:1px solid #e9d3dc;border-radius:3px;padding:18px 20px}
+.calc-in label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:#6b5c70;margin-bottom:9px}
+.calc-campo{display:flex;align-items:center;gap:9px}
+.calc-campo input{flex:0 1 140px;font:300 26px/1 'Cormorant Garamond',Georgia,serif;
+  padding:10px 12px;border:1px solid var(--line);border-radius:2px;background:var(--white);
+  color:var(--ink);min-height:52px}
+.calc-campo span{font-size:15px;color:#6b5c70}
+.calc-hint{font-size:12px;color:#7d6f82;margin:9px 0 0}
+.calc-out{display:grid;gap:8px}
+.calc-vacia{font-size:14px;color:#7d6f82;text-align:center;padding:14px 0;margin:0}
+.tfila{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline;
+  border:1px solid var(--line);border-radius:3px;padding:13px 15px;background:var(--white)}
+.tfila-t{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;line-height:1;
+  grid-row:span 2;align-self:center}
+.tfila-v{font-size:11px;letter-spacing:.13em;text-transform:uppercase}
+.tfila-d{font-size:13.5px;color:#5f5364;line-height:1.5;margin:0}
+.tfila-d b{font-weight:500;color:var(--ink)}
+.tfila--best{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum);background:#fbf7fc}
+.tfila--best .tfila-v{color:var(--plum)}
+.tfila--ok .tfila-v{color:#5d7a68}
+.tfila--warn .tfila-v{color:#9a7340}
+.tfila--bad{opacity:.62}
+.tfila--bad .tfila-v{color:#8a8290}
+.tfila-ago{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--silver)}
+.porque{max-width:640px;margin:28px auto 0;text-align:center;padding-top:22px;
+  border-top:1px solid var(--line)}
+.porque h3{font-size:21px;margin:0 0 8px}
+.porque p{font-size:14.5px;color:#5f5364;margin:0;line-height:1.65}
+.talla-link{display:inline-block;margin-top:9px;font-size:12px;color:var(--plum)}
+
+/* ——— ficha de producto ——— */
+.fx{position:fixed;inset:0;z-index:130;background:rgba(42,31,46,.93);
+  display:flex;align-items:center;justify-content:center;padding:16px}
+.fx[hidden]{display:none}
+.fx-box{background:var(--bone);border-radius:5px;max-width:760px;width:100%;
+  max-height:90dvh;overflow-y:auto;position:relative;display:grid}
+.fx-x{position:absolute;top:8px;right:8px;z-index:2;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(255,255,255,.94);color:var(--ink);
+  font-size:16px;cursor:pointer;line-height:1}
+.fx-ph{background:#fff;display:flex;align-items:center;justify-content:center;
+  aspect-ratio:1;padding:14px;border-radius:5px 5px 0 0}
+.fx-ph img{width:100%;height:100%;object-fit:contain}
+.fx-ph .nofoto-m{font-size:64px}
+.fx-tx{padding:20px 22px 24px}
+.fx-tx h3{font-size:clamp(24px,6vw,31px);line-height:1.15;margin:6px 0 6px}
+.fx-p{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;margin:0 0 4px}
+.fx-est{font-size:12px;letter-spacing:.06em;margin:0 0 16px}
+.fx-est--ok{color:#5d7a68}
+.fx-est--few{color:var(--rose)}
+.fx-est--out{color:#8a8290}
+.fx-specs{margin:0 0 12px;padding:0;border-top:1px solid var(--line)}
+.fx-specs div{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--line)}
+.fx-specs dt{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver);
+  margin:0}
+.fx-specs dd{margin:0;font-size:14px;color:#4a3d4e;line-height:1.5}
+.fx-nota{font-size:11.5px;color:#8a8290;margin:0 0 18px;line-height:1.5}
+.fx-cta{display:grid;gap:9px}
+.fx-cta .btn{width:100%}
+/* Siempre visible, no en hover: en móvil no hay hover y nadie descubriría
+   que la tarjeta se abre. Va abajo a la izquierda, la única esquina libre. */
+.pc-ver{position:absolute;left:7px;bottom:7px;display:flex;align-items:center;gap:4px;
+  font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;
+  border-radius:1px;border:1px solid var(--line);background:rgba(255,255,255,.9);
+  color:#8a8290;pointer-events:none;transition:.18s}
+.pc:hover .pc-ver{border-color:var(--plum);color:var(--plum)}
+.pc-img{cursor:pointer}
+.pc-name{cursor:pointer}
+.pc:hover .pc-name{text-decoration:underline;text-decoration-color:var(--line);
+  text-underline-offset:3px}
+
+/* ——— buscador ——— */
+.buscar{position:relative;margin:0 0 14px}
+.buscar input{width:100%;font:300 15px/1 Jost,sans-serif;padding:13px 40px 13px 38px;
+  border:1px solid var(--line);border-radius:2px;background:var(--white);color:var(--ink);
+  min-height:48px;-webkit-appearance:none}
+.buscar input::-webkit-search-cancel-button{-webkit-appearance:none}
+.buscar svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:var(--silver);pointer-events:none}
+.buscar-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;
+  border:0;background:none;color:var(--silver);font-size:15px;cursor:pointer;line-height:1}
+.buscar-x[hidden]{display:none}
+.sin-res{text-align:center;padding:28px 10px;color:#6d6070;font-size:14.5px}
+.sin-res b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-size:21px;
+  font-weight:400;color:var(--ink);margin-bottom:6px}
+
+/* ——— pagos y entrega ——— */
+.pe{padding:44px 0;border-top:1px solid var(--line)}
+.pe-grid{display:grid;gap:16px}
+.pe-caja{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:20px 20px 22px}
+.pe-caja h3{font-size:22px;margin:0 0 4px}
+.pe-caja>p{font-size:13.5px;color:#6d6070;margin:0 0 16px}
+.pe-lista{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:7px}
+.pe-lista li{font-size:12px;letter-spacing:.04em;border:1px solid var(--line);border-radius:2px;
+  padding:8px 11px;color:#4a3d4e;background:var(--bone)}
+.pe-tabla{width:100%;border-collapse:collapse;font-size:13.5px}
+.pe-tabla th,.pe-tabla td{text-align:left;padding:9px 0;border-bottom:1px solid var(--line);
+  color:#4a3d4e;vertical-align:top}
+.pe-tabla th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver);
+  font-weight:400}
+.pe-tabla td:last-child{text-align:right;white-space:nowrap;padding-left:12px}
+.pe-pie{font-size:12.5px;color:#6d6070;margin:14px 0 0;line-height:1.55}
+
 /* cabecera de sección centrada · tratamiento editorial de la referencia */
 .sec-head--c{max-width:700px;margin:0 auto 26px;text-align:center}
 .sec-head--c h2{font-size:clamp(21px,5vw,31px);letter-spacing:.15em;text-transform:uppercase;line-height:1.3}
@@ -505,6 +612,14 @@ body.sheet-open{overflow:hidden}
   .story{padding:68px 0}
   .hero-img img{max-height:72dvh}
   .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
+  .talla-sec,.pe{padding:60px 0}
+  .calc{grid-template-columns:300px 1fr;gap:26px;align-items:start;max-width:none}
+  .fx-box{grid-template-columns:1fr 1fr;max-height:82dvh}
+  .fx-ph{aspect-ratio:auto;border-radius:5px 0 0 5px;min-height:340px}
+  .fx-tx{padding:26px 28px 28px}
+  .fx-cta{grid-template-columns:1fr 1fr}
+  .pe-grid{grid-template-columns:1fr 1fr;gap:20px}
+  .pe-caja{padding:26px 26px 28px}
   .pc--letras{flex-direction:row}
   .pc--letras .pc-img{flex:0 0 210px;aspect-ratio:auto;border-radius:3px 0 0 3px}
   .pc--letras .pc-body{flex:1;padding:18px 20px}
@@ -544,7 +659,8 @@ body.sheet-open{overflow:hidden}
       <a href="#categorias">Categorías</a>
       <a href="#brazaletes">Brazaletes</a>
       <a href="#charms">Charms</a>
-      <a href="#historia">La marca</a>
+      <a href="#talla">Tallas</a>
+      <a href="#pagos">Pagos y envío</a>
     </nav>
   </div>
 </header>
@@ -575,7 +691,8 @@ body.sheet-open{overflow:hidden}
 <div class="bens">
   <div class="bens-in">
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5.3 5.5.6-4.2 3.8 1.2 5.6L12 14.5 7 17.3l1.2-5.6L4 7.9l5.5-.6z"/></svg><span><b>Charms en Plata Esterlina 925</b> verificada, con sello grabado</span></div>
-    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Brazaletes de alta calidad</b> con elegante acabado en baño de plata</span></div>
+    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Libres de níquel y plomo</b> — aptos para pieles sensibles</span></div>
+    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Brazaletes</b> en latón de calidad joyería con baño de plata certificado y capa protectora e-coating</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/></svg><span><b>Compatibles con charms Pandora</b> — combina con los que ya tienes</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9.5A4 4 0 0112 8a4 4 0 017 2.5C19 15.7 12 20 12 20z"/></svg><span><b>Personalización total:</b> tú eliges cada pieza de tu historia</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg><span><b>Envío a toda Colombia:</b> $15.000 anticipado o $25.000 contraentrega — gratis desde $180.000</span></div>
@@ -643,6 +760,34 @@ body.sheet-open{overflow:hidden}
       <p>Mide tu muñeca, súmale 2 cm y listo — o por WhatsApp lo resolvemos contigo.</p></div>
     <div class="step"><span class="step-n">Paso 4</span><b>Recibe y paga en casa</b>
       <p>En cualquier ciudad de Colombia, con opción de pago contraentrega.</p></div>
+  </div>
+</section>
+
+<!-- 4b · CALCULADORA DE TALLA -->
+<section class="talla-sec" id="talla">
+  <div class="wrap">
+    <div class="sec-head sec-head--c">
+      <span class="eyebrow">Guía de tallas</span>
+      <h2>¿Qué talla es la mía?</h2>
+      <p>Mide tu muñeca ajustada con un metro de costura o una tira de papel, escríbela aquí y te decimos qué talla pedir y cuántos charms te caben en cada una.</p>
+    </div>
+    <div class="calc">
+      <div class="calc-in">
+        <label for="muneca">Medida de tu muñeca</label>
+        <div class="calc-campo">
+          <input type="number" id="muneca" min="10" max="26" step="0.5" inputmode="decimal" placeholder="17" aria-describedby="calc-hint">
+          <span>cm</span>
+        </div>
+        <p class="calc-hint" id="calc-hint">Ajustada, sin apretar. Acepta medios centímetros: 16,5</p>
+      </div>
+      <div class="calc-out" id="calc-out" aria-live="polite">
+        <p class="calc-vacia">Escribe tu medida y te mostramos las cinco tallas con lo que cabe en cada una.</p>
+      </div>
+    </div>
+    <div class="porque">
+      <h3>¿Por qué se le suman 2 cm?</h3>
+      <p>No es sobrante vacío. Cuando la pulsera se llena de charms, el grosor de las piezas se come el diámetro interior útil de la cadena —unos 2 cm—. Esos 2 cm son justo el espacio que van a ocupar tus charms para que la pulsera cierre cómoda en tu muñeca real.</p>
+    </div>
   </div>
 </section>
 
@@ -774,6 +919,11 @@ body.sheet-open{overflow:hidden}
       <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver el catálogo completo · 86 charms</button>
     </div>
     <div id="full-cat" hidden>
+      <div class="buscar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+        <input type="search" id="q" placeholder="Buscar un charm por nombre…" aria-label="Buscar un charm por nombre" autocomplete="off">
+        <button class="buscar-x" type="button" id="q-x" aria-label="Borrar búsqueda" hidden>✕</button>
+      </div>
       <div class="filters" id="filters"><button class="fbtn is-on" type="button" data-f="todos">Todos</button><span class="fgroup">Personajes</span><button class="fbtn" type="button" data-f="Disney">Disney</button><button class="fbtn" type="button" data-f="Pixar">Pixar</button><button class="fbtn" type="button" data-f="Marvel">Marvel</button><span class="fgroup">Clásicos</span><button class="fbtn" type="button" data-f="Zodiaco">Zodiaco</button><button class="fbtn" type="button" data-f="Símbolos">Símbolos</button><button class="fbtn" type="button" data-f="Profesiones">Profesiones</button><button class="fbtn" type="button" data-f="Muranos">Muranos</button><button class="fbtn" type="button" data-f="Clips">Clips</button><button class="fbtn" type="button" data-f="Cadenas">Cadenas</button><button class="fbtn" type="button" data-f="Letras">Letras</button><span class="fgroup">Stock</span><button class="fbtn fbtn--disp" type="button" id="solo-disp" aria-pressed="false">Solo disponibles</button></div>
       <div class="grid" id="resto-grid"><article class="pc" data-id="minnie-mouse" data-g="Disney">
 <div class="pc-img"><img src="assets/minnie-mouse.webp" alt="Minnie Mouse" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
@@ -1143,6 +1293,37 @@ body.sheet-open{overflow:hidden}
   </div>
 </section>
 
+<!-- 7b · PAGOS Y ENTREGA -->
+<section class="pe wrap" id="pagos">
+  <div class="sec-head sec-head--c">
+    <span class="eyebrow">Sin sorpresas</span>
+    <h2>Cómo pagas y cuándo llega</h2>
+  </div>
+  <div class="pe-grid">
+    <div class="pe-caja">
+      <h3>Medios de pago</h3>
+      <p>Elige el que te quede cómodo. Lo confirmamos por chat antes de que pagues.</p>
+      <ul class="pe-lista">
+        <li>Bancolombia</li><li>Nequi</li><li>Daviplata</li><li>PSE</li>
+        <li>Tarjeta de crédito</li><li>Tarjeta débito</li><li>Addi a cuotas</li>
+        <li>Contraentrega</li>
+      </ul>
+      <p class="pe-pie">No emitimos factura electrónica; con tu pedido va el comprobante digital de compra.</p>
+    </div>
+    <div class="pe-caja">
+      <h3>Tiempos de entrega</h3>
+      <p>Enviamos por <b>Inter Rapidísimo</b> a todo el país, con número de guía.</p>
+      <table class="pe-tabla">
+        <tr><th>Destino</th><th>Llega en</th></tr>
+        <tr><td>Bogotá y municipios cercanos</td><td>1 – 2 días hábiles</td></tr>
+        <tr><td>Ciudades principales<br>Medellín, Cali, Barranquilla…</td><td>2 – 4 días hábiles</td></tr>
+        <tr><td>Resto del país y reexpedidos</td><td>3 – 6 días hábiles</td></tr>
+      </table>
+      <p class="pe-pie">Días hábiles contados desde el despacho. Te mandamos la guía por WhatsApp o correo para que sigas tu pedido.</p>
+    </div>
+  </div>
+</section>
+
 <!-- 8 · CONFIANZA -->
 <section class="trust-sec">
   <div class="wrap">
@@ -1177,6 +1358,10 @@ body.sheet-open{overflow:hidden}
     <div>
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/></svg>
       <span>Compatibles con Pandora</span>
+    </div>
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9.5A4 4 0 0112 8a4 4 0 017 2.5C19 15.7 12 20 12 20z"/></svg>
+      <span>Libres de níquel y plomo</span>
     </div>
     <div>
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></svg>
@@ -1258,6 +1443,25 @@ body.sheet-open{overflow:hidden}
   <button class="btn btn--wa" type="button" id="dock-send">Pedir</button>
 </div>
 
+<div class="fx" id="ficha" hidden role="dialog" aria-modal="true" aria-labelledby="fx-n">
+  <div class="fx-box">
+    <button class="fx-x" type="button" id="fx-x" aria-label="Cerrar">✕</button>
+    <div class="fx-ph" id="fx-ph"></div>
+    <div class="fx-tx">
+      <p class="eyebrow" id="fx-tipo"></p>
+      <h3 id="fx-n"></h3>
+      <p class="fx-p" id="fx-p"></p>
+      <p class="fx-est" id="fx-est"></p>
+      <dl class="fx-specs" id="fx-specs"></dl>
+      <p class="fx-nota" id="fx-nota"></p>
+      <div class="fx-cta">
+        <button class="btn" type="button" id="fx-add">Agregar</button>
+        <a class="btn btn--ghost" id="fx-wa" data-wa="ficha">Preguntar por esta pieza</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
 const WA='573018990672', LIBRE=180000;
@@ -1269,6 +1473,33 @@ const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, 
 const byId=(a)=>a.reduce((o,x)=>(o[x.id]=x,o),{});
 const CH=byId(DATA.charms), PU=byId(DATA.pulseras);
 const TALLAS=['17','18','19','20','21'];
+/* Medidas promedio por familia de pieza. Son dos datos distintos: lo que mide la
+   pieza y lo que ocupa de cadena —de ahí sale cuántos charms caben—. */
+const FAMILIAS={
+  pasador:{n:'Pasador · charm fijo',mide:'0,8 – 1,2 cm',ocupa:'8 – 10 mm',
+    d:'Se ensarta en la cadena y queda en su lugar, sin colgar.'},
+  colgante:{n:'Dije colgante',mide:'1,5 – 2,5 cm de largo',ocupa:'4 – 6 mm en el aro',
+    d:'Cuelga de la cadena y se mueve con la muñeca. Ocupa poco a lo ancho.'},
+  murano:{n:'Murano de cristal',mide:'0,9 – 1,1 cm',ocupa:'9 – 11 mm',
+    d:'Cristal sobre núcleo de plata. Es la pieza más gruesa: tenlo en cuenta al elegir talla.'},
+  clip:{n:'Clip separador',mide:'0,5 – 0,9 cm',ocupa:'4 – 6 mm',
+    d:'Se ajusta a la cadena y sujeta los charms para que no se corran.'},
+  cadena:{n:'Cadena de seguridad',mide:'',ocupa:'4 – 5 mm por aro · 10 mm en total',
+    d:'Va de extremo a extremo para que los charms no se salgan si el broche se abre.'}
+};
+/* Capacidad según el margen (talla − muñeca). Tramos, no igualdades: una muñeca
+   de 16,5 cm da márgenes fraccionarios y tiene que caer en el tramo correcto. */
+const CAP=[
+  {min:3,  k:'ok',   v:'Holgada',              c:'15 a 20 charms',
+   d:'La llenas completa y cae suelta. Es la ideal si vas a usar sobre todo <b>muranos</b>, que son más gruesos.'},
+  {min:2,  k:'best', v:'La recomendada',       c:'15 a 20 charms',
+   d:'La llenas completa y te queda <b>justa y cómoda</b> en tu medida real.'},
+  {min:1,  k:'warn', v:'Capacidad reducida',   c:'5 a 8 charms',
+   d:'Te sirve si vas a usar pocos charms. Si la llenas más, <b>te va a apretar</b>.'},
+  {min:-99,k:'bad',  v:'No recomendable',      c:'—',
+   d:'Te quedará apretada aun sin charms, o no te cerrará.'}
+];
+const capDe = m => CAP.find(x=>m>=x.min);
 const LETRAS=DATA.charms.filter(c=>/^letra-/.test(c.id)).map(c=>c.id.slice(6));
 
 /* Inventario. Vive en assets/stock.json y no dentro de este archivo, para poder
@@ -1316,6 +1547,38 @@ function fila(id,nombre,meta,precio,quitar){
   return r;
 }
 
+/* ¿Alguna pulsera tiene unidades en esta talla? Sirve para no recomendar una
+   talla que nadie tiene. Sin inventario cargado no opinamos: devuelve true. */
+function tallaEnCatalogo(t){
+  if(!STOCK) return true;
+  return Object.keys(STOCK).some(id=>{
+    const l=tallasLibres(id); return l && l.indexOf(t)>=0;
+  });
+}
+
+function pintarCalculadora(){
+  const caja=document.getElementById('calc-out');
+  const v=parseFloat(String(document.getElementById('muneca').value).replace(',','.'));
+  if(!isFinite(v)||v<=0){
+    caja.innerHTML='<p class="calc-vacia">Escribe tu medida y te mostramos las cinco tallas con lo que cabe en cada una.</p>';
+    return;
+  }
+  caja.innerHTML='';
+  TALLAS.forEach(t=>{
+    const margen=+(Number(t)-v).toFixed(1);
+    const c=capDe(margen);
+    const hay=tallaEnCatalogo(t);
+    const f=document.createElement('div');
+    f.className='tfila tfila--'+c.k;
+    f.innerHTML='<span class="tfila-t">'+t+'<small style="font-size:12px"> cm</small></span>'+
+      '<span class="tfila-v">'+c.v+' · '+c.c+
+        (hay?'':' <span class="tfila-ago">· sin unidades hoy</span>')+'</span>'+
+      '<p class="tfila-d">'+c.d+' <b>Margen '+
+        (margen>0?'+':'')+String(margen).replace('.',',')+' cm</b>.</p>';
+    caja.appendChild(f);
+  });
+}
+
 /* Enlace a WhatsApp para pedir por encargo algo agotado. */
 function waEncargo(nombre){
   return 'https://wa.me/'+WA+'?text='+encodeURIComponent(
@@ -1355,7 +1618,7 @@ function pintarTallas(p,id){
     caja.className='tallas'; caja.hidden=true;
     caja.innerHTML='<p class="tallas-t">Elige tu talla</p><div class="tallas-row"></div>'+
       '<p class="tallas-ayuda">Mide tu muñeca y súmale 2 cm. '+
-      '<a href="'+waEncargo(PU[id].n)+'" data-wa="talla">¿Dudas? Te ayudamos</a></p>';
+      '<a href="#talla">¿Qué talla es la mía?</a></p>';
     p.querySelector('.pc-body').appendChild(caja);
   }
   const fila=caja.querySelector('.tallas-row');
@@ -1438,6 +1701,82 @@ function pintarLetras(){
   });
 }
 
+/* ——— ficha de producto ——— */
+let fichaId=null;
+function abrirFicha(id){
+  const esB=!!PU[id], p=esB?PU[id]:CH[id];
+  if(!p) return;
+  fichaId=id;
+  const tarjeta=document.querySelector('.pc[data-id="'+CSS.escape(/^letra-/.test(id)?'letras':id)+'"]');
+  const img=tarjeta&&tarjeta.querySelector('.pc-img img');
+  const inv=STOCK?STOCK[id]:null;
+  const fam=inv&&inv.familia?FAMILIAS[inv.familia]:null;
+
+  $('#fx-ph').innerHTML = img
+    ? '<img src="'+img.src+'" alt="'+p.n.replace(/"/g,'&quot;')+'">'
+    : '<span class="nofoto-m" aria-hidden="true">'+p.n.trim().charAt(0).toUpperCase()+'</span>';
+  $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
+  $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
+  $('#fx-p').textContent = cop(p.p);
+
+  const est=$('#fx-est');
+  if(!STOCK){ est.textContent=''; est.className='fx-est'; }
+  else if(agotado(id)){ est.textContent='Agotado — puedes pedirlo por encargo'; est.className='fx-est fx-est--out'; }
+  else if(esB){
+    const l=tallasLibres(id)||[];
+    est.textContent='Disponible en talla '+l.join(', ')+' cm';
+    est.className='fx-est fx-est--ok';
+  }else{
+    const u=unidades(id);
+    est.textContent = u!==null&&u<=2 ? (u===1?'Queda 1 unidad':'Quedan '+u+' unidades') : 'Disponible';
+    est.className='fx-est'+(u!==null&&u<=2?' fx-est--few':' fx-est--ok');
+  }
+
+  const filas=[];
+  const fila=(k,v)=>filas.push('<div><dt>'+k+'</dt><dd>'+v+'</dd></div>');
+  if(esB){
+    fila('Material','Base de latón de calidad joyería con baño de plata certificado y capa protectora e-coating');
+    fila('Tallas','17 a 21 cm. <a href="#talla" class="talla-link" style="margin:0">¿Cuál es la mía?</a>');
+  }else{
+    fila('Material','Plata Esterlina 925 verificada, con sello grabado');
+    if(fam){
+      fila('Tipo de pieza',fam.n+' — '+fam.d);
+      if(fam.mide) fila('Mide la pieza',fam.mide);
+      fila('Ocupa en la pulsera',fam.ocupa);
+    }
+  }
+  fila('Compatible','Con brazaletes Zephora y con pulseras de sistema modular, incluidas las de Pandora');
+  fila('Sin níquel','Libre de níquel y plomo — apta para pieles sensibles');
+  $('#fx-specs').innerHTML=filas.join('');
+  $('#fx-nota').textContent = esB ? '' : 'Medidas aproximadas por tipo de pieza, no medición individual.';
+
+  const add=$('#fx-add'), sinStock=agotado(id);
+  add.hidden=esB;
+  if(!esB){
+    const lleno=sel.filter(x=>x===id).length>=tope(id);
+    add.textContent = sinStock ? 'Agotado' : (lleno?'Sin más unidades':'Agregar a mi pulsera');
+    if(sinStock||lleno) add.setAttribute('aria-disabled','true'); else add.removeAttribute('aria-disabled');
+  }
+  $('#fx-wa').href = sinStock ? waEncargo(p.n)
+    : 'https://wa.me/'+WA+'?text='+encodeURIComponent(
+        'Hola, Zephora Charms. Estoy viendo «'+p.n+'» en la página y quisiera saber más antes de pedirlo.');
+
+  $('#ficha').hidden=false;
+  document.body.classList.add('sheet-open');
+  $('#fx-x').focus();
+}
+function cerrarFicha(){
+  $('#ficha').hidden=true; fichaId=null;
+  /* El bloqueo de scroll lo comparten la hoja del carrito y la ficha:
+     solo se suelta si la hoja no quedó abierta detrás. */
+  if($('#sheet').getAttribute('aria-hidden')!=='false') document.body.classList.remove('sheet-open');
+}
+$('#fx-x').onclick=cerrarFicha;
+$('#ficha').addEventListener('click',e=>{ if(e.target.id==='ficha') cerrarFicha(); });
+$('#fx-add').addEventListener('click',()=>{
+  if(fichaId&&!bloqueado($('#fx-add'))) { sumarCharm(fichaId); abrirFicha(fichaId); }
+});
+
 function render(){
   const body=$('#sheet-body');
   body.innerHTML='';
@@ -1516,7 +1855,23 @@ $('#dock').addEventListener('keydown',e=>{
 });
 $('#sheet-x').onclick=()=>abrir(false);
 $('#veil').onclick=()=>abrir(false);
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') abrir(false) });
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  if(!$('#ficha').hidden){ cerrarFicha(); return; }   /* la ficha va encima */
+  abrir(false);
+});
+
+/* Indicio de que la tarjeta se abre. Se pone una vez, no en cada render. */
+function marcarVerDetalle(){
+  document.querySelectorAll('.pc[data-id]').forEach(p=>{
+    if(p.dataset.id==='letras'||p.querySelector('.pc-ver')) return;
+    const cont=p.querySelector('.pc-img'); if(!cont) return;
+    const e=document.createElement('span');
+    e.className='pc-ver';
+    e.innerHTML='<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.4v.2"/></svg>Ver detalle';
+    cont.appendChild(e);
+  });
+}
 
 function pedir(){
   if(!base&&!sel.length){
@@ -1568,6 +1923,14 @@ function sumarCharm(id){
 }
 
 document.addEventListener('click',e=>{
+  /* La foto y el nombre abren la ficha. El bloque de letras no: cada inicial se
+     agrega desde su propia casilla y no tiene ficha propia. */
+  const ver=e.target.closest('.pc-img, .pc-name');
+  if(ver && !e.target.closest('.pc-add, .tbtn, .lbtn, .pc-encargo')){
+    const t=ver.closest('.pc');
+    if(t && t.dataset.id && t.dataset.id!=='letras'){ abrirFicha(t.dataset.id); return; }
+  }
+
   const add=e.target.closest('[data-add]');
   if(add){ if(!bloqueado(add)) sumarCharm(add.dataset.add); return; }
 
@@ -1645,7 +2008,9 @@ $('#ver-todos').addEventListener('click',()=>{
 const grid=document.getElementById('resto-grid');
 const destacados=document.getElementById('rail-top');
 const cuenta=document.getElementById('count');
-let filtroActual='todos', soloDisp=false;
+let filtroActual='todos', soloDisp=false, busqueda='';
+/* Sin tildes y en minúscula: quien busca "angel" debe encontrar "Ángel Guardián". */
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 /* El bloque de letras cuenta por las iniciales que ofrece, no como una tarjeta. */
 const cuentaLetras = () => LETRAS.filter(L=>!soloDisp||!agotado('letra-'+L)).length;
 
@@ -1655,23 +2020,45 @@ function aplicarFiltro(f){
   document.querySelectorAll('#filters .fbtn:not(.fbtn--disp)').forEach(x=>{
     x.classList.toggle('is-on',x.dataset.f===f);
   });
+  const q=norm(busqueda.trim());
   let v=0;
   grid.querySelectorAll('.pc').forEach(p=>{
     const id=p.dataset.id;
     const esLetras=id==='letras';
-    const ok = (f==='todos'||p.dataset.g===f) &&
-               (!soloDisp || esLetras ? true : !agotado(id)) &&
-               (!soloDisp || !esLetras || cuentaLetras()>0);
+    const nombre=norm(p.querySelector('.pc-name').textContent);
+    const casa = !q || nombre.indexOf(q)>=0 ||
+      (esLetras && LETRAS.some(L=>norm('letra '+L).indexOf(q)>=0));
+    const ok = casa && (f==='todos'||p.dataset.g===f) &&
+               (esLetras ? (!soloDisp||cuentaLetras()>0) : (!soloDisp||!agotado(id)));
     p.hidden=!ok;
     if(ok) v+= esLetras ? cuentaLetras() : 1;
   });
-  if(f!=='todos'){
+  if(f!=='todos'||q){
     destacados.querySelectorAll('.pc').forEach(p=>{
-      if(p.dataset.g===f && (!soloDisp||!agotado(p.dataset.id))) v++;
+      const id=p.dataset.id;
+      if((f==='todos'||p.dataset.g===f) &&
+         (!q||norm(p.querySelector('.pc-name').textContent).indexOf(q)>=0) &&
+         (!soloDisp||!agotado(id))) v++;
     });
   }
-  cuenta.textContent = f==='todos' && !soloDisp ? ''
-    : v+(v===1?' charm disponible':(soloDisp?' charms disponibles':' charms en esta colección'));
+
+  /* Un catálogo en blanco sin explicación parece roto. */
+  let vacio=document.getElementById('sin-res');
+  if(v===0){
+    if(!vacio){
+      vacio=document.createElement('p');
+      vacio.className='sin-res'; vacio.id='sin-res';
+      grid.parentNode.insertBefore(vacio,grid);
+    }
+    vacio.innerHTML='<b>Sin resultados</b>No encontramos charms con esos criterios. '+
+      'Prueba con otra palabra o <a href="'+
+      'https://wa.me/'+WA+'?text='+encodeURIComponent(
+        'Hola, Zephora Charms. Busco un charm que no encontré en la página. ¿Me ayudan?')+
+      '" data-wa="sin-resultados">pregúntanos por WhatsApp</a>.';
+  }else if(vacio) vacio.remove();
+
+  cuenta.textContent = f==='todos' && !soloDisp && !q ? ''
+    : v+(v===1?' charm':' charms')+(q?' encontrados':(soloDisp?' disponibles':' en esta colección'));
 }
 document.getElementById('filters').addEventListener('click',e=>{
   const d=e.target.closest('.fbtn--disp');
@@ -1684,6 +2071,29 @@ document.getElementById('filters').addEventListener('click',e=>{
   const b=e.target.closest('.fbtn'); if(!b) return;
   aplicarFiltro(b.dataset.f);
 });
+
+/* buscador */
+(function(){
+  const q=document.getElementById('q'), x=document.getElementById('q-x');
+  let t=null;
+  q.addEventListener('input',()=>{
+    x.hidden=!q.value;
+    clearTimeout(t);
+    t=setTimeout(()=>{ busqueda=q.value; aplicarFiltro(filtroActual); },140);
+  });
+  x.addEventListener('click',()=>{
+    q.value=''; x.hidden=true; busqueda=''; aplicarFiltro(filtroActual); q.focus();
+  });
+  q.addEventListener('keydown',e=>{ if(e.key==='Escape'&&q.value) x.click(); });
+})();
+
+/* calculadora de talla */
+(function(){
+  const i=document.getElementById('muneca');
+  let t=null;
+  i.addEventListener('input',()=>{ clearTimeout(t); t=setTimeout(pintarCalculadora,180); });
+  i.addEventListener('change',pintarCalculadora);
+})();
 
 /* tarjetas de categoría → abren el catálogo ya filtrado */
 document.querySelectorAll('.cat[data-cat]').forEach(a=>{
@@ -1723,6 +2133,7 @@ document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
 document.getElementById('year').textContent=new Date().getFullYear();
 
 render();
+marcarVerDetalle();
 
 /* El inventario llega después de pintar: la página ya es usable sin él, y si
    falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
@@ -1737,12 +2148,15 @@ fetch('assets/stock.json',{cache:'no-cache'})
     if(base&&agotado(base.id)) base=null;
     render();
     aplicarFiltro(filtroActual);
+    pintarCalculadora();   /* ahora sí puede marcar las tallas sin unidades */
+    if(fichaId) abrirFicha(fichaId);
     const n=document.getElementById('stock-fecha');
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
   })
   .catch(()=>{});
 })();
 </script>
+
 <div class="lb" id="lb" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Foto ampliada">
   <button class="lb-x" type="button" id="lb-x" aria-label="Cerrar">&#10005;</button>
   <!-- sin src: el visor lo pone al abrir. Un src="" dispara una petición extra al propio HTML. -->

@@ -46,6 +46,14 @@ h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;margin:0
   padding:18px 20px;margin:0 0 26px}
 .note p:last-child{margin-bottom:0}
 
+.qa-nav{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 30px}
+.qa-nav a{flex:0 1 auto;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+  text-decoration:none;color:#6d6070;border:1px solid var(--line);border-radius:2px;
+  padding:10px 13px;background:var(--white);transition:.16s}
+.qa-nav a:hover{border-color:var(--plum);color:var(--plum)}
+.qa-t{font-size:clamp(20px,4.6vw,26px);letter-spacing:.1em;text-transform:uppercase;
+  margin:38px 0 4px;scroll-margin-top:72px}
+.qa-t:first-of-type{margin-top:0}
 .qa{border-top:1px solid var(--line)}
 .qa details{border-bottom:1px solid var(--line)}
 .qa summary{cursor:pointer;padding:17px 34px 17px 0;position:relative;
