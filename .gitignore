@@ -7,5 +7,12 @@
 # Reportes generados por los scripts de meta/
 meta/salida/
 
+# Exportaciones de WhatsApp — datos personales de clientas.
+# Traen nombres, teléfonos y direcciones de entrega: no van a git ni a
+# ningún repositorio remoto. Se analizan localmente y lo que sale de ahí
+# son conclusiones agregadas, nunca conversaciones textuales.
+insumos/whatsapp/*
+!insumos/whatsapp/README.md
+
 node_modules/
 .DS_Store
