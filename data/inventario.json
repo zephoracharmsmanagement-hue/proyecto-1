@@ -10,8 +10,13 @@
   },
   "reglas": {
     "moneda": "COP",
-    "envio_gratis_desde": 180000,
-    "envio_gratis_se_evalua_sobre": "el total ya descontado, incluyendo el Empaque Premium",
+    "envio": {
+      "anticipado": 15000,
+      "contraentrega": 25000,
+      "gratis_desde": 180000,
+      "se_evalua_sobre": "el total ya descontado, incluyendo el Empaque Premium",
+      "cobertura": "Toda Colombia, con número de guía"
+    },
     "empaque_premium": 40000,
     "garantia_dias": 30,
     "descuento_por_charms": {

@@ -53,6 +53,8 @@ for (const trozo of html.split('<article ').slice(1)) {
 /* ── 3 · Reglas de precio: se leen del código, no se copian a mano ─────── */
 
 const [, wa, libre] = exigir(/const WA='(\d+)', LIBRE=(\d+);/, 'WA y LIBRE');
+const [, anticipado, contraentrega] =
+  exigir(/const ENVIO=\{anticipado:(\d+), contraentrega:(\d+)\};/, 'las tarifas de envío');
 const esc = exigir(/const ESC=\[([^\]]+)\];/, 'la escala ESC')[1]
   .split(',')
   .map(n => parseFloat(n));
@@ -121,8 +123,13 @@ const inventario = {
 
   reglas: {
     moneda: 'COP',
-    envio_gratis_desde: Number(libre),
-    envio_gratis_se_evalua_sobre: 'el total ya descontado, incluyendo el Empaque Premium',
+    envio: {
+      anticipado: Number(anticipado),
+      contraentrega: Number(contraentrega),
+      gratis_desde: Number(libre),
+      se_evalua_sobre: 'el total ya descontado, incluyendo el Empaque Premium',
+      cobertura: 'Toda Colombia, con número de guía',
+    },
     empaque_premium: empaque,
     garantia_dias: 30,
     descuento_por_charms: {
