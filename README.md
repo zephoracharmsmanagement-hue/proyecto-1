@@ -13,7 +13,8 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 | `politica-de-privacidad.html` | Tratamiento de datos según Ley 1581 de 2012. |
 | `terminos-y-condiciones.html` | Condiciones de compra según Ley 1480 de 2011. |
 | `politica-de-cookies.html` | Qué instala el sitio y cómo desactivarlo. |
-| `assets/` | Las 109 imágenes del sitio (106 `.webp`, 3 `.jpg`). |
+| `assets/stock.json` | El inventario que lee la página: unidades por charm y tallas por brazalete. |
+| `assets/` | Las imágenes del sitio. |
 | `skills-lock.json` | Skills instaladas en el proyecto (fuente + hash). |
 | `.claude/skills/` | Agent Skills disponibles al trabajar en este repo. |
 
@@ -34,9 +35,47 @@ Las imágenes vivían incrustadas en el HTML como data URIs en base64, lo que ha
 
 Ahora son archivos externos y el HTML pesa 115 KB. El navegador pide solo la imagen del hero al cargar y el resto conforme aparecen en pantalla.
 
+## Inventario
+
+`assets/stock.json` se regenera desde el Excel cuando cambia el stock. **No vive
+dentro de `index.html` a propósito:** actualizar disponibilidad no debe requerir
+tocar código. Sus claves son los mismos `id` que usa `DATA`.
+
+```json
+"ariel":                { "tipo": "charm",   "precio": 85000, "stock": 2 },
+"pulsera-corazon-liso": { "tipo": "pulsera", "precio": 58000,
+                          "tallas": { "17": 2, "18": 2, "19": 2, "20": 2 } }
+```
+
+Qué hace la página con eso:
+
+| Situación | Qué ve la clienta |
+|---|---|
+| Charm con 0 unidades | Foto en gris, etiqueta "Agotado", botón bloqueado y enlace **Pedir por encargo** que abre WhatsApp |
+| Charm con 1 o 2 | Etiqueta "Última unidad" / "Últimas 2". Nunca se inventa urgencia con stock mayor |
+| Charm ya en el carrito al tope | No se puede agregar otra vez |
+| Brazalete | Selector de talla (17–21 cm); **sin talla no entra al carrito** |
+| Talla sin unidades | Se muestra tachada, no se esconde: la clienta ve que la talla existe |
+| Brazalete sin ninguna talla | Agotado, con opción de encargo |
+
+**Si `stock.json` no carga, la página funciona como antes de existir:** todo
+agregable, sin etiquetas y sin talla obligatoria. La venta nunca se bloquea por
+un fallo de red — se comprueba renombrando el archivo.
+
+El conteo es a mano, así que la página **nunca promete disponibilidad**: junto al
+total dice "Disponibilidad referencial — te confirmamos por WhatsApp antes de que
+pagues", con la fecha del último conteo.
+
+### Las letras
+
+Las 27 iniciales (A–Z más Ñ, `letra-a` … `letra-ñ`, con eñe literal en la clave)
+no son 27 tarjetas: son una grilla compacta dentro de una sola tarjeta. Comparten
+la foto `charms-de-letras-pave.webp`, que es de donde salió la tarjeta única que
+había antes.
+
 ## Despliegue
 
-**Se arrastra la carpeta del proyecto, no `index.html` suelto.** Ese archivo ya no es autocontenido: sin `assets/` al lado las 109 imágenes salen rotas, sin `legal.css` las cinco páginas de información salen sin estilos, y los enlaces del pie quedan en 404.
+**Se arrastra la carpeta del proyecto, no `index.html` suelto.** Ese archivo ya no es autocontenido: sin `assets/` al lado las imágenes salen rotas y el sitio pierde la disponibilidad (`assets/stock.json`), sin `legal.css` las cinco páginas de información salen sin estilos, y los enlaces del pie quedan en 404.
 
 Netlify publica la raíz de lo que se suelte, así que la carpeta debe tener `index.html` en su primer nivel y `assets/` junto a él.
 

@@ -280,6 +280,59 @@ section{scroll-margin-top:64px}
 .trust svg{flex:0 0 auto;margin-top:1px}
 .trust b{font-weight:500;color:var(--ink)}
 
+/* ——— disponibilidad y tallas ——— */
+/* Abajo a la derecha: arriba chocaba con .pc-mark en las tarjetas de 2 columnas */
+.pc-stock{position:absolute;bottom:7px;right:7px;font-size:8.5px;letter-spacing:.09em;
+  text-transform:uppercase;padding:3px 6px;border-radius:1px;background:rgba(255,255,255,.94);
+  border:1px solid var(--rose);color:var(--rose);line-height:1.3;max-width:70%;text-align:right}
+.pc-stock--0{border-color:var(--silver);color:#7c7681}
+.pc.is-out .pc-img img{filter:grayscale(.85);opacity:.5}
+.pc.is-out .pc-name{color:#7c7681}
+.pc-add[disabled],.pc-add[aria-disabled="true"]{border-color:var(--line);color:#948e99;
+  background:transparent;cursor:not-allowed}
+.pc-add[disabled]:hover,.pc-add[aria-disabled="true"]:hover{background:transparent;color:#948e99}
+/* Pedir por encargo lo agotado: la venta no se pierde, se mueve al chat */
+.pc-encargo{font-size:10.5px;letter-spacing:.04em;text-decoration:none;color:var(--plum);
+  border-bottom:1px solid currentColor;padding-bottom:1px;white-space:nowrap}
+
+/* selector de tallas dentro de la tarjeta del brazalete */
+.tallas{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.tallas[hidden]{display:none}
+.tallas-t{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver);
+  margin:0 0 7px}
+.tallas-row{display:flex;flex-wrap:wrap;gap:6px}
+.tbtn{font:400 12px/1 Jost;min-width:44px;min-height:38px;padding:9px 8px;cursor:pointer;
+  border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:2px;
+  transition:.16s}
+.tbtn:hover{border-color:var(--plum)}
+.tbtn.is-on{background:var(--plum);border-color:var(--plum);color:#fff}
+/* Las tallas sin stock se ven, no se esconden: la clienta sabe que existen */
+.tbtn[aria-disabled="true"]{color:#a9a3ae;background:#faf8f9;cursor:not-allowed;
+  text-decoration:line-through;text-decoration-color:#cdc6d0}
+.tbtn[aria-disabled="true"]:hover{border-color:var(--line)}
+.tallas-ayuda{font-size:11px;color:#6d6070;margin:8px 0 0;line-height:1.5}
+.tallas-ayuda a{color:var(--plum)}
+
+/* grilla de iniciales */
+/* La foto de las letras es apaisada: con aspect-ratio:1 dejaba media pantalla en blanco */
+.pc--letras{grid-column:1/-1}
+.pc--letras .pc-img{aspect-ratio:16/7}
+.letras-ayuda{font-size:12.5px;color:#6d6070;margin:0 0 10px}
+.letras-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:6px}
+.lbtn{font:400 14px/1 Jost;min-height:42px;cursor:pointer;border:1px solid var(--line);
+  background:var(--white);color:var(--ink);border-radius:2px;transition:.16s;text-transform:uppercase}
+.lbtn:hover{border-color:var(--plum)}
+.lbtn.is-on{background:var(--plum);border-color:var(--plum);color:#fff}
+.lbtn[aria-disabled="true"]{color:#b3adb7;background:#faf8f9;cursor:not-allowed}
+.lbtn[aria-disabled="true"]:hover{border-color:var(--line)}
+.lbtn small{display:block;font-size:8px;letter-spacing:.02em;margin-top:2px;text-transform:none}
+
+.fbtn--disp[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:#fff}
+
+/* aviso de que el conteo es referencial, nunca una promesa */
+.stock-nota{font-size:11.5px;color:#8d7f92;text-align:center;margin:10px 0 0;line-height:1.5}
+.sheet .stock-nota{color:#9b8ca0}
+
 /* cabecera de sección centrada · tratamiento editorial de la referencia */
 .sec-head--c{max-width:700px;margin:0 auto 26px;text-align:center}
 .sec-head--c h2{font-size:clamp(21px,5vw,31px);letter-spacing:.15em;text-transform:uppercase;line-height:1.3}
@@ -432,6 +485,10 @@ body.sheet-open{overflow:hidden}
   .story{padding:68px 0}
   .hero-img img{max-height:72dvh}
   .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
+  .pc--letras{flex-direction:row}
+  .pc--letras .pc-img{flex:0 0 210px;aspect-ratio:auto;border-radius:3px 0 0 3px}
+  .pc--letras .pc-body{flex:1;padding:18px 20px}
+  .letras-grid{grid-template-columns:repeat(auto-fill,minmax(48px,1fr))}
   .cats-grid{grid-template-columns:repeat(4,1fr);gap:14px}
   .guar-in{grid-template-columns:repeat(4,1fr);padding:34px 24px}
   .rail{grid-auto-columns:minmax(200px,1fr);gap:16px;margin:0;padding:2px 0 10px}
@@ -697,7 +754,7 @@ body.sheet-open{overflow:hidden}
       <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver el catálogo completo · 86 charms</button>
     </div>
     <div id="full-cat" hidden>
-      <div class="filters" id="filters"><button class="fbtn is-on" type="button" data-f="todos">Todos</button><span class="fgroup">Personajes</span><button class="fbtn" type="button" data-f="Disney">Disney</button><button class="fbtn" type="button" data-f="Pixar">Pixar</button><button class="fbtn" type="button" data-f="Marvel">Marvel</button><span class="fgroup">Clásicos</span><button class="fbtn" type="button" data-f="Zodiaco">Zodiaco</button><button class="fbtn" type="button" data-f="Símbolos">Símbolos</button><button class="fbtn" type="button" data-f="Profesiones">Profesiones</button><button class="fbtn" type="button" data-f="Muranos">Muranos</button><button class="fbtn" type="button" data-f="Clips">Clips</button><button class="fbtn" type="button" data-f="Cadenas">Cadenas</button></div>
+      <div class="filters" id="filters"><button class="fbtn is-on" type="button" data-f="todos">Todos</button><span class="fgroup">Personajes</span><button class="fbtn" type="button" data-f="Disney">Disney</button><button class="fbtn" type="button" data-f="Pixar">Pixar</button><button class="fbtn" type="button" data-f="Marvel">Marvel</button><span class="fgroup">Clásicos</span><button class="fbtn" type="button" data-f="Zodiaco">Zodiaco</button><button class="fbtn" type="button" data-f="Símbolos">Símbolos</button><button class="fbtn" type="button" data-f="Profesiones">Profesiones</button><button class="fbtn" type="button" data-f="Muranos">Muranos</button><button class="fbtn" type="button" data-f="Clips">Clips</button><button class="fbtn" type="button" data-f="Cadenas">Cadenas</button><button class="fbtn" type="button" data-f="Letras">Letras</button><span class="fgroup">Stock</span><button class="fbtn fbtn--disp" type="button" id="solo-disp" aria-pressed="false">Solo disponibles</button></div>
       <div class="grid" id="resto-grid"><article class="pc" data-id="minnie-mouse" data-g="Disney">
 <div class="pc-img"><img src="assets/minnie-mouse.webp" alt="Minnie Mouse" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Minnie Mouse</h3><p class="pc-meta">Disney Clásico</p>
@@ -731,9 +788,13 @@ body.sheet-open{overflow:hidden}
 <div class="pc-body"><h3 class="pc-name">Olaf de Frozen</h3><p class="pc-meta">Frozen</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="olaf-de-frozen" aria-label="Agregar Olaf de Frozen">Agregar</button></div></div></article>
 <article class="pc" data-id="stitch-azul" data-g="Disney">
-<div class="pc-img"><img src="assets/stitch-azul.webp" alt="Stitch Azul" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name">Stitch Azul</h3><p class="pc-meta">Lilo &amp; Stitch</p>
-<div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="stitch-azul" aria-label="Agregar Stitch Azul">Agregar</button></div></div></article>
+<div class="pc-img"><img src="assets/stitch-azul.webp" alt="Stitch Plateado" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name">Stitch Plateado</h3><p class="pc-meta">Lilo &amp; Stitch</p>
+<div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="stitch-azul" aria-label="Agregar Stitch Plateado">Agregar</button></div></div></article>
+<article class="pc" data-id="cenicienta" data-g="Disney">
+<div class="pc-img"><img src="assets/cenicienta.webp" alt="Cenicienta" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name">Cenicienta</h3><p class="pc-meta">Princesas Disney</p>
+<div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="cenicienta" aria-label="Agregar Cenicienta">Agregar</button></div></div></article>
 <article class="pc" data-id="angel" data-g="Disney">
 <div class="pc-img"><img src="assets/angel.webp" alt="Angel" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Angel</h3><p class="pc-meta">Lilo &amp; Stitch</p>
@@ -882,10 +943,17 @@ body.sheet-open{overflow:hidden}
 <div class="pc-img"><img src="assets/mariposas-tricolor-colgantes.webp" alt="Mariposas Tricolor Colgantes" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Mariposas Tricolor Colgantes</h3><p class="pc-meta">Dije colgante</p>
 <div class="pc-foot"><span class="pc-price">$72.000</span><button class="pc-add" type="button" data-add="mariposas-tricolor-colgantes" aria-label="Agregar Mariposas Tricolor Colgantes">Agregar</button></div></div></article>
-<article class="pc" data-id="charms-de-letras-pave" data-g="Símbolos">
+<article class="pc" data-id="corazon-mama-e-hija" data-g="Símbolos">
+<div class="pc-img"><img src="assets/corazon-mama-e-hija.webp" alt="Corazón Mamá e Hija" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name">Corazón Mamá e Hija</h3><p class="pc-meta">Dije colgante</p>
+<div class="pc-foot"><span class="pc-price">$68.000</span><button class="pc-add" type="button" data-add="corazon-mama-e-hija" aria-label="Agregar Corazón Mamá e Hija">Agregar</button></div></div></article>
+<article class="pc pc--letras" data-id="letras" data-g="Letras">
 <div class="pc-img"><img src="assets/charms-de-letras-pave.webp" alt="Charms de Letras Pavé" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name">Charms de Letras Pavé</h3><p class="pc-meta">A</p>
-<div class="pc-foot"><span class="pc-price">$76.000</span><button class="pc-add" type="button" data-add="charms-de-letras-pave" aria-label="Agregar Charms de Letras Pavé">Agregar</button></div></div></article>
+<div class="pc-body"><h3 class="pc-name">Charms de letras en Plata 925</h3>
+<p class="pc-meta">27 iniciales · $76.000 cada una</p>
+<p class="letras-ayuda">Toca la inicial que quieras agregar a tu pulsera.</p>
+<div class="letras-grid" id="letras-grid" role="group" aria-label="Elegir inicial"></div>
+</div></article>
 <article class="pc" data-id="avion-globo-y-pasaporte" data-g="Símbolos">
 <div class="pc-img"><img src="assets/avion-globo-y-pasaporte.webp" alt="Avión, Globo y Pasaporte" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Avión, Globo y Pasaporte</h3><p class="pc-meta">Dije viajero</p>
@@ -1149,6 +1217,7 @@ body.sheet-open{overflow:hidden}
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
     <button class="btn btn--wa" type="button" id="send">Pedir por WhatsApp</button>
     <p class="sheet-note">Te confirmamos disponibilidad y entrega por chat antes de que pagues.</p>
+    <p class="stock-nota">Disponibilidad referencial — te confirmamos por WhatsApp antes de que pagues. <span id="stock-fecha"></span></p>
   </div>
 </aside>
 
@@ -1166,9 +1235,28 @@ body.sheet-open{overflow:hidden}
 <script>
 (function(){
 const WA='573018990672', LIBRE=180000;
-const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 85000}, {"id": "dalmata", "n": "Dálmata", "p": 85000}, {"id": "ariel", "n": "Ariel", "p": 85000}, {"id": "jasmine", "n": "Jasmine", "p": 85000}, {"id": "blancanieves", "n": "Blancanieves", "p": 85000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 85000}, {"id": "elsa", "n": "Elsa", "p": 85000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 85000}, {"id": "stitch-azul", "n": "Stitch Azul", "p": 85000}, {"id": "stitch", "n": "Stitch", "p": 85000}, {"id": "angel", "n": "Angel", "p": 85000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 85000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 85000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 85000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 85000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 85000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 85000}, {"id": "sulley", "n": "Sulley", "p": 85000}, {"id": "walle", "n": "WALL·E", "p": 85000}, {"id": "capitan-america", "n": "Capitán América", "p": 85000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 85000}, {"id": "spider-man", "n": "Spider-Man", "p": 85000}, {"id": "wolverine", "n": "Wolverine", "p": 85000}, {"id": "hulk", "n": "Hulk", "p": 85000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 85000}, {"id": "iron-man", "n": "Iron Man", "p": 85000}, {"id": "deadpool", "n": "Deadpool", "p": 85000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 85000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 78000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 68000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 68000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 68000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 68000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 65000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 65000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 65000}, {"id": "bola-rosa-con-flores", "n": "Bola Rosa con Flores", "p": 72000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 80000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 76000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 84000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 84000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 72000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 76000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 84000}, {"id": "nina-con-arcoiris", "n": "Niña con Arcoíris", "p": 80000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 72000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 72000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 72000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 72000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 72000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 76000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 72000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 72000}, {"id": "charms-de-letras-pave", "n": "Charms de Letras Pavé", "p": 76000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 72000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 72000}, {"id": "bola-roja-remolino", "n": "Bola Roja Remolino", "p": 72000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 72000}, {"id": "virgen-maria", "n": "Virgen María", "p": 76000}, {"id": "bola-azul-con-flor-rosa", "n": "Bola Azul con Flor Rosa", "p": 72000}, {"id": "tortuga-azul-grande", "n": "Tortuga Azul Grande", "p": 72000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 78000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 76000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 72000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 72000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 72000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga \"You Are My Light\"", "p": 72000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 78000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 72000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 72000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 72000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 72000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 82000}, {"id": "aries", "n": "Aries", "p": 76000}, {"id": "tauro", "n": "Tauro", "p": 76000}, {"id": "geminis", "n": "Géminis", "p": 76000}, {"id": "cancer", "n": "Cáncer", "p": 76000}, {"id": "leo", "n": "Leo", "p": 76000}, {"id": "virgo", "n": "Virgo", "p": 76000}, {"id": "libra", "n": "Libra", "p": 76000}, {"id": "escorpio", "n": "Escorpio", "p": 76000}, {"id": "sagitario", "n": "Sagitario", "p": 76000}, {"id": "capricornio", "n": "Capricornio", "p": 76000}, {"id": "acuario", "n": "Acuario", "p": 76000}, {"id": "piscis", "n": "Piscis", "p": 76000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 68000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 58000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 58000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 58000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 58000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 68000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 58000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 78000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 68000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 68000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 78000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 68000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 58000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 68000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 78000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 58000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 78000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 58000}]};
+const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 85000}, {"id": "dalmata", "n": "Dálmata", "p": 85000}, {"id": "ariel", "n": "Ariel", "p": 85000}, {"id": "jasmine", "n": "Jasmine", "p": 85000}, {"id": "blancanieves", "n": "Blancanieves", "p": 85000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 85000}, {"id": "elsa", "n": "Elsa", "p": 85000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 85000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 85000}, {"id": "stitch", "n": "Stitch", "p": 85000}, {"id": "angel", "n": "Angel", "p": 85000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 85000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 85000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 85000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 85000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 85000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 85000}, {"id": "sulley", "n": "Sulley", "p": 85000}, {"id": "walle", "n": "WALL·E", "p": 85000}, {"id": "capitan-america", "n": "Capitán América", "p": 85000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 85000}, {"id": "spider-man", "n": "Spider-Man", "p": 85000}, {"id": "wolverine", "n": "Wolverine", "p": 85000}, {"id": "hulk", "n": "Hulk", "p": 85000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 85000}, {"id": "iron-man", "n": "Iron Man", "p": 85000}, {"id": "deadpool", "n": "Deadpool", "p": 85000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 85000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 78000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 68000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 68000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 68000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 68000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 65000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 65000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 65000}, {"id": "bola-rosa-con-flores", "n": "Bola Rosa con Flores", "p": 72000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 80000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 76000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 84000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 84000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 72000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 76000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 84000}, {"id": "nina-con-arcoiris", "n": "Niña con Arcoíris", "p": 80000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 72000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 72000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 72000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 72000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 72000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 76000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 72000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 72000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 72000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 72000}, {"id": "bola-roja-remolino", "n": "Bola Roja Remolino", "p": 72000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 72000}, {"id": "virgen-maria", "n": "Virgen María", "p": 76000}, {"id": "bola-azul-con-flor-rosa", "n": "Bola Azul con Flor Rosa", "p": 72000}, {"id": "tortuga-azul-grande", "n": "Tortuga Azul Grande", "p": 72000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 78000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 76000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 72000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 72000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 72000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga \"You Are My Light\"", "p": 72000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 78000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 72000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 72000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 72000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 72000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 82000}, {"id": "aries", "n": "Aries", "p": 76000}, {"id": "tauro", "n": "Tauro", "p": 76000}, {"id": "geminis", "n": "Géminis", "p": 76000}, {"id": "cancer", "n": "Cáncer", "p": 76000}, {"id": "leo", "n": "Leo", "p": 76000}, {"id": "virgo", "n": "Virgo", "p": 76000}, {"id": "libra", "n": "Libra", "p": 76000}, {"id": "escorpio", "n": "Escorpio", "p": 76000}, {"id": "sagitario", "n": "Sagitario", "p": 76000}, {"id": "capricornio", "n": "Capricornio", "p": 76000}, {"id": "acuario", "n": "Acuario", "p": 76000}, {"id": "piscis", "n": "Piscis", "p": 76000}, {"id": "cenicienta", "n": "Cenicienta", "p": 85000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 68000}, {"id": "letra-a", "n": "Letra A", "p": 76000}, {"id": "letra-b", "n": "Letra B", "p": 76000}, {"id": "letra-c", "n": "Letra C", "p": 76000}, {"id": "letra-d", "n": "Letra D", "p": 76000}, {"id": "letra-e", "n": "Letra E", "p": 76000}, {"id": "letra-f", "n": "Letra F", "p": 76000}, {"id": "letra-g", "n": "Letra G", "p": 76000}, {"id": "letra-h", "n": "Letra H", "p": 76000}, {"id": "letra-i", "n": "Letra I", "p": 76000}, {"id": "letra-j", "n": "Letra J", "p": 76000}, {"id": "letra-k", "n": "Letra K", "p": 76000}, {"id": "letra-l", "n": "Letra L", "p": 76000}, {"id": "letra-m", "n": "Letra M", "p": 76000}, {"id": "letra-n", "n": "Letra N", "p": 76000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 76000}, {"id": "letra-o", "n": "Letra O", "p": 76000}, {"id": "letra-p", "n": "Letra P", "p": 76000}, {"id": "letra-q", "n": "Letra Q", "p": 76000}, {"id": "letra-r", "n": "Letra R", "p": 76000}, {"id": "letra-s", "n": "Letra S", "p": 76000}, {"id": "letra-t", "n": "Letra T", "p": 76000}, {"id": "letra-u", "n": "Letra U", "p": 76000}, {"id": "letra-v", "n": "Letra V", "p": 76000}, {"id": "letra-w", "n": "Letra W", "p": 76000}, {"id": "letra-x", "n": "Letra X", "p": 76000}, {"id": "letra-y", "n": "Letra Y", "p": 76000}, {"id": "letra-z", "n": "Letra Z", "p": 76000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 68000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 58000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 58000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 58000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 58000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 68000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 58000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 78000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 68000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 68000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 78000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 68000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 58000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 68000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 78000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 58000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 78000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 58000}]};
 const byId=(a)=>a.reduce((o,x)=>(o[x.id]=x,o),{});
 const CH=byId(DATA.charms), PU=byId(DATA.pulseras);
+const TALLAS=['17','18','19','20','21'];
+const LETRAS=DATA.charms.filter(c=>/^letra-/.test(c.id)).map(c=>c.id.slice(6));
+
+/* Inventario. Vive en assets/stock.json y no dentro de este archivo, para poder
+   actualizarlo sin tocar el código. Si no carga, STOCK queda null y la página
+   funciona como antes: todo agregable, sin etiquetas ni talla obligatoria. */
+let STOCK=null;
+const inv = id => STOCK ? STOCK[id] : null;
+const unidades = id => { const s=inv(id); return s&&typeof s.stock==='number' ? s.stock : null; };
+const tallasDe = id => { const s=inv(id); return s&&s.tallas ? s.tallas : null; };
+const tallasLibres = id => { const t=tallasDe(id); return t ? Object.keys(t).filter(k=>t[k]>0) : null; };
+/* Sin inventario nada está agotado: ante la duda, no bloqueamos la venta. */
+const agotado = id => {
+  if(!STOCK) return false;
+  const t=tallasLibres(id); if(t) return t.length===0;
+  const u=unidades(id); return u!==null && u<=0;
+};
+/* Tope de unidades por charm, para no vender 5 de algo que tiene 1. */
+const tope = id => { const u=unidades(id); return u===null?Infinity:u; };
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 const ESC=[0,0,.08,.15,.20];
 const escala=n=>n<=0?0:ESC[Math.min(n,4)];
@@ -1178,7 +1266,9 @@ let base=null, sel=[];
 const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
 
 function imgDe(id){
-  const el=document.querySelector('.pc[data-id="'+id+'"] img');
+  /* las 27 iniciales comparten la foto del bloque de letras */
+  const clave=/^letra-/.test(id)?'letras':id;
+  const el=document.querySelector('.pc[data-id="'+CSS.escape(clave)+'"] img');
   return el?el.src:'';
 }
 
@@ -1192,13 +1282,137 @@ function fila(id,nombre,meta,precio,quitar){
   return r;
 }
 
+/* Enlace a WhatsApp para pedir por encargo algo agotado. */
+function waEncargo(nombre){
+  return 'https://wa.me/'+WA+'?text='+encodeURIComponent(
+    'Hola, Zephora Charms. Vi en la página que «'+nombre+'» está agotado. '+
+    '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?');
+}
+
+/* Etiqueta de disponibilidad. Solo dice "últimas unidades" cuando de verdad
+   quedan 1 o 2: no se inventa urgencia donde no la hay. */
+function etiquetaStock(p,id){
+  let vieja=p.querySelector('.pc-stock'); if(vieja) vieja.remove();
+  if(!STOCK) return;
+  const cont=p.querySelector('.pc-img'); if(!cont) return;
+  const libres=tallasLibres(id), u=unidades(id);
+  let txt='', cero=false;
+  if(libres){
+    if(libres.length===0){ txt='Agotado'; cero=true; }
+    else if(libres.length===1) txt='Última talla';
+  }else if(u!==null){
+    if(u<=0){ txt='Agotado'; cero=true; }
+    else if(u<=2) txt=u===1?'Última unidad':'Últimas 2';
+  }
+  if(!txt) return;
+  const e=document.createElement('span');
+  e.className='pc-stock'+(cero?' pc-stock--0':'');
+  e.textContent=txt;
+  cont.appendChild(e);
+}
+
+/* Panel de tallas dentro de la tarjeta del brazalete. */
+function pintarTallas(p,id){
+  let caja=p.querySelector('.tallas');
+  const disp=tallasLibres(id);
+  if(!disp){ if(caja) caja.remove(); return; }   // sin inventario, sin panel
+  if(!caja){
+    caja=document.createElement('div');
+    caja.className='tallas'; caja.hidden=true;
+    caja.innerHTML='<p class="tallas-t">Elige tu talla</p><div class="tallas-row"></div>'+
+      '<p class="tallas-ayuda">Mide tu muñeca y súmale 2 cm. '+
+      '<a href="'+waEncargo(PU[id].n)+'" data-wa="talla">¿Dudas? Te ayudamos</a></p>';
+    p.querySelector('.pc-body').appendChild(caja);
+  }
+  const fila=caja.querySelector('.tallas-row');
+  fila.innerHTML='';
+  TALLAS.forEach(t=>{
+    const hay=disp.indexOf(t)>=0;
+    const b=document.createElement('button');
+    b.type='button'; b.className='tbtn';
+    b.textContent=t;
+    b.dataset.talla=t; b.dataset.para=id;
+    if(!hay){ b.setAttribute('aria-disabled','true'); b.title='Talla '+t+' cm sin unidades'; }
+    if(base&&base.id===id&&base.talla===t) b.classList.add('is-on');
+    b.setAttribute('aria-label','Talla '+t+' centímetros'+(hay?'':', sin unidades'));
+    fila.appendChild(b);
+  });
+}
+
+function pintarTarjetas(){
+  document.querySelectorAll('.pc').forEach(p=>{
+    const id=p.dataset.id;
+    if(!id||id==='letras') return;
+    const esBrazalete=p.classList.contains('pc--b');
+    const veces=sel.filter(x=>x===id).length;
+    const on=(base&&base.id===id)||veces>0;
+    const sinStock=agotado(id);
+    p.classList.toggle('is-sel',on);
+    p.classList.toggle('is-out',sinStock);
+    etiquetaStock(p,id);
+    if(esBrazalete) pintarTallas(p,id);
+
+    const b=p.querySelector('.pc-add'); if(!b) return;
+    const pie=b.parentNode;
+    let enc=pie.querySelector('.pc-encargo');
+    if(sinStock){
+      b.setAttribute('aria-disabled','true');
+      b.textContent='Agotado';
+      if(!enc){
+        enc=document.createElement('a');
+        enc.className='pc-encargo'; enc.dataset.wa='encargo';
+        enc.textContent='Pedir por encargo';
+        pie.appendChild(enc);
+      }
+      enc.href=waEncargo((esBrazalete?PU[id]:CH[id]).n);
+    }else{
+      b.removeAttribute('aria-disabled');
+      if(enc) enc.remove();
+      if(esBrazalete){
+        b.textContent=on?('Elegido ✓'+(base.talla?' · '+base.talla:'')):'Elegir';
+      }else{
+        const lleno=veces>=tope(id);
+        b.textContent=on?('Agregado'+(veces>1?' ×'+veces:'')):'Agregar';
+        if(lleno&&veces>0){ b.setAttribute('aria-disabled','true'); b.title='No hay más unidades'; }
+        else b.removeAttribute('title');
+      }
+    }
+  });
+}
+
+function pintarLetras(){
+  const g=document.getElementById('letras-grid'); if(!g) return;
+  if(!g.dataset.listo){
+    LETRAS.forEach(L=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='lbtn'; b.dataset.letra=L;
+      g.appendChild(b);
+    });
+    g.dataset.listo='1';
+  }
+  g.querySelectorAll('.lbtn').forEach(b=>{
+    const id='letra-'+b.dataset.letra;
+    const veces=sel.filter(x=>x===id).length;
+    const sinStock=agotado(id);
+    b.innerHTML=b.dataset.letra.toUpperCase()+
+      (sinStock?'<small>agotada</small>':(veces?'<small>×'+veces+'</small>':''));
+    b.classList.toggle('is-on',veces>0);
+    if(sinStock||veces>=tope(id)) b.setAttribute('aria-disabled','true');
+    else b.removeAttribute('aria-disabled');
+    b.setAttribute('aria-label','Inicial '+b.dataset.letra.toUpperCase()+
+      (sinStock?', agotada':', $76.000'));
+  });
+}
+
 function render(){
   const body=$('#sheet-body');
   body.innerHTML='';
   if(!base&&!sel.length){
     body.innerHTML='<p class="s-empty">Aún no has elegido nada.<br>Toca "Elegir" en un brazalete o "Agregar" en un charm.</p>';
   }else{
-    if(base) body.appendChild(fila(base,PU[base].n.replace(/^Pulsera /,''),'Brazalete · Baño de plata',PU[base].p,()=>{base=null;render()}));
+    if(base) body.appendChild(fila(base.id,PU[base.id].n.replace(/^Pulsera /,''),
+      'Brazalete · Baño de plata'+(base.talla?' · Talla '+base.talla+' cm':''),
+      PU[base.id].p,()=>{base=null;render()}));
     const cont={};
     sel.forEach(id=>cont[id]=(cont[id]||0)+1);
     Object.entries(cont).forEach(([id,n])=>{
@@ -1210,14 +1424,16 @@ function render(){
   const nC=sel.length;
   const brutoC=sel.reduce((s,id)=>s+CH[id].p,0);
   const descC=brutoC*escala(nC);
-  const brutoB=base?PU[base].p:0;
+  const brutoB=base?PU[base.id].p:0;
   const descB=(base&&nC>=3)?brutoB*.30:0;
   const pack=document.getElementById('pack').checked?40000:0;
   const total=brutoC-descC+brutoB-descB+pack;
   const ahorro=descC+descB;
   const libre=total>=LIBRE;
 
-  $('#l-b').textContent=base?PU[base].n.replace(/^Pulsera /,'Brazalete '):'Brazalete';
+  $('#l-b').textContent=base
+    ? PU[base.id].n.replace(/^Pulsera /,'Brazalete ')+(base.talla?' · '+base.talla+' cm':'')
+    : 'Brazalete';
   $('#v-b').textContent=base?cop(brutoB):'—';
   $('#l-c').textContent=nC?(nC+(nC===1?' charm':' charms')):'Charms';
   $('#v-c').textContent=nC?cop(brutoC):'—';
@@ -1237,15 +1453,8 @@ function render(){
     nota.className='ship-note'; barra.style.width=Math.min(100,total/LIBRE*100)+'%';
   }
 
-  document.querySelectorAll('.pc').forEach(p=>{
-    const id=p.dataset.id;
-    const veces=sel.filter(x=>x===id).length;
-    const on=(id===base)||veces>0;
-    p.classList.toggle('is-sel',on);
-    const b=p.querySelector('.pc-add');
-    if(p.classList.contains('pc--b')) b.textContent=on?'Elegido ✓':'Elegir';
-    else b.textContent=on?('Agregado'+(veces>1?' ×'+veces:'')):'Agregar';
-  });
+  pintarTarjetas();
+  pintarLetras();
 
   const piezas=nC+(base?1:0);
   $('#dock-n').textContent=piezas?piezas+(piezas===1?' pieza':' piezas')+(libre?' · envío gratis':''):'Tu selección está vacía';
@@ -1279,7 +1488,8 @@ function pedir(){
   const total=$('#v-tot').textContent;
   const libre=$('#v-ship').textContent==='Gratis';
   let t='Hola, Zephora Charms. Armé mi pulsera en la página web y quisiera confirmar este pedido:\n';
-  if(base) t+='\n• Brazalete '+PU[base].n.replace(/^Pulsera /,'')+' — '+cop(PU[base].p);
+  if(base) t+='\n• Brazalete '+PU[base.id].n.replace(/^Pulsera /,'')+
+    (base.talla?' — talla '+base.talla+' cm':'')+' — '+cop(PU[base.id].p);
   const cont={};
   sel.forEach(id=>cont[id]=(cont[id]||0)+1);
   Object.entries(cont).forEach(([id,n])=>{
@@ -1299,15 +1509,54 @@ $('#send').onclick=pedir;
 $('#dock-send').onclick=pedir;
 document.getElementById('pack').addEventListener('change',render);
 
+const bloqueado = el => el.getAttribute('aria-disabled')==='true';
+function sumarCharm(id){
+  if(agotado(id)||sel.filter(x=>x===id).length>=tope(id)) return;
+  sel.push(id); render();
+  track('AddToCart',{content_type:'product',content_ids:[id],
+    content_name:CH[id].n,value:CH[id].p});
+}
+
 document.addEventListener('click',e=>{
   const add=e.target.closest('[data-add]');
-  if(add){ sel.push(add.dataset.add); render();
-    track('AddToCart',{content_type:'product',content_ids:[add.dataset.add],
-      content_name:CH[add.dataset.add].n,value:CH[add.dataset.add].p}); return; }
+  if(add){ if(!bloqueado(add)) sumarCharm(add.dataset.add); return; }
+
+  const L=e.target.closest('[data-letra]');
+  if(L){ if(!bloqueado(L)) sumarCharm('letra-'+L.dataset.letra); return; }
+
+  /* Elegir talla fija el brazalete; volver a tocarla lo quita. */
+  const t=e.target.closest('[data-talla]');
+  if(t){
+    if(bloqueado(t)) return;
+    const id=t.dataset.para, talla=t.dataset.talla;
+    const igual=base&&base.id===id&&base.talla===talla;
+    base = igual ? null : {id:id,talla:talla};
+    render();
+    if(base) track('AddToCart',{content_type:'product',content_ids:[id],
+      content_name:PU[id].n+' · talla '+talla,value:PU[id].p});
+    return;
+  }
+
   const b=e.target.closest('[data-base]');
-  if(b){ const el=b.dataset.base; const antes=base; base = base===el?null:el; render();
-    if(base&&base!==antes) track('AddToCart',{content_type:'product',content_ids:[base],
-      content_name:PU[base].n,value:PU[base].p}); return; }
+  if(b){
+    if(bloqueado(b)) return;
+    const id=b.dataset.base;
+    const panel=b.closest('.pc').querySelector('.tallas');
+    if(panel){
+      /* Con inventario cargado, el brazalete no entra al carrito sin talla:
+         "Elegir" abre el selector y la talla es la que confirma. */
+      if(base&&base.id===id){ base=null; render(); return; }
+      document.querySelectorAll('.tallas').forEach(x=>{ if(x!==panel) x.hidden=true; });
+      panel.hidden=!panel.hidden;
+      return;
+    }
+    /* Sin inventario: comportamiento de siempre, un toque y listo. */
+    const antes=base&&base.id;
+    base = antes===id ? null : {id:id,talla:null};
+    render();
+    if(base&&base.id!==antes) track('AddToCart',{content_type:'product',content_ids:[id],
+      content_name:PU[id].n,value:PU[id].p});
+  }
 });
 
 /* subfiltro de brazaletes */
@@ -1346,22 +1595,42 @@ $('#ver-todos').addEventListener('click',()=>{
 const grid=document.getElementById('resto-grid');
 const destacados=document.getElementById('rail-top');
 const cuenta=document.getElementById('count');
+let filtroActual='todos', soloDisp=false;
+/* El bloque de letras cuenta por las iniciales que ofrece, no como una tarjeta. */
+const cuentaLetras = () => LETRAS.filter(L=>!soloDisp||!agotado('letra-'+L)).length;
+
 function aplicarFiltro(f){
+  filtroActual=f;
   /* acotado a #filters: sin esto también apagaba el botón activo de #b-filters */
-  document.querySelectorAll('#filters .fbtn').forEach(x=>{
+  document.querySelectorAll('#filters .fbtn:not(.fbtn--disp)').forEach(x=>{
     x.classList.toggle('is-on',x.dataset.f===f);
   });
   let v=0;
   grid.querySelectorAll('.pc').forEach(p=>{
-    const ok = f==='todos' || p.dataset.g===f;
-    p.hidden=!ok; if(ok) v++;
+    const id=p.dataset.id;
+    const esLetras=id==='letras';
+    const ok = (f==='todos'||p.dataset.g===f) &&
+               (!soloDisp || esLetras ? true : !agotado(id)) &&
+               (!soloDisp || !esLetras || cuentaLetras()>0);
+    p.hidden=!ok;
+    if(ok) v+= esLetras ? cuentaLetras() : 1;
   });
   if(f!=='todos'){
-    destacados.querySelectorAll('.pc').forEach(p=>{ if(p.dataset.g===f) v++; });
+    destacados.querySelectorAll('.pc').forEach(p=>{
+      if(p.dataset.g===f && (!soloDisp||!agotado(p.dataset.id))) v++;
+    });
   }
-  cuenta.textContent=f==='todos'?'':v+(v===1?' charm en esta colección':' charms en esta colección');
+  cuenta.textContent = f==='todos' && !soloDisp ? ''
+    : v+(v===1?' charm disponible':(soloDisp?' charms disponibles':' charms en esta colección'));
 }
 document.getElementById('filters').addEventListener('click',e=>{
+  const d=e.target.closest('.fbtn--disp');
+  if(d){
+    soloDisp=!soloDisp;
+    d.setAttribute('aria-pressed',soloDisp?'true':'false');
+    aplicarFiltro(filtroActual);
+    return;
+  }
   const b=e.target.closest('.fbtn'); if(!b) return;
   aplicarFiltro(b.dataset.f);
 });
@@ -1404,6 +1673,24 @@ document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
 document.getElementById('year').textContent=new Date().getFullYear();
 
 render();
+
+/* El inventario llega después de pintar: la página ya es usable sin él, y si
+   falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
+fetch('assets/stock.json',{cache:'no-cache'})
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d||!d.items) return;
+    STOCK=d.items;
+    document.body.classList.add('con-stock');
+    /* Lo que ya estuviera elegido se depura contra el inventario real. */
+    sel=sel.filter(id=>!agotado(id));
+    if(base&&agotado(base.id)) base=null;
+    render();
+    aplicarFiltro(filtroActual);
+    const n=document.getElementById('stock-fecha');
+    if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
+  })
+  .catch(()=>{});
 })();
 </script>
 <div class="lb" id="lb" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Foto ampliada">
