@@ -16,10 +16,11 @@
 
 [functions]
   node_bundler = "esbuild"
-  # assets/catalogo.json lo carga _precios.js por require; esbuild lo mete en el
-  # paquete. Se declara igualmente para que un cambio de bundler no lo deje
-  # fuera y las funciones se caigan al arrancar.
-  included_files = ["assets/catalogo.json"]
+  # _precios.js carga los dos por require —los precios para calcular el cobro y
+  # el inventario para no cobrar lo que no hay—. esbuild los mete en el paquete,
+  # pero se declaran igualmente: si un cambio de bundler los dejara fuera, las
+  # funciones se caerían al arrancar y el sitio dejaría de cobrar.
+  included_files = ["assets/catalogo.json", "assets/stock.json"]
 
 # Las páginas se piden sin .html
 [[redirects]]
