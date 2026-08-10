@@ -1,0 +1,632 @@
+{
+  "_generado_por": "scripts/stock.mjs — no editar a mano",
+  "_fuente_excel": "insumos/inventario-stock.xlsx",
+  "generado": "2026-08-09",
+  "resumen": {
+    "charms_emparejados": 52,
+    "charms_sin_emparejar": 34,
+    "brazaletes_emparejados": 14,
+    "brazaletes_sin_emparejar": 4,
+    "referencias_excel_sin_usar": 42,
+    "charms_agotados": 0,
+    "charms_stock_bajo": 9
+  },
+  "charms": {
+    "mickey-mouse": {
+      "sku": "CH-DIS-MIC",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "minnie-mouse": {
+      "sku": "CH-DIS-MIN",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "dalmata": {
+      "sku": "CH-DIS-DAL",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "ariel": {
+      "sku": "CH-DIS-ARI",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "jasmine": {
+      "sku": "CH-DIS-JAS",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "blancanieves": {
+      "sku": "CH-DIS-BLA",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "stitch": {
+      "sku": "CH-DIS-STI",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "lilo-stitch": {
+      "sku": "CH-DIS-LIL",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "gato-cheshire": {
+      "sku": "CH-DIS-GAT",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "jack-sally": {
+      "sku": "CH-DIS-JAC",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "buzz-lightyear": {
+      "sku": "CH-PIX-BUZ",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "mike-wazowski": {
+      "sku": "CH-PIX-MIK",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "sulley": {
+      "sku": "CH-PIX-SUL",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "capitan-america": {
+      "sku": "CH-MAR-CAP",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "escudo-capitan-america": {
+      "sku": "CH-MAR-ESC",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "spider-man": {
+      "sku": "CH-MAR-SPI",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "wolverine": {
+      "sku": "CH-MAR-WOL",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "hulk": {
+      "sku": "CH-MAR-HUL",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "guantelete-del-infinito": {
+      "sku": "CH-MAR-GUA",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "iron-man": {
+      "sku": "CH-MAR-IRO",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "deadpool": {
+      "sku": "CH-MAR-DEA",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "mjolnir-martillo-de-thor": {
+      "sku": "CH-MAR-MJO",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "corazon-de-filigrana": {
+      "sku": "CH-CLA-COR",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "clip-mariposas-de-colores": {
+      "sku": "CH-CLA-CLI-MAR",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "clip-forever-multicolor": {
+      "sku": "CH-CLA-CLI-FOR",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "cadena-seguridad-luna-y-sol": {
+      "sku": "CH-CLA-CAD-LUN",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "angel-guardian": {
+      "sku": "CH-PRE-ANG",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "pulpo-azul-cristal": {
+      "sku": "CH-PRE-PUL",
+      "stock": 5,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "osito-graduacion": {
+      "sku": "CH-PRE-OSO-GRA",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "caballo-herradura": {
+      "sku": "CH-PRE-CAB",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "manos-orando-con-cruz": {
+      "sku": "CH-PRE-MAN-REZ",
+      "stock": 4,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "trebol-verde-giratorio": {
+      "sku": "CH-PRE-TRE",
+      "stock": 5,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "torre-eiffel-y-camara": {
+      "sku": "CH-PRE-TOR-EIF",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "atrapasuenos-azul": {
+      "sku": "CH-PRE-ATR-AZU",
+      "stock": 7,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "atrapasuenos-corazon-multicolor": {
+      "sku": "CH-PRE-ATR-COR",
+      "stock": 5,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "avion-globo-y-pasaporte": {
+      "sku": "CH-PRE-VIA-AVI",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "corazon-arbol-de-la-vida": {
+      "sku": "CH-PRE-ARB",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "charm-psicologia": {
+      "sku": "CH-PRO-PSI",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "charm-odontologia": {
+      "sku": "CH-PRO-ODO",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "charm-fisioterapia": {
+      "sku": "CH-PRO-FIS",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "charm-medicina": {
+      "sku": "CH-PRO-MED",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "carrusel-rosado": {
+      "sku": "CH-PRE-CAR",
+      "stock": 3,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "aries": {
+      "sku": "CH-ZOD-ARI",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "tauro": {
+      "sku": "CH-ZOD-TAU",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "geminis": {
+      "sku": "CH-ZOD-GEM",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "leo": {
+      "sku": "CH-ZOD-LEO",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "virgo": {
+      "sku": "CH-ZOD-VIR",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "libra": {
+      "sku": "CH-ZOD-LIB",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "escorpio": {
+      "sku": "CH-ZOD-ESC",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "sagitario": {
+      "sku": "CH-ZOD-SAG",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    },
+    "capricornio": {
+      "sku": "CH-ZOD-CAP",
+      "stock": 1,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": true
+    },
+    "piscis": {
+      "sku": "CH-ZOD-PIS",
+      "stock": 2,
+      "minimo": 1,
+      "agotado": false,
+      "bajo": false
+    }
+  },
+  "brazaletes": {
+    "pulsera-avengers": {
+      "stock_total": 1,
+      "tallas": [
+        {
+          "talla_cm": 20,
+          "sku": "PU-AVE-20",
+          "stock": 1,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-corazon-con-diamante": {
+      "stock_total": 4,
+      "tallas": [
+        {
+          "talla_cm": 17,
+          "sku": "PU-COR-DIA-17",
+          "stock": 1,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 19,
+          "sku": "PU-COR-DIA-19",
+          "stock": 1,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 20,
+          "sku": "PU-COR-DIA-20",
+          "stock": 1,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 21,
+          "sku": "PU-COR-DIA-21",
+          "stock": 1,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-corazon-liso": {
+      "stock_total": 8,
+      "tallas": [
+        {
+          "talla_cm": 17,
+          "sku": "PU-COR-LIS-17",
+          "stock": 2,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 18,
+          "sku": "PU-COR-LIS-18",
+          "stock": 2,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 19,
+          "sku": "PU-COR-LIS-19",
+          "stock": 2,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 20,
+          "sku": "PU-COR-LIS-20",
+          "stock": 2,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-clasica-cierre-barril": {
+      "stock_total": 6,
+      "tallas": [
+        {
+          "talla_cm": 20,
+          "sku": "PU-CLA-BAR-20",
+          "stock": 3,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 21,
+          "sku": "PU-CLA-BAR-21",
+          "stock": 3,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-corazon-pave": {
+      "stock_total": 2,
+      "tallas": [
+        {
+          "talla_cm": 18,
+          "sku": "PU-COR-PAV-18",
+          "stock": 1,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 19,
+          "sku": "PU-COR-PAV-19",
+          "stock": 1,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-corazon-pave-pequeno": {
+      "stock_total": 6,
+      "tallas": [
+        {
+          "talla_cm": 17,
+          "sku": "PU-COR-PAVP-17",
+          "stock": 1,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 18,
+          "sku": "PU-COR-PAVP-18",
+          "stock": 1,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 19,
+          "sku": "PU-COR-PAVP-19",
+          "stock": 2,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 20,
+          "sku": "PU-COR-PAVP-20",
+          "stock": 2,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-sol-con-cadena-seguridad": {
+      "stock_total": 2,
+      "tallas": [
+        {
+          "talla_cm": 19,
+          "sku": "PU-SOL-EST-19",
+          "stock": 2,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-corona-pave": {
+      "stock_total": 8,
+      "tallas": [
+        {
+          "talla_cm": 17,
+          "sku": "PU-COR-PAV2-17",
+          "stock": 2,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 18,
+          "sku": "PU-COR-PAV2-18",
+          "stock": 2,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 19,
+          "sku": "PU-COR-PAV2-19",
+          "stock": 2,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 20,
+          "sku": "PU-COR-PAV2-20",
+          "stock": 2,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-corazon-rosado-con-cadena": {
+      "stock_total": 2,
+      "tallas": [
+        {
+          "talla_cm": 19,
+          "sku": "PU-COR-ROS-19",
+          "stock": 1,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 21,
+          "sku": "PU-COR-ROS-21",
+          "stock": 1,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-corazon-luminoso": {
+      "stock_total": 2,
+      "tallas": [
+        {
+          "talla_cm": 19,
+          "sku": "PU-COR-LUM-19",
+          "stock": 1,
+          "minimo": 1
+        },
+        {
+          "talla_cm": 20,
+          "sku": "PU-COR-LUM-20",
+          "stock": 1,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-copo-de-nieve": {
+      "stock_total": 2,
+      "tallas": [
+        {
+          "talla_cm": 18,
+          "sku": "PU-COP-NEV-18",
+          "stock": 2,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-candado-rosa-con-cadena": {
+      "stock_total": 1,
+      "tallas": [
+        {
+          "talla_cm": 20,
+          "sku": "PU-CAN-ROS-20",
+          "stock": 1,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-trebol-verde": {
+      "stock_total": 2,
+      "tallas": [
+        {
+          "talla_cm": 20,
+          "sku": "PU-TRE-VER-20",
+          "stock": 2,
+          "minimo": 1
+        }
+      ]
+    },
+    "pulsera-mono-rosa-con-cadena": {
+      "stock_total": 1,
+      "tallas": [
+        {
+          "talla_cm": 18,
+          "sku": "PU-MON-ROS-18",
+          "stock": 1,
+          "minimo": 1
+        }
+      ]
+    }
+  }
+}

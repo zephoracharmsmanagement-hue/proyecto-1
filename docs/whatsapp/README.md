@@ -4,7 +4,7 @@
 funcionando, qué falta y qué ya se decidió. Si abres una sesión nueva, lee esto
 primero y no hará falta reconstruir el contexto.
 
-Última actualización: 2026-08-09
+Última actualización: 2026-08-10
 
 ---
 
@@ -15,8 +15,9 @@ primero y no hará falta reconstruir el contexto.
 | **[macros-para-copiar.md](macros-para-copiar.md)** | Las 28 respuestas listas para usar, en sintaxis de WhatsApp. **Este es el de uso diario.** |
 | [01-auditoria-macros.md](01-auditoria-macros.md) | Auditoría de las macros originales contra el inventario real. Los 3 errores de cifras que se encontraron y por qué importaban. |
 | [02-macros.md](02-macros.md) | El catálogo con el razonamiento de cada macro. Referencia, no uso diario. |
-| [03-system-prompt.md](03-system-prompt.md) | Cómo integrar la IA: arquitectura, código, caché, costos, opciones de integración. |
-| [system-prompt.txt](system-prompt.txt) | El prompt en crudo, con `{{INVENTARIO_JSON}}` y `{{STOCK_JSON}}` por reemplazar. |
+| [03-system-prompt.md](03-system-prompt.md) | Cómo integrar la IA vía API (n8n, código propio): arquitectura, caché, costos. |
+| [system-prompt.txt](system-prompt.txt) | El prompt en crudo para esa integración, con `{{INVENTARIO_JSON}}` y `{{STOCK_JSON}}` por reemplazar. |
+| **[paquete-otra-ia/](paquete-otra-ia/)** | Versión para usar con ChatGPT, Gemini o cualquier chat de IA con archivos adjuntos — sin código, sin API. Empieza por `00-LEEME.md`. |
 | `../../data/inventario.json` | Catálogo y reglas de precio. Generado desde `index.html`. |
 | `../../data/stock.json` | Disponibilidad real. Generado desde el Excel de inventario. |
 | `../../data/stock-mapeo.json` | Correcciones manuales del cruce Excel ↔ sitio. |
@@ -132,6 +133,26 @@ pero cada referencia sin resolver es un caso así esperando a repetirse.
 
 > **Nota:** dos de las ocho propuestas de la macro C2 usaban la Luciérnaga. Ya
 > están corregidas en `macros-para-copiar.md` con reemplazos de stock verificado.
+
+---
+
+## Dos formas de conectar la IA — cuál usar
+
+| | `03-system-prompt.md` | `paquete-otra-ia/` |
+|---|---|---|
+| Requiere | API key de Anthropic, código (n8n o propio) | Nada — un chat común |
+| Costo | Por token, con caché (~70 COP/borrador en Opus 5) | El que cobre la plataforma (gratis o suscripción) |
+| Quién responde | Automatizable de punta a punta | Siempre una persona pegando y copiando a mano |
+| Cuándo usarlo | Cuando montes n8n o un flujo propio | Mientras tanto, o si nunca montas lo automático |
+
+No son excluyentes: el paquete sirve *hoy*, sin esperar a n8n. Si más adelante
+se monta la integración por API, el paquete sigue siendo útil como respaldo o
+para quien prefiera trabajar así.
+
+**Ambos leen las mismas reglas** (mismo tono, mismos cálculos, mismas
+excepciones de stock) porque `01-instrucciones-para-la-ia.md` es una
+adaptación de `system-prompt.txt` — mantenlos sincronizados si cambias una
+regla de negocio en uno de los dos.
 
 ---
 
