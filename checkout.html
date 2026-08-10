@@ -417,9 +417,14 @@ button{font-family:inherit}
               <span class="op-tx">
                 <span class="op-t"><b>Pagar ahora</b><span class="precio" id="p-anticipado">—</span></span>
                 <span class="op-d">Te llevamos a la pasarela segura de Wompi (Bancolombia). Al volver, el pedido queda confirmado.</span>
+                <!-- Estos son los medios que Wompi tiene habilitados de verdad
+                     para este comercio (accepted_payment_methods de la API).
+                     Antes decía «Addi a cuotas», que no está en la lista:
+                     anunciar un medio que la pasarela no ofrece se descubre en
+                     el peor momento, con la clienta ya decidida a pagar. -->
                 <span class="op-logos">
                   <span>Nequi</span><span>Bancolombia</span><span>PSE</span>
-                  <span>Daviplata</span><span>Tarjetas</span><span>Addi a cuotas</span>
+                  <span>Daviplata</span><span>Tarjetas</span><span>Hasta 36 cuotas</span>
                 </span>
               </span>
             </label>
