@@ -46,31 +46,46 @@ redacción que pidió el propietario. Conviene que lo valide un contador: con NI
 registrado, la obligación de facturar electrónicamente depende del régimen, y es
 un texto público.
 
-### 4 · Pasarela de pago — construida, falta conectarla
+### 4 · Pasarela de pago — cobrando
 
-El checkout existe y está probado: `checkout.html` (datos → entrega → pago),
-con dos vías — **Wompi** y **contraentrega** — y dos funciones de servidor que
-firman el cobro y reciben la confirmación. El propietario confirmó que maneja
-la pasarela de Wompi. Para que cobre de verdad faltan tres pasos de panel,
-descritos en la sección *Cobrar en la web* del README:
+**El sitio cobra.** Se hizo un pago real de prueba por Wompi y quedó aprobado.
+El repo está conectado a Netlify, las funciones desplegadas y las llaves
+puestas. Lo que queda de esta línea de trabajo:
 
-1. Conectar este repo a Netlify (el despliegue por Drop no monta las funciones).
-2. Poner las variables `WOMPI_LLAVE_PUBLICA`, `WOMPI_INTEGRIDAD`, `WOMPI_EVENTOS`
-   y `URL_SITIO` en el entorno del sitio. **Ninguna va al repo.**
-3. En el panel de Wompi, apuntar la URL de eventos a
-   `/.netlify/functions/wompi-webhook`.
+- **Correo.** Está escrito y probado, pero **falta configurar Resend**: sin
+  `RESEND_API_KEY` no sale ningún correo (y nada se rompe). Hay que crear la
+  cuenta, verificar `zephoracharms.com` por DNS en Netlify, y poner las tres
+  variables del README.
+- **Addi.** El propietario tiene cuenta propia pero Wompi no lo tiene
+  habilitado para este comercio, así que no aparece en la pasarela. Hoy se
+  ofrece por WhatsApp desde la sección de medios de pago, con `data-wa="pagos"`
+  para poder medir cuántas lo piden. Si Wompi lo activa, solo hay que devolver
+  el chip al checkout: cero código nuevo.
 
-Mientras falten las variables, el pago en línea responde 503 con un mensaje que
-manda a contraentrega o a WhatsApp; el sitio sigue vendiendo como hoy.
+> **La llave pública se transcribió mal una vez** (un `1` donde iba una `l`) y
+> costó una hora de diagnóstico, porque el error que da Wompi —«No se pudo
+> cargar la información del undefined»— no apunta a nada. Antes de dar una
+> llave por buena: `curl https://production.wompi.co/v1/merchants/<llave>`.
 
-**El bloqueador del inventario sigue vigente, atenuado pero no resuelto.**
-`assets/stock.json` se genera a mano. El servidor valida catálogo y precios,
-pero **no descuenta stock**: dos clientas aún pueden pagar la última unidad el
-mismo día. Los topes del navegador lo hacen improbable, no imposible. Mientras
-el pedido contraentrega se confirme por WhatsApp antes de despachar (como hoy),
-el riesgo queda contenido en los pagos anticipados de piezas con 1–2 unidades —
-que es justo donde la página ya muestra «Última unidad». Si el volumen crece,
-lo correcto es un almacén de stock con estado; está anotado, no construido.
+### 4b · Lo que quedó del bloqueador de inventario
+
+El servidor ya **comprueba inventario antes de cobrar**: rechaza con 409 lo
+agotado, lo que pide más unidades de las que hay, y las tallas sin existencias
+—con un mensaje que dice qué se agotó y qué tallas sí quedan, y el checkout
+lleva a corregir la selección o a pedirlo por encargo—. Eso cierra el caso
+corriente: pagar algo que se acabó hace rato.
+
+**Lo que sigue abierto es la carrera.** Dos clientas que compran la última
+unidad en el mismo minuto pasan las dos, porque `assets/stock.json` es un
+archivo que se lee, no un almacén que se reserve. Ahí toca devolver dinero, que
+bajo la Ley 1480 no es solo una molestia.
+
+Para cerrarlo hace falta estado: reservar unidades al iniciar el pago,
+liberarlas si el pago no llega, y descontarlas al aprobarse. **Netlify Blobs**
+sirve para eso sin montar una base de datos. Es la siguiente pieza de fondo si
+el volumen sube; hoy el riesgo se limita a las piezas de 1–2 unidades pagadas
+en línea, y la confirmación por WhatsApp antes de despachar sigue siendo la red
+de seguridad.
 
 ---
 

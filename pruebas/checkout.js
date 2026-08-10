@@ -115,7 +115,7 @@ async function llenarPaso1(p, d) {
   {
     const p = await b.newPage({ viewport: { width: 390, height: 844 } });
     p.on('pageerror', e => errores.push(e.message));
-    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
+    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(500);
 
@@ -168,7 +168,7 @@ async function llenarPaso1(p, d) {
       await route.fulfill({ status: 200, contentType: 'text/html', body: '<p>pasarela</p>' });
     });
 
-    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse', 'stitch'], empaque: true, pago: 'anticipado' });
+    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse', 'stitch'], empaque: true, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(500);
 
@@ -237,7 +237,7 @@ async function llenarPaso1(p, d) {
     p.on('pageerror', e => errores.push(e.message));
     const cap = [];
     await interceptar(p, cap);
-    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
+    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(500);
 
@@ -285,7 +285,7 @@ async function llenarPaso1(p, d) {
       return { codigo: r.statusCode, cuerpo: JSON.parse(r.body) };
     };
     const bueno = {
-      base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'],
+      base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
       empaque: false, pago: 'anticipado',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
     };
@@ -313,6 +313,39 @@ async function llenarPaso1(p, d) {
 
     const get = await crearPago.handler({ httpMethod: 'GET' });
     ok(get.statusCode === 405, 'no responde a GET');
+
+    /* Inventario. El navegador ya bloquea lo agotado, pero entre armar la
+       pulsera y pagar pueden pasar horas y el inventario cambia. Cobrar algo
+       que no existe obliga a devolver el dinero. */
+    const inv = require(path.join(RAIZ, 'assets', 'stock.json')).items;
+    const agotado = Object.keys(inv).find(k => inv[k].tipo === 'charm' && inv[k].stock <= 0);
+    if (agotado) {
+      const r = await llamar(Object.assign({}, bueno, { charms: [agotado] }));
+      ok(r.codigo === 409 && r.cuerpo.agotado,
+        'no cobra un charm agotado, y lo dice como falta de inventario (409)', agotado);
+      ok(/se agot/i.test(r.cuerpo.error || ''), 'con un mensaje que explica qué pasó');
+    }
+
+    const conUno = Object.keys(inv).find(k => inv[k].tipo === 'charm' && inv[k].stock === 1);
+    if (conUno) {
+      const r = await llamar(Object.assign({}, bueno, { charms: [conUno, conUno] }));
+      ok(r.codigo === 409, 'no cobra dos unidades de algo que tiene una', conUno);
+      const uno = await llamar(Object.assign({}, bueno, { charms: [conUno] }));
+      ok(uno.codigo === 200, 'pero una sola sí pasa');
+    }
+
+    /* Tallas: el brazalete se vende por talla, y una talla sin unidades no se
+       puede cobrar aunque el modelo tenga inventario en otras. */
+    const conTallas = Object.keys(inv).find(k => inv[k].tallas
+      && Object.values(inv[k].tallas).some(n => n > 0)
+      && ['17', '18', '19', '20', '21'].some(t => !(inv[k].tallas[t] > 0)));
+    if (conTallas) {
+      const sinUnidades = ['17', '18', '19', '20', '21'].find(t => !(inv[conTallas].tallas[t] > 0));
+      const r = await llamar(Object.assign({}, bueno, {
+        base: { id: conTallas, talla: sinUnidades }, charms: [] }));
+      ok(r.codigo === 409, `no cobra la talla ${sinUnidades} de ${conTallas}, que no tiene unidades`);
+      ok(/quedan/.test(r.cuerpo.error || ''), 'y le dice cuáles sí quedan');
+    }
 
     /* Comercio inexistente en Wompi. Pasó en producción: llaves puestas, firma
        correcta, y la clienta acababa en «No se pudo cargar la información del
@@ -343,7 +376,7 @@ async function llenarPaso1(p, d) {
   {
     correos.length = 0;
     const r = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
-      base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'],
+      base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
     }) });
@@ -360,7 +393,7 @@ async function llenarPaso1(p, d) {
       ok(aClienta.html.includes(ref) && aClienta.text.includes(ref), 'y el cuerpo también');
       ok(aClienta.html.includes('Avengers') && aClienta.html.includes('Mickey Mouse'),
         'con el detalle de las piezas');
-      ok(aClienta.html.includes('Talla 18'), 'y la talla del brazalete');
+      ok(aClienta.html.includes('Talla 20'), 'y la talla del brazalete');
       ok(/Pedido confirmado/.test(aClienta.subject),
         'contraentrega se anuncia como pedido confirmado, no como pago pendiente');
       /* Sin esto varios filtros lo mandan a spam, y un comprobante en spam es
@@ -386,7 +419,7 @@ async function llenarPaso1(p, d) {
       return { ok: true, status: 200, text: async () => '' };
     };
     const conCorreoCaido = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
-      base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'],
+      base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
     }) });
@@ -399,7 +432,7 @@ async function llenarPaso1(p, d) {
     delete process.env.RESEND_API_KEY;
     correos.length = 0;
     const sinLlave = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
-      base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'],
+      base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
     }) });

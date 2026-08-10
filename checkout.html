@@ -737,6 +737,23 @@ async function confirmar(){
       body:JSON.stringify(cuerpo)
     });
     const d=await r.json().catch(()=>null);
+    /* Se agotó algo mientras armaba la pulsera. No es un error de la clienta ni
+       del sitio: hay que decirle qué pasó y llevarla a corregirlo, no dejarla
+       mirando un mensaje rojo sin salida. */
+    if(r.status===409&&d&&d.agotado){
+      enviando=false; btn.disabled=false; btn.textContent='Confirmar pedido';
+      error(d.error);
+      const caja=$('#aviso-error-tx');
+      if(!caja.parentNode.querySelector('a')){
+        const p=document.createElement('p');
+        p.style.margin='10px 0 0';
+        p.innerHTML='<a href="index.html#brazaletes">← Ajustar mi selección</a>'
+          +' &nbsp;·&nbsp; <a href="'+waPedido()+'" target="_blank" rel="noopener">'
+          +'Pedirlo por encargo por WhatsApp →</a>';
+        caja.parentNode.appendChild(p);
+      }
+      return;
+    }
     if(!r.ok||!d||d.error) throw new Error((d&&d.error)||('El servidor respondió '+r.status));
 
     /* El servidor manda su propio total. Si no coincide con el que la clienta

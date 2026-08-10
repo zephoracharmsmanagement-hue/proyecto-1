@@ -15,7 +15,8 @@
  *   PEDIDOS_WEBHOOK         opcional: a dónde avisar de cada pedido nuevo
  */
 const crypto = require('crypto');
-const { leerPedido, calcular, detallar, cop, PedidoInvalido } = require('./_precios');
+const { leerPedido, comprobarInventario, calcular, detallar, cop,
+  PedidoInvalido, SinInventario } = require('./_precios');
 const { pedidoRecibido, avisoTienda } = require('./_correo');
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
@@ -156,9 +157,13 @@ exports.handler = async (event) => {
   try {
     pedido = leerPedido(cuerpo);
     cliente = leerCliente(cuerpo.cliente);
+    comprobarInventario(pedido);
     cuentas = calcular(pedido);
   } catch (e) {
     if (e instanceof PedidoInvalido) return responder(400, { error: e.message });
+    /* 409, no 400: el pedido está bien formado, es el mundo el que cambió. El
+       checkout lo distingue para decirle a la clienta qué ajustar. */
+    if (e instanceof SinInventario) return responder(409, { error: e.message, agotado: true });
     throw e;
   }
 

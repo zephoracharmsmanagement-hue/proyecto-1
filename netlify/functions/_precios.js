@@ -11,6 +11,7 @@
  * comprueba que este archivo y el navegador den el mismo total.
  */
 const CAT = require('../../assets/catalogo.json');
+const INV = require('../../assets/stock.json');
 const { precios, nombres, pulseras, reglas } = CAT;
 const ESP = new Set(pulseras);
 
@@ -57,6 +58,63 @@ function leerPedido(cuerpo) {
   const pago = cuerpo.pago === 'contraentrega' ? 'contraentrega' : 'anticipado';
   return { base, charms, pago, empaque: cuerpo.empaque === true };
 }
+
+/* ¿Hay de verdad lo que se está pidiendo?
+ *
+ * El navegador ya lo comprueba —bloquea el botón al llegar al tope y esconde
+ * las tallas sin unidades—, pero eso vive en el cliente y el cliente no manda.
+ * Peor: entre que se arma la pulsera y se paga pueden pasar horas, y el
+ * inventario pudo cambiar en el medio. Cobrar algo que no existe obliga a
+ * devolver el dinero, que bajo la Ley 1480 no es solo una molestia.
+ *
+ * Esto NO resuelve la carrera de dos clientas comprando la última unidad en el
+ * mismo minuto: para eso hace falta reservar, y reservar necesita un almacén
+ * con estado. Sí cierra el caso corriente, que es pagar algo agotado desde
+ * hace rato o pedir tres de algo que tiene uno.
+ */
+function comprobarInventario(pedido) {
+  const items = (INV && INV.items) || {};
+  /* Sin inventario cargado se deja pasar: una lectura fallida no puede
+     bloquear la venta, igual que en la tienda. */
+  if (!Object.keys(items).length) return;
+
+  const faltan = [];
+
+  if (pedido.base) {
+    const it = items[pedido.base.id];
+    if (it && it.tallas) {
+      const t = pedido.base.talla;
+      if (!t) faltan.push(`${nombres[pedido.base.id]}: falta elegir la talla`);
+      else if (!(+it.tallas[t] > 0)) {
+        const libres = Object.keys(it.tallas).filter(k => +it.tallas[k] > 0);
+        faltan.push(`${nombres[pedido.base.id]} talla ${t} cm se agotó`
+          + (libres.length ? ` (quedan ${libres.join(', ')} cm)` : ''));
+      }
+    }
+  }
+
+  const cuenta = {};
+  pedido.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
+  Object.entries(cuenta).forEach(([id, piden]) => {
+    const it = items[id];
+    if (!it || typeof it.stock !== 'number') return;   // pieza sin conteo: pasa
+    if (it.stock <= 0) faltan.push(`${nombres[id]} se agotó`);
+    else if (piden > it.stock) {
+      faltan.push(`${nombres[id]}: pediste ${piden} y queda${it.stock === 1 ? '' : 'n'} ${it.stock}`);
+    }
+  });
+
+  if (faltan.length) {
+    throw new SinInventario(
+      'Se agotó algo de tu selección mientras la armabas: ' + faltan.join('; ')
+      + '. Ajusta tu pulsera o escríbenos y lo conseguimos por encargo.');
+  }
+}
+
+/* Se distingue de PedidoInvalido a propósito: un pedido inválido huele a
+   manipulación y no merece explicación; este es un caso legítimo que hay que
+   contarle bien a la clienta para que corrija y siga comprando. */
+class SinInventario extends Error {}
 
 /* El mismo cálculo que hace la página, con los mismos redondeos y en el mismo
    orden. Si esto y render() en index.html se separan, pruebas/precios.js falla. */
@@ -128,4 +186,5 @@ function detallar(pedido) {
 
 const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
 
-module.exports = { leerPedido, calcular, detallar, cop, PedidoInvalido, reglas, nombres };
+module.exports = { leerPedido, comprobarInventario, calcular, detallar, cop,
+  PedidoInvalido, SinInventario, reglas, nombres };
