@@ -62,6 +62,10 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     `${disponibles.pulseras.length} brazaletes\n`);
 
   let fallas = 0;
+  const ok = (b, t, extra) => {
+    if (!b) fallas++;
+    console.log(`  ${b ? '✓' : '✗'} ${t}${extra ? ` — ${extra}` : ''}`);
+  };
   for (let i = 0; i < CASOS; i++) {
     const conBase = azar() < 0.75;
     const base = conBase
@@ -147,6 +151,32 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       console.log(`      servidor: ${esperado}  (envío ${servidor.envio}, ` +
         `subtotal ${cop(servidor.subtotal)})`);
     }
+  }
+
+  /* El envío gratis es solo del pago anticipado. Es la regla más fácil de
+     desincronizar entre las tres calculadoras, porque el mismo carrito da dos
+     totales distintos según cómo se pague. */
+  console.log('\nEnvío gratis: beneficio exclusivo del prepago');
+  {
+    const R = require(path.join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
+    const gordo = { base: { id: 'pulsera-corazon-con-diamante', talla: '21' },
+      charms: ['mickey-mouse', 'stitch', 'minnie-mouse'], empaque: false };
+    const ant = calcular(leerPedido(Object.assign({}, gordo, { pago: 'anticipado' })));
+    const con = calcular(leerPedido(Object.assign({}, gordo, { pago: 'contraentrega' })));
+    ok(ant.subtotal >= R.envioGratisDesde, 'el carrito de prueba pasa del umbral',
+      cop(ant.subtotal));
+    ok(ant.envio === 0, 'anticipado por encima del umbral: envío gratis');
+    ok(con.envio === R.envio.contraentrega,
+      'contraentrega por encima del umbral: sigue pagando envío', cop(con.envio));
+    ok(con.total - ant.total === R.envio.contraentrega,
+      'la diferencia entre ambos es exactamente el envío de contraentrega');
+
+    /* Y por debajo del umbral cada uno paga su tarifa, como siempre. */
+    const flaco = { charms: ['mickey-mouse'] };
+    const fa = calcular(leerPedido(Object.assign({}, flaco, { pago: 'anticipado' })));
+    const fc = calcular(leerPedido(Object.assign({}, flaco, { pago: 'contraentrega' })));
+    ok(fa.envio === R.envio.anticipado && fc.envio === R.envio.contraentrega,
+      'por debajo del umbral cada forma de pago paga su tarifa');
   }
 
   /* Que el servidor rechace lo que no debería aceptar. Cada uno de estos es un

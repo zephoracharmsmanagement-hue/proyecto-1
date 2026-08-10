@@ -73,9 +73,13 @@ function calcular(pedido) {
   const empaque = pedido.empaque ? reglas.empaque : 0;
 
   /* El umbral de envío gratis mide mercancía, no total: si contara el envío,
-     el propio envío ayudaría a alcanzarlo. */
+     el propio envío ayudaría a alcanzarlo. Y el beneficio es solo del prepago:
+     la contraentrega le cuesta a la tienda la comisión de recaudo y el riesgo
+     de devolución, así que ahí el envío se cobra siempre. */
   const subtotal = brutoC - descC + brutoB - descB + empaque;
-  const gratis = subtotal >= reglas.envioGratisDesde;
+  const alcanza = subtotal >= reglas.envioGratisDesde;
+  const gratis = alcanza
+    && (!reglas.envioGratisSoloAnticipado || pedido.pago === 'anticipado');
   const envio = (subtotal <= 0 || gratis) ? 0 : reglas.envio[pedido.pago];
 
   /* Wompi cobra en centavos y en enteros. Se redondea una sola vez, al final:

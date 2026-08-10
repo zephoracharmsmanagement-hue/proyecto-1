@@ -432,7 +432,7 @@ button{font-family:inherit}
               <input type="radio" name="pago" value="contraentrega">
               <span class="op-tx">
                 <span class="op-t"><b>Pago contraentrega</b><span class="precio" id="p-contraentrega">—</span></span>
-                <span class="op-d">Pagas en efectivo cuando el mensajero te entregue el paquete. El recaudo lo cobra la transportadora, por eso el envío cuesta más.</span>
+                <span class="op-d" id="d-contra">Pagas en efectivo cuando el mensajero te entregue el paquete. El recaudo lo cobra la transportadora, por eso el envío cuesta más.</span>
               </span>
             </label>
           </div>
@@ -523,10 +523,14 @@ function calcular(c){
   const descB=(c.base&&nC>=R.minCharmsParaDescuento)?brutoB*R.descuentoBrazalete:0;
   const empaque=c.empaque?R.empaque:0;
   const subtotal=brutoC-descC+brutoB-descB+empaque;
-  const gratis=subtotal>=R.envioGratisDesde;
+  /* El envío gratis es solo del pago anticipado; la contraentrega lo paga
+     siempre. Misma regla que index.html y que _precios.js, que es quien cobra. */
+  const alcanza=subtotal>=R.envioGratisDesde;
+  const gratis=alcanza&&(!R.envioGratisSoloAnticipado||c.pago==='anticipado');
   const envio=(subtotal<=0||gratis)?0:R.envio[c.pago];
   return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(descC+descB),empaque:empaque,
-    subtotal:Math.round(subtotal),envio:envio,gratis:gratis,total:Math.round(subtotal+envio)};
+    subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,
+    total:Math.round(subtotal+envio)};
 }
 
 function lineas(c){
@@ -586,6 +590,18 @@ function pintarResumen(){
     const tt=calcular(Object.assign({},c,{pago:f}));
     $('#p-'+f).textContent=cop(tt.total);
   });
+
+  /* Si el carrito alcanza el umbral, la contraentrega dice por qué su envío no
+     es gratis. Es la misma advertencia que da el carrito: se repite aquí porque
+     este es el momento en que se elige, y una sorpresa de $25.000 en el último
+     paso es una compra abandonada. */
+  const dc=$('#d-contra');
+  const base='Pagas en efectivo cuando el mensajero te entregue el paquete. '
+    +'El recaudo lo cobra la transportadora, por eso el envío cuesta más.';
+  dc.textContent=(t.alcanza&&CAT.reglas.envioGratisSoloAnticipado)
+    ? base+' Tu pedido ya pasa de '+cop(CAT.reglas.envioGratisDesde)
+      +', pero el envío gratis aplica solo al pagar por adelantado.'
+    : base;
 
   $('#campo-dedicatoria').hidden=!c.empaque;
 }
@@ -869,6 +885,29 @@ Promise.all([
   /* La forma de pago que venía del armador manda sobre la marcada por defecto. */
   const previo=document.querySelector('#ops-pago input[value="'+carrito.pago+'"]');
   if(previo){ previo.checked=true; previo.dispatchEvent(new Event('change',{bubbles:true})); }
+
+  /* El carrito se arma en otra página, así que esta puede quedarse mirando una
+     copia vieja. Dos casos reales:
+     - Volver atrás a la tienda, cambiar la selección y avanzar otra vez: el
+       navegador restaura esta página de su caché sin re-ejecutar el script, y
+       el resumen sigue mostrando lo de antes.
+     - Dos pestañas abiertas: se toca el carrito en una y la otra no se entera.
+     En ambos se relee y se repinta en vez de dejar una pantalla que miente. */
+  const releer=()=>{
+    const nuevo=leerCarrito();
+    if(!nuevo){
+      /* Se vació de verdad (o se completó el pedido en la otra pestaña). */
+      $('#app').hidden=true; $('#vacio').hidden=false;
+      return;
+    }
+    if(JSON.stringify(nuevo)===JSON.stringify(carrito)) return;
+    carrito=nuevo;
+    const previo=document.querySelector('#ops-pago input[value="'+carrito.pago+'"]');
+    if(previo) previo.checked=true;
+    pintarResumen();
+  };
+  addEventListener('pageshow',e=>{ if(e.persisted) releer(); });
+  addEventListener('storage',e=>{ if(e.key===LLAVE) releer(); });
 
   $('#year').textContent=new Date().getFullYear();
   track('InitiateCheckout',{value:calcular(carrito).total,

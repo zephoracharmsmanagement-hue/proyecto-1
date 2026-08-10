@@ -54,6 +54,8 @@ def main():
     esc = [float(x.strip()) for x in esc_txt.split(',')]
 
     libre = int(saca(r'LIBRE\s*=\s*(\d+)', html, 'el umbral de envío gratis LIBRE'))
+    solo_ant = saca(r'const LIBRE_SOLO_ANTICIPADO=(true|false);', html,
+                    'la regla LIBRE_SOLO_ANTICIPADO') == 'true'
     envio_txt = saca(r'const ENVIO=\{([^}]+)\}', html, 'las tarifas de envío ENVIO')
     envio = {
         k.strip(): int(v)
@@ -90,6 +92,7 @@ def main():
             'minCharmsParaDescuento': min_charms,
             'empaque': pack,
             'envioGratisDesde': libre,
+            'envioGratisSoloAnticipado': solo_ant,
             'envio': envio,
         },
     }

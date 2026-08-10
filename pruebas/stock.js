@@ -79,18 +79,24 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   ok(tot.total.replace(/\D/g, '') === '257350', 'total 257.350');
   ok(tot.lb.includes('18 cm'), 'el resumen muestra la talla');
 
-  console.log('6 · el mensaje de WhatsApp incluye la talla');
-  /* El botón grande (#send) ahora lleva al checkout; el pedido por WhatsApp
-     pasó al enlace alterno #send-wa. Es a ese al que se le mira el texto. */
-  const msg = await p.evaluate(() => {
-    let u = null;
-    const o = window.open; window.open = x => { u = x; };
-    document.getElementById('send-wa').click();
-    window.open = o;
-    return decodeURIComponent(u.split('text=')[1]);
-  });
-  ok(/talla 18 cm/.test(msg), 'aparece "talla 18 cm"');
-  console.log('    ' + msg.split('\n').filter(l => l.includes('Brazalete'))[0]);
+  console.log('6 · la talla viaja hasta el checkout');
+  /* Antes esto miraba el texto del pedido por WhatsApp. Ese botón se retiró del
+     carrito —al lado del de pagar se comía checkouts terminados—, así que la
+     talla ahora tiene que llegar por el camino que de verdad se usa. */
+  /* Por el botón de la barra fija: #send vive dentro de la hoja y solo es
+     visible con la hoja abierta. Los dos llaman a comprar(). */
+  await p.click('#dock-send');
+  await p.waitForLoadState('networkidle');
+  await p.waitForTimeout(700);
+  const resumen = await p.locator('#res-lineas').textContent();
+  ok(/Talla 18 cm/i.test(resumen), 'el resumen del checkout muestra "Talla 18 cm"');
+  console.log('    ' + (await p.locator('#res-lineas .rrow').first().textContent()).replace(/\s+/g, ' ').trim());
+  await p.goBack({ waitUntil: 'networkidle' });
+  await p.waitForFunction(() => document.body.classList.contains('con-stock'));
+  /* Volver recarga la tienda desde cero, así que el catálogo completo queda
+     plegado otra vez y los pasos que siguen viven dentro de él. */
+  await p.click('#more-btn');
+  await p.waitForTimeout(300);
 
   console.log('7 · tope por unidades');
   const topeOk = await p.evaluate(() => {

@@ -300,6 +300,7 @@
   "minCharmsParaDescuento": 3,
   "empaque": 40000,
   "envioGratisDesde": 180000,
+  "envioGratisSoloAnticipado": true,
   "envio": {
    "anticipado": 15000,
    "contraentrega": 25000

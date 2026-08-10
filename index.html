@@ -562,7 +562,7 @@ section{scroll-margin-top:64px}
 .veil{position:fixed;inset:0;background:rgba(20,12,24,.5);z-index:85;opacity:0;
   pointer-events:none;transition:opacity .25s}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;background:#231a27;color:var(--bone);
-  border-radius:14px 14px 0 0;max-height:82dvh;display:flex;flex-direction:column;
+  border-radius:14px 14px 0 0;max-height:90dvh;display:flex;flex-direction:column;
   transform:translateY(105%);transition:transform .3s cubic-bezier(.32,.72,.29,1),visibility .3s;
   visibility:hidden;box-shadow:0 -18px 50px rgba(20,12,24,.45)}
 body.sheet-open .veil{opacity:1;pointer-events:auto}
@@ -574,7 +574,15 @@ body.sheet-open{overflow:hidden}
   border-radius:50%;background:none;color:var(--bone);font-size:17px;cursor:pointer;line-height:1}
 .sheet-grab{width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);
   margin:9px auto 0;flex:0 0 auto}
-.sheet-body{overflow-y:auto;padding:4px 18px 8px;flex:1 1 auto}
+/* La zona que rueda: piezas, empaque, forma de pago y desglose. Se le da un
+   mínimo para que siempre se vean tres piezas aunque el resto crezca. */
+.sheet-scroll{overflow-y:auto;flex:1 1 auto;min-height:0;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
+.sheet-scroll::-webkit-scrollbar{width:4px}
+.sheet-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:2px}
+.sheet-scroll::-webkit-scrollbar-track{background:transparent}
+.sheet-body{padding:4px 18px 0;min-height:96px}
+.sheet-extras{padding:0 18px 8px}
 .srow{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.09)}
 .srow img{width:46px;height:46px;border-radius:2px;background:#fff;object-fit:contain;flex:0 0 auto}
 .srow-n{font-size:14px;line-height:1.3;min-width:0}
@@ -584,24 +592,32 @@ body.sheet-open{overflow:hidden}
   color:#d9cede;font-size:14px;cursor:pointer;flex:0 0 auto;line-height:1}
 .srow-x:hover{background:var(--rose);color:#fff}
 .s-empty{padding:22px 0;color:#8d7f92;font-size:14px;text-align:center}
-.sheet-tot{flex:0 0 auto;padding:12px 18px calc(16px + env(safe-area-inset-bottom));
+.sheet-tot{position:relative;flex:0 0 auto;padding:12px 18px calc(16px + env(safe-area-inset-bottom));
   border-top:1px solid rgba(255,255,255,.14);background:#231a27}
+/* Difumina el corte de arriba para que se lea que ahí sigue habiendo contenido
+   y no que la lista se acaba justo donde empieza el total. */
+.sheet-tot::before{content:'';position:absolute;left:0;right:0;bottom:100%;height:22px;
+  pointer-events:none;background:linear-gradient(to top,rgba(35,26,39,.92),rgba(35,26,39,0))}
 .tot-row{display:flex;justify-content:space-between;font-size:13.5px;color:#c3b4c6;margin-bottom:5px}
 .tot-row.save{color:#e39aae}
 .ship-note{font-size:12px;color:#a495a8;margin:2px 0 0;line-height:1.45}
 .ship-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.13);margin:7px 0 2px;overflow:hidden}
 .ship-bar i{display:block;height:100%;background:var(--rose);width:0;transition:width .3s}
 .ship-ok{color:#7fc7ae}
+/* Alcanzó el monto pero con contraentrega, que no lleva envío gratis. */
+.ship-casi{color:#e0c48a}
+.ship-cta{background:none;border:0;padding:0;font:inherit;color:#f0d9a8;cursor:pointer;
+  text-decoration:underline;text-underline-offset:2px}
+@media(hover:hover){.ship-cta:hover{color:#fff}}
 .tot-big{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 12px}
 .tot-big span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8d7f92}
 .tot-big b{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300}
 .sheet-tot .btn--wa,.sheet-tot .btn--pagar{width:100%}
-/* WhatsApp deja de ser el botón grande y pasa a ser la alternativa de al lado */
-.sheet-wa{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
-  margin-top:9px;padding:11px 12px;background:none;border:1px solid rgba(255,255,255,.22);
-  border-radius:2px;color:#c3b4c6;font:400 12.5px/1 Jost;letter-spacing:.04em;cursor:pointer;
-  transition:.18s}
-@media(hover:hover){.sheet-wa:hover{border-color:var(--wa);color:#8fd6bd}}
+/* Sin salida a WhatsApp aquí a propósito: a esta altura la clienta ya decidió
+   comprar, y una opción de menor compromiso justo al lado del botón de pagar
+   se come checkouts terminados en vez de sumar pedidos. WhatsApp sigue en el
+   resto de la página, y en el checkout aparece si algo falla — que es donde
+   de verdad rescata una venta. */
 .sheet-note{font-size:11.5px;color:#8d7f92;text-align:center;margin:9px 0 0;line-height:1.5}
 .pack{display:flex;gap:9px;align-items:center;font-size:13px;color:#c3b4c6;
   padding:9px 0 11px;cursor:pointer}
@@ -611,10 +627,14 @@ body.sheet-open{overflow:hidden}
 .pbtn{font:400 12.5px/1.3 Jost;text-align:left;padding:10px 12px;cursor:pointer;
   border:1px solid rgba(255,255,255,.22);background:transparent;color:#c3b4c6;
   border-radius:2px;transition:.16s;min-height:52px}
-.pbtn:hover{border-color:rgba(255,255,255,.45)}
+@media(hover:hover){.pbtn:hover{border-color:rgba(255,255,255,.45)}}
 .pbtn small{display:block;font-size:11px;color:#8d7f92;margin-top:3px}
 .pbtn.is-on{background:rgba(180,101,127,.18);border-color:var(--rose);color:var(--bone)}
 .pbtn.is-on small{color:#e39aae}
+/* El envío gratis del anticipado se ve aunque esa opción no esté elegida:
+   es justo cuando hay que verlo, para que la comparación tenga sentido. */
+.pbtn small.pb-gratis,.pbtn.is-on small.pb-gratis{color:#7fc7ae;font-weight:500;
+  letter-spacing:.04em}
 
 /* escritorio */
 @media(min-width:700px){
@@ -1447,14 +1467,21 @@ body.sheet-open{overflow:hidden}
   <div class="sheet-grab" aria-hidden="true"></div>
   <div class="sheet-head"><b>Tu selección</b>
     <button class="sheet-x" type="button" id="sheet-x" aria-label="Cerrar">✕</button></div>
+  <!-- Una sola zona que rueda. Antes el bloque de abajo era fijo y tan alto
+       que a la lista de piezas le quedaban 65 px: con cuatro piezas se veía
+       una. La clienta llegaba a pagar $200.000 sin poder ver qué llevaba. -->
+  <div class="sheet-scroll" id="sheet-scroll">
   <div class="sheet-body" id="sheet-body"></div>
-  <div class="sheet-tot">
+  <div class="sheet-extras">
     <label class="pack"><input type="checkbox" id="pack"> <span>Empaque Premium de Regalo <b>+$40.000</b></span></label>
     <div class="pago" id="pago" role="radiogroup" aria-label="Forma de pago">
+      <!-- El costo de envío de cada opción lo escribe render(): con el carrito
+           por encima del umbral, el anticipado dice «Gratis» y la contraentrega
+           mantiene su tarifa. Fijarlos en el HTML los dejaría mintiendo. -->
       <button class="pbtn is-on" type="button" data-pago="anticipado" role="radio" aria-checked="true">
-        Pago anticipado<small>Envío $15.000</small></button>
+        Pago anticipado<small id="pb-ant">Envío $15.000</small></button>
       <button class="pbtn" type="button" data-pago="contraentrega" role="radio" aria-checked="false">
-        Contraentrega<small>Envío $25.000</small></button>
+        Contraentrega<small id="pb-con">Envío $25.000</small></button>
     </div>
     <div class="tot-row"><span id="l-b">Brazalete</span><span id="v-b">—</span></div>
     <div class="tot-row"><span id="l-c">Charms</span><span id="v-c">—</span></div>
@@ -1462,13 +1489,14 @@ body.sheet-open{overflow:hidden}
     <div class="tot-row"><span>Envío</span><span id="v-ship">—</span></div>
     <div class="ship-bar" id="ship-bar"><i></i></div>
     <p class="ship-note" id="ship-note"></p>
+    <p class="stock-nota"><span id="stock-fecha"></span></p>
+  </div>
+  </div>
+  <!-- Fijo abajo: solo lo que decide la compra. -->
+  <div class="sheet-tot">
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
     <button class="btn btn--pagar" type="button" id="send">Finalizar compra</button>
-    <button class="sheet-wa" type="button" id="send-wa">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.5 7.8L3 21l1.2-4.5A9 9 0 1121 12z"/></svg>
-      Prefiero pedirlo por WhatsApp</button>
     <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</p>
-    <p class="stock-nota"><span id="stock-fecha"></span></p>
   </div>
 </aside>
 
@@ -1508,6 +1536,11 @@ const WA='573018990672', LIBRE=180000;
 /* Envío con tarifa plana nacional. La contraentrega cuesta más porque la
    transportadora cobra el recaudo. Gratis a partir de LIBRE en ambos casos. */
 const ENVIO={anticipado:15000, contraentrega:25000};
+/* El envío gratis premia el prepago y solo el prepago. La contraentrega le
+   cuesta a la tienda la comisión de recaudo de la transportadora y el riesgo
+   de que el paquete se devuelva sin cobrar: regalar ese envío es subsidiar la
+   opción más cara. Se dice de frente en el carrito, no en letra chica. */
+const LIBRE_SOLO_ANTICIPADO=true;
 let pago='anticipado';
 const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 85000}, {"id": "dalmata", "n": "Dálmata", "p": 85000}, {"id": "ariel", "n": "Ariel", "p": 85000}, {"id": "jasmine", "n": "Jasmine", "p": 85000}, {"id": "blancanieves", "n": "Blancanieves", "p": 85000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 85000}, {"id": "elsa", "n": "Elsa", "p": 85000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 85000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 85000}, {"id": "stitch", "n": "Stitch", "p": 85000}, {"id": "angel", "n": "Angel", "p": 85000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 85000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 85000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 85000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 85000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 85000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 85000}, {"id": "sulley", "n": "Sulley", "p": 85000}, {"id": "walle", "n": "WALL·E", "p": 85000}, {"id": "capitan-america", "n": "Capitán América", "p": 85000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 85000}, {"id": "spider-man", "n": "Spider-Man", "p": 85000}, {"id": "wolverine", "n": "Wolverine", "p": 85000}, {"id": "hulk", "n": "Hulk", "p": 85000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 85000}, {"id": "iron-man", "n": "Iron Man", "p": 85000}, {"id": "deadpool", "n": "Deadpool", "p": 85000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 85000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 78000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 68000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 68000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 68000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 68000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 65000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 65000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 65000}, {"id": "bola-rosa-con-flores", "n": "Bola Rosa con Flores", "p": 72000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 80000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 76000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 84000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 84000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 72000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 76000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 84000}, {"id": "nina-con-arcoiris", "n": "Niña con Arcoíris", "p": 80000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 72000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 72000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 72000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 72000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 72000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 76000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 72000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 72000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 72000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 72000}, {"id": "bola-roja-remolino", "n": "Bola Roja Remolino", "p": 72000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 72000}, {"id": "virgen-maria", "n": "Virgen María", "p": 76000}, {"id": "bola-azul-con-flor-rosa", "n": "Bola Azul con Flor Rosa", "p": 72000}, {"id": "tortuga-azul-grande", "n": "Tortuga Azul Grande", "p": 72000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 78000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 76000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 72000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 72000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 72000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga \"You Are My Light\"", "p": 72000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 78000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 72000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 72000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 72000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 72000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 82000}, {"id": "aries", "n": "Aries", "p": 76000}, {"id": "tauro", "n": "Tauro", "p": 76000}, {"id": "geminis", "n": "Géminis", "p": 76000}, {"id": "cancer", "n": "Cáncer", "p": 76000}, {"id": "leo", "n": "Leo", "p": 76000}, {"id": "virgo", "n": "Virgo", "p": 76000}, {"id": "libra", "n": "Libra", "p": 76000}, {"id": "escorpio", "n": "Escorpio", "p": 76000}, {"id": "sagitario", "n": "Sagitario", "p": 76000}, {"id": "capricornio", "n": "Capricornio", "p": 76000}, {"id": "acuario", "n": "Acuario", "p": 76000}, {"id": "piscis", "n": "Piscis", "p": 76000}, {"id": "cenicienta", "n": "Cenicienta", "p": 85000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 68000}, {"id": "letra-a", "n": "Letra A", "p": 76000}, {"id": "letra-b", "n": "Letra B", "p": 76000}, {"id": "letra-c", "n": "Letra C", "p": 76000}, {"id": "letra-d", "n": "Letra D", "p": 76000}, {"id": "letra-e", "n": "Letra E", "p": 76000}, {"id": "letra-f", "n": "Letra F", "p": 76000}, {"id": "letra-g", "n": "Letra G", "p": 76000}, {"id": "letra-h", "n": "Letra H", "p": 76000}, {"id": "letra-i", "n": "Letra I", "p": 76000}, {"id": "letra-j", "n": "Letra J", "p": 76000}, {"id": "letra-k", "n": "Letra K", "p": 76000}, {"id": "letra-l", "n": "Letra L", "p": 76000}, {"id": "letra-m", "n": "Letra M", "p": 76000}, {"id": "letra-n", "n": "Letra N", "p": 76000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 76000}, {"id": "letra-o", "n": "Letra O", "p": 76000}, {"id": "letra-p", "n": "Letra P", "p": 76000}, {"id": "letra-q", "n": "Letra Q", "p": 76000}, {"id": "letra-r", "n": "Letra R", "p": 76000}, {"id": "letra-s", "n": "Letra S", "p": 76000}, {"id": "letra-t", "n": "Letra T", "p": 76000}, {"id": "letra-u", "n": "Letra U", "p": 76000}, {"id": "letra-v", "n": "Letra V", "p": 76000}, {"id": "letra-w", "n": "Letra W", "p": 76000}, {"id": "letra-x", "n": "Letra X", "p": 76000}, {"id": "letra-y", "n": "Letra Y", "p": 76000}, {"id": "letra-z", "n": "Letra Z", "p": 76000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 68000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 58000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 58000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 58000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 58000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 68000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 58000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 78000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 68000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 68000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 78000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 68000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 58000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 68000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 78000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 58000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 78000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 58000}]};
 const byId=(a)=>a.reduce((o,x)=>(o[x.id]=x,o),{});
@@ -1846,7 +1879,12 @@ function render(){
      de lo contrario el propio envío ayudaría a alcanzarlo. */
   const subtotal=brutoC-descC+brutoB-descB+pack;
   const ahorro=descC+descB;
-  const libre=subtotal>=LIBRE;
+  /* alcanza: llegó al umbral. libre: además le corresponde el beneficio.
+     Se separan para poder decirle a quien eligió contraentrega que ya alcanzó
+     el monto pero el envío gratis es del pago anticipado — callarlo sería
+     prometer algo en la barra de progreso y quitarlo al final. */
+  const alcanza=subtotal>=LIBRE;
+  const libre=alcanza&&(!LIBRE_SOLO_ANTICIPADO||pago==='anticipado');
   const envio=(subtotal<=0||libre)?0:ENVIO[pago];
   const total=subtotal+envio;
 
@@ -1861,15 +1899,41 @@ function render(){
   $('#v-tot').textContent=cop(total);
 
   const ship=$('#v-ship'), nota=$('#ship-note'), barra=$('#ship-bar i');
-  if(subtotal<=0){ ship.textContent='—'; ship.className=''; nota.textContent=''; barra.style.width='0'; }
-  else if(libre){
+  if(subtotal<=0){
+    ship.textContent='—'; ship.className='';
+    nota.textContent=''; nota.className='ship-note'; barra.style.width='0';
+  }else if(libre){
     ship.textContent='Gratis'; ship.className='ship-ok';
     nota.textContent='✓ Tu pedido tiene envío gratis a toda Colombia';
     nota.className='ship-note ship-ok'; barra.style.width='100%';
+  }else if(alcanza){
+    /* Alcanzó el monto pero eligió contraentrega. Decírselo aquí, con el
+       ahorro en pesos y un botón que lo aplica, en vez de dejar que descubra
+       en el último paso que el envío gratis no era para él. */
+    ship.textContent=cop(envio); ship.className='';
+    nota.innerHTML='Tu pedido ya pasa de '+cop(LIBRE)+'. El envío gratis aplica al '
+      +'pagar por adelantado: <button type="button" class="ship-cta" id="ship-cta">'
+      +'cámbiate y ahórrate '+cop(envio)+'</button>';
+    nota.className='ship-note ship-casi'; barra.style.width='100%';
   }else{
     ship.textContent=cop(envio); ship.className='';
-    nota.textContent='Agrega '+cop(LIBRE-subtotal)+' más y el envío es gratis';
+    nota.textContent='Agrega '+cop(LIBRE-subtotal)+' más y el envío es gratis'
+      +(LIBRE_SOLO_ANTICIPADO?' con pago anticipado':'');
     nota.className='ship-note'; barra.style.width=Math.min(100,subtotal/LIBRE*100)+'%';
+  }
+
+  /* Cada opción muestra lo que le costaría el envío a ESTE carrito, para que
+     la diferencia se vea antes de elegir y no después. */
+  const ant=$('#pb-ant'), con=$('#pb-con');
+  if(subtotal<=0){
+    ant.textContent='Envío '+cop(ENVIO.anticipado);
+    con.textContent='Envío '+cop(ENVIO.contraentrega);
+    ant.className=''; con.className='';
+  }else{
+    ant.textContent=alcanza?'Envío GRATIS':'Envío '+cop(ENVIO.anticipado);
+    ant.className=alcanza?'pb-gratis':'';
+    con.textContent='Envío '+cop(ENVIO.contraentrega);
+    con.className='';
   }
 
   pintarTarjetas();
@@ -1922,7 +1986,15 @@ function marcarVerDetalle(){
    Si el navegador no deja escribir (modo privado en algunos iOS, cuota llena),
    no pasa nada: el checkout recibe el mismo pedido por la URL. */
 const LLAVE='zephora.carrito.v1';
+/* Se pone en true en cuanto la clienta toca algo. Hasta entonces, un render()
+   con el carrito vacío no puede pisar lo que hubiera guardado: si recuperar()
+   falla por lo que sea —JSON corrupto, localStorage que no deja leer— el
+   primer render borraría la selección de forma definitiva, y el síntoma sería
+   justo «se me borraron las joyas». */
+let tocado=false;
 function guardar(){
+  if(base||sel.length) tocado=true;   /* desde que hay algo, se persiste todo */
+  if(!tocado) return;                 /* incluido el vaciado deliberado */
   try{
     localStorage.setItem(LLAVE,JSON.stringify({
       v:1, base:base, charms:sel,
@@ -1935,6 +2007,7 @@ function recuperar(){
   let d=null;
   try{ d=JSON.parse(localStorage.getItem(LLAVE)||'null'); }catch(_){ return; }
   if(!d||d.v!==1) return;
+  if(d.base||(Array.isArray(d.charms)&&d.charms.length)) tocado=true;
   /* Una semana. Más allá, los precios y el inventario ya no son los mismos y
      devolver un carrito viejo promete algo que puede no existir. */
   if(!d.cuando||Date.now()-d.cuando>7*24*3600*1000) return;
@@ -1953,6 +2026,7 @@ function comprar(){
     document.getElementById('brazaletes').scrollIntoView({behavior:'smooth'});
     return;
   }
+  tocado=true;
   guardar();
   const piezas=sel.length+(base?1:0);
   const val=+$('#v-tot').textContent.replace(/[^0-9]/g,'')||0;
@@ -1960,40 +2034,18 @@ function comprar(){
   location.href='checkout.html';
 }
 
-function pedir(){
-  if(!base&&!sel.length){
-    document.getElementById('brazaletes').scrollIntoView({behavior:'smooth'});
-    return;
-  }
-  const total=$('#v-tot').textContent;
-  const cEnvio=$('#v-ship').textContent;
-  const libre=cEnvio==='Gratis';
-  let t='Hola, Zephora Charms. Armé mi pulsera en la página web y quisiera confirmar este pedido:\n';
-  if(base) t+='\n• Brazalete '+PU[base.id].n.replace(/^Pulsera /,'')+
-    (base.talla?' — talla '+base.talla+' cm':'')+' — '+cop(PU[base.id].p);
-  const cont={};
-  sel.forEach(id=>cont[id]=(cont[id]||0)+1);
-  Object.entries(cont).forEach(([id,n])=>{
-    t+='\n• '+CH[id].n+(n>1?' (x'+n+')':'')+' — '+cop(CH[id].p*n);
-  });
-  if(document.getElementById('pack').checked) t+='\n• Empaque Premium de Regalo — '+cop(40000);
-  t+='\n\nForma de pago: '+(pago==='anticipado'?'anticipado':'contraentrega');
-  t+='\nEnvío: '+(libre?'gratis a toda Colombia':cEnvio);
-  t+='\nTotal con descuento aplicado: '+total;
-  t+='\n\nQuedo atenta a la confirmación de disponibilidad y a la asesoría de talla. Gracias.';
-  const val=+total.replace(/[^0-9]/g,'')||0;
-  const piezas=sel.length+(base?1:0);
-  track('InitiateCheckout',{content_name:'WhatsApp · pedido armador',num_items:piezas,value:val});
-  track('Lead',{content_name:'Pedido armador',num_items:piezas,value:val});
-  window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(t),'_blank');
-}
-/* El botón grande lleva al checkout; WhatsApp queda al lado, para asesoría.
-   Es la inversión que pedía el objetivo: cerrar la venta en la web y dejar el
-   chat para las dudas, no al revés. */
+/* Los dos botones llevan al checkout. El pedido por WhatsApp desde el carrito
+   se retiró: los enlaces de asesoría del resto de la página siguen ahí. */
 $('#send').onclick=comprar;
 $('#dock-send').onclick=comprar;
-$('#send-wa').onclick=pedir;
 document.getElementById('pack').addEventListener('change',render);
+/* El atajo del aviso de envío: aplica el pago anticipado sin que la clienta
+   tenga que buscar el botón. Delegado porque el aviso se repinta en cada render. */
+document.getElementById('ship-note').addEventListener('click',e=>{
+  if(!e.target.closest('#ship-cta')) return;
+  const b=document.querySelector('.pbtn[data-pago="anticipado"]');
+  if(b) b.click();
+});
 document.getElementById('pago').addEventListener('click',e=>{
   const b=e.target.closest('.pbtn'); if(!b) return;
   pago=b.dataset.pago;
