@@ -211,6 +211,24 @@ En *Site configuration → Environment variables*. **Ninguna va al repo.**
 En el panel de Wompi, la **URL de eventos** apunta a
 `https://zephoracharms.com/.netlify/functions/wompi-webhook`.
 
+> **Copiar las llaves con el botón de copiar, nunca leyéndolas de la pantalla.**
+> Pasó: la llave pública se transcribió con un `1` (uno) donde el panel tenía
+> una `l` (ele minúscula). Un carácter, y el checkout entero moría con «No se
+> pudo cargar la información del undefined» — un mensaje que no apunta a nada.
+>
+> Antes de dar por buena una llave, se comprueba con la API pública de Wompi,
+> que no necesita firma ni secreto:
+>
+> ```
+> curl https://production.wompi.co/v1/merchants/<llave-pública>
+> ```
+>
+> Con `name` y `accepted_payment_methods` en la respuesta, la llave sirve.
+> Con `NOT_FOUND_ERROR`, no existe — y da igual lo bien que esté el código.
+> Los secretos de integridad y eventos no se pueden verificar así: si están mal
+> transcritos, el síntoma aparece más tarde, como transacción declinada por
+> firma inválida.
+
 Mientras falten `WOMPI_LLAVE_PUBLICA` o `WOMPI_INTEGRIDAD`, el pago en línea
 responde 503 con un mensaje que manda a contraentrega o a WhatsApp. El sitio no
 se cae: se queda vendiendo como antes.
