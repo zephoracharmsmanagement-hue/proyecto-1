@@ -206,6 +206,9 @@ En *Site configuration → Environment variables*. **Ninguna va al repo.**
 | `WOMPI_INTEGRIDAD` | íd. (`prod_integrity_…`) | Firmar el monto |
 | `WOMPI_EVENTOS` | íd. (`prod_events_…`) | Verificar que el webhook viene de Wompi |
 | `URL_SITIO` | `https://zephoracharms.com` | Construir la URL de regreso |
+| `RESEND_API_KEY` | [resend.com](https://resend.com) → API Keys | Mandar los correos de pedido |
+| `CORREO_DESDE` | `Zephora Charms <pedidos@zephoracharms.com>` | Remitente |
+| `CORREO_TIENDA` | `zephoracharms@gmail.com` | Copia interna de cada pedido |
 | `PEDIDOS_WEBHOOK` | opcional | A dónde avisar de cada pedido y cada pago |
 
 En el panel de Wompi, la **URL de eventos** apunta a
@@ -232,6 +235,43 @@ En el panel de Wompi, la **URL de eventos** apunta a
 Mientras falten `WOMPI_LLAVE_PUBLICA` o `WOMPI_INTEGRIDAD`, el pago en línea
 responde 503 con un mensaje que manda a contraentrega o a WhatsApp. El sitio no
 se cae: se queda vendiendo como antes.
+
+### Los correos del pedido
+
+Se mandan tres, todos por [Resend](https://resend.com) (el plan gratuito cubre
+de sobra el volumen de la tienda):
+
+| Cuándo | A quién | Qué dice |
+|---|---|---|
+| Al confirmar el pedido | La clienta | Comprobante con piezas, tallas, dirección y total. Contraentrega dice «Pedido confirmado»; pago en línea, «Recibimos tu pedido» |
+| Al confirmar el pedido | `CORREO_TIENDA` | La misma ficha, con la forma de pago en el asunto y `reply_to` a la clienta |
+| Al aprobar el pago | La clienta | «Pago recibido». Sale del **webhook**, no de la página de gracias: la clienta puede cerrar el navegador antes de volver y el pago fue bueno igual |
+
+Para que el remitente sea `@zephoracharms.com` hay que verificar el dominio en
+Resend, que pide unos registros DNS. Se pueden añadir en Netlify → *Domains*.
+Sin verificar, Resend solo deja mandar desde su dominio de pruebas.
+
+**Nada de esto puede tumbar una venta.** Sin `RESEND_API_KEY` no se manda
+correo y el pedido sigue igual; si Resend falla o tarda, se registra el error y
+el cobro continúa. Perder un comprobante es molesto; perder una compra cobrada
+porque el proveedor de correo estaba lento, no se perdona.
+
+### El envío gratis es solo del pago anticipado
+
+La contraentrega le cuesta a la tienda la comisión de recaudo de la
+transportadora y el riesgo de que el paquete se devuelva sin cobrar, así que
+ahí el envío se cobra siempre, pase de $180.000 o no.
+
+Lo delicado no es la regla, es **no prometerla y quitarla al final**. Por eso:
+
+- Cada forma de pago muestra lo que le costaría el envío a *ese* carrito, antes
+  de elegir.
+- Quien ya pasó el umbral con contraentrega ve por qué su envío no es gratis,
+  con el ahorro en pesos y un botón que aplica el cambio.
+- Quien no ha llegado lee «con pago anticipado» en el mensaje de progreso.
+
+La regla sale de `LIBRE_SOLO_ANTICIPADO` en `index.html`, la copia el extractor
+y la aplican las tres calculadoras.
 
 ### Al cambiar un precio
 

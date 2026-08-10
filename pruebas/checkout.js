@@ -26,11 +26,22 @@ process.env.URL_SITIO = BASE;
 const crearPago = require(path.join(RAIZ, 'netlify', 'functions', 'crear-pago.js'));
 const webhook = require(path.join(RAIZ, 'netlify', 'functions', 'wompi-webhook.js'));
 
-/* crear-pago le pregunta a Wompi si el comercio existe antes de mandar a nadie
-   a la pasarela. Por defecto se responde que sí, sin salir a la red: la batería
-   no puede depender de que Wompi esté disponible ni de tener llaves reales.
-   La sección 5 lo cambia a propósito para probar el caso contrario. */
-globalThis.fetch = async () => ({ status: 200 });
+/* Las funciones salen a la red por dos motivos: preguntarle a Wompi si el
+   comercio existe, y mandar los correos por Resend. Se responde que sí a todo
+   sin salir a internet — la batería no puede depender de que ninguno de los dos
+   esté disponible, ni de tener llaves reales. `correos` guarda lo que se habría
+   mandado para poder revisarlo. La sección 5 cambia este doble a propósito. */
+const correos = [];
+globalThis.fetch = async (url, opciones) => {
+  if (String(url).includes('api.resend.com')) {
+    correos.push(JSON.parse((opciones && opciones.body) || '{}'));
+    return { ok: true, status: 200, text: async () => '' };
+  }
+  return { ok: true, status: 200, text: async () => '' };
+};
+/* Con llave puesta, para que el envío de correo se ejecute de verdad. */
+process.env.RESEND_API_KEY = 're_prueba';
+process.env.CORREO_TIENDA = 'tienda@ejemplo.com';
 
 const out = [];
 let fallas = 0;
@@ -325,6 +336,76 @@ async function llenarPaso1(p, d) {
     for (let i = 0; i < 300; i++) refs.add((await llamar(bueno)).cuerpo.referencia);
     ok(refs.size === 300, 'las referencias no se repiten en 300 pedidos seguidos',
       `${refs.size} distintas`);
+  }
+
+  // ——— 5b · correos ———
+  out.push('\n5b · Comprobante por correo');
+  {
+    correos.length = 0;
+    const r = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
+      base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'],
+      empaque: false, pago: 'contraentrega',
+      cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
+    }) });
+    const ref = JSON.parse(r.body).referencia;
+
+    ok(correos.length === 2, 'salen dos correos: comprobante a la clienta y copia a la tienda',
+      `${correos.length} enviados`);
+    const aClienta = correos.find(c => c.to && c.to[0] === DATOS.correo);
+    const aTienda = correos.find(c => c.to && c.to[0] === 'tienda@ejemplo.com');
+
+    ok(!!aClienta, 'la clienta recibe el suyo en el correo que registró');
+    if (aClienta) {
+      ok(aClienta.subject.includes(ref), 'el asunto lleva la referencia', aClienta.subject);
+      ok(aClienta.html.includes(ref) && aClienta.text.includes(ref), 'y el cuerpo también');
+      ok(aClienta.html.includes('Avengers') && aClienta.html.includes('Mickey Mouse'),
+        'con el detalle de las piezas');
+      ok(aClienta.html.includes('Talla 18'), 'y la talla del brazalete');
+      ok(/Pedido confirmado/.test(aClienta.subject),
+        'contraentrega se anuncia como pedido confirmado, no como pago pendiente');
+      /* Sin esto varios filtros lo mandan a spam, y un comprobante en spam es
+         un comprobante que no existe. */
+      ok(!!aClienta.text && aClienta.text.length > 100, 'lleva versión en texto plano');
+      /* Los clientes de correo bloquean lo remoto: una plantilla que dependa de
+         imágenes o fuentes externas llega rota. */
+      ok(!/<img|https:\/\/fonts\.|\.webp/.test(aClienta.html),
+        'no depende de imágenes ni fuentes externas');
+    }
+    ok(!!aTienda, 'la tienda recibe su copia');
+    if (aTienda) {
+      ok(aTienda.reply_to === DATOS.correo,
+        'respondiendo a la copia se le escribe a la clienta directamente');
+      ok(/CONTRAENTREGA/.test(aTienda.subject), 'con la forma de pago en el asunto',
+        aTienda.subject);
+    }
+
+    /* Un fallo de correo no puede tumbar un pedido ya cobrado. */
+    const fetchBueno = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      if (String(url).includes('api.resend.com')) throw new Error('Resend caído');
+      return { ok: true, status: 200, text: async () => '' };
+    };
+    const conCorreoCaido = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
+      base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'],
+      empaque: false, pago: 'contraentrega',
+      cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
+    }) });
+    ok(conCorreoCaido.statusCode === 200,
+      'si el correo falla, el pedido sigue su curso igual');
+    globalThis.fetch = fetchBueno;
+
+    /* Sin llave configurada tampoco se rompe nada. */
+    const llave = process.env.RESEND_API_KEY;
+    delete process.env.RESEND_API_KEY;
+    correos.length = 0;
+    const sinLlave = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
+      base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse'],
+      empaque: false, pago: 'contraentrega',
+      cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
+    }) });
+    ok(sinLlave.statusCode === 200 && correos.length === 0,
+      'sin RESEND_API_KEY no se manda nada y el pedido tampoco se cae');
+    process.env.RESEND_API_KEY = llave;
   }
 
   // ——— 6 · webhook ———

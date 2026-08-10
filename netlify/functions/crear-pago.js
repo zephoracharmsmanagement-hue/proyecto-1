@@ -16,6 +16,7 @@
  */
 const crypto = require('crypto');
 const { leerPedido, calcular, detallar, cop, PedidoInvalido } = require('./_precios');
+const { pedidoRecibido, avisoTienda } = require('./_correo');
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -180,6 +181,8 @@ exports.handler = async (event) => {
     ciudad: `${cliente.ciudad}, ${cliente.depto}`,
   }));
 
+  const lineas = detallar(pedido);
+
   await avisar({
     evento: 'pedido_creado',
     referencia: ref,
@@ -187,9 +190,21 @@ exports.handler = async (event) => {
     total: cuentas.total,
     totalTexto: cop(cuentas.total),
     envio: cuentas.envio,
-    lineas: detallar(pedido),
+    lineas,
     cliente,
   });
+
+  /* Comprobante a la clienta y copia a la tienda. En paralelo y sin dejar que
+     un fallo de correo tumbe el pedido: allSettled, no all. */
+  const correos = { referencia: ref, lineas, cuentas, pago: pedido.pago, cliente };
+  const [aCliente, aTienda] = await Promise.allSettled([
+    pedidoRecibido(correos), avisoTienda(correos),
+  ]);
+  console.log(JSON.stringify({
+    evento: 'correos_pedido', referencia: ref,
+    cliente: aCliente.status === 'fulfilled' ? aCliente.value : { enviado: false, motivo: 'excepción' },
+    tienda: aTienda.status === 'fulfilled' ? aTienda.value : { enviado: false, motivo: 'excepción' },
+  }));
 
   const base = {
     referencia: ref,

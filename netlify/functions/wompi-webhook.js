@@ -18,6 +18,7 @@
  */
 const crypto = require('crypto');
 const { cop } = require('./_precios');
+const { enviar } = require('./_correo');
 
 const ok = (cuerpo) => ({
   statusCode: 200,
@@ -112,6 +113,56 @@ exports.handler = async (event) => {
     await reenviar(Object.assign({
       titulo: `Pago aprobado · ${registro.referencia} · ${cop(registro.total || 0)}`,
     }, registro));
+
+    /* El «ya está» que la clienta espera. El primer correo dijo «estamos
+       confirmando tu pago»; este cierra esa frase. Sale del webhook y no de la
+       página de gracias a propósito: la clienta puede haber cerrado el
+       navegador antes de volver, y el pago fue bueno igual.
+       Wompi no manda el detalle del pedido en el evento, así que este correo
+       confirma el cobro y remite al comprobante anterior por su referencia. */
+    if (registro.correo) {
+      const t = cop(registro.total || 0);
+      await enviar({
+        para: registro.correo,
+        asunto: `Pago confirmado · ${registro.referencia} · Zephora Charms`,
+        html: `<!DOCTYPE html><html lang="es-CO"><head><meta charset="UTF-8">`
+          + `<meta name="viewport" content="width=device-width,initial-scale=1"></head>`
+          + `<body style="margin:0;background:#F6F3F4">`
+          + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px">`
+          + `<tr><td align="center"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" `
+          + `style="max-width:560px;background:#fff;border:1px solid #E4DDE0;border-radius:4px">`
+          + `<tr><td style="padding:22px 26px;border-bottom:1px solid #E4DDE0">`
+          + `<span style="font:400 19px/1 Georgia,serif;letter-spacing:.13em;text-transform:uppercase;color:#2A1F2E">`
+          + `Zephora <i style="color:#5C3D63">Charms</i></span></td></tr>`
+          + `<tr><td style="padding:26px">`
+          + `<h1 style="margin:0 0 10px;font:400 27px/1.2 Georgia,serif;color:#1F7A5C">¡Pago recibido!</h1>`
+          + `<p style="margin:0 0 18px;font:400 15px/1.6 Arial,sans-serif;color:#584a5c">`
+          + `Confirmamos tu pago de <b>${t}</b>. Tu pedido entró a preparación y te mandamos `
+          + `el número de guía en cuanto lo despachemos.</p>`
+          + `<p style="margin:0 0 4px;font:400 12px/1 Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#A9A6AE">Referencia</p>`
+          + `<p style="margin:0 0 20px;font:400 17px/1.3 monospace;color:#5C3D63;background:#F3E6EB;`
+          + `border:1px solid #e9d3dc;border-radius:3px;padding:8px 12px;display:inline-block">${registro.referencia}</p>`
+          + `<p style="margin:0;font:400 13.5px/1.6 Arial,sans-serif;color:#6d6070">`
+          + `El detalle de las piezas está en el correo anterior, con esta misma referencia.</p>`
+          + `</td></tr>`
+          + `<tr><td style="padding:0 26px 26px">`
+          + `<a href="https://wa.me/573018990672?text=${encodeURIComponent('Hola, Zephora Charms. Escribo por mi pedido ' + registro.referencia + '.')}" `
+          + `style="display:block;text-align:center;background:#25806a;color:#fff;text-decoration:none;`
+          + `font:400 14px/1 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;`
+          + `padding:15px 20px;border-radius:2px">Escribirnos por WhatsApp</a></td></tr>`
+          + `<tr><td style="padding:18px 26px 24px;border-top:1px solid #E4DDE0;`
+          + `font:400 12px/1.6 Arial,sans-serif;color:#8a8290">`
+          + `Zephora Charms · NIT 1.019.151.696-3 · Bogotá D.C., Colombia<br>`
+          + `WhatsApp +57 301 899 0672 · zephoracharms@gmail.com</td></tr>`
+          + `</table></td></tr></table></body></html>`,
+        txt: `¡Pago recibido!\n\nConfirmamos tu pago de ${t}.\n`
+          + `Referencia: ${registro.referencia}\n\n`
+          + `Tu pedido entró a preparación. Te mandamos el número de guía al despacharlo.\n`
+          + `El detalle de las piezas está en el correo anterior, con esta misma referencia.\n\n`
+          + `WhatsApp: https://wa.me/573018990672\n`
+          + `Zephora Charms · NIT 1.019.151.696-3 · Bogotá D.C., Colombia`,
+      });
+    }
   }
 
   /* Siempre 200 cuando el evento es legítimo, incluso si fue un pago rechazado:
