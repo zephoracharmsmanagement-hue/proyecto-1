@@ -1,0 +1,62 @@
+# Corre las seis baterías en cada push.
+#
+# Por qué existe: la batería del checkout ya dio verde una vez a un pago que en
+# producción no cobraba, y nadie lo supo hasta que una clienta lo intentó. Que
+# las pruebas corran solas, en cada cambio, es lo que convierte ese hallazgo en
+# algo que se detecta en minutos y no en días.
+#
+# El repo es público, así que estos minutos de Actions son gratis e ilimitados.
+# No tienen nada que ver con los créditos de Netlify: Actions no despliega.
+#
+# Esto AVISA, no bloquea. Netlify publica igual cuando llega el push, porque el
+# despliegue lo dispara el repositorio y no este flujo. Para que las pruebas
+# fueran de verdad una puerta habría que apagar el despliegue automático en
+# Netlify y desplegar desde aquí con un NETLIFY_AUTH_TOKEN en los secrets —
+# decisión del propietario, y no hace falta para tener el aviso.
+
+name: Pruebas
+
+on:
+  push:
+    branches:
+      - claude/install-frontend-design-skill-8t655e
+      - 'claude/**'
+  pull_request:
+  workflow_dispatch:
+
+# Un push nuevo cancela la corrida anterior de la misma rama: al empujar dos
+# veces seguidas interesa el resultado del último, no el del penúltimo.
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Las funciones necesitan @netlify/blobs para la reserva de inventario.
+      # Sin esto, pruebas/inventario.js seguiría pasando —falla hacia adelante—
+      # pero probando el camino de emergencia en vez del real.
+      - name: Dependencias de las funciones
+        run: npm ci
+
+      - name: Dependencias de las pruebas
+        working-directory: pruebas
+        run: npm ci
+
+      # Solo Chromium: es el único navegador que usan las baterías, y bajarse
+      # los tres triplica el tiempo sin comprobar nada más.
+      - name: Navegador
+        working-directory: pruebas
+        run: npx playwright install --with-deps chromium
+
+      - name: Correr las baterías
+        run: ./pruebas/correr.sh

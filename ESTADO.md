@@ -189,7 +189,29 @@ hay que mirar si algún día aparece una sobreventa.
 |---|---|
 | **Empaque Premium destacado** en el carrito (marco, badge «Recomendado para regalo», miniatura) | La **foto real del empaque**. Sin ella no hay miniatura, y poner una imagen de catálogo sería vender algo que no es lo que se manda. Nota aparte: el problema del bump probablemente no es el diseño sino el precio — $40.000 sobre un brazalete de $58.000 es un 69% adicional; antes de rediseñarlo conviene probar bajarlo |
 | **Logos de medios de pago** al pie del carrito | Los **archivos oficiales** de cada marca. Visa, Mastercard, Nequi, Bancolombia y Daviplata son marcas registradas con guías de uso; no se dibujan aproximaciones |
-| Micro-leyenda de confianza | Se pidió «Garantía de Satisfacción». **No se puso a propósito**: bajo la Ley 1480 lo que se anuncia obliga, y la tienda ya ofrece retracto de 5 días hábiles, que es concreto y verificable. La redacción sostenible es *«Pago procesado por Wompi (Bancolombia) · Retracto de 5 días hábiles»* |
+| Micro-leyenda de confianza | **Puesta a medias, y la mitad que falta es decisión del propietario.** Bajo el botón de pagar del carrito ya sale *«Pago procesado por Wompi (Bancolombia)»*, la misma frase que el pie del checkout. Lo que **no** se puso es *«Retracto de 5 días hábiles»* — ver abajo |
+
+### 5b · La decisión del retracto, pendiente del propietario
+
+`ESTADO.md` traía anotado que la redacción sostenible incluía *«Retracto de 5
+días hábiles»*, razonando que es concreto y verificable a diferencia de la
+«Garantía de Satisfacción» que se descartó. Al ir a escribirlo apareció un
+problema que esa nota no había tenido en cuenta: **la propia política de
+devoluciones recoge la excepción del artículo 47** para «bienes confeccionados
+conforme a las especificaciones del consumidor o claramente personalizados», y
+el titular de la tienda es *«Personalización total: tú eliges cada pieza de tu
+historia»*.
+
+Anunciarlo sin condición junto al botón de pagar contradiría esa página, y bajo
+la Ley 1480 ganaría lo anunciado. Sería el mismo error que se evitó con la
+«Garantía de Satisfacción», solo que más difícil de ver.
+
+**La lectura razonable es que sí se puede prometer**: armar una pulsera con
+piezas de catálogo no es «confeccionar a especificaciones» —elegir de un menú no
+es encargar a medida—, y esa distinción es la que usa el artículo. Pero es un
+compromiso legal y comercial, no una decisión técnica. Si el propietario lo
+confirma, es una línea de HTML; si prefiere no atarse, la leyenda se queda como
+está, que ya cumple su función.
 
 ### 6 · «A veces se borran las joyas» — reproducido y diagnosticado
 
@@ -273,6 +295,17 @@ completa de punta a punta, ejecutando las funciones de Netlify reales dentro de
 Node. Sale con código 1 si algo queda en rojo. Detalle en
 [`pruebas/README.md`](pruebas/README.md), incluidas dos comprobaciones de texto
 por `grep` que no están automatizadas.
+
+Desde ahora **corren solas en cada push**, con GitHub Actions
+(`.github/workflows/pruebas.yml`). El repo es público, así que esos minutos son
+gratis e ilimitados y no tienen nada que ver con los créditos de Netlify.
+
+Ojo con lo que ese flujo **no** hace: avisa, no bloquea. Netlify publica igual
+cuando llega el push, porque el despliegue lo dispara el repositorio y no
+Actions. Para que las pruebas fueran una puerta de verdad habría que apagar el
+despliegue automático en Netlify y desplegar desde el flujo con un
+`NETLIFY_AUTH_TOKEN` en los secrets de GitHub. Es una decisión del propietario y
+no hace falta para tener el aviso.
 
 Si una prueba falla, **mira primero si el error está en la prueba**. Ya pasó
 cuatro veces, y las cuatro la página tenía razón:

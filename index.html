@@ -619,6 +619,13 @@ body.sheet-open{overflow:hidden}
    resto de la página, y en el checkout aparece si algo falla — que es donde
    de verdad rescata una venta. */
 .sheet-note{font-size:11.5px;color:#8d7f92;text-align:center;margin:9px 0 0;line-height:1.5}
+/* Justo debajo del botón de pagar, que es donde aparece la duda de «¿esto es
+   seguro?». Dice quién cobra —un nombre que la clienta reconoce— y no promete
+   nada que la tienda no pueda sostener. */
+.sheet-seguro{display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:11.5px;color:#8d7f92;margin:10px 0 0}
+.sheet-seguro svg{flex:0 0 auto;opacity:.8}
+.sheet-seguro + .sheet-note{margin-top:5px}
 .pack{display:flex;gap:9px;align-items:center;font-size:13px;color:#c3b4c6;
   padding:9px 0 11px;cursor:pointer}
 .pack input{width:17px;height:17px;accent-color:var(--rose);flex:0 0 auto}
@@ -1496,6 +1503,12 @@ body.sheet-open{overflow:hidden}
   <div class="sheet-tot">
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
     <button class="btn btn--pagar" type="button" id="send">Finalizar compra</button>
+    <!-- La misma frase que ya usa el pie del checkout, para que la clienta lea
+         lo mismo en los dos sitios. No se añade «Retracto de 5 días hábiles»
+         junto a esta: la política de devoluciones recoge la excepción del
+         artículo 47 para bienes personalizados, y prometerlo aquí sin condición
+         contradiría esa página. Bajo la Ley 1480 ganaría lo anunciado. -->
+    <p class="sheet-seguro"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>Pago procesado por Wompi (Bancolombia)</p>
     <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</p>
   </div>
 </aside>
