@@ -18,6 +18,7 @@
  */
 const crypto = require('crypto');
 const { cop } = require('./_precios');
+const { confirmar, liberar } = require('./_inventario');
 const { enviar } = require('./_correo');
 
 const ok = (cuerpo) => ({
@@ -108,6 +109,25 @@ exports.handler = async (event) => {
   /* Queda en los logs de la función pase lo que pase: es el rastro con el que
      se concilia contra el panel de Wompi. */
   console.log(JSON.stringify(registro));
+
+  /* Cierra la reserva que abrió crear-pago.
+   *
+   * Aprobado: lo apartado pasa a vendido y deja de caducar. Rechazado, anulado
+   * o con error: las unidades vuelven al mostrador ya, sin esperar la media
+   * hora de vigencia — en una pieza de la que queda una, esa media hora es una
+   * venta que no se pudo hacer.
+   *
+   * Va antes de los correos a propósito: es lo único de este bloque que afecta
+   * a otras clientas, y no puede quedarse sin hacer porque Resend tarde. Ambas
+   * son idempotentes, así que los reintentos de Wompi no descuentan dos veces. */
+  if (registro.referencia) {
+    const cierre = tx.status === 'APPROVED'
+      ? await confirmar(registro.referencia)
+      : await liberar(registro.referencia);
+    console.log(JSON.stringify({
+      evento: 'inventario_' + cierre.modo, referencia: registro.referencia, estado: registro.estado,
+    }));
+  }
 
   if (tx.status === 'APPROVED') {
     await reenviar(Object.assign({

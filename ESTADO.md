@@ -151,17 +151,37 @@ agotado, lo que pide más unidades de las que hay, y las tallas sin existencias
 lleva a corregir la selección o a pedirlo por encargo—. Eso cierra el caso
 corriente: pagar algo que se acabó hace rato.
 
-**Lo que sigue abierto es la carrera.** Dos clientas que compran la última
-unidad en el mismo minuto pasan las dos, porque `assets/stock.json` es un
-archivo que se lee, no un almacén que se reserve. Ahí toca devolver dinero, que
-bajo la Ley 1480 no es solo una molestia.
+**La carrera ya está cerrada** (`netlify/functions/_inventario.js`). Dos
+clientas que compraban la última unidad en el mismo minuto pasaban las dos,
+porque `stock.json` es un archivo que se lee, no un almacén que se reserve.
+Ahora `crear-pago` **aparta** las unidades a nombre de la referencia antes de
+mandar a nadie a pagar; el webhook las **confirma** si el pago entra y las
+**libera** si se declina, se anula o falla; y una reserva sin pagar caduca sola
+a los 30 minutos, que es lo que tarda un checkout abandonado en devolver lo que
+tenía cogido.
 
-Para cerrarlo hace falta estado: reservar unidades al iniciar el pago,
-liberarlas si el pago no llega, y descontarlas al aprobarse. **Netlify Blobs**
-sirve para eso sin montar una base de datos. Es la siguiente pieza de fondo si
-el volumen sube; hoy el riesgo se limita a las piezas de 1–2 unidades pagadas
-en línea, y la confirmación por WhatsApp antes de despachar sigue siendo la red
-de seguridad.
+Tres decisiones de esa pieza que no conviene deshacer:
+
+- **Compare-and-swap, no leer-restar-escribir.** La documentación de Blobs dice
+  que no hay control de concurrencia y que gana la última escritura. Un
+  `leer → restar → escribir` habría tenido exactamente el mismo defecto que
+  estábamos arreglando, solo que más difícil de ver. Cada escritura va con
+  `onlyIfMatch` sobre el etag leído: si alguien escribió en medio, `modified`
+  vuelve en `false` y se reintenta sobre el estado nuevo.
+- **Una sola clave para todo el inventario**, no una por pieza. Un pedido toca
+  varias piezas y tiene que apartarlas todas o ninguna; con una clave, un solo
+  CAS cubre el pedido entero y la atomicidad sale gratis. A cambio los pedidos
+  concurrentes compiten por la misma clave, que al volumen de esta tienda es
+  irrelevante y el reintento lo absorbe.
+- **Consistencia fuerte.** Con la eventual, una reserva recién escrita puede
+  tardar hasta un minuto en verse — justo la ventana de la carrera.
+
+Y sigue **fallando hacia adelante**, como todo lo demás: si Blobs no está
+configurado, no responde, o el CAS no converge en seis intentos, la venta pasa
+y queda registrado en el log con el motivo. La reserva es una red de seguridad,
+no un peaje. En el log de `crear-pago`, el campo `reserva` del evento
+`pedido_creado` dice si las unidades se apartaron de verdad — es lo primero que
+hay que mirar si algún día aparece una sobreventa.
 
 ### 5 · Piezas sueltas que el propietario pidió y están bloqueadas
 
@@ -234,6 +254,8 @@ Queda **confirmarlo en producción** una vez desplegado.
 | Los **correos no pueden tumbar una venta** | Sin `RESEND_API_KEY` no se manda nada y el pedido sigue; si Resend falla, se registra y el cobro continúa. Perder un comprobante es molesto; perder una compra cobrada porque el proveedor de correo estaba lento, no |
 | El **«Pago recibido» sale del webhook**, no de `gracias.html` | La clienta puede cerrar el navegador antes de volver, y el pago fue bueno igual |
 | La comprobación de inventario **falla hacia adelante** | Solo bloquea con un dato claro de que no hay. Si `stock.json` no se puede leer, la venta pasa: una lectura fallida no puede costar una compra buena |
+| Ahora **sí hay `package.json` en la raíz** | `pruebas/package.json` explica que no lo había a propósito, para que Netlify no instalara dependencias. Esa decisión se tomó con cero dependencias; la reserva necesita `@netlify/blobs` **dentro de las funciones**, y sin declararla el bundler no la incluye, las funciones se caen al arrancar y el sitio deja de cobrar. Sigue sin haber comando de build (`command = ""`): lo único que cambia es que Netlify instala esa dependencia antes de empaquetar |
+| La reserva de inventario **se prueba con latencia** | `pruebas/inventario.js` mete demora en el almacén falso para que las dos lecturas ocurran antes de cualquier escritura. Sin eso, las dos operaciones corren una tras otra, la prueba pasa, y no ha probado nada — el mismo error que dio verde a un pago que no cobraba |
 | La **verificación del comercio en Wompi** también falla hacia adelante | Solo bloquea con un 404 explícito. Existe porque una llave mal transcrita mandaba a todas las clientas a una pantalla de error sin retorno |
 
 ---

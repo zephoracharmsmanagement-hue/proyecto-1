@@ -17,6 +17,7 @@
 const crypto = require('crypto');
 const { leerPedido, comprobarInventario, calcular, detallar, cop,
   PedidoInvalido, SinInventario } = require('./_precios');
+const { reservar, confirmar, liberar } = require('./_inventario');
 const { pedidoRecibido, avisoTienda } = require('./_correo');
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
@@ -172,6 +173,25 @@ exports.handler = async (event) => {
   }
 
   const ref = referencia();
+
+  /* Aparta las unidades antes de prometer nada.
+   *
+   * comprobarInventario() ya miró si hay, pero mirar no aparta: entre esa
+   * lectura y el cobro cabe otra clienta comprando la misma última unidad. Esto
+   * lo cierra apartándolas a nombre de esta referencia, y va aquí —antes de los
+   * correos y del aviso— para no mandarle un comprobante a quien no vamos a
+   * poder despachar.
+   *
+   * Si no se puede reservar (Blobs caído, sin configurar), devuelve ok igual y
+   * la venta sigue: la reserva es una red de seguridad, no un peaje. */
+  let reserva;
+  try {
+    reserva = await reservar(ref, pedido);
+  } catch (e) {
+    if (e instanceof SinInventario) return responder(409, { error: e.message, agotado: true });
+    throw e;
+  }
+
   const sitio = (process.env.URL_SITIO || process.env.URL || '').replace(/\/$/, '');
 
   /* Queda en el log de la función: es el registro de que el pedido se creó, y
@@ -184,6 +204,10 @@ exports.handler = async (event) => {
     pago: pedido.pago,
     piezas: pedido.charms.length + (pedido.base ? 1 : 0),
     ciudad: `${cliente.ciudad}, ${cliente.depto}`,
+    /* Queda escrito si las unidades se apartaron de verdad o si la reserva se
+       saltó por lo que fuera. Al conciliar un sobreventa, esto es lo primero
+       que hay que mirar. */
+    reserva: reserva.modo,
   }));
 
   const lineas = detallar(pedido);
@@ -223,7 +247,10 @@ exports.handler = async (event) => {
 
   if (pedido.pago === 'contraentrega') {
     /* Nada que firmar: se paga al mensajero. El pedido queda registrado y la
-       confirmación de existencias sigue haciéndose por WhatsApp, como hoy. */
+       confirmación de existencias sigue haciéndose por WhatsApp, como hoy.
+       La reserva se confirma ya: no hay pasarela de la que esperar un aviso, y
+       dejarla caducando media hora liberaría unidades de un pedido en firme. */
+    await confirmar(ref);
     return responder(200, Object.assign({ modo: 'contraentrega' }, base));
   }
 
@@ -231,6 +258,10 @@ exports.handler = async (event) => {
   const integridad = process.env.WOMPI_INTEGRIDAD;
   if (!llave || !integridad) {
     console.error('Faltan WOMPI_LLAVE_PUBLICA o WOMPI_INTEGRIDAD en el entorno');
+    /* Este pedido no va a llegar a la pasarela: devolver las unidades al
+       mostrador ahora, en vez de tenerlas congeladas media hora por un pago
+       que nunca se va a intentar. */
+    await liberar(ref);
     return responder(503, {
       error: 'El pago en línea no está configurado todavía. Puedes pedirlo '
         + 'contraentrega o escribirnos por WhatsApp.',
@@ -238,6 +269,7 @@ exports.handler = async (event) => {
   }
 
   if (!(await comercioActivo(llave))) {
+    await liberar(ref);
     return responder(503, {
       error: 'El pago en línea no está disponible en este momento. Puedes elegir '
         + 'pago contraentrega aquí mismo, o escribirnos y lo cerramos por WhatsApp.',
