@@ -13,9 +13,25 @@ Claude Code en varias sesiones/terminales a la vez.
 ## Meta Ads — estado de la automatización
 
 - **Pixel `2130673404542988`** ("zephora charms pixel 1"), en producción.
-  Dispara `PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`, `Lead`
-  (conversión real del sitio — el pago ocurre fuera, ver abajo) y `Contact`.
-  Detalle completo en `README.md` § Medición.
+  Dispara `PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`,
+  `AddPaymentInfo`, **`Purchase`**, `Lead` y `Contact`. Detalle completo en
+  `README.md` § Medición.
+
+  **`Purchase` es la conversión a optimizar**, no `Lead`. Este archivo decía
+  antes que el pago ocurría fuera del sitio; dejó de ser cierto cuando el
+  checkout empezó a cobrar por Wompi.
+- **`Purchase` server-side (CAPI) — implementado.**
+  `netlify/functions/_capi.js`, disparado desde `wompi-webhook.js` cuando
+  Wompi confirma un pago. Contrato completo y cómo probarlo en
+  [`automatizaciones/contratos/purchase-capi.md`](automatizaciones/contratos/purchase-capi.md).
+
+  **Antes de tocar `Purchase` en cualquier punta, leer ese contrato.** El
+  pixel y el servidor mandan el mismo evento y se deduplican por `event_id`
+  = referencia del pedido; quitar el `eventID` de `gracias.html` o cambiar el
+  `event_id` del servidor hace que Meta cuente el doble de compras **sin
+  avisar de nada**. `pruebas/capi.js` lo comprueba leyendo el HTML.
+
+  Solo falta `META_CAPI_TOKEN` en Netlify para encenderlo.
 - **`meta/` — scripts de solo lectura** (`verificar.mjs`, `pixel.mjs`,
   `metricas.mjs`), corren en la máquina del usuario con su token en `.env`.
   Graph API **v25.0** (v19.0, el default anterior, expiró 2026-05-21).
@@ -32,12 +48,12 @@ Claude Code en varias sesiones/terminales a la vez.
   todavía** — falta credential del token CAPI y una prueba con
   `test_event_code`.
 
-  Nota: **el sitio ya cobra de verdad por Wompi** (ver `ESTADO.md` § 4).
-  Cuando ese flujo esté estable, lo correcto es que el webhook de Wompi
-  dispare el `Purchase` directamente al confirmar el pago — más confiable
-  que un formulario llenado a mano. El workflow de n8n de arriba sigue
-  siendo válido para ventas cerradas por WhatsApp sin pasar por el checkout
-  web. Evaluar si conviene tener los dos disparadores o consolidar en uno.
+  Nota: **ya no son dos disparadores compitiendo, son dos ventas distintas.**
+  Lo que se compra en el sitio lo manda `_capi.js` con
+  `action_source: website`; lo que se cierra por WhatsApp lo manda este
+  workflow con `action_source: chat`. Los `order_id` son distintos, así que
+  Meta no los deduplica entre sí — correcto, porque son dos compras. No hay
+  que consolidarlos.
 
 ### Por qué importa
 
@@ -49,11 +65,20 @@ optimiza las campañas hacia gente que escribe, no hacia gente que compra.
 ### Pendiente
 
 1. **Generar token CAPI** en Events Manager → dataset `2130673404542988` →
-   Configuración → Conversions API → *Generar token de acceso*. Va como
-   credential Bearer Auth en n8n, nombre `Meta CAPI Zephora`. **No pegarlo
-   en ningún chat.**
-2. **Probar el workflow de CAPI** con `test_event_code` (Events Manager →
-   Probar eventos) antes de publicarlo.
+   Configuración → Conversions API → *Generar token de acceso*. **No pegarlo
+   en ningún chat.** El mismo token sirve en los dos sitios, y hace falta en
+   los dos:
+   - Netlify → Site configuration → Environment variables, como
+     `META_CAPI_TOKEN` — es lo único que falta para que el `Purchase` de las
+     compras web empiece a salir.
+   - n8n, como credential Bearer Auth `Meta CAPI Zephora`, para el workflow
+     de las ventas por WhatsApp.
+2. **Probar los dos flujos con `test_event_code`** (Events Manager → Probar
+   eventos) antes de dejarlos contando conversiones reales. Para el flujo web
+   el procedimiento paso a paso está en
+   `automatizaciones/contratos/purchase-capi.md` § Cómo probarlo. **Acordarse
+   de quitar `META_TEST_EVENT_CODE` después**: mientras esté puesto, ninguna
+   compra real llega a la pauta.
 3. **Conectar Meta Ads MCP** para lectura y escritura completa de campañas.
    No hay URL fija pública para pegar directo — el camino confirmado en la
    documentación de Meta: developers.facebook.com → app **`1910139459666391`**
@@ -71,6 +96,32 @@ optimiza las campañas hacia gente que escribe, no hacia gente que compra.
    `AddToCart`, `InitiateCheckout` y `Lead` — solo `PageView` está
    confirmado en vivo.
 6. **Marcar `Lead` como conversión personalizada** en Meta.
+
+## Automatizaciones — dónde vive cada cosa
+
+Las automatizaciones (asesor de WhatsApp con Gemini, CAPI, carritos
+abandonados) viven **en este repo**, no en uno aparte. Se decidió así porque
+las tres leen datos que solo existen aquí —`assets/catalogo.json`,
+`assets/stock.json`, el inventario apartado en Blobs, los eventos del
+checkout—: separarlas obligaría a duplicar el catálogo, y un asesor que
+cotiza con precios viejos hace más daño que no tener asesor.
+
+| Dónde | Qué |
+|---|---|
+| `netlify/functions/` | **Todo el código que corre en producción**, incluidos los handlers de automatización. No crear otra carpeta de handlers: las llaves de Wompi y el acceso a Blobs ya están aquí |
+| `automatizaciones/contratos/` | Qué manda cada pieza y qué espera. Lo primero que se lee y lo primero que se actualiza |
+| `automatizaciones/n8n/` | Workflows exportados en JSON |
+| `automatizaciones/prompts/` | Prompts de sistema, versionados como código |
+
+Empezar por [`automatizaciones/README.md`](automatizaciones/README.md), que
+lleva el estado de las tres.
+
+**Decisión tomada sobre el asesor de Gemini: sin base vectorial.** El catálogo
+son 10 KB (132 piezas, 18 pulseras) y cabe entero en el contexto. Montar
+embeddings añade un componente que puede recuperar el fragmento equivocado a
+cambio de nada. Lo que sí hay que resolver antes de escribir el prompt es de
+dónde lee el stock: `stock.json` no sabe lo que está apartado, y eso vive en
+Blobs.
 
 ### Modo de operación acordado
 
