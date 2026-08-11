@@ -214,6 +214,23 @@ En *Site configuration → Environment variables*. **Ninguna va al repo.**
 En el panel de Wompi, la **URL de eventos** apunta a
 `https://zephoracharms.com/.netlify/functions/wompi-webhook`.
 
+> **Las que son secretas hay que marcarlas como secretas.** Netlify trae una
+> casilla *Secret* por variable. Sin marcarla, el valor se devuelve en texto
+> plano por la API y se ve sin enmascarar en el panel; marcada, vuelve como
+> `****`. Van marcadas `WOMPI_INTEGRIDAD`, `WOMPI_EVENTOS` y `RESEND_API_KEY`.
+> `WOMPI_LLAVE_PUBLICA` y `URL_SITIO` no lo necesitan: son públicas por diseño
+> —la primera viaja al navegador—.
+>
+> Importa sobre todo con `WOMPI_EVENTOS`, que es el secreto con el que
+> `wompi-webhook.js` verifica la firma de cada aviso. Quien lo tenga puede
+> firmar un «ya te pagaron» que pase la verificación: exactamente el ataque que
+> esa verificación existe para impedir.
+>
+> Ojo al marcarla desde la API: una variable secreta **no admite el contexto
+> `all`**, necesita un valor por contexto. Intentar el cambio con `all` devuelve
+> 422 y lo aplica a medias —expande los contextos pero deja `is_secret` en
+> `false`—. Desde el panel no pasa; hacerlo ahí.
+
 > **Copiar las llaves con el botón de copiar, nunca leyéndolas de la pantalla.**
 > Pasó: la llave pública se transcribió con un `1` (uno) donde el panel tenía
 > una `l` (ele minúscula). Un carácter, y el checkout entero moría con «No se

@@ -106,10 +106,16 @@ un texto público.
 El repo está conectado a Netlify, las funciones desplegadas y las llaves
 puestas. Lo que queda de esta línea de trabajo:
 
-- **Correo.** Está escrito y probado, pero **falta configurar Resend**: sin
-  `RESEND_API_KEY` no sale ningún correo (y nada se rompe). Hay que crear la
-  cuenta, verificar `zephoracharms.com` por DNS en Netlify, y poner las tres
-  variables del README.
+- **Correo.** **Configurado.** La cuenta de Resend existe, `zephoracharms.com`
+  quedó verificado por DNS y las tres variables están puestas: `RESEND_API_KEY`
+  (marcada como secreta), `CORREO_DESDE` y `CORREO_TIENDA`. Falta la
+  comprobación de punta a punta —ver abajo—.
+
+  > `CORREO_TIENDA` faltaba y arreglaba **dos** cosas. La evidente: sin ella
+  > `avisoTienda()` salía sin mandar nada y la tienda no recibía copia de ningún
+  > pedido. La que no se ve: `_correo.js:156` la usa como `reply_to` del correo
+  > a la clienta, así que sin ella las respuestas iban a
+  > `pedidos@zephoracharms.com` —un buzón que no existe— y se perdían.
 - **Addi.** El propietario tiene cuenta propia pero Wompi no lo tiene
   habilitado para este comercio, así que no aparece en la pasarela. Hoy se
   ofrece por WhatsApp desde la sección de medios de pago, con `data-wa="pagos"`
@@ -120,6 +126,22 @@ puestas. Lo que queda de esta línea de trabajo:
 > costó una hora de diagnóstico, porque el error que da Wompi —«No se pudo
 > cargar la información del undefined»— no apunta a nada. Antes de dar una
 > llave por buena: `curl https://production.wompi.co/v1/merchants/<llave>`.
+
+### 4a · Dos cosas abiertas de la pasarela
+
+**Marcar como secretas `WOMPI_INTEGRIDAD` y `WOMPI_EVENTOS`** en Netlify. Hoy
+están con `is_secret: false`: se leen en texto plano con una llamada corriente a
+la API y salen sin enmascarar en el panel. No hay señal de filtración —el
+escaneo de secretos del despliegue revisa 149 archivos y no encuentra nada, y
+las llaves nunca han estado en el repo—, pero `WOMPI_EVENTOS` es lo que hace
+significativa la verificación de firma del webhook. **Se hace desde el panel,
+no por API** (ver la nota del README: con contexto `all` devuelve 422 y aplica
+a medias).
+
+**La prueba de correo de punta a punta**: un pedido contraentrega real, que debe
+producir dos correos —el comprobante a la clienta y la copia a la tienda—. Es la
+comprobación que falta para dar Resend por cerrado, y contraentrega la permite
+sin mover dinero.
 
 ### 4b · Lo que quedó del bloqueador de inventario
 
@@ -258,11 +280,18 @@ publicación, funciones, redirecciones y cabeceras.
 Recordar que **cada publicación cuesta ~15 créditos**, así que conviene juntar
 cambios en vez de empujar de a uno (ver el bloque de arriba).
 
-También se puede publicar a mano con `npx netlify-cli deploy --prod`, que sube
-el directorio de trabajo tal cual esté — útil cuando el trabajo va en otra rama
-y no se quiere mover la rama que publica. En la salida hay que confirmar que
-diga **3 functions** (`crear-pago`, `wompi-webhook`, `_precios`); si no salen,
-el sitio queda sin cobrar y hay que restaurar el despliegue anterior.
+También se puede publicar a mano con `npx netlify-cli deploy --prod`, pero
+**mejor que sea el recurso de emergencia y no la costumbre.** El CLI sube *el
+directorio donde uno está parado*, sin preguntar: ya pasó que un repo
+descomprimido dejó una carpeta anidada dentro y se publicó **una copia completa
+de la tienda** colgando de `/proyecto-1-claude-install-frontend-design-skill-8t655e/`.
+Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
+`ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
+git lo borró solo, porque cada despliegue es una instantánea completa.
+
+En la salida de cualquier despliegue hay que confirmar que diga **4 functions**
+(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`); si no salen, el sitio
+queda sin cobrar y hay que restaurar el despliegue anterior.
 
 Netlify Drop **no sirve** desde que existen las funciones: sube archivos
 estáticos y no monta `netlify/functions/`, así que un sitio soltado a mano
