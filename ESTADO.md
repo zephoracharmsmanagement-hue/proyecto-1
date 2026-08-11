@@ -116,32 +116,52 @@ puestas. Lo que queda de esta línea de trabajo:
   > pedido. La que no se ve: `_correo.js:156` la usa como `reply_to` del correo
   > a la clienta, así que sin ella las respuestas iban a
   > `pedidos@zephoracharms.com` —un buzón que no existe— y se perdían.
-- **Addi.** El propietario tiene cuenta propia pero Wompi no lo tiene
-  habilitado para este comercio, así que no aparece en la pasarela. Hoy se
-  ofrece por WhatsApp desde la sección de medios de pago, con `data-wa="pagos"`
-  para poder medir cuántas lo piden. Si Wompi lo activa, solo hay que devolver
-  el chip al checkout: cero código nuevo.
+- **Addi.** **Corrección importante: no es cuestión de que Wompi «lo active».**
+  Wompi confirmó que Addi **no hace parte de su pasarela**, así que la espera
+  que estaba anotada aquí no lleva a ninguna parte. Integrarlo exige hacerlo
+  por cuenta propia, contra Addi directamente, y eso es un frente nuevo
+  —credenciales, su propio flujo de aprobación y su propio webhook—, no
+  «devolver el chip al checkout».
+
+  Aplazado a una etapa posterior por decisión del propietario. Mientras tanto
+  se sigue ofreciendo por WhatsApp desde la sección de medios de pago, con
+  `data-wa="pagos"` para medir cuántas lo piden — que además es el dato con el
+  que decidir si vale la pena esa integración.
 
 > **La llave pública se transcribió mal una vez** (un `1` donde iba una `l`) y
 > costó una hora de diagnóstico, porque el error que da Wompi —«No se pudo
 > cargar la información del undefined»— no apunta a nada. Antes de dar una
 > llave por buena: `curl https://production.wompi.co/v1/merchants/<llave>`.
 
-### 4a · Dos cosas abiertas de la pasarela
+### 4a · `Purchase` a Meta desde el servidor — falta el token
 
-**Marcar como secretas `WOMPI_INTEGRIDAD` y `WOMPI_EVENTOS`** en Netlify. Hoy
-están con `is_secret: false`: se leen en texto plano con una llamada corriente a
-la API y salen sin enmascarar en el panel. No hay señal de filtración —el
-escaneo de secretos del despliegue revisa 149 archivos y no encuentra nada, y
-las llaves nunca han estado en el repo—, pero `WOMPI_EVENTOS` es lo que hace
-significativa la verificación de firma del webhook. **Se hace desde el panel,
-no por API** (ver la nota del README: con contexto `all` devuelve 422 y aplica
-a medias).
+**El código está puesto y probado; solo falta `META_CAPI_TOKEN`.** Sin él no se
+manda nada y nada se rompe, igual que con Resend.
 
-**La prueba de correo de punta a punta**: un pedido contraentrega real, que debe
-producir dos correos —el comprobante a la clienta y la copia a la tienda—. Es la
-comprobación que falta para dar Resend por cerrado, y contraentrega la permite
-sin mover dinero.
+El pixel ya disparaba `Purchase` en `gracias.html`, pero solo llega si la
+clienta vuelve al sitio después de pagar — y volver es opcional. Quien cierra el
+navegador en la pasarela pagó igual y Meta no se enteraba. Ahora el webhook lo
+manda también por la Conversions API, que siempre llega porque lo dispara Wompi.
+No es cosmética: Meta optimiza la entrega con los eventos que recibe, así que
+faltarle las compras de quien no volvió es gastar presupuesto aprendiendo de una
+muestra sesgada.
+
+**Lo que no hay que romper:** los dos lados mandan la referencia del pedido como
+identificador del evento, y eso es lo único que impide que Meta cuente cada
+compra dos veces. Contarla doble sería peor que perderla — inflaría el retorno
+declarado. Está en `_meta.js` y en `gracias.html`; tocar uno obliga a tocar el
+otro, y `pruebas/meta.js` lo vigila.
+
+Para cerrarlo:
+
+1. Generar el token en Events Manager → dataset `2130673404542988` →
+   Configuración → Conversions API → *Generar token de acceso*. Va como
+   `META_CAPI_TOKEN` en Netlify, **marcada como secreta**. No pegarlo en un chat.
+2. Probar con `META_TEST_EVENT_CODE` (Events Manager → *Probar eventos*), que
+   manda el evento ahí sin que entre en la optimización. **Quitar esa variable
+   al terminar**, o los eventos reales seguirán yendo a pruebas.
+3. Comprobar en Events Manager que la compra aparece **una sola vez**, no dos.
+   Eso es lo que confirma que la deduplicación funciona de verdad.
 
 ### 4b · Lo que quedó del bloqueador de inventario
 
@@ -189,31 +209,9 @@ hay que mirar si algún día aparece una sobreventa.
 |---|---|
 | **Empaque Premium destacado** en el carrito (marco, badge «Recomendado para regalo», miniatura) | La **foto real del empaque**. Sin ella no hay miniatura, y poner una imagen de catálogo sería vender algo que no es lo que se manda. Nota aparte: el problema del bump probablemente no es el diseño sino el precio — $40.000 sobre un brazalete de $58.000 es un 69% adicional; antes de rediseñarlo conviene probar bajarlo |
 | **Logos de medios de pago** al pie del carrito | Los **archivos oficiales** de cada marca. Visa, Mastercard, Nequi, Bancolombia y Daviplata son marcas registradas con guías de uso; no se dibujan aproximaciones |
-| Micro-leyenda de confianza | **Puesta a medias, y la mitad que falta es decisión del propietario.** Bajo el botón de pagar del carrito ya sale *«Pago procesado por Wompi (Bancolombia)»*, la misma frase que el pie del checkout. Lo que **no** se puso es *«Retracto de 5 días hábiles»* — ver abajo |
+| Micro-leyenda de confianza | **Hecha y cerrada.** Bajo el botón de pagar del carrito sale *«Pago procesado por Wompi (Bancolombia)»*, la misma frase que el pie del checkout. **Lo del retracto se descartó por decisión del propietario**, que lo resolvió por otra vía: no va en la leyenda ni en la página, y no hay nada más que hacer ahí. (Había además un motivo para no ponerlo: la política de devoluciones recoge la excepción del artículo 47 para bienes claramente personalizados, y el titular de la tienda es «Personalización total») |
 
-### 5b · La decisión del retracto, pendiente del propietario
-
-`ESTADO.md` traía anotado que la redacción sostenible incluía *«Retracto de 5
-días hábiles»*, razonando que es concreto y verificable a diferencia de la
-«Garantía de Satisfacción» que se descartó. Al ir a escribirlo apareció un
-problema que esa nota no había tenido en cuenta: **la propia política de
-devoluciones recoge la excepción del artículo 47** para «bienes confeccionados
-conforme a las especificaciones del consumidor o claramente personalizados», y
-el titular de la tienda es *«Personalización total: tú eliges cada pieza de tu
-historia»*.
-
-Anunciarlo sin condición junto al botón de pagar contradiría esa página, y bajo
-la Ley 1480 ganaría lo anunciado. Sería el mismo error que se evitó con la
-«Garantía de Satisfacción», solo que más difícil de ver.
-
-**La lectura razonable es que sí se puede prometer**: armar una pulsera con
-piezas de catálogo no es «confeccionar a especificaciones» —elegir de un menú no
-es encargar a medida—, y esa distinción es la que usa el artículo. Pero es un
-compromiso legal y comercial, no una decisión técnica. Si el propietario lo
-confirma, es una línea de HTML; si prefiere no atarse, la leyenda se queda como
-está, que ya cumple su función.
-
-### 6 · «A veces se borran las joyas» — reproducido y diagnosticado
+### 6 · «A veces se borran las joyas» — cerrado
 
 Ya no es un misterio, y **la causa no era la que se estaba persiguiendo**. La
 pista que faltaba la dio el propietario: *«llega un momento en el que disminuye
@@ -249,7 +247,7 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 > rápido a una causa técnica («se borra el estado») sin preguntar antes qué se
 > veía en pantalla. Una captura habría ahorrado el rodeo entero.
 
-Queda **confirmarlo en producción** una vez desplegado.
+**Confirmado en producción por el propietario.** El caso está cerrado.
 
 ---
 

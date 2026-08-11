@@ -19,6 +19,7 @@
 const crypto = require('crypto');
 const { cop } = require('./_precios');
 const { confirmar, liberar } = require('./_inventario');
+const { purchase } = require('./_meta');
 const { enviar } = require('./_correo');
 
 const ok = (cuerpo) => ({
@@ -130,6 +131,30 @@ exports.handler = async (event) => {
   }
 
   if (tx.status === 'APPROVED') {
+    /* Purchase a Meta desde el servidor.
+     *
+     * gracias.html ya lo dispara, pero solo si la clienta vuelve al sitio
+     * después de pagar — y volver es opcional. Este siempre llega, porque lo
+     * dispara Wompi. Los dos mandan la referencia como identificador del
+     * evento, que es lo que hace que Meta cuente una compra y no dos.
+     *
+     * Del evento de Wompi se saca lo que haya para emparejar: el correo viene
+     * siempre, el teléfono y el nombre solo a veces. _meta.js descarta lo que
+     * no cuadre en vez de mandar basura que no empareja con nadie. */
+    const cd = tx.customer_data || {};
+    const aMeta = await purchase({
+      referencia: registro.referencia,
+      total: registro.total,
+      correo: registro.correo,
+      telefono: cd.phone_number || cd.phone || null,
+      nombre: cd.full_name || cd.fullName || null,
+      cuando: evento.timestamp ? evento.timestamp * 1000 : null,
+    });
+    console.log(JSON.stringify({
+      evento: 'meta_purchase', referencia: registro.referencia,
+      enviado: aMeta.enviado, motivo: aMeta.motivo || null, campos: aMeta.campos || null,
+    }));
+
     await reenviar(Object.assign({
       titulo: `Pago aprobado · ${registro.referencia} · ${cop(registro.total || 0)}`,
     }, registro));

@@ -130,7 +130,14 @@ const WA='573018990672';
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 const q=new URLSearchParams(location.search);
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
-const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
+/* El tercer argumento es el identificador con el que Meta deduplica. Hace falta
+   porque `Purchase` llega ahora por dos caminos: desde aquí, y desde el webhook
+   de Wompi por la Conversions API —que es el que cubre a quien pagó y no volvió
+   al sitio—. Los dos mandan la referencia del pedido, así que Meta cuenta una
+   compra y no dos. Ver la cabecera de netlify/functions/_meta.js. */
+const track=(ev,d,id)=>{ if(typeof fbq!=='function') return;
+  const datos=Object.assign({currency:'COP'},d||{});
+  if(id) fbq('track',ev,datos,{eventID:String(id)}); else fbq('track',ev,datos); };
 
 /* Lo que el checkout dejó antes de irse a la pasarela. Es un respaldo para
    poder mostrar el detalle; la verdad sobre el pago la tiene Wompi. */
@@ -214,7 +221,9 @@ if(modo==='contraentrega'){
           ['Te llega el comprobante digital al correo que registraste.',
            'Te escribimos por WhatsApp para confirmar la talla si hace falta.',
            'Despachamos por Inter Rapidísimo con número de guía. De 1 a 6 días hábiles según el destino.']);
-        track('Purchase',{value:total||0,content_name:'Wompi '+metodo});
+        /* `rr` es la referencia que devolvió Wompi, la misma que manda el
+           webhook como event_id. Si se cambia una, hay que cambiar la otra. */
+        track('Purchase',{value:total||0,content_name:'Wompi '+metodo},rr);
         try{ localStorage.removeItem('zephora.carrito.v1'); }catch(_){}
         $('#wa').href=waTexto(rr,'Acabo de pagar mi pedido en la página.');
       }else if(t.status==='PENDING'){
