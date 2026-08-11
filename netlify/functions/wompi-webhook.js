@@ -20,6 +20,7 @@ const crypto = require('crypto');
 const { cop } = require('./_precios');
 const { confirmar, liberar } = require('./_inventario');
 const { enviar } = require('./_correo');
+const { tomarSenales, enviarPurchase } = require('./_capi');
 
 const ok = (cuerpo) => ({
   statusCode: 200,
@@ -48,6 +49,19 @@ function igual(a, b) {
   const x = Buffer.from(String(a), 'utf8');
   const y = Buffer.from(String(b), 'utf8');
   return x.length === y.length && crypto.timingSafeEqual(x, y);
+}
+
+/* Cuándo ocurrió el pago, en milisegundos.
+ *
+ * Wompi manda `timestamp` en SEGUNDOS, como número. Pasarlo por Date.parse()
+ * como si fuera una fecha ISO no da error: da una fecha absurda, y Meta descarta
+ * en silencio los eventos con más de siete días. Por eso se convierte a mano y
+ * se cae a `finalized_at` —esa sí es ISO— y por último al reloj de ahora. */
+function cuandoDelEvento(evento, tx) {
+  const seg = Number(evento && evento.timestamp);
+  if (Number.isFinite(seg) && seg > 0) return seg * 1000;
+  const fin = Date.parse((tx && tx.finalized_at) || '');
+  return Number.isFinite(fin) ? fin : Date.now();
 }
 
 async function reenviar(carga) {
@@ -129,6 +143,47 @@ exports.handler = async (event) => {
     }));
   }
 
+  /* El `Purchase` que la pauta necesita ver.
+   *
+   * Aquí es donde consta que alguien pagó de verdad. El pixel de gracias.html
+   * dispara su propio Purchase, pero solo si la clienta vuelve al sitio, y
+   * volver es opcional: puede cerrar el navegador, quedarse sin datos, o pagar
+   * por PSE desde la app del banco y no regresar. Es el mismo razonamiento por
+   * el que el correo de confirmación sale de aquí y no de la página de gracias.
+   *
+   * Los dos eventos se deduplican por `event_id`, que en las dos puntas es la
+   * referencia del pedido. _capi.js explica el trato completo.
+   *
+   * Las señales se recogen pase lo que pase con el pago —tomarSenales() borra
+   * al leer—: si se dejaran solo en el camino aprobado, cada pago rechazado
+   * dejaría datos de una clienta guardados sin que nadie los recoja.
+   *
+   * Nada de esto puede tumbar la respuesta a Wompi: enviarPurchase() no lanza,
+   * y un evento de marketing perdido no vale un reintento del webhook. */
+  if (registro.referencia) {
+    const senales = await tomarSenales(registro.referencia);
+    if (tx.status === 'APPROVED') {
+      const capi = await enviarPurchase({
+        referencia: registro.referencia,
+        /* El monto que Wompi dice haber cobrado, no el que el sitio calculó:
+           es el que de verdad entró. */
+        valor: registro.total != null ? registro.total : (senales && senales.total),
+        moneda: tx.currency || 'COP',
+        cuando: cuandoDelEvento(evento, tx),
+        senales,
+        sitio: (process.env.URL_SITIO || process.env.URL || '').replace(/\/$/, '') + '/gracias.html',
+      });
+      console.log(JSON.stringify({
+        evento: 'capi_' + capi.modo,
+        referencia: registro.referencia,
+        /* Queda escrito si el evento salió con señales de atribución o pelado.
+           Un Purchase sin fbc no está mal, pero empareja mucho peor, y al
+           revisar por qué una campaña no aprende esto es lo primero que mirar. */
+        atribucion: senales ? Boolean(senales.fbc || senales.fbp) : false,
+      }));
+    }
+  }
+
   if (tx.status === 'APPROVED') {
     await reenviar(Object.assign({
       titulo: `Pago aprobado · ${registro.referencia} · ${cop(registro.total || 0)}`,
@@ -191,4 +246,4 @@ exports.handler = async (event) => {
   return ok({ recibido: true, referencia: registro.referencia, estado: registro.estado });
 };
 
-exports._interno = { calcularFirma, igual };
+exports._interno = { calcularFirma, igual, cuandoDelEvento };

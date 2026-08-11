@@ -487,7 +487,18 @@ const $=s=>document.querySelector(s);
 const WA='573018990672';
 const LLAVE='zephora.carrito.v1';
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
-const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
+/* El tercer argumento es el identificador de deduplicación. Cuando el mismo
+   hecho se le cuenta a Meta dos veces —desde aquí y desde el servidor con la
+   Conversions API— este id es lo único que evita que lo cuente como dos. Va
+   siempre la referencia del pedido; ver netlify/functions/_capi.js. */
+const track=(ev,d,id)=>{ if(typeof fbq==='function')
+  fbq('track',ev,Object.assign({currency:'COP'},d||{}),id?{eventID:id}:undefined); };
+
+/* Las cookies que planta el pixel: _fbc guarda el clic en el anuncio y _fbp
+   identifica el navegador. Viajan con el pedido porque el webhook de Wompi es
+   servidor a servidor y no las ve; sin ellas Meta no puede atribuir la compra
+   a la pauta que la produjo. */
+const cookie=n=>{ const m=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)'); return m?m.pop():''; };
 
 let CAT=null, GEO=null, carrito=null, paso=1;
 
@@ -728,7 +739,8 @@ async function confirmar(){
 
   const cuerpo={
     base:carrito.base, charms:carrito.charms, empaque:carrito.empaque,
-    pago:carrito.pago, cliente:datos()
+    pago:carrito.pago, cliente:datos(),
+    fbp:cookie('_fbp'), fbc:cookie('_fbc')
   };
 
   try{
@@ -771,8 +783,12 @@ async function confirmar(){
 
     if(carrito.pago==='contraentrega'){
       /* Contraentrega no pasa por la pasarela: el pedido ya quedó registrado. */
+      /* Contraentrega no pasa por Wompi, así que hoy este es el único Purchase
+         de ese pedido: no hay evento de servidor con el que deduplicar. El id
+         va igual para que el día que se mande también por CAPI no haya que
+         acordarse de volver aquí. */
       track('Purchase',{value:d.total,num_items:carrito.charms.length+(carrito.base?1:0),
-        content_name:'Contraentrega'});
+        content_name:'Contraentrega'},d.referencia);
       try{ localStorage.removeItem(LLAVE); }catch(_){}
       location.href='gracias.html?ref='+encodeURIComponent(d.referencia)+'&modo=contraentrega';
       return;

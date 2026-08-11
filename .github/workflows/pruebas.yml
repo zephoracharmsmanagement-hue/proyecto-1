@@ -1,4 +1,4 @@
-# Corre las seis baterías en cada push.
+# Corre las siete baterías en cada push.
 #
 # Por qué existe: la batería del checkout ya dio verde una vez a un pago que en
 # producción no cobraba, y nadie lo supo hasta que una clienta lo intentó. Que

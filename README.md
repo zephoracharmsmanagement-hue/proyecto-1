@@ -349,6 +349,32 @@ embudo entre entrar a pagar y pagar.
 
 `Lead` queda para el pedido que se cierra por WhatsApp, que sigue existiendo.
 
+### `Purchase` también desde el servidor (Conversions API)
+
+El `Purchase` del navegador tiene un agujero: **solo se dispara si la clienta
+vuelve al sitio** después de pagar, y volver es opcional. Puede cerrar el
+navegador, quedarse sin datos, o pagar por PSE desde la app del banco y no
+regresar. Ese pago fue bueno y Meta no lo veía — el mismo motivo por el que el
+correo de confirmación sale del webhook y no de `gracias.html`.
+
+Desde `netlify/functions/_capi.js`, **`wompi-webhook.js` manda el mismo
+`Purchase` a la Conversions API** en cuanto Wompi confirma el pago como
+`APPROVED`. Los dos eventos describen el mismo hecho, así que se deduplican con
+`event_id`, que en las dos puntas es la referencia del pedido; `gracias.html` la
+pasa como `eventID` en su `fbq('track', …)`. **Si se toca una punta sin la otra,
+Meta cuenta el doble de compras** — `pruebas/capi.js` lo comprueba leyendo el
+HTML precisamente por eso.
+
+`checkout.html` manda las cookies `_fbp` y `_fbc` con el pedido, y `crear-pago`
+las guarda junto a los datos de la clienta —ya hasheados— en el almacén
+`atribucion` de Netlify Blobs. El webhook las recoge y las borra. Sin ese paso
+el evento de servidor llegaría sin atribución, y como suele llegar antes que el
+del navegador, sería el que Meta conserva: peor que no mandarlo.
+
+Hace falta `META_CAPI_TOKEN` en el entorno. Sin él no se manda nada y se
+registra `capi_sin-token` en el log; la venta sigue igual. Contraentrega no pasa
+por aquí: su `Purchase` sigue siendo solo el del navegador.
+
 Cada enlace a WhatsApp lleva un `data-wa` con su origen (`hero`, `asesoria-regalo`,
 `pie`), que viaja en `content_name` para poder separar en Events Manager qué botón
 trae las conversiones.
