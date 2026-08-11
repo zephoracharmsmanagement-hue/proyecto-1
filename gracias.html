@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tu pedido · Zephora Charms</title>
+<meta name="description" content="Confirmación de tu pedido en Zephora Charms.">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
+<meta name="theme-color" content="#2A1F2E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','2130673404542988');
+fbq('track','PageView');
+</script>
+
+<style>
+:root{
+  --bone:#F6F3F4; --ink:#2A1F2E; --plum:#5C3D63; --rose:#B4657F; --rose-soft:#F3E6EB;
+  --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a; --pagar:#9E4E68;
+  --bien:#1F7A5C; --mal:#B03A48; --espera:#8A6A1F;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bone);color:var(--ink);
+  font:300 16px/1.65 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;margin:0;letter-spacing:.01em}
+a{color:var(--plum)}
+:focus-visible{outline:2px solid var(--rose);outline-offset:3px}
+.top{background:var(--bone);border-bottom:1px solid var(--line)}
+.top-in{max-width:720px;margin:0 auto;padding:0 18px;height:58px;display:flex;align-items:center}
+.brand{font-family:'Cormorant Garamond',serif;font-size:19px;letter-spacing:.13em;
+  text-transform:uppercase;text-decoration:none;color:var(--ink)}
+.brand em{font-style:italic;letter-spacing:.04em;color:var(--plum)}
+
+main{max-width:720px;margin:0 auto;padding:34px 18px 60px}
+.sello{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;margin:0 0 18px}
+.sello--ok{background:#e2f1ea;color:var(--bien)}
+.sello--espera{background:#fbf2dc;color:var(--espera)}
+.sello--mal{background:#fbeced;color:var(--mal)}
+h1{font-size:clamp(30px,8vw,44px);line-height:1.1;margin-bottom:12px}
+.entrada{font-size:16.5px;color:#584a5c;margin:0 0 24px;max-width:52ch}
+
+.ficha{background:var(--white);border:1px solid var(--line);border-radius:3px;
+  padding:18px 18px 20px;margin:0 0 20px}
+.ficha h2{font-size:20px;margin:0 0 12px}
+.par{display:flex;justify-content:space-between;gap:14px;padding:8px 0;font-size:14px}
+.par+.par{border-top:1px solid var(--line)}
+.par span{color:#6d6070}
+.par b{font-weight:400;text-align:right;word-break:break-word}
+.ref{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px;
+  letter-spacing:.04em;background:var(--rose-soft);border:1px solid #e9d3dc;
+  border-radius:2px;padding:3px 8px;display:inline-block}
+
+.pasos-sig{list-style:none;padding:0;margin:0}
+.pasos-sig li{display:flex;gap:12px;padding:11px 0;font-size:14px;line-height:1.55;color:#584a5c}
+.pasos-sig li+li{border-top:1px solid var(--line)}
+.pasos-sig i{flex:0 0 auto;width:23px;height:23px;border-radius:50%;background:var(--plum);
+  color:#fff;font-style:normal;font-size:12px;display:flex;align-items:center;
+  justify-content:center;margin-top:1px}
+
+.btns{display:grid;gap:10px;margin-top:26px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:16px 24px;border-radius:2px;border:1px solid var(--ink);background:var(--ink);
+  color:var(--bone);text-decoration:none;font:400 13.5px/1 Jost;letter-spacing:.09em;
+  text-transform:uppercase;cursor:pointer;width:100%}
+.btn--wa{background:var(--wa);border-color:var(--wa);color:#fff}
+.btn--ghost{background:transparent;color:var(--ink)}
+@media(hover:hover){
+  .btn--wa:hover{background:#1e6b58;border-color:#1e6b58}
+  .btn--ghost:hover{background:var(--ink);color:var(--bone)}
+}
+.pie{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);
+  font-size:12.5px;color:#6d6070;line-height:1.7}
+.pie a{margin-right:12px;white-space:nowrap}
+@media(min-width:620px){
+  .btns{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in"><a class="brand" href="index.html">Zephora <em>Charms</em></a></div>
+</header>
+
+<main>
+  <div class="sello" id="sello"></div>
+  <h1 id="titulo">Un momento…</h1>
+  <p class="entrada" id="entrada">Estamos confirmando el estado de tu pedido.</p>
+
+  <div class="ficha" id="ficha" hidden>
+    <h2>Tu pedido</h2>
+    <div id="pares"></div>
+  </div>
+
+  <div class="ficha" id="siguiente" hidden>
+    <h2>Qué sigue</h2>
+    <ol class="pasos-sig" id="pasos-sig"></ol>
+  </div>
+
+  <div class="btns">
+    <a class="btn btn--wa" id="wa" href="#">Escribirnos por WhatsApp</a>
+    <a class="btn btn--ghost" href="index.html">Volver a la tienda</a>
+  </div>
+
+  <div class="pie">
+    <a href="preguntas-frecuentes.html">Preguntas frecuentes</a>
+    <a href="envios-y-devoluciones.html">Envíos y devoluciones</a>
+    <a href="terminos-y-condiciones.html">Términos</a>
+    <div style="margin-top:8px">© 2024–<span id="year">2026</span> Zephora Charms ·
+      NIT 1.019.151.696-3 · Bogotá D.C., Colombia</div>
+  </div>
+</main>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const WA='573018990672';
+const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
+const q=new URLSearchParams(location.search);
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
+
+/* Lo que el checkout dejó antes de irse a la pasarela. Es un respaldo para
+   poder mostrar el detalle; la verdad sobre el pago la tiene Wompi. */
+let pedido=null;
+try{ pedido=JSON.parse(sessionStorage.getItem('zephora.pedido')||'null'); }catch(_){}
+
+const SELLOS={
+  ok:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>',
+  espera:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l3.5 2"/></svg>',
+  mal:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>'
+};
+
+function pintar(estado,titulo,entrada,pasos){
+  $('#sello').className='sello sello--'+estado;
+  $('#sello').innerHTML=SELLOS[estado];
+  $('#titulo').textContent=titulo;
+  $('#entrada').textContent=entrada;
+  if(pasos&&pasos.length){
+    $('#siguiente').hidden=false;
+    $('#pasos-sig').innerHTML=pasos.map((t,i)=>'<li><i>'+(i+1)+'</i><span>'+t+'</span></li>').join('');
+  }
+}
+
+function pintarFicha(ref,total,extra){
+  const filas=[];
+  if(ref) filas.push(['Referencia','<span class="ref">'+esc(ref)+'</span>']);
+  if(total!=null) filas.push(['Total',esc(cop(total))]);
+  (extra||[]).forEach(f=>filas.push(f));
+  if(pedido&&pedido.cliente){
+    const c=pedido.cliente;
+    filas.push(['A nombre de',esc(c.nombre+' '+c.apellido)]);
+    filas.push(['Envío a',esc(c.direccion+(c.adicional?', '+c.adicional:'')+' — '+c.ciudad+', '+c.depto)]);
+    filas.push(['Avisamos a',esc(c.celular+' · '+c.correo)]);
+  }
+  if(!filas.length) return;
+  $('#ficha').hidden=false;
+  $('#pares').innerHTML=filas.map(([k,v])=>
+    '<div class="par"><span>'+esc(k)+'</span><b>'+v+'</b></div>').join('');
+}
+
+function waTexto(ref,asunto){
+  return 'https://wa.me/'+WA+'?text='+encodeURIComponent(
+    'Hola, Zephora Charms. '+asunto+(ref?' Mi referencia es '+ref+'.':''));
+}
+
+/* Wompi vuelve con ?id=<transacción>&env=… — el estado hay que consultarlo,
+   porque en la URL no viene y confiar en un parámetro de la URL para dar un
+   pago por bueno sería regalarle a cualquiera una página de "pagado". */
+const idTx=q.get('id');
+const ref=q.get('ref')||(pedido&&pedido.referencia)||'';
+const modo=q.get('modo');
+
+if(modo==='contraentrega'){
+  pintar('ok','Pedido confirmado',
+    'Lo estamos preparando. Pagas en efectivo cuando el mensajero te lo entregue.',
+    ['Te escribimos por WhatsApp para confirmar existencias y la talla.',
+     'Despachamos por Inter Rapidísimo y te mandamos el número de guía.',
+     'Pagas al mensajero al recibir el paquete. Entre 1 y 6 días hábiles según el destino.']);
+  pintarFicha(ref,pedido&&pedido.total,[['Forma de pago','Contraentrega']]);
+  $('#wa').href=waTexto(ref,'Acabo de hacer un pedido contraentrega en la página.');
+}else if(idTx){
+  /* Se le pregunta a Wompi por el estado real de la transacción. Es una API
+     pública de solo lectura: no hace falta llave para consultarla. */
+  /* Wompi devuelve env=test cuando el pago se hizo con llaves de pruebas.
+     Cada ambiente tiene su propia API y las transacciones no se cruzan:
+     preguntarle a producción por una transacción de sandbox da 404 y la
+     página diría «no pudimos confirmar» de un pago que sí ocurrió. */
+  const api=(q.get('env')==='test')
+    ? 'https://sandbox.wompi.co/v1/transactions/'
+    : 'https://production.wompi.co/v1/transactions/';
+  fetch(api+encodeURIComponent(idTx))
+    .then(r=>r.json())
+    .then(d=>{
+      const t=(d&&d.data)||{};
+      const total=typeof t.amount_in_cents==='number'?t.amount_in_cents/100:(pedido&&pedido.total);
+      const rr=t.reference||ref;
+      const metodo=t.payment_method_type||'';
+      if(t.status==='APPROVED'){
+        pintar('ok','¡Pago recibido!',
+          'Gracias. Tu pedido quedó confirmado y ya entró a preparación.',
+          ['Te llega el comprobante digital al correo que registraste.',
+           'Te escribimos por WhatsApp para confirmar la talla si hace falta.',
+           'Despachamos por Inter Rapidísimo con número de guía. De 1 a 6 días hábiles según el destino.']);
+        track('Purchase',{value:total||0,content_name:'Wompi '+metodo});
+        try{ localStorage.removeItem('zephora.carrito.v1'); }catch(_){}
+        $('#wa').href=waTexto(rr,'Acabo de pagar mi pedido en la página.');
+      }else if(t.status==='PENDING'){
+        pintar('espera','Tu pago está en proceso',
+          'Algunos medios (como PSE) tardan unos minutos en confirmar. En cuanto el banco '
+          +'responda te avisamos; no hace falta que pagues otra vez.',
+          ['Espera el correo de confirmación. Si en una hora no llega, escríbenos.',
+           'No repitas el pago: si al final se aprueban los dos, hay que devolver uno.']);
+        $('#wa').href=waTexto(rr,'Mi pago quedó en proceso y quiero saber cómo va.');
+      }else{
+        pintar('mal','El pago no se completó',
+          'El banco no aprobó la transacción, así que no se te cobró nada. '
+          +'Puedes intentar con otro medio de pago, o pedirlo contraentrega.',
+          ['Vuelve al checkout e intenta con otro medio.',
+           'Si prefieres, escríbenos y lo cerramos por WhatsApp.']);
+        $('#wa').href=waTexto(rr,'Mi pago fue rechazado y quiero terminar el pedido por aquí.');
+        document.querySelector('.btns').insertAdjacentHTML('afterbegin',
+          '<a class="btn" href="checkout.html">Intentar de nuevo</a>');
+      }
+      pintarFicha(rr,total,metodo?[['Medio de pago',esc(metodo)]]:null);
+    })
+    .catch(()=>{
+      /* Si no se pudo consultar, no se inventa un resultado: se dice que no se
+         pudo y se da la vía que siempre funciona. */
+      pintar('espera','No pudimos confirmar el estado',
+        'Tu pago pudo haberse procesado igual. No lo repitas todavía: escríbenos con '
+        +'tu referencia y lo verificamos en el momento.',
+        ['Guarda la referencia de abajo.','Escríbenos por WhatsApp y te confirmamos.']);
+      pintarFicha(ref,pedido&&pedido.total);
+      $('#wa').href=waTexto(ref,'No pude ver el estado de mi pago en la página.');
+    });
+}else{
+  pintar('espera','No encontramos ese pedido',
+    'Llegaste aquí sin una referencia de pago. Si acabas de comprar, revisa tu correo: '
+    +'el comprobante tiene el número de tu pedido.',null);
+  $('#wa').href=waTexto('','Tengo una duda sobre un pedido.');
+}
+
+$('#year').textContent=new Date().getFullYear();
+})();
+</script>
+</body>
+</html>

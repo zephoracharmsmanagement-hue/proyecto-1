@@ -14,6 +14,16 @@
 <meta property="og:title" content="Zephora Charms · Joyería con significado">
 <meta property="og:description" content="Charms en Plata 925 verificada y brazaletes con baño de plata. Diseña tu pulsera y pídela por WhatsApp.">
 <meta property="og:url" content="https://zephoracharms.com/">
+<meta property="og:image" content="https://zephoracharms.com/assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg">
+<meta property="og:image:secure_url" content="https://zephoracharms.com/assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="800">
+<meta property="og:image:height" content="600">
+<meta property="og:image:alt" content="Pulsera Zephora armada con charms en Plata 925">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Zephora Charms · Joyería con significado">
+<meta name="twitter:description" content="Charms en Plata 925 verificada y brazaletes con baño de plata. Diseña tu pulsera y pídela por WhatsApp.">
+<meta name="twitter:image" content="https://zephoracharms.com/assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
@@ -32,12 +42,12 @@ fbq('track','ViewContent',{content_type:'product_group',content_name:'Catalogo Z
 src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></noscript>
 
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Store","name":"Zephora Charms","description":"Charms en Plata Esterlina 925 y brazaletes con baño de plata. Envíos a toda Colombia.","url":"https://zephoracharms.com/","telephone":"+573018990672","priceRange":"$$","areaServed":{"@type":"Country","name":"Colombia"},"address":{"@type":"PostalAddress","addressCountry":"CO"},"sameAs":["https://instagram.com/zephora_charms","https://wa.me/573018990672"]}
+{"@context":"https://schema.org","@type":"OnlineStore","name":"Zephora Charms","description":"Charms en Plata Esterlina 925 y brazaletes con baño de plata. Envíos a toda Colombia.","url":"https://zephoracharms.com/","telephone":"+573018990672","email":"zephoracharms@gmail.com","taxID":"1019151696-3","foundingDate":"2024","priceRange":"$$","currenciesAccepted":"COP","areaServed":{"@type":"Country","name":"Colombia"},"address":{"@type":"PostalAddress","addressLocality":"Bogotá","addressRegion":"Bogotá D.C.","addressCountry":"CO"},"openingHoursSpecification":{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"09:00","closes":"18:00"},"sameAs":["https://instagram.com/zephora_charms","https://wa.me/573018990672"]}
 </script>
 <style>
 :root{
   --bone:#F6F3F4; --ink:#2A1F2E; --plum:#5C3D63; --rose:#B4657F; --rose-soft:#F3E6EB;
-  --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a;
+  --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a; --pagar:#9E4E68;
   --w:1180px; --dock:64px;
 }
 *{box-sizing:border-box}
@@ -54,15 +64,23 @@ button{font-family:inherit}
 :focus-visible{outline:2px solid var(--rose);outline-offset:3px}
 .vf{vertical-align:-2px;margin-left:3px}
 
-/* barra de avisos rotativa */
-.ann{background:var(--plum);color:#f4ecf6;overflow:hidden;height:38px}
-.ann-slide{height:38px;display:flex;align-items:center;justify-content:center;gap:6px;
-  text-align:center;font-size:12.5px;letter-spacing:.05em;padding:0 14px;line-height:1.3}
+/* barra de avisos rotativa · slides apilados en una celda:
+   la altura la fija el aviso más largo, así ninguno se corta en pantallas de 360px */
+.ann{background:var(--plum);color:#f4ecf6;min-height:38px}
+.ann-track{display:grid}
+/* display:block y no flex: con flex, cada trozo de texto y cada <b> eran ítems
+   independientes y el aviso se partía en columnas raras al envolver. */
+.ann-slide{grid-area:1/1;display:block;text-align:center;font-size:12.5px;letter-spacing:.05em;
+  padding:10px 14px;line-height:1.35;min-height:38px;opacity:0;animation:annf 15s infinite}
+.ann-slide:nth-child(1){animation-delay:0s}
+.ann-slide:nth-child(2){animation-delay:-10s}
+.ann-slide:nth-child(3){animation-delay:-5s}
 .ann b{font-weight:500;color:#fff}
-.ann-track{animation:ann 15s infinite}
-@keyframes ann{0%,28%{transform:translateY(0)}33%,61%{transform:translateY(-38px)}
-  66%,94%{transform:translateY(-76px)}100%{transform:translateY(-114px)}}
-@media(prefers-reduced-motion:reduce){.ann-track{animation:none}}
+@keyframes annf{0%{opacity:0}4%,29%{opacity:1}33%,100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){
+  .ann-slide{animation:none;opacity:0}
+  .ann-slide:first-child{opacity:1}
+}
 
 /* encabezado */
 .top{position:sticky;top:0;z-index:60;background:rgba(246,243,244,.94);
@@ -86,14 +104,24 @@ button{font-family:inherit}
 .btn--ghost:hover{background:var(--ink);color:var(--bone)}
 .btn--wa{background:var(--wa);border-color:var(--wa);color:#fff}
 .btn--wa:hover{background:#1e6b58;border-color:#1e6b58}
+/* Comprar. Rosa oscurecido a propósito: el rosa de marca (#B4657F) con texto
+   blanco encima se queda en 3,6:1 y no pasa AA al tamaño de estos botones. */
+.btn--pagar{background:var(--pagar);border-color:var(--pagar);color:#fff}
+.btn--pagar:hover{background:#884057;border-color:#884057}
 .btn--big{width:100%;padding:17px 22px;font-size:14px}
 @media(min-width:700px){.btn--big{width:auto}}
 
-/* 1 · hero */
-.hero{padding:26px 0 36px}
-.hero-in{display:grid;gap:26px}
-.hero-img img{width:100%;border-radius:3px}
-.hero h1{font-size:clamp(36px,9.4vw,64px);line-height:1.06;margin:12px 0 14px}
+/* 1 · hero
+   En móvil el titular y el botón de WhatsApp van primero y la foto debajo, acotada:
+   la foto es 502x900 y ella sola empujaba el <h1> a y=884px, o sea fuera de la
+   primera pantalla de un iPhone. Quien llega de la pauta ve la promesa y el CTA sin scroll. */
+.hero{padding:22px 0 34px}
+.hero-in{display:grid;gap:22px}
+/* El encuadre baja al 72%: la foto trae quemado "La pulsera que todas quieren /
+   Personalízala con tus charms favoritos" en su tercio superior, que repite en otras
+   palabras la promesa del <h1>. Recortándolo, la foto muestra la pulsera y punto. */
+.hero-img img{width:100%;max-height:46dvh;object-fit:cover;object-position:center 72%;border-radius:3px}
+.hero h1{font-size:clamp(34px,8.8vw,64px);line-height:1.06;margin:10px 0 14px}
 .hero h1 i{font-style:italic;color:var(--plum)}
 .hero-sub{max-width:48ch;color:#584a5c;margin:0 0 14px;font-size:16.5px}
 .hero-badges{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 22px;font-size:13.5px}
@@ -149,7 +177,7 @@ section{scroll-margin-top:64px}
 .pc{background:var(--white);border:1px solid var(--line);border-radius:3px;
   display:flex;flex-direction:column;transition:border-color .2s}
 .pc[hidden]{display:none}
-.pc:hover{border-color:var(--silver)}
+@media(hover:hover){.pc:hover{border-color:var(--silver)}}
 .pc.is-sel{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
 .pc-img{position:relative;aspect-ratio:1;overflow:hidden;background:#fff;border-radius:3px 3px 0 0}
 .pc-img img{width:100%;height:100%;object-fit:contain}
@@ -160,12 +188,16 @@ section{scroll-margin-top:64px}
 .pc-body{padding:11px 12px 12px;display:flex;flex-direction:column;flex:1}
 .pc-name{font-size:15.5px;line-height:1.22;margin:0 0 3px}
 .pc-meta{font-size:10.5px;color:var(--silver);letter-spacing:.05em;margin:0 0 9px;text-transform:uppercase}
-.pc-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+/* Apilado, no en fila. En las tarjetas angostas (2 columnas en móvil, y el
+   carrusel) el precio y el botón no caben juntos y el flex-wrap los partía
+   dejando el botón suelto a media fila. Apilados quedan iguales en todas las
+   tarjetas y el botón gana ancho de toque. */
+.pc-foot{margin-top:auto;display:grid;gap:8px}
 .pc-price{font-size:14.5px}
 .pc-add{font:400 11px/1 Jost;letter-spacing:.07em;text-transform:uppercase;
   padding:8px 11px;border:1px solid var(--ink);background:transparent;color:var(--ink);
   border-radius:2px;cursor:pointer;transition:.18s;min-height:32px}
-.pc-add:hover{background:var(--ink);color:var(--bone)}
+@media(hover:hover){.pc-add:hover{background:var(--ink);color:var(--bone)}}
 .pc.is-sel .pc-add{background:var(--plum);border-color:var(--plum);color:#fff}
 .tier{margin-bottom:30px}
 .tier-head{display:flex;align-items:baseline;gap:12px;padding-bottom:9px;margin-bottom:14px;
@@ -256,29 +288,281 @@ section{scroll-margin-top:64px}
 .trust svg{flex:0 0 auto;margin-top:1px}
 .trust b{font-weight:500;color:var(--ink)}
 
+/* Piezas con stock cuya foto todavía no llega. Se venden igual: esconderlas sería
+   dejar de vender inventario real, y un <img> roto se ve peor que un marcador. */
+.pc-img--nofoto{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:7px;background:linear-gradient(160deg,#f8f2f5,#ece2e7)}
+.nofoto-m{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(38px,11vw,52px);
+  line-height:1;color:var(--plum);opacity:.5}
+.nofoto-t{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:#9a8ea0}
+.pc.is-out .pc-img--nofoto{opacity:.5}
+.srow-nof{width:46px;height:46px;border-radius:2px;background:#3a2c40;color:#c3b4c6;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  font-family:'Cormorant Garamond',Georgia,serif;font-size:20px}
+
+/* ——— disponibilidad y tallas ——— */
+/* Va en el cuerpo, no encima de la foto. Flotando sobre la imagen chocaba con
+   «Ver detalle» en las tarjetas de 2 columnas: a 375 px de ancho las dos
+   etiquetas no caben en la misma fila y se montaban una sobre otra. Además la
+   disponibilidad es información de compra, y su sitio es junto al precio. */
+.pc-stock{display:flex;align-items:center;gap:5px;margin:0 0 8px;
+  font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--rose);line-height:1.3}
+.pc-stock::before{content:'';width:5px;height:5px;border-radius:50%;
+  background:currentColor;flex:0 0 auto}
+.pc-stock--0{color:#7c7681}
+.pc.is-out .pc-img img{filter:grayscale(.85);opacity:.5}
+.pc.is-out .pc-name{color:#7c7681}
+.pc-add[disabled],.pc-add[aria-disabled="true"]{border-color:var(--line);color:#948e99;
+  background:transparent;cursor:not-allowed}
+.pc-add[disabled]:hover,.pc-add[aria-disabled="true"]:hover{background:transparent;color:#948e99}
+/* Pedir por encargo lo agotado: la venta no se pierde, se mueve al chat */
+.pc-encargo{justify-self:start;font-size:11.5px;letter-spacing:.04em;text-decoration:none;
+  color:var(--plum);border-bottom:1px solid currentColor;white-space:nowrap;
+  padding:6px 0;min-height:32px;display:inline-flex;align-items:center}
+
+/* selector de tallas dentro de la tarjeta del brazalete */
+.tallas{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.tallas[hidden]{display:none}
+.tallas-t{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver);
+  margin:0 0 7px}
+.tallas-row{display:flex;flex-wrap:wrap;gap:6px}
+.tbtn{font:400 12px/1 Jost;min-width:44px;min-height:38px;padding:9px 8px;cursor:pointer;
+  border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:2px;
+  transition:.16s}
+.tbtn:hover{border-color:var(--plum)}
+.tbtn.is-on{background:var(--plum);border-color:var(--plum);color:#fff}
+/* Las tallas sin stock se ven, no se esconden: la clienta sabe que existen */
+.tbtn[aria-disabled="true"]{color:#a9a3ae;background:#faf8f9;cursor:not-allowed;
+  text-decoration:line-through;text-decoration-color:#cdc6d0}
+.tbtn[aria-disabled="true"]:hover{border-color:var(--line)}
+.tallas-ayuda{font-size:11px;color:#6d6070;margin:8px 0 0;line-height:1.5}
+.tallas-ayuda a{color:var(--plum)}
+
+/* grilla de iniciales */
+/* La foto de las letras es apaisada: con aspect-ratio:1 dejaba media pantalla en blanco */
+.pc--letras{grid-column:1/-1}
+.pc--letras .pc-img{aspect-ratio:16/7}
+.letras-ayuda{font-size:12.5px;color:#6d6070;margin:0 0 10px}
+.letras-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:6px}
+.lbtn{font:400 14px/1 Jost;min-height:42px;cursor:pointer;border:1px solid var(--line);
+  background:var(--white);color:var(--ink);border-radius:2px;transition:.16s;text-transform:uppercase}
+.lbtn:hover{border-color:var(--plum)}
+.lbtn.is-on{background:var(--plum);border-color:var(--plum);color:#fff}
+.lbtn[aria-disabled="true"]{color:#b3adb7;background:#faf8f9;cursor:not-allowed}
+.lbtn[aria-disabled="true"]:hover{border-color:var(--line)}
+.lbtn small{display:block;font-size:8px;letter-spacing:.02em;margin-top:2px;text-transform:none}
+
+.fbtn--disp[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:#fff}
+
+/* aviso de que el conteo es referencial, nunca una promesa */
+.stock-nota{font-size:11.5px;color:#8d7f92;text-align:center;margin:10px 0 0;line-height:1.5}
+.sheet .stock-nota{color:#9b8ca0}
+
+/* ——— calculadora de talla ——— */
+.talla-sec{padding:44px 0;border-top:1px solid var(--line);background:var(--white)}
+.calc{display:grid;gap:20px;max-width:760px;margin:0 auto}
+.calc-in{background:var(--rose-soft);border:1px solid #e9d3dc;border-radius:3px;padding:18px 20px}
+.calc-in label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:#6b5c70;margin-bottom:9px}
+.calc-campo{display:flex;align-items:center;gap:9px}
+.calc-campo input{flex:0 1 140px;font:300 26px/1 'Cormorant Garamond',Georgia,serif;
+  padding:10px 12px;border:1px solid var(--line);border-radius:2px;background:var(--white);
+  color:var(--ink);min-height:52px}
+.calc-campo span{font-size:15px;color:#6b5c70}
+.calc-hint{font-size:12px;color:#7d6f82;margin:9px 0 0}
+.calc-out{display:grid;gap:8px}
+.calc-vacia{font-size:14px;color:#7d6f82;text-align:center;padding:14px 0;margin:0}
+.tfila{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline;
+  border:1px solid var(--line);border-radius:3px;padding:13px 15px;background:var(--white)}
+.tfila-t{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;line-height:1;
+  grid-row:span 2;align-self:center}
+.tfila-v{font-size:11px;letter-spacing:.13em;text-transform:uppercase}
+.tfila-d{font-size:13.5px;color:#5f5364;line-height:1.5;margin:0}
+.tfila-d b{font-weight:500;color:var(--ink)}
+.tfila--best{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum);background:#fbf7fc}
+.tfila--best .tfila-v{color:var(--plum)}
+.tfila--ok .tfila-v{color:#5d7a68}
+.tfila--warn .tfila-v{color:#9a7340}
+.tfila--bad{opacity:.62}
+.tfila--bad .tfila-v{color:#8a8290}
+.tfila-ago{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--silver)}
+.porque{max-width:640px;margin:28px auto 0;text-align:center;padding-top:22px;
+  border-top:1px solid var(--line)}
+.porque h3{font-size:21px;margin:0 0 8px}
+.porque p{font-size:14.5px;color:#5f5364;margin:0;line-height:1.65}
+.talla-link{display:inline-block;margin-top:9px;font-size:12px;color:var(--plum)}
+
+/* ——— ficha de producto ——— */
+.fx{position:fixed;inset:0;z-index:130;background:rgba(42,31,46,.93);
+  display:flex;align-items:center;justify-content:center;padding:16px}
+.fx[hidden]{display:none}
+.fx-box{background:var(--bone);border-radius:5px;max-width:760px;width:100%;
+  max-height:90dvh;overflow-y:auto;position:relative;display:grid}
+.fx-x{position:absolute;top:8px;right:8px;z-index:2;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(255,255,255,.94);color:var(--ink);
+  font-size:16px;cursor:pointer;line-height:1}
+.fx-ph{background:#fff;display:flex;align-items:center;justify-content:center;
+  aspect-ratio:1;padding:14px;border-radius:5px 5px 0 0}
+.fx-ph img{width:100%;height:100%;object-fit:contain}
+.fx-ph .nofoto-m{font-size:64px}
+.fx-tx{padding:20px 22px 24px}
+.fx-tx h3{font-size:clamp(24px,6vw,31px);line-height:1.15;margin:6px 0 6px}
+.fx-p{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;margin:0 0 4px}
+.fx-est{font-size:12px;letter-spacing:.06em;margin:0 0 16px}
+.fx-est--ok{color:#5d7a68}
+.fx-est--few{color:var(--rose)}
+.fx-est--out{color:#8a8290}
+.fx-specs{margin:0 0 12px;padding:0;border-top:1px solid var(--line)}
+.fx-specs div{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--line)}
+.fx-specs dt{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver);
+  margin:0}
+.fx-specs dd{margin:0;font-size:14px;color:#4a3d4e;line-height:1.5}
+.fx-nota{font-size:11.5px;color:#8a8290;margin:0 0 18px;line-height:1.5}
+.fx-cta{display:grid;gap:9px}
+.fx-cta .btn{width:100%}
+/* Siempre visible, no en hover: en móvil no hay hover y nadie descubriría
+   que la tarjeta se abre. Va abajo a la izquierda, ya sin nada que la estorbe:
+   la disponibilidad se mudó al cuerpo de la tarjeta. */
+.pc-ver{position:absolute;left:7px;bottom:7px;display:flex;align-items:center;gap:4px;
+  font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;
+  border-radius:1px;border:1px solid var(--line);background:rgba(255,255,255,.9);
+  color:#8a8290;pointer-events:none;transition:.18s;max-width:calc(100% - 14px)}
+.pc-img{cursor:pointer}
+.pc-name{cursor:pointer}
+/* Los estados de hover solo donde hay puntero. En una pantalla táctil el
+   :hover se queda pegado después del toque: la tarjeta tocada se quedaba con
+   el nombre subrayado y el borde encendido como si siguiera seleccionada. */
+@media(hover:hover){
+  .pc:hover .pc-ver{border-color:var(--plum);color:var(--plum)}
+  .pc:hover .pc-name{text-decoration:underline;text-decoration-color:var(--line);
+    text-underline-offset:3px}
+}
+
+/* ——— buscador ——— */
+.buscar{position:relative;margin:0 0 14px}
+.buscar input{width:100%;font:300 15px/1 Jost,sans-serif;padding:13px 40px 13px 38px;
+  border:1px solid var(--line);border-radius:2px;background:var(--white);color:var(--ink);
+  min-height:48px;-webkit-appearance:none}
+.buscar input::-webkit-search-cancel-button{-webkit-appearance:none}
+.buscar svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  color:var(--silver);pointer-events:none}
+.buscar-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;
+  border:0;background:none;color:var(--silver);font-size:15px;cursor:pointer;line-height:1}
+.buscar-x[hidden]{display:none}
+.sin-res{text-align:center;padding:28px 10px;color:#6d6070;font-size:14.5px}
+.sin-res b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-size:21px;
+  font-weight:400;color:var(--ink);margin-bottom:6px}
+
+/* ——— pagos y entrega ——— */
+.pe{padding:44px 0;border-top:1px solid var(--line)}
+.pe-grid{display:grid;gap:16px}
+.pe-caja{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:20px 20px 22px}
+.pe-caja h3{font-size:22px;margin:0 0 4px}
+.pe-caja>p{font-size:13.5px;color:#6d6070;margin:0 0 16px}
+.pe-lista{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:7px}
+.pe-lista li{font-size:12px;letter-spacing:.04em;border:1px solid var(--line);border-radius:2px;
+  padding:8px 11px;color:#4a3d4e;background:var(--bone)}
+.pe-tabla{width:100%;border-collapse:collapse;font-size:13.5px}
+.pe-tabla th,.pe-tabla td{text-align:left;padding:9px 0;border-bottom:1px solid var(--line);
+  color:#4a3d4e;vertical-align:top}
+.pe-tabla th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver);
+  font-weight:400}
+.pe-tabla td:last-child{text-align:right;white-space:nowrap;padding-left:12px}
+.pe-pie{font-size:12.5px;color:#6d6070;margin:14px 0 0;line-height:1.55}
+
+/* cabecera de sección centrada · tratamiento editorial de la referencia */
+.sec-head--c{max-width:700px;margin:0 auto 26px;text-align:center}
+.sec-head--c h2{font-size:clamp(21px,5vw,31px);letter-spacing:.15em;text-transform:uppercase;line-height:1.3}
+.sec-head--c p{margin:11px auto 0;max-width:54ch}
+.sec-top{display:flex;flex-direction:column;align-items:flex-start;gap:15px;margin-bottom:20px}
+.sec-top .sec-head{margin-bottom:0}
+.link-all{flex:0 0 auto;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  text-decoration:none;color:var(--ink);border:1px solid var(--ink);border-radius:2px;
+  padding:11px 16px;background:transparent;cursor:pointer;transition:.18s;font-family:inherit}
+.link-all:hover{background:var(--ink);color:var(--bone)}
+
+/* compra por categoría */
+.cats{padding:44px 0;border-top:1px solid var(--line)}
+.cats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.cat{display:block;text-decoration:none;background:var(--white);border:1px solid var(--line);
+  border-radius:3px;overflow:hidden;transition:border-color .2s}
+.cat:hover{border-color:var(--plum)}
+.cat-ph{aspect-ratio:1;background:#fff;overflow:hidden}
+.cat-ph img{width:100%;height:100%;object-fit:contain;transition:transform .5s ease}
+.cat:hover .cat-ph img{transform:scale(1.06)}
+.cat-label{padding:12px 8px;text-align:center;font-size:10.5px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ink);border-top:1px solid var(--line);background:var(--rose-soft)}
+.cat-label small{display:block;font-size:10px;letter-spacing:.08em;text-transform:none;
+  color:#8a7d8e;margin-top:4px}
+
+/* carrusel horizontal de producto */
+.rail-wrap{position:relative}
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(154px,1fr);gap:11px;
+  overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;
+  margin:0 -16px;padding:2px 16px 8px}
+.rail::-webkit-scrollbar{display:none}
+.rail>.pc{scroll-snap-align:start}
+.rail-btn{display:none;position:absolute;top:calc(50% - 40px);z-index:5;width:42px;height:42px;
+  border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.95);
+  color:var(--ink);cursor:pointer;align-items:center;justify-content:center;
+  box-shadow:0 2px 12px rgba(42,31,46,.1);transition:.18s}
+.rail-btn:hover{background:var(--ink);color:var(--bone);border-color:var(--ink)}
+.rail-btn[disabled]{opacity:.28;cursor:default}
+.rail-btn--prev{left:-8px}
+.rail-btn--next{right:-8px}
+.rail-hint{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);
+  margin:4px 0 0;text-align:center}
+
+/* franja de garantías */
+.guar{background:var(--rose-soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.guar-in{max-width:var(--w);margin:0 auto;padding:28px 16px;
+  display:grid;grid-template-columns:repeat(2,1fr);gap:24px 12px}
+.guar-in>div{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.guar span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6b5c70;
+  line-height:1.6;max-width:18ch}
+
 /* pie */
-.foot{border-top:1px solid var(--line);padding:38px 0 30px}
-.foot-in{display:flex;flex-direction:column;gap:12px}
-.foot p{margin:0;font-size:13px;color:#6d6070}
-.foot a{color:var(--plum)}
+.foot{background:var(--ink);color:#cbbfd0;padding:44px 0 26px}
+.foot .brand{color:var(--bone)}
+.foot .brand em{color:#d7a9bd}
+.foot a{color:#e3d6e7}
+.foot-in{display:grid;grid-template-columns:1fr;gap:30px}
+.foot h3{font-family:Jost,sans-serif;font-size:11px;font-weight:400;letter-spacing:.2em;
+  text-transform:uppercase;color:#fff;margin:0 0 14px}
+.foot p{margin:0 0 9px;font-size:13.5px;line-height:1.6}
+.foot-brand p{color:#a495a8;max-width:34ch;margin-top:14px}
+.foot-list{list-style:none;padding:0;margin:0;display:grid;gap:11px;font-size:13.5px}
+.foot-list a{text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px}
+.foot-list a:hover{border-color:#d7a9bd}
+.foot-line{display:flex;align-items:flex-start;gap:9px;margin:0 0 10px;font-size:13.5px;line-height:1.55}
+.foot-line svg{flex:0 0 auto;margin-top:3px;opacity:.75}
+.foot-bot{max-width:var(--w);margin:26px auto 0;padding:18px 16px 0;
+  border-top:1px solid rgba(255,255,255,.13);display:flex;flex-wrap:wrap;gap:8px 18px;
+  justify-content:space-between;font-size:11.5px;color:#93849a;letter-spacing:.04em}
 .foot-ig{display:inline-flex;align-items:center;gap:2px;text-decoration:none}
 
 /* barra fija + hoja */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:var(--bone);
   border-top:1px solid rgba(255,255,255,.14);height:var(--dock);
-  display:flex;align-items:center;gap:12px;padding:0 14px;cursor:pointer}
-.dock-info{min-width:0}
-.dock-n{font-size:11px;color:#a495a8;letter-spacing:.06em;white-space:nowrap}
+  display:flex;align-items:center;gap:10px;padding:0 12px;cursor:pointer}
+.dock-info{min-width:0;flex:1 1 auto}
+.dock-n{font-size:11px;color:#a495a8;letter-spacing:.06em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
 .dock-p{font-family:'Cormorant Garamond',serif;font-size:23px;line-height:1.05}
-.dock-open{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;
-  letter-spacing:.09em;text-transform:uppercase;color:#c3b4c6;background:none;border:0;
-  cursor:pointer;padding:8px 4px}
+/* nowrap y sin encogerse: a 375 px «Ver detalle» se partía en dos renglones y
+   descuadraba la barra entera */
+.dock-open{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:5px;
+  font-size:11px;white-space:nowrap;
+  letter-spacing:.06em;text-transform:uppercase;color:#c3b4c6;background:none;border:0;
+  cursor:pointer;padding:8px 2px}
 .dock-open svg{transition:transform .25s}
-.dock .btn--wa{padding:11px 16px;font-size:12px}
+.dock .btn--wa{padding:11px 14px;font-size:11.5px;letter-spacing:.07em}
 .veil{position:fixed;inset:0;background:rgba(20,12,24,.5);z-index:85;opacity:0;
   pointer-events:none;transition:opacity .25s}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;background:#231a27;color:var(--bone);
-  border-radius:14px 14px 0 0;max-height:82dvh;display:flex;flex-direction:column;
+  border-radius:14px 14px 0 0;max-height:90dvh;display:flex;flex-direction:column;
   transform:translateY(105%);transition:transform .3s cubic-bezier(.32,.72,.29,1),visibility .3s;
   visibility:hidden;box-shadow:0 -18px 50px rgba(20,12,24,.45)}
 body.sheet-open .veil{opacity:1;pointer-events:auto}
@@ -290,7 +574,15 @@ body.sheet-open{overflow:hidden}
   border-radius:50%;background:none;color:var(--bone);font-size:17px;cursor:pointer;line-height:1}
 .sheet-grab{width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);
   margin:9px auto 0;flex:0 0 auto}
-.sheet-body{overflow-y:auto;padding:4px 18px 8px;flex:1 1 auto}
+/* La zona que rueda: piezas, empaque, forma de pago y desglose. Se le da un
+   mínimo para que siempre se vean tres piezas aunque el resto crezca. */
+.sheet-scroll{overflow-y:auto;flex:1 1 auto;min-height:0;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
+.sheet-scroll::-webkit-scrollbar{width:4px}
+.sheet-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:2px}
+.sheet-scroll::-webkit-scrollbar-track{background:transparent}
+.sheet-body{padding:4px 18px 0;min-height:96px}
+.sheet-extras{padding:0 18px 8px}
 .srow{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.09)}
 .srow img{width:46px;height:46px;border-radius:2px;background:#fff;object-fit:contain;flex:0 0 auto}
 .srow-n{font-size:14px;line-height:1.3;min-width:0}
@@ -300,23 +592,49 @@ body.sheet-open{overflow:hidden}
   color:#d9cede;font-size:14px;cursor:pointer;flex:0 0 auto;line-height:1}
 .srow-x:hover{background:var(--rose);color:#fff}
 .s-empty{padding:22px 0;color:#8d7f92;font-size:14px;text-align:center}
-.sheet-tot{flex:0 0 auto;padding:12px 18px calc(16px + env(safe-area-inset-bottom));
+.sheet-tot{position:relative;flex:0 0 auto;padding:12px 18px calc(16px + env(safe-area-inset-bottom));
   border-top:1px solid rgba(255,255,255,.14);background:#231a27}
+/* Difumina el corte de arriba para que se lea que ahí sigue habiendo contenido
+   y no que la lista se acaba justo donde empieza el total. */
+.sheet-tot::before{content:'';position:absolute;left:0;right:0;bottom:100%;height:22px;
+  pointer-events:none;background:linear-gradient(to top,rgba(35,26,39,.92),rgba(35,26,39,0))}
 .tot-row{display:flex;justify-content:space-between;font-size:13.5px;color:#c3b4c6;margin-bottom:5px}
 .tot-row.save{color:#e39aae}
 .ship-note{font-size:12px;color:#a495a8;margin:2px 0 0;line-height:1.45}
 .ship-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.13);margin:7px 0 2px;overflow:hidden}
 .ship-bar i{display:block;height:100%;background:var(--rose);width:0;transition:width .3s}
 .ship-ok{color:#7fc7ae}
+/* Alcanzó el monto pero con contraentrega, que no lleva envío gratis. */
+.ship-casi{color:#e0c48a}
+.ship-cta{background:none;border:0;padding:0;font:inherit;color:#f0d9a8;cursor:pointer;
+  text-decoration:underline;text-underline-offset:2px}
+@media(hover:hover){.ship-cta:hover{color:#fff}}
 .tot-big{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 12px}
 .tot-big span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8d7f92}
 .tot-big b{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300}
-.sheet-tot .btn--wa{width:100%}
+.sheet-tot .btn--wa,.sheet-tot .btn--pagar{width:100%}
+/* Sin salida a WhatsApp aquí a propósito: a esta altura la clienta ya decidió
+   comprar, y una opción de menor compromiso justo al lado del botón de pagar
+   se come checkouts terminados en vez de sumar pedidos. WhatsApp sigue en el
+   resto de la página, y en el checkout aparece si algo falla — que es donde
+   de verdad rescata una venta. */
 .sheet-note{font-size:11.5px;color:#8d7f92;text-align:center;margin:9px 0 0;line-height:1.5}
 .pack{display:flex;gap:9px;align-items:center;font-size:13px;color:#c3b4c6;
   padding:9px 0 11px;cursor:pointer}
 .pack input{width:17px;height:17px;accent-color:var(--rose);flex:0 0 auto}
 .pack b{color:var(--bone);font-weight:400}
+.pago{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.pbtn{font:400 12.5px/1.3 Jost;text-align:left;padding:10px 12px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.22);background:transparent;color:#c3b4c6;
+  border-radius:2px;transition:.16s;min-height:52px}
+@media(hover:hover){.pbtn:hover{border-color:rgba(255,255,255,.45)}}
+.pbtn small{display:block;font-size:11px;color:#8d7f92;margin-top:3px}
+.pbtn.is-on{background:rgba(180,101,127,.18);border-color:var(--rose);color:var(--bone)}
+.pbtn.is-on small{color:#e39aae}
+/* El envío gratis del anticipado se ve aunque esa opción no esté elegida:
+   es justo cuando hay que verlo, para que la comparación tenga sentido. */
+.pbtn small.pb-gratis,.pbtn.is-on small.pb-gratis{color:#7fc7ae;font-weight:500;
+  letter-spacing:.04em}
 
 /* escritorio */
 @media(min-width:700px){
@@ -340,9 +658,29 @@ body.sheet-open{overflow:hidden}
   .trust div+div{border-top:0;border-left:1px solid var(--line)}
   .trust div:nth-child(n+4){border-top:1px solid var(--line)}
   .trust div:nth-child(4){border-left:0}
-  .sec,.how,.social,.trust-sec{padding:60px 0}
+  .sec,.how,.social,.trust-sec,.cats{padding:60px 0}
   .story{padding:68px 0}
-  .foot-in{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .hero-img img{max-height:72dvh}
+  .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
+  .talla-sec,.pe{padding:60px 0}
+  .calc{grid-template-columns:300px 1fr;gap:26px;align-items:start;max-width:none}
+  .fx-box{grid-template-columns:1fr 1fr;max-height:82dvh}
+  .fx-ph{aspect-ratio:auto;border-radius:5px 0 0 5px;min-height:340px}
+  .fx-tx{padding:26px 28px 28px}
+  .fx-cta{grid-template-columns:1fr 1fr}
+  .pe-grid{grid-template-columns:1fr 1fr;gap:20px}
+  .pe-caja{padding:26px 26px 28px}
+  .pc--letras{flex-direction:row}
+  .pc--letras .pc-img{flex:0 0 210px;aspect-ratio:auto;border-radius:3px 0 0 3px}
+  .pc--letras .pc-body{flex:1;padding:18px 20px}
+  .letras-grid{grid-template-columns:repeat(auto-fill,minmax(48px,1fr))}
+  .cats-grid{grid-template-columns:repeat(4,1fr);gap:14px}
+  .guar-in{grid-template-columns:repeat(4,1fr);padding:34px 24px}
+  .rail{grid-auto-columns:minmax(200px,1fr);gap:16px;margin:0;padding:2px 0 10px}
+  .rail-btn{display:flex}
+  .rail-hint{display:none}
+  .foot-in{grid-template-columns:1.3fr 1fr 1fr;gap:44px}
+  .foot-bot{padding:18px 24px 0}
   .sheet{left:auto;right:24px;bottom:calc(var(--dock) + 12px);width:380px;border-radius:8px;
     max-height:min(78dvh,640px)}
   .dock{padding:0 24px}
@@ -358,9 +696,8 @@ body.sheet-open{overflow:hidden}
 <div class="ann" aria-label="Avisos">
   <div class="ann-track">
     <div class="ann-slide">✦ <b>Promo de la semana:</b> brazalete + 3 charms = 30% OFF en el brazalete</div>
-    <div class="ann-slide">🚚 Envíos a toda Colombia · <b>gratis desde $180.000</b> · Pago contraentrega disponible</div>
+    <div class="ann-slide">🚚 Envío a toda Colombia <b>$15.000</b> anticipado · <b>$25.000</b> contraentrega · <b>gratis desde $180.000</b></div>
     <div class="ann-slide">Instagram oficial verificado · <b>@zephora_charms</b> <svg class="vf" viewBox="0 0 24 24" width="14" height="14" aria-label="Verificada"><circle cx="12" cy="12" r="11" fill="#fff"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#5C3D63" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div class="ann-slide">✦ <b>Promo de la semana:</b> brazalete + 3 charms = 30% OFF en el brazalete</div>
   </div>
 </div>
 
@@ -369,9 +706,11 @@ body.sheet-open{overflow:hidden}
     <a class="brand" href="#top">Zephora <em>Charms</em></a>
     <nav class="tnav">
       <a href="#promo">Promo</a>
+      <a href="#categorias">Categorías</a>
       <a href="#brazaletes">Brazaletes</a>
       <a href="#charms">Charms</a>
-      <a href="#historia">La marca</a>
+      <a href="#talla">Tallas</a>
+      <a href="#pagos">Pagos y envío</a>
     </nav>
   </div>
 </header>
@@ -381,19 +720,19 @@ body.sheet-open{overflow:hidden}
 <!-- 1 · HERO -->
 <section class="hero wrap">
   <div class="hero-in">
-    <div class="hero-img">
-      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp" alt="Pulsera Zephora armada con charms en plata 925" width="502" height="900" fetchpriority="high" decoding="async">
-    </div>
     <div>
       <span class="eyebrow">Joyería con significado · Colombia</span>
       <h1>Diseña una historia<br><i>tan única como tú</i></h1>
       <p class="hero-sub">Joyería personalizada con charms elaborados en Plata Esterlina 925 verificada y brazaletes con acabado de alta calidad en baño de plata, compatibles con Pandora.</p>
       <p class="hero-badges"><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="dot">·</span><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span><span class="hero-badge-n">+2.400 pulseras creadas</span></p>
       <div class="hero-cta">
-        <a class="btn btn--wa btn--big" href="https://wa.me/573018990672?text=Hola%21%20Quiero%20ayuda%20para%20dise%C3%B1ar%20mi%20pulsera%20%F0%9F%92%9C">💬 Diseñar mi pulsera por WhatsApp</a>
+        <a class="btn btn--wa btn--big" data-wa="hero" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20web%20y%20quiero%20dise%C3%B1ar%20mi%20pulsera%20personalizada.%20%C2%BFMe%20pueden%20asesorar%20con%20los%20charms%20y%20la%20talla%3F">💬 Diseñar mi pulsera por WhatsApp</a>
         <a class="btn btn--ghost" href="#brazaletes">Ver brazaletes y charms</a>
       </div>
       <p class="hero-hint">O ármala tú misma aquí abajo — el precio se calcula solo, con la promo incluida.</p>
+    </div>
+    <div class="hero-img">
+      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp" alt="Pulsera Zephora armada con charms en plata 925" width="502" height="900" fetchpriority="high" decoding="async">
     </div>
   </div>
 </section>
@@ -402,10 +741,11 @@ body.sheet-open{overflow:hidden}
 <div class="bens">
   <div class="bens-in">
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5.3 5.5.6-4.2 3.8 1.2 5.6L12 14.5 7 17.3l1.2-5.6L4 7.9l5.5-.6z"/></svg><span><b>Charms en Plata Esterlina 925</b> verificada, con sello grabado</span></div>
-    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Brazaletes de alta calidad</b> con elegante acabado en baño de plata</span></div>
+    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Libres de níquel y plomo</b> — aptos para pieles sensibles</span></div>
+    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Brazaletes</b> en latón de calidad joyería con baño de plata certificado y capa protectora e-coating</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/></svg><span><b>Compatibles con charms Pandora</b> — combina con los que ya tienes</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9.5A4 4 0 0112 8a4 4 0 017 2.5C19 15.7 12 20 12 20z"/></svg><span><b>Personalización total:</b> tú eliges cada pieza de tu historia</span></div>
-    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg><span><b>Envíos a toda Colombia</b> con opción contraentrega — gratis desde $180.000</span></div>
+    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg><span><b>Envío a toda Colombia:</b> $15.000 anticipado o $25.000 contraentrega — gratis desde $180.000</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 01-13.5 7.8L3 21l1.2-4.5A9 9 0 1121 12z"/><path d="M9 10c.5 2 2.5 4 4.5 4.5l1.5-1.5 2.5 1.5c-.5 1.5-2 2-3.5 1.5C11 15 8.5 12.5 7.5 9.5 7 8 7.5 6.5 9 6l1.5 2.5z" fill="#5C3D63" stroke="none" opacity=".85"/></svg><span><b>Asesoría de talla por WhatsApp,</b> de persona a persona</span></div>
   </div>
 </div>
@@ -417,6 +757,41 @@ body.sheet-open{overflow:hidden}
     <h2>Brazalete + 3 charms =<br>30% menos en el brazalete</h2>
     <p>Y por llevar 3 charms, estos también bajan <b>15%</b>. Llévala completa <b>desde $206.350</b> — el descuento se aplica solo mientras la armas, sin códigos ni letra pequeña.</p>
     <a class="btn btn--wa" href="#armar">Armar la mía con descuento</a>
+  </div>
+</section>
+
+<!-- 3b · COMPRA POR CATEGORÍA -->
+<section class="cats wrap" id="categorias">
+  <div class="sec-head sec-head--c">
+    <span class="eyebrow">86 charms en Plata 925</span>
+    <h2>Compra por categoría</h2>
+    <p>Elige el mundo que cuenta tu historia. Cada categoría abre el catálogo filtrado, listo para agregar a tu pulsera.</p>
+  </div>
+  <div class="cats-grid">
+    <a class="cat" href="#charms" data-cat="Símbolos">
+      <div class="cat-ph"><img src="assets/angel-guardian.webp" alt="Charm Ángel Guardián en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Símbolos<small>31 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Disney">
+      <div class="cat-ph"><img src="assets/mickey-mouse.webp" alt="Charm Mickey Mouse en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Disney<small>15 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Zodiaco">
+      <div class="cat-ph"><img src="assets/leo.webp" alt="Charm signo Leo en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Zodiaco<small>12 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Marvel">
+      <div class="cat-ph"><img src="assets/iron-man.webp" alt="Charm de Iron Man en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Marvel<small>9 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Pixar">
+      <div class="cat-ph"><img src="assets/buzz-lightyear.webp" alt="Charm Buzz Lightyear en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Pixar<small>5 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Profesiones">
+      <div class="cat-ph"><img src="assets/charm-medicina.webp" alt="Charm de Medicina en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Profesiones<small>4 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Clips">
+      <div class="cat-ph"><img src="assets/clip-mariposas-de-colores.webp" alt="Clip de Mariposas de Colores en Plata 925" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Clips<small>4 charms</small></div></a>
+    <a class="cat" href="#charms" data-cat="Muranos">
+      <div class="cat-ph"><img src="assets/bola-rosa-con-flores.webp" alt="Charm murano Bola Rosa con Flores" width="440" height="440" loading="lazy" decoding="async"></div>
+      <div class="cat-label">Muranos<small>3 charms</small></div></a>
   </div>
 </section>
 
@@ -435,6 +810,34 @@ body.sheet-open{overflow:hidden}
       <p>Mide tu muñeca, súmale 2 cm y listo — o por WhatsApp lo resolvemos contigo.</p></div>
     <div class="step"><span class="step-n">Paso 4</span><b>Recibe y paga en casa</b>
       <p>En cualquier ciudad de Colombia, con opción de pago contraentrega.</p></div>
+  </div>
+</section>
+
+<!-- 4b · CALCULADORA DE TALLA -->
+<section class="talla-sec" id="talla">
+  <div class="wrap">
+    <div class="sec-head sec-head--c">
+      <span class="eyebrow">Guía de tallas</span>
+      <h2>¿Qué talla es la mía?</h2>
+      <p>Mide tu muñeca ajustada con un metro de costura o una tira de papel, escríbela aquí y te decimos qué talla pedir y cuántos charms te caben en cada una.</p>
+    </div>
+    <div class="calc">
+      <div class="calc-in">
+        <label for="muneca">Medida de tu muñeca</label>
+        <div class="calc-campo">
+          <input type="number" id="muneca" min="10" max="26" step="0.5" inputmode="decimal" placeholder="17" aria-describedby="calc-hint">
+          <span>cm</span>
+        </div>
+        <p class="calc-hint" id="calc-hint">Ajustada, sin apretar. Acepta medios centímetros: 16,5</p>
+      </div>
+      <div class="calc-out" id="calc-out" aria-live="polite">
+        <p class="calc-vacia">Escribe tu medida y te mostramos las cinco tallas con lo que cabe en cada una.</p>
+      </div>
+    </div>
+    <div class="porque">
+      <h3>¿Por qué se le suman 2 cm?</h3>
+      <p>No es sobrante vacío. Cuando la pulsera se llena de charms, el grosor de las piezas se come el diámetro interior útil de la cadena —unos 2 cm—. Esos 2 cm son justo el espacio que van a ocupar tus charms para que la pulsera cierre cómoda en tu muñeca real.</p>
+    </div>
   </div>
 </section>
 
@@ -517,12 +920,18 @@ body.sheet-open{overflow:hidden}
 <!-- 5b · CHARMS DESTACADOS -->
 <section class="sec" id="charms">
   <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Paso dos</span>
-      <h2>Los charms favoritos</h2>
-      <p>Elaborados en Plata Esterlina 925 verificada. Estos son los que más eligen nuestras clientas — y si buscas algo específico, el catálogo completo está a un toque.</p>
+    <div class="sec-top">
+      <div class="sec-head">
+        <span class="eyebrow">Paso dos</span>
+        <h2>Los charms favoritos</h2>
+        <p>Elaborados en Plata Esterlina 925 verificada. Estos son los que más eligen nuestras clientas — y si buscas algo específico, el catálogo completo está a un toque.</p>
+      </div>
+      <button class="link-all" type="button" id="ver-todos">Ver todos</button>
     </div>
-    <div class="grid"><article class="pc pc--top" data-id="mickey-mouse" data-g="Disney">
+    <div class="rail-wrap">
+    <button class="rail-btn rail-btn--prev" type="button" id="rail-prev" aria-label="Charms anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="rail-btn rail-btn--next" type="button" id="rail-next" aria-label="Más charms"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+    <div class="rail" id="rail-top"><article class="pc pc--top" data-id="mickey-mouse" data-g="Disney">
 <div class="pc-img"><img src="assets/mickey-mouse.webp" alt="Mickey Mouse" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Mickey Mouse</h3><p class="pc-meta">Disney Clásico</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="mickey-mouse" aria-label="Agregar Mickey Mouse">Agregar</button></div></div></article>
@@ -554,11 +963,18 @@ body.sheet-open{overflow:hidden}
 <div class="pc-img"><img src="assets/osito-pave-con-corazon.webp" alt="Osito Pavé con Corazón" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Osito Pavé con Corazón</h3><p class="pc-meta">Dije colgante</p>
 <div class="pc-foot"><span class="pc-price">$80.000</span><button class="pc-add" type="button" data-add="osito-pave-con-corazon" aria-label="Agregar Osito Pavé con Corazón">Agregar</button></div></div></article></div>
+    </div>
+    <p class="rail-hint">Desliza para ver más →</p>
     <div class="more-wrap">
-      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver los 86 charms</button>
+      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver el catálogo completo · 86 charms</button>
     </div>
     <div id="full-cat" hidden>
-      <div class="filters" id="filters"><button class="fbtn is-on" type="button" data-f="todos">Todos</button><span class="fgroup">Personajes</span><button class="fbtn" type="button" data-f="Disney">Disney</button><button class="fbtn" type="button" data-f="Pixar">Pixar</button><button class="fbtn" type="button" data-f="Marvel">Marvel</button><span class="fgroup">Clásicos</span><button class="fbtn" type="button" data-f="Zodiaco">Zodiaco</button><button class="fbtn" type="button" data-f="Símbolos">Símbolos</button><button class="fbtn" type="button" data-f="Profesiones">Profesiones</button><button class="fbtn" type="button" data-f="Muranos">Muranos</button><button class="fbtn" type="button" data-f="Clips">Clips</button><button class="fbtn" type="button" data-f="Cadenas">Cadenas</button></div>
+      <div class="buscar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+        <input type="search" id="q" placeholder="Buscar un charm por nombre…" aria-label="Buscar un charm por nombre" autocomplete="off">
+        <button class="buscar-x" type="button" id="q-x" aria-label="Borrar búsqueda" hidden>✕</button>
+      </div>
+      <div class="filters" id="filters"><button class="fbtn is-on" type="button" data-f="todos">Todos</button><span class="fgroup">Personajes</span><button class="fbtn" type="button" data-f="Disney">Disney</button><button class="fbtn" type="button" data-f="Pixar">Pixar</button><button class="fbtn" type="button" data-f="Marvel">Marvel</button><span class="fgroup">Clásicos</span><button class="fbtn" type="button" data-f="Zodiaco">Zodiaco</button><button class="fbtn" type="button" data-f="Símbolos">Símbolos</button><button class="fbtn" type="button" data-f="Profesiones">Profesiones</button><button class="fbtn" type="button" data-f="Muranos">Muranos</button><button class="fbtn" type="button" data-f="Clips">Clips</button><button class="fbtn" type="button" data-f="Cadenas">Cadenas</button><button class="fbtn" type="button" data-f="Letras">Letras</button><span class="fgroup">Stock</span><button class="fbtn fbtn--disp" type="button" id="solo-disp" aria-pressed="false">Solo disponibles</button></div>
       <div class="grid" id="resto-grid"><article class="pc" data-id="minnie-mouse" data-g="Disney">
 <div class="pc-img"><img src="assets/minnie-mouse.webp" alt="Minnie Mouse" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Minnie Mouse</h3><p class="pc-meta">Disney Clásico</p>
@@ -592,9 +1008,13 @@ body.sheet-open{overflow:hidden}
 <div class="pc-body"><h3 class="pc-name">Olaf de Frozen</h3><p class="pc-meta">Frozen</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="olaf-de-frozen" aria-label="Agregar Olaf de Frozen">Agregar</button></div></div></article>
 <article class="pc" data-id="stitch-azul" data-g="Disney">
-<div class="pc-img"><img src="assets/stitch-azul.webp" alt="Stitch Azul" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name">Stitch Azul</h3><p class="pc-meta">Lilo &amp; Stitch</p>
-<div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="stitch-azul" aria-label="Agregar Stitch Azul">Agregar</button></div></div></article>
+<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">S</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name">Stitch Plateado</h3><p class="pc-meta">Lilo &amp; Stitch</p>
+<div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="stitch-azul" aria-label="Agregar Stitch Plateado">Agregar</button></div></div></article>
+<article class="pc" data-id="cenicienta" data-g="Disney">
+<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">C</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name">Cenicienta</h3><p class="pc-meta">Princesas Disney</p>
+<div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="cenicienta" aria-label="Agregar Cenicienta">Agregar</button></div></div></article>
 <article class="pc" data-id="angel" data-g="Disney">
 <div class="pc-img"><img src="assets/angel.webp" alt="Angel" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Angel</h3><p class="pc-meta">Lilo &amp; Stitch</p>
@@ -743,10 +1163,17 @@ body.sheet-open{overflow:hidden}
 <div class="pc-img"><img src="assets/mariposas-tricolor-colgantes.webp" alt="Mariposas Tricolor Colgantes" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Mariposas Tricolor Colgantes</h3><p class="pc-meta">Dije colgante</p>
 <div class="pc-foot"><span class="pc-price">$72.000</span><button class="pc-add" type="button" data-add="mariposas-tricolor-colgantes" aria-label="Agregar Mariposas Tricolor Colgantes">Agregar</button></div></div></article>
-<article class="pc" data-id="charms-de-letras-pave" data-g="Símbolos">
+<article class="pc" data-id="corazon-mama-e-hija" data-g="Símbolos">
+<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">M</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name">Corazón Mamá e Hija</h3><p class="pc-meta">Dije colgante</p>
+<div class="pc-foot"><span class="pc-price">$68.000</span><button class="pc-add" type="button" data-add="corazon-mama-e-hija" aria-label="Agregar Corazón Mamá e Hija">Agregar</button></div></div></article>
+<article class="pc pc--letras" data-id="letras" data-g="Letras">
 <div class="pc-img"><img src="assets/charms-de-letras-pave.webp" alt="Charms de Letras Pavé" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name">Charms de Letras Pavé</h3><p class="pc-meta">A</p>
-<div class="pc-foot"><span class="pc-price">$76.000</span><button class="pc-add" type="button" data-add="charms-de-letras-pave" aria-label="Agregar Charms de Letras Pavé">Agregar</button></div></div></article>
+<div class="pc-body"><h3 class="pc-name">Charms de letras en Plata 925</h3>
+<p class="pc-meta">27 iniciales · $76.000 cada una</p>
+<p class="letras-ayuda">Toca la inicial que quieras agregar a tu pulsera.</p>
+<div class="letras-grid" id="letras-grid" role="group" aria-label="Elegir inicial"></div>
+</div></article>
 <article class="pc" data-id="avion-globo-y-pasaporte" data-g="Símbolos">
 <div class="pc-img"><img src="assets/avion-globo-y-pasaporte.webp" alt="Avión, Globo y Pasaporte" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Avión, Globo y Pasaporte</h3><p class="pc-meta">Dije viajero</p>
@@ -916,6 +1343,44 @@ body.sheet-open{overflow:hidden}
   </div>
 </section>
 
+<!-- 7b · PAGOS Y ENTREGA -->
+<section class="pe wrap" id="pagos">
+  <div class="sec-head sec-head--c">
+    <span class="eyebrow">Sin sorpresas</span>
+    <h2>Cómo pagas y cuándo llega</h2>
+  </div>
+  <div class="pe-grid">
+    <div class="pe-caja">
+      <h3>Medios de pago</h3>
+      <p>Elige el que te quede cómodo. Lo confirmamos por chat antes de que pagues.</p>
+      <!-- Los siete primeros se pagan en la web. Addi va aparte: la cuenta es
+           nuestra pero no está habilitada dentro de la pasarela, así que se
+           coordina por chat. Se dice cuál es cuál en vez de mezclarlos: una
+           clienta que elige Addi esperando pagarlo aquí y no lo encuentra es
+           una venta perdida en el último paso. -->
+      <ul class="pe-lista">
+        <li>Bancolombia</li><li>Nequi</li><li>Daviplata</li><li>PSE</li>
+        <li>Tarjeta de crédito</li><li>Tarjeta débito</li><li>Hasta 36 cuotas</li>
+        <li>Contraentrega</li>
+      </ul>
+      <p class="pe-pie"><b>¿Prefieres Addi?</b> También trabajamos con Addi a cuotas;
+        ese se coordina por <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">WhatsApp</a> y no desde el botón de pago.</p>
+      <p class="pe-pie">No emitimos factura electrónica; con tu pedido va el comprobante digital de compra.</p>
+    </div>
+    <div class="pe-caja">
+      <h3>Tiempos de entrega</h3>
+      <p>Enviamos por <b>Inter Rapidísimo</b> a todo el país, con número de guía.</p>
+      <table class="pe-tabla">
+        <tr><th>Destino</th><th>Llega en</th></tr>
+        <tr><td>Bogotá y municipios cercanos</td><td>1 – 2 días hábiles</td></tr>
+        <tr><td>Ciudades principales<br>Medellín, Cali, Barranquilla…</td><td>2 – 4 días hábiles</td></tr>
+        <tr><td>Resto del país y reexpedidos</td><td>3 – 6 días hábiles</td></tr>
+      </table>
+      <p class="pe-pie">Días hábiles contados desde el despacho. Te mandamos la guía por WhatsApp o correo para que sigas tu pedido.</p>
+    </div>
+  </div>
+</section>
+
 <!-- 8 · CONFIANZA -->
 <section class="trust-sec">
   <div class="wrap">
@@ -933,18 +1398,66 @@ body.sheet-open{overflow:hidden}
     </div>
     <div class="help">
       <p>¿Tienes dudas antes de pedir? Nuestro equipo te responde de forma personal, sin bots.</p>
-      <a class="btn btn--wa" href="https://wa.me/573018990672?text=Hola%21%20Busco%20un%20regalo%20y%20no%20s%C3%A9%20cu%C3%A1l%20elegir">Hablar con nosotras</a>
+      <a class="btn btn--wa" data-wa="asesoria-regalo" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Busco%20un%20regalo%20y%20quisiera%20asesor%C3%ADa%20para%20elegir%20la%20pulsera%20y%20los%20charms%20indicados.">Hablar con nosotras</a>
     </div>
   </div>
 </section>
 
 </main>
 
+<!-- FRANJA DE GARANTÍAS -->
+<div class="guar">
+  <div class="guar-in">
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5.3 5.5.6-4.2 3.8 1.2 5.6L12 14.5 7 17.3l1.2-5.6L4 7.9l5.5-.6z"/></svg>
+      <span>Plata Esterlina 925 verificada</span>
+    </div>
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/></svg>
+      <span>Compatibles con Pandora</span>
+    </div>
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9.5A4 4 0 0112 8a4 4 0 017 2.5C19 15.7 12 20 12 20z"/></svg>
+      <span>Libres de níquel y plomo</span>
+    </div>
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></svg>
+      <span>Garantía de 30 días</span>
+    </div>
+    <div>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg>
+      <span>Envío nacional desde $15.000 · gratis desde $180.000</span>
+    </div>
+  </div>
+</div>
+
 <footer class="foot">
   <div class="wrap foot-in">
-    <a class="brand" href="#top">Zephora <em>Charms</em></a>
-    <p><a href="https://wa.me/573018990672">WhatsApp</a> · <a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
-    <p>Charms en Plata 925 · Brazaletes con baño de plata · Envíos a toda Colombia</p>
+    <div class="foot-brand">
+      <a class="brand" href="#top">Zephora <em>Charms</em></a>
+      <p>Joyería con significado: charms elaborados en Plata Esterlina 925 verificada y brazaletes con elegante acabado en baño de plata, compatibles con Pandora. Enviamos a toda Colombia.</p>
+    </div>
+    <div>
+      <h3>Contáctanos</h3>
+      <p class="foot-line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Horario de atención:<br>lunes a sábado, 9:00 a.m. – 6:00 p.m.</span></p>
+      <p class="foot-line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 01-13.5 7.8L3 21l1.2-4.5A9 9 0 1121 12z"/></svg><a data-wa="pie" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Vengo%20de%20la%20p%C3%A1gina%20web%20y%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20pulseras%20y%20charms.">WhatsApp +57 301 899 0672</a></p>
+      <p class="foot-line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 8l9 6 9-6"/></svg><a href="mailto:zephoracharms@gmail.com">zephoracharms@gmail.com</a></p>
+      <p class="foot-line"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="14" height="14" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
+    </div>
+    <div>
+      <h3>Información</h3>
+      <ul class="foot-list">
+        <li><a href="preguntas-frecuentes.html">Preguntas frecuentes</a></li>
+        <li><a href="envios-y-devoluciones.html">Envíos y devoluciones</a></li>
+        <li><a href="politica-de-privacidad.html">Política de privacidad</a></li>
+        <li><a href="terminos-y-condiciones.html">Términos y condiciones</a></li>
+        <li><a href="politica-de-cookies.html">Política de cookies</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bot">
+    <span>© 2024–<span id="year">2026</span> Zephora Charms · NIT 1.019.151.696-3 · Bogotá D.C., Colombia</span>
+    <span>Tienda virtual · Charms en Plata 925 · Brazaletes con baño de plata</span>
   </div>
 </footer>
 
@@ -954,18 +1467,36 @@ body.sheet-open{overflow:hidden}
   <div class="sheet-grab" aria-hidden="true"></div>
   <div class="sheet-head"><b>Tu selección</b>
     <button class="sheet-x" type="button" id="sheet-x" aria-label="Cerrar">✕</button></div>
+  <!-- Una sola zona que rueda. Antes el bloque de abajo era fijo y tan alto
+       que a la lista de piezas le quedaban 65 px: con cuatro piezas se veía
+       una. La clienta llegaba a pagar $200.000 sin poder ver qué llevaba. -->
+  <div class="sheet-scroll" id="sheet-scroll">
   <div class="sheet-body" id="sheet-body"></div>
-  <div class="sheet-tot">
+  <div class="sheet-extras">
     <label class="pack"><input type="checkbox" id="pack"> <span>Empaque Premium de Regalo <b>+$40.000</b></span></label>
+    <div class="pago" id="pago" role="radiogroup" aria-label="Forma de pago">
+      <!-- El costo de envío de cada opción lo escribe render(): con el carrito
+           por encima del umbral, el anticipado dice «Gratis» y la contraentrega
+           mantiene su tarifa. Fijarlos en el HTML los dejaría mintiendo. -->
+      <button class="pbtn is-on" type="button" data-pago="anticipado" role="radio" aria-checked="true">
+        Pago anticipado<small id="pb-ant">Envío $15.000</small></button>
+      <button class="pbtn" type="button" data-pago="contraentrega" role="radio" aria-checked="false">
+        Contraentrega<small id="pb-con">Envío $25.000</small></button>
+    </div>
     <div class="tot-row"><span id="l-b">Brazalete</span><span id="v-b">—</span></div>
     <div class="tot-row"><span id="l-c">Charms</span><span id="v-c">—</span></div>
     <div class="tot-row save" id="row-save" hidden><span>Descuento promo</span><span id="v-save">—</span></div>
     <div class="tot-row"><span>Envío</span><span id="v-ship">—</span></div>
     <div class="ship-bar" id="ship-bar"><i></i></div>
     <p class="ship-note" id="ship-note"></p>
+    <p class="stock-nota"><span id="stock-fecha"></span></p>
+  </div>
+  </div>
+  <!-- Fijo abajo: solo lo que decide la compra. -->
+  <div class="sheet-tot">
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
-    <button class="btn btn--wa" type="button" id="send">Pedir por WhatsApp</button>
-    <p class="sheet-note">Te confirmamos disponibilidad y entrega por chat antes de que pagues.</p>
+    <button class="btn btn--pagar" type="button" id="send">Finalizar compra</button>
+    <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</p>
   </div>
 </aside>
 
@@ -977,15 +1508,89 @@ body.sheet-open{overflow:hidden}
   <button class="dock-open" type="button" id="dock-open" aria-expanded="false">Ver detalle
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 15l6-6 6 6"/></svg>
   </button>
-  <button class="btn btn--wa" type="button" id="dock-send">Pedir</button>
+  <button class="btn btn--pagar" type="button" id="dock-send">Comprar</button>
+</div>
+
+<div class="fx" id="ficha" hidden role="dialog" aria-modal="true" aria-labelledby="fx-n">
+  <div class="fx-box">
+    <button class="fx-x" type="button" id="fx-x" aria-label="Cerrar">✕</button>
+    <div class="fx-ph" id="fx-ph"></div>
+    <div class="fx-tx">
+      <p class="eyebrow" id="fx-tipo"></p>
+      <h3 id="fx-n"></h3>
+      <p class="fx-p" id="fx-p"></p>
+      <p class="fx-est" id="fx-est"></p>
+      <dl class="fx-specs" id="fx-specs"></dl>
+      <p class="fx-nota" id="fx-nota"></p>
+      <div class="fx-cta">
+        <button class="btn" type="button" id="fx-add">Agregar</button>
+        <a class="btn btn--ghost" id="fx-wa" data-wa="ficha">Preguntar por esta pieza</a>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
 (function(){
 const WA='573018990672', LIBRE=180000;
-const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 85000}, {"id": "dalmata", "n": "Dálmata", "p": 85000}, {"id": "ariel", "n": "Ariel", "p": 85000}, {"id": "jasmine", "n": "Jasmine", "p": 85000}, {"id": "blancanieves", "n": "Blancanieves", "p": 85000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 85000}, {"id": "elsa", "n": "Elsa", "p": 85000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 85000}, {"id": "stitch-azul", "n": "Stitch Azul", "p": 85000}, {"id": "stitch", "n": "Stitch", "p": 85000}, {"id": "angel", "n": "Angel", "p": 85000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 85000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 85000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 85000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 85000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 85000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 85000}, {"id": "sulley", "n": "Sulley", "p": 85000}, {"id": "walle", "n": "WALL·E", "p": 85000}, {"id": "capitan-america", "n": "Capitán América", "p": 85000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 85000}, {"id": "spider-man", "n": "Spider-Man", "p": 85000}, {"id": "wolverine", "n": "Wolverine", "p": 85000}, {"id": "hulk", "n": "Hulk", "p": 85000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 85000}, {"id": "iron-man", "n": "Iron Man", "p": 85000}, {"id": "deadpool", "n": "Deadpool", "p": 85000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 85000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 78000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 68000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 68000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 68000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 68000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 65000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 65000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 65000}, {"id": "bola-rosa-con-flores", "n": "Bola Rosa con Flores", "p": 72000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 80000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 76000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 84000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 84000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 72000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 76000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 84000}, {"id": "nina-con-arcoiris", "n": "Niña con Arcoíris", "p": 80000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 72000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 72000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 72000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 72000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 72000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 76000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 72000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 72000}, {"id": "charms-de-letras-pave", "n": "Charms de Letras Pavé", "p": 76000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 72000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 72000}, {"id": "bola-roja-remolino", "n": "Bola Roja Remolino", "p": 72000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 72000}, {"id": "virgen-maria", "n": "Virgen María", "p": 76000}, {"id": "bola-azul-con-flor-rosa", "n": "Bola Azul con Flor Rosa", "p": 72000}, {"id": "tortuga-azul-grande", "n": "Tortuga Azul Grande", "p": 72000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 78000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 76000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 72000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 72000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 72000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga \"You Are My Light\"", "p": 72000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 78000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 72000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 72000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 72000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 72000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 82000}, {"id": "aries", "n": "Aries", "p": 76000}, {"id": "tauro", "n": "Tauro", "p": 76000}, {"id": "geminis", "n": "Géminis", "p": 76000}, {"id": "cancer", "n": "Cáncer", "p": 76000}, {"id": "leo", "n": "Leo", "p": 76000}, {"id": "virgo", "n": "Virgo", "p": 76000}, {"id": "libra", "n": "Libra", "p": 76000}, {"id": "escorpio", "n": "Escorpio", "p": 76000}, {"id": "sagitario", "n": "Sagitario", "p": 76000}, {"id": "capricornio", "n": "Capricornio", "p": 76000}, {"id": "acuario", "n": "Acuario", "p": 76000}, {"id": "piscis", "n": "Piscis", "p": 76000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 68000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 58000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 58000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 58000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 58000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 68000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 58000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 78000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 68000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 68000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 78000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 68000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 58000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 68000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 78000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 58000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 78000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 58000}]};
+/* Envío con tarifa plana nacional. La contraentrega cuesta más porque la
+   transportadora cobra el recaudo. Gratis a partir de LIBRE en ambos casos. */
+const ENVIO={anticipado:15000, contraentrega:25000};
+/* El envío gratis premia el prepago y solo el prepago. La contraentrega le
+   cuesta a la tienda la comisión de recaudo de la transportadora y el riesgo
+   de que el paquete se devuelva sin cobrar: regalar ese envío es subsidiar la
+   opción más cara. Se dice de frente en el carrito, no en letra chica. */
+const LIBRE_SOLO_ANTICIPADO=true;
+let pago='anticipado';
+const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 85000}, {"id": "dalmata", "n": "Dálmata", "p": 85000}, {"id": "ariel", "n": "Ariel", "p": 85000}, {"id": "jasmine", "n": "Jasmine", "p": 85000}, {"id": "blancanieves", "n": "Blancanieves", "p": 85000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 85000}, {"id": "elsa", "n": "Elsa", "p": 85000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 85000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 85000}, {"id": "stitch", "n": "Stitch", "p": 85000}, {"id": "angel", "n": "Angel", "p": 85000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 85000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 85000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 85000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 85000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 85000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 85000}, {"id": "sulley", "n": "Sulley", "p": 85000}, {"id": "walle", "n": "WALL·E", "p": 85000}, {"id": "capitan-america", "n": "Capitán América", "p": 85000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 85000}, {"id": "spider-man", "n": "Spider-Man", "p": 85000}, {"id": "wolverine", "n": "Wolverine", "p": 85000}, {"id": "hulk", "n": "Hulk", "p": 85000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 85000}, {"id": "iron-man", "n": "Iron Man", "p": 85000}, {"id": "deadpool", "n": "Deadpool", "p": 85000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 85000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 78000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 68000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 68000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 68000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 68000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 65000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 65000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 65000}, {"id": "bola-rosa-con-flores", "n": "Bola Rosa con Flores", "p": 72000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 80000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 76000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 84000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 84000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 72000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 76000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 84000}, {"id": "nina-con-arcoiris", "n": "Niña con Arcoíris", "p": 80000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 72000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 72000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 72000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 72000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 72000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 76000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 72000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 72000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 72000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 72000}, {"id": "bola-roja-remolino", "n": "Bola Roja Remolino", "p": 72000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 72000}, {"id": "virgen-maria", "n": "Virgen María", "p": 76000}, {"id": "bola-azul-con-flor-rosa", "n": "Bola Azul con Flor Rosa", "p": 72000}, {"id": "tortuga-azul-grande", "n": "Tortuga Azul Grande", "p": 72000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 78000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 76000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 72000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 72000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 72000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga \"You Are My Light\"", "p": 72000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 78000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 72000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 72000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 72000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 72000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 82000}, {"id": "aries", "n": "Aries", "p": 76000}, {"id": "tauro", "n": "Tauro", "p": 76000}, {"id": "geminis", "n": "Géminis", "p": 76000}, {"id": "cancer", "n": "Cáncer", "p": 76000}, {"id": "leo", "n": "Leo", "p": 76000}, {"id": "virgo", "n": "Virgo", "p": 76000}, {"id": "libra", "n": "Libra", "p": 76000}, {"id": "escorpio", "n": "Escorpio", "p": 76000}, {"id": "sagitario", "n": "Sagitario", "p": 76000}, {"id": "capricornio", "n": "Capricornio", "p": 76000}, {"id": "acuario", "n": "Acuario", "p": 76000}, {"id": "piscis", "n": "Piscis", "p": 76000}, {"id": "cenicienta", "n": "Cenicienta", "p": 85000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 68000}, {"id": "letra-a", "n": "Letra A", "p": 76000}, {"id": "letra-b", "n": "Letra B", "p": 76000}, {"id": "letra-c", "n": "Letra C", "p": 76000}, {"id": "letra-d", "n": "Letra D", "p": 76000}, {"id": "letra-e", "n": "Letra E", "p": 76000}, {"id": "letra-f", "n": "Letra F", "p": 76000}, {"id": "letra-g", "n": "Letra G", "p": 76000}, {"id": "letra-h", "n": "Letra H", "p": 76000}, {"id": "letra-i", "n": "Letra I", "p": 76000}, {"id": "letra-j", "n": "Letra J", "p": 76000}, {"id": "letra-k", "n": "Letra K", "p": 76000}, {"id": "letra-l", "n": "Letra L", "p": 76000}, {"id": "letra-m", "n": "Letra M", "p": 76000}, {"id": "letra-n", "n": "Letra N", "p": 76000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 76000}, {"id": "letra-o", "n": "Letra O", "p": 76000}, {"id": "letra-p", "n": "Letra P", "p": 76000}, {"id": "letra-q", "n": "Letra Q", "p": 76000}, {"id": "letra-r", "n": "Letra R", "p": 76000}, {"id": "letra-s", "n": "Letra S", "p": 76000}, {"id": "letra-t", "n": "Letra T", "p": 76000}, {"id": "letra-u", "n": "Letra U", "p": 76000}, {"id": "letra-v", "n": "Letra V", "p": 76000}, {"id": "letra-w", "n": "Letra W", "p": 76000}, {"id": "letra-x", "n": "Letra X", "p": 76000}, {"id": "letra-y", "n": "Letra Y", "p": 76000}, {"id": "letra-z", "n": "Letra Z", "p": 76000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 68000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 58000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 58000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 58000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 58000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 68000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 58000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 78000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 68000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 68000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 78000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 68000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 58000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 68000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 78000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 58000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 78000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 58000}]};
 const byId=(a)=>a.reduce((o,x)=>(o[x.id]=x,o),{});
 const CH=byId(DATA.charms), PU=byId(DATA.pulseras);
+const TALLAS=['17','18','19','20','21'];
+/* Medidas promedio por familia de pieza. Son dos datos distintos: lo que mide la
+   pieza y lo que ocupa de cadena —de ahí sale cuántos charms caben—. */
+const FAMILIAS={
+  pasador:{n:'Pasador · charm fijo',mide:'0,8 – 1,2 cm',ocupa:'8 – 10 mm',
+    d:'Se ensarta en la cadena y queda en su lugar, sin colgar.'},
+  colgante:{n:'Dije colgante',mide:'1,5 – 2,5 cm de largo',ocupa:'4 – 6 mm en el aro',
+    d:'Cuelga de la cadena y se mueve con la muñeca. Ocupa poco a lo ancho.'},
+  murano:{n:'Murano de cristal',mide:'0,9 – 1,1 cm',ocupa:'9 – 11 mm',
+    d:'Cristal sobre núcleo de plata. Es la pieza más gruesa: tenlo en cuenta al elegir talla.'},
+  clip:{n:'Clip separador',mide:'0,5 – 0,9 cm',ocupa:'4 – 6 mm',
+    d:'Se ajusta a la cadena y sujeta los charms para que no se corran.'},
+  cadena:{n:'Cadena de seguridad',mide:'',ocupa:'4 – 5 mm por aro · 10 mm en total',
+    d:'Va de extremo a extremo para que los charms no se salgan si el broche se abre.'}
+};
+/* Capacidad según el margen (talla − muñeca). Tramos, no igualdades: una muñeca
+   de 16,5 cm da márgenes fraccionarios y tiene que caer en el tramo correcto. */
+const CAP=[
+  {min:3,  k:'ok',   v:'Holgada',              c:'15 a 20 charms',
+   d:'La llenas completa y cae suelta. Es la ideal si vas a usar sobre todo <b>muranos</b>, que son más gruesos.'},
+  {min:2,  k:'best', v:'La recomendada',       c:'15 a 20 charms',
+   d:'La llenas completa y te queda <b>justa y cómoda</b> en tu medida real.'},
+  {min:1,  k:'warn', v:'Capacidad reducida',   c:'5 a 8 charms',
+   d:'Te sirve si vas a usar pocos charms. Si la llenas más, <b>te va a apretar</b>.'},
+  {min:-99,k:'bad',  v:'No recomendable',      c:'—',
+   d:'Te quedará apretada aun sin charms, o no te cerrará.'}
+];
+const capDe = m => CAP.find(x=>m>=x.min);
+const LETRAS=DATA.charms.filter(c=>/^letra-/.test(c.id)).map(c=>c.id.slice(6));
+
+/* Inventario. Vive en assets/stock.json y no dentro de este archivo, para poder
+   actualizarlo sin tocar el código. Si no carga, STOCK queda null y la página
+   funciona como antes: todo agregable, sin etiquetas ni talla obligatoria. */
+let STOCK=null;
+const inv = id => STOCK ? STOCK[id] : null;
+const unidades = id => { const s=inv(id); return s&&typeof s.stock==='number' ? s.stock : null; };
+const tallasDe = id => { const s=inv(id); return s&&s.tallas ? s.tallas : null; };
+const tallasLibres = id => { const t=tallasDe(id); return t ? Object.keys(t).filter(k=>t[k]>0) : null; };
+/* Sin inventario nada está agotado: ante la duda, no bloqueamos la venta. */
+const agotado = id => {
+  if(!STOCK) return false;
+  const t=tallasLibres(id); if(t) return t.length===0;
+  const u=unidades(id); return u!==null && u<=0;
+};
+/* Tope de unidades por charm, para no vender 5 de algo que tiene 1. */
+const tope = id => { const u=unidades(id); return u===null?Infinity:u; };
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 const ESC=[0,0,.08,.15,.20];
 const escala=n=>n<=0?0:ESC[Math.min(n,4)];
@@ -993,16 +1598,21 @@ const $=s=>document.querySelector(s);
 
 let base=null, sel=[];
 const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
-let icoDone=false;
 
 function imgDe(id){
-  const el=document.querySelector('.pc[data-id="'+id+'"] img');
+  /* las 27 iniciales comparten la foto del bloque de letras */
+  const clave=/^letra-/.test(id)?'letras':id;
+  const el=document.querySelector('.pc[data-id="'+CSS.escape(clave)+'"] img');
   return el?el.src:'';
 }
 
 function fila(id,nombre,meta,precio,quitar){
   const r=document.createElement('div'); r.className='srow';
-  r.innerHTML='<img src="'+imgDe(id)+'" alt="">'+
+  const src=imgDe(id);
+  /* Sin foto va un monograma, no un <img src=""> — eso pedía el HTML otra vez. */
+  const mini = src ? '<img src="'+src+'" alt="">'
+    : '<span class="srow-nof" aria-hidden="true">'+nombre.trim().charAt(0).toUpperCase()+'</span>';
+  r.innerHTML=mini+
     '<div class="srow-n">'+nombre+'<small>'+meta+'</small></div>'+
     '<span class="srow-p">'+cop(precio)+'</span>'+
     '<button class="srow-x" type="button" aria-label="Quitar '+nombre+'">✕</button>';
@@ -1010,13 +1620,247 @@ function fila(id,nombre,meta,precio,quitar){
   return r;
 }
 
+/* ¿Alguna pulsera tiene unidades en esta talla? Sirve para no recomendar una
+   talla que nadie tiene. Sin inventario cargado no opinamos: devuelve true. */
+function tallaEnCatalogo(t){
+  if(!STOCK) return true;
+  return Object.keys(STOCK).some(id=>{
+    const l=tallasLibres(id); return l && l.indexOf(t)>=0;
+  });
+}
+
+function pintarCalculadora(){
+  const caja=document.getElementById('calc-out');
+  const v=parseFloat(String(document.getElementById('muneca').value).replace(',','.'));
+  if(!isFinite(v)||v<=0){
+    caja.innerHTML='<p class="calc-vacia">Escribe tu medida y te mostramos las cinco tallas con lo que cabe en cada una.</p>';
+    return;
+  }
+  caja.innerHTML='';
+  TALLAS.forEach(t=>{
+    const margen=+(Number(t)-v).toFixed(1);
+    const c=capDe(margen);
+    const hay=tallaEnCatalogo(t);
+    const f=document.createElement('div');
+    f.className='tfila tfila--'+c.k;
+    f.innerHTML='<span class="tfila-t">'+t+'<small style="font-size:12px"> cm</small></span>'+
+      '<span class="tfila-v">'+c.v+' · '+c.c+
+        (hay?'':' <span class="tfila-ago">· sin unidades hoy</span>')+'</span>'+
+      '<p class="tfila-d">'+c.d+' <b>Margen '+
+        (margen>0?'+':'')+String(margen).replace('.',',')+' cm</b>.</p>';
+    caja.appendChild(f);
+  });
+}
+
+/* Enlace a WhatsApp para pedir por encargo algo agotado. */
+function waEncargo(nombre){
+  return 'https://wa.me/'+WA+'?text='+encodeURIComponent(
+    'Hola, Zephora Charms. Vi en la página que «'+nombre+'» está agotado. '+
+    '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?');
+}
+
+/* Etiqueta de disponibilidad. Solo dice "últimas unidades" cuando de verdad
+   quedan 1 o 2: no se inventa urgencia donde no la hay. */
+function etiquetaStock(p,id){
+  let vieja=p.querySelector('.pc-stock'); if(vieja) vieja.remove();
+  if(!STOCK) return;
+  /* Justo encima del pie: queda pegada al precio y al botón, que es la
+     información con la que se decide la compra. */
+  const pie=p.querySelector('.pc-foot'); if(!pie) return;
+  const libres=tallasLibres(id), u=unidades(id);
+  let txt='', cero=false;
+  if(libres){
+    if(libres.length===0){ txt='Agotado'; cero=true; }
+    else if(libres.length===1) txt='Última talla';
+  }else if(u!==null){
+    if(u<=0){ txt='Agotado'; cero=true; }
+    else if(u<=2) txt=u===1?'Última unidad':'Últimas 2';
+  }
+  if(!txt) return;
+  const e=document.createElement('p');
+  e.className='pc-stock'+(cero?' pc-stock--0':'');
+  e.textContent=txt;
+  pie.parentNode.insertBefore(e,pie);
+}
+
+/* Panel de tallas dentro de la tarjeta del brazalete. */
+function pintarTallas(p,id){
+  let caja=p.querySelector('.tallas');
+  const disp=tallasLibres(id);
+  if(!disp){ if(caja) caja.remove(); return; }   // sin inventario, sin panel
+  if(!caja){
+    caja=document.createElement('div');
+    caja.className='tallas'; caja.hidden=true;
+    caja.innerHTML='<p class="tallas-t">Elige tu talla</p><div class="tallas-row"></div>'+
+      '<p class="tallas-ayuda">Mide tu muñeca y súmale 2 cm. '+
+      '<a href="#talla">¿Qué talla es la mía?</a></p>';
+    p.querySelector('.pc-body').appendChild(caja);
+  }
+  const fila=caja.querySelector('.tallas-row');
+  fila.innerHTML='';
+  TALLAS.forEach(t=>{
+    const hay=disp.indexOf(t)>=0;
+    const b=document.createElement('button');
+    b.type='button'; b.className='tbtn';
+    b.textContent=t;
+    b.dataset.talla=t; b.dataset.para=id;
+    if(!hay){ b.setAttribute('aria-disabled','true'); b.title='Talla '+t+' cm sin unidades'; }
+    if(base&&base.id===id&&base.talla===t) b.classList.add('is-on');
+    b.setAttribute('aria-label','Talla '+t+' centímetros'+(hay?'':', sin unidades'));
+    fila.appendChild(b);
+  });
+}
+
+function pintarTarjetas(){
+  document.querySelectorAll('.pc').forEach(p=>{
+    const id=p.dataset.id;
+    if(!id||id==='letras') return;
+    const esBrazalete=p.classList.contains('pc--b');
+    const veces=sel.filter(x=>x===id).length;
+    const on=(base&&base.id===id)||veces>0;
+    const sinStock=agotado(id);
+    p.classList.toggle('is-sel',on);
+    p.classList.toggle('is-out',sinStock);
+    etiquetaStock(p,id);
+    if(esBrazalete) pintarTallas(p,id);
+
+    const b=p.querySelector('.pc-add'); if(!b) return;
+    const pie=b.parentNode;
+    let enc=pie.querySelector('.pc-encargo');
+    if(sinStock){
+      b.setAttribute('aria-disabled','true');
+      b.textContent='Agotado';
+      if(!enc){
+        enc=document.createElement('a');
+        enc.className='pc-encargo'; enc.dataset.wa='encargo';
+        enc.textContent='Pedir por encargo';
+        pie.appendChild(enc);
+      }
+      enc.href=waEncargo((esBrazalete?PU[id]:CH[id]).n);
+    }else{
+      b.removeAttribute('aria-disabled');
+      if(enc) enc.remove();
+      if(esBrazalete){
+        b.textContent=on?('Elegido ✓'+(base.talla?' · '+base.talla:'')):'Elegir';
+      }else{
+        const lleno=veces>=tope(id);
+        b.textContent=on?('Agregado'+(veces>1?' ×'+veces:'')):'Agregar';
+        if(lleno&&veces>0){ b.setAttribute('aria-disabled','true'); b.title='No hay más unidades'; }
+        else b.removeAttribute('title');
+      }
+    }
+  });
+}
+
+function pintarLetras(){
+  const g=document.getElementById('letras-grid'); if(!g) return;
+  if(!g.dataset.listo){
+    LETRAS.forEach(L=>{
+      const b=document.createElement('button');
+      b.type='button'; b.className='lbtn'; b.dataset.letra=L;
+      g.appendChild(b);
+    });
+    g.dataset.listo='1';
+  }
+  g.querySelectorAll('.lbtn').forEach(b=>{
+    const id='letra-'+b.dataset.letra;
+    const veces=sel.filter(x=>x===id).length;
+    const sinStock=agotado(id);
+    b.innerHTML=b.dataset.letra.toUpperCase()+
+      (sinStock?'<small>agotada</small>':(veces?'<small>×'+veces+'</small>':''));
+    b.classList.toggle('is-on',veces>0);
+    if(sinStock||veces>=tope(id)) b.setAttribute('aria-disabled','true');
+    else b.removeAttribute('aria-disabled');
+    b.setAttribute('aria-label','Inicial '+b.dataset.letra.toUpperCase()+
+      (sinStock?', agotada':', $76.000'));
+  });
+}
+
+/* ——— ficha de producto ——— */
+let fichaId=null;
+function abrirFicha(id){
+  const esB=!!PU[id], p=esB?PU[id]:CH[id];
+  if(!p) return;
+  fichaId=id;
+  const tarjeta=document.querySelector('.pc[data-id="'+CSS.escape(/^letra-/.test(id)?'letras':id)+'"]');
+  const img=tarjeta&&tarjeta.querySelector('.pc-img img');
+  const inv=STOCK?STOCK[id]:null;
+  const fam=inv&&inv.familia?FAMILIAS[inv.familia]:null;
+
+  $('#fx-ph').innerHTML = img
+    ? '<img src="'+img.src+'" alt="'+p.n.replace(/"/g,'&quot;')+'">'
+    : '<span class="nofoto-m" aria-hidden="true">'+p.n.trim().charAt(0).toUpperCase()+'</span>';
+  $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
+  $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
+  $('#fx-p').textContent = cop(p.p);
+
+  const est=$('#fx-est');
+  if(!STOCK){ est.textContent=''; est.className='fx-est'; }
+  else if(agotado(id)){ est.textContent='Agotado — puedes pedirlo por encargo'; est.className='fx-est fx-est--out'; }
+  else if(esB){
+    const l=tallasLibres(id)||[];
+    est.textContent='Disponible en talla '+l.join(', ')+' cm';
+    est.className='fx-est fx-est--ok';
+  }else{
+    const u=unidades(id);
+    est.textContent = u!==null&&u<=2 ? (u===1?'Queda 1 unidad':'Quedan '+u+' unidades') : 'Disponible';
+    est.className='fx-est'+(u!==null&&u<=2?' fx-est--few':' fx-est--ok');
+  }
+
+  const filas=[];
+  const fila=(k,v)=>filas.push('<div><dt>'+k+'</dt><dd>'+v+'</dd></div>');
+  if(esB){
+    fila('Material','Base de latón de calidad joyería con baño de plata certificado y capa protectora e-coating');
+    fila('Tallas','17 a 21 cm. <a href="#talla" class="talla-link" style="margin:0">¿Cuál es la mía?</a>');
+  }else{
+    fila('Material','Plata Esterlina 925 verificada, con sello grabado');
+    if(fam){
+      fila('Tipo de pieza',fam.n+' — '+fam.d);
+      if(fam.mide) fila('Mide la pieza',fam.mide);
+      fila('Ocupa en la pulsera',fam.ocupa);
+    }
+  }
+  fila('Compatible','Con brazaletes Zephora y con pulseras de sistema modular, incluidas las de Pandora');
+  fila('Sin níquel','Libre de níquel y plomo — apta para pieles sensibles');
+  $('#fx-specs').innerHTML=filas.join('');
+  $('#fx-nota').textContent = esB ? '' : 'Medidas aproximadas por tipo de pieza, no medición individual.';
+
+  const add=$('#fx-add'), sinStock=agotado(id);
+  add.hidden=esB;
+  if(!esB){
+    const lleno=sel.filter(x=>x===id).length>=tope(id);
+    add.textContent = sinStock ? 'Agotado' : (lleno?'Sin más unidades':'Agregar a mi pulsera');
+    if(sinStock||lleno) add.setAttribute('aria-disabled','true'); else add.removeAttribute('aria-disabled');
+  }
+  $('#fx-wa').href = sinStock ? waEncargo(p.n)
+    : 'https://wa.me/'+WA+'?text='+encodeURIComponent(
+        'Hola, Zephora Charms. Estoy viendo «'+p.n+'» en la página y quisiera saber más antes de pedirlo.');
+
+  $('#ficha').hidden=false;
+  document.body.classList.add('sheet-open');
+  $('#fx-x').focus();
+}
+function cerrarFicha(){
+  $('#ficha').hidden=true; fichaId=null;
+  /* El bloqueo de scroll lo comparten la hoja del carrito y la ficha:
+     solo se suelta si la hoja no quedó abierta detrás. */
+  if($('#sheet').getAttribute('aria-hidden')!=='false') document.body.classList.remove('sheet-open');
+}
+$('#fx-x').onclick=cerrarFicha;
+$('#ficha').addEventListener('click',e=>{ if(e.target.id==='ficha') cerrarFicha(); });
+$('#fx-add').addEventListener('click',()=>{
+  if(fichaId&&!bloqueado($('#fx-add'))) { sumarCharm(fichaId); abrirFicha(fichaId); }
+});
+
 function render(){
   const body=$('#sheet-body');
   body.innerHTML='';
   if(!base&&!sel.length){
     body.innerHTML='<p class="s-empty">Aún no has elegido nada.<br>Toca "Elegir" en un brazalete o "Agregar" en un charm.</p>';
   }else{
-    if(base) body.appendChild(fila(base,PU[base].n.replace(/^Pulsera /,''),'Brazalete · Baño de plata',PU[base].p,()=>{base=null;render()}));
+    if(base) body.appendChild(fila(base.id,PU[base.id].n.replace(/^Pulsera /,''),
+      'Brazalete · Baño de plata'+(base.talla?' · Talla '+base.talla+' cm':''),
+      PU[base.id].p,()=>{base=null;render()}));
     const cont={};
     sel.forEach(id=>cont[id]=(cont[id]||0)+1);
     Object.entries(cont).forEach(([id,n])=>{
@@ -1028,14 +1872,25 @@ function render(){
   const nC=sel.length;
   const brutoC=sel.reduce((s,id)=>s+CH[id].p,0);
   const descC=brutoC*escala(nC);
-  const brutoB=base?PU[base].p:0;
+  const brutoB=base?PU[base.id].p:0;
   const descB=(base&&nC>=3)?brutoB*.30:0;
   const pack=document.getElementById('pack').checked?40000:0;
-  const total=brutoC-descC+brutoB-descB+pack;
+  /* El umbral de envío gratis se mide sobre la mercancía, no sobre el total:
+     de lo contrario el propio envío ayudaría a alcanzarlo. */
+  const subtotal=brutoC-descC+brutoB-descB+pack;
   const ahorro=descC+descB;
-  const libre=total>=LIBRE;
+  /* alcanza: llegó al umbral. libre: además le corresponde el beneficio.
+     Se separan para poder decirle a quien eligió contraentrega que ya alcanzó
+     el monto pero el envío gratis es del pago anticipado — callarlo sería
+     prometer algo en la barra de progreso y quitarlo al final. */
+  const alcanza=subtotal>=LIBRE;
+  const libre=alcanza&&(!LIBRE_SOLO_ANTICIPADO||pago==='anticipado');
+  const envio=(subtotal<=0||libre)?0:ENVIO[pago];
+  const total=subtotal+envio;
 
-  $('#l-b').textContent=base?PU[base].n.replace(/^Pulsera /,'Brazalete '):'Brazalete';
+  $('#l-b').textContent=base
+    ? PU[base.id].n.replace(/^Pulsera /,'Brazalete ')+(base.talla?' · '+base.talla+' cm':'')
+    : 'Brazalete';
   $('#v-b').textContent=base?cop(brutoB):'—';
   $('#l-c').textContent=nC?(nC+(nC===1?' charm':' charms')):'Charms';
   $('#v-c').textContent=nC?cop(brutoC):'—';
@@ -1044,36 +1899,55 @@ function render(){
   $('#v-tot').textContent=cop(total);
 
   const ship=$('#v-ship'), nota=$('#ship-note'), barra=$('#ship-bar i');
-  if(total<=0){ ship.textContent='—'; nota.textContent=''; barra.style.width='0'; }
-  else if(libre){
+  if(subtotal<=0){
+    ship.textContent='—'; ship.className='';
+    nota.textContent=''; nota.className='ship-note'; barra.style.width='0';
+  }else if(libre){
     ship.textContent='Gratis'; ship.className='ship-ok';
     nota.textContent='✓ Tu pedido tiene envío gratis a toda Colombia';
     nota.className='ship-note ship-ok'; barra.style.width='100%';
+  }else if(alcanza){
+    /* Alcanzó el monto pero eligió contraentrega. Decírselo aquí, con el
+       ahorro en pesos y un botón que lo aplica, en vez de dejar que descubra
+       en el último paso que el envío gratis no era para él. */
+    ship.textContent=cop(envio); ship.className='';
+    nota.innerHTML='Tu pedido ya pasa de '+cop(LIBRE)+'. El envío gratis aplica al '
+      +'pagar por adelantado: <button type="button" class="ship-cta" id="ship-cta">'
+      +'cámbiate y ahórrate '+cop(envio)+'</button>';
+    nota.className='ship-note ship-casi'; barra.style.width='100%';
   }else{
-    ship.textContent='Se cotiza por ciudad'; ship.className='';
-    nota.textContent='Agrega '+cop(LIBRE-total)+' más y el envío es gratis';
-    nota.className='ship-note'; barra.style.width=Math.min(100,total/LIBRE*100)+'%';
+    ship.textContent=cop(envio); ship.className='';
+    nota.textContent='Agrega '+cop(LIBRE-subtotal)+' más y el envío es gratis'
+      +(LIBRE_SOLO_ANTICIPADO?' con pago anticipado':'');
+    nota.className='ship-note'; barra.style.width=Math.min(100,subtotal/LIBRE*100)+'%';
   }
 
-  document.querySelectorAll('.pc').forEach(p=>{
-    const id=p.dataset.id;
-    const veces=sel.filter(x=>x===id).length;
-    const on=(id===base)||veces>0;
-    p.classList.toggle('is-sel',on);
-    const b=p.querySelector('.pc-add');
-    if(p.classList.contains('pc--b')) b.textContent=on?'Elegido ✓':'Elegir';
-    else b.textContent=on?('Agregado'+(veces>1?' ×'+veces:'')):'Agregar';
-  });
+  /* Cada opción muestra lo que le costaría el envío a ESTE carrito, para que
+     la diferencia se vea antes de elegir y no después. */
+  const ant=$('#pb-ant'), con=$('#pb-con');
+  if(subtotal<=0){
+    ant.textContent='Envío '+cop(ENVIO.anticipado);
+    con.textContent='Envío '+cop(ENVIO.contraentrega);
+    ant.className=''; con.className='';
+  }else{
+    ant.textContent=alcanza?'Envío GRATIS':'Envío '+cop(ENVIO.anticipado);
+    ant.className=alcanza?'pb-gratis':'';
+    con.textContent='Envío '+cop(ENVIO.contraentrega);
+    con.className='';
+  }
+
+  pintarTarjetas();
+  pintarLetras();
 
   const piezas=nC+(base?1:0);
   $('#dock-n').textContent=piezas?piezas+(piezas===1?' pieza':' piezas')+(libre?' · envío gratis':''):'Tu selección está vacía';
   $('#dock-p').textContent=cop(total);
+  guardar();
 }
 
+/* Abrir el detalle ya no dispara InitiateCheckout: ese evento ahora marca
+   el salto a WhatsApp, que es donde de verdad empieza la compra. */
 const abrir=v=>{
-  if(v&&!icoDone&&(base||sel.length)){ icoDone=true;
-    track('InitiateCheckout',{num_items:sel.length+(base?1:0),
-      value:+($('#v-tot').textContent.replace(/[^0-9]/g,''))||0}); }
   document.body.classList.toggle('sheet-open',v);
   $('#sheet').setAttribute('aria-hidden',v?'false':'true');
   $('#dock-open').setAttribute('aria-expanded',v?'true':'false');
@@ -1088,42 +1962,157 @@ $('#dock').addEventListener('keydown',e=>{
 });
 $('#sheet-x').onclick=()=>abrir(false);
 $('#veil').onclick=()=>abrir(false);
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') abrir(false) });
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  if(!$('#ficha').hidden){ cerrarFicha(); return; }   /* la ficha va encima */
+  abrir(false);
+});
 
-function pedir(){
+/* Indicio de que la tarjeta se abre. Se pone una vez, no en cada render. */
+function marcarVerDetalle(){
+  document.querySelectorAll('.pc[data-id]').forEach(p=>{
+    if(p.dataset.id==='letras'||p.querySelector('.pc-ver')) return;
+    const cont=p.querySelector('.pc-img'); if(!cont) return;
+    const e=document.createElement('span');
+    e.className='pc-ver';
+    e.innerHTML='<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.4v.2"/></svg>Ver detalle';
+    cont.appendChild(e);
+  });
+}
+
+/* El carrito se arma aquí y se paga en checkout.html, que es otra página. Se
+   guarda en localStorage para que sobreviva al salto —y para que quien se vaya
+   a mirar otra cosa vuelva y encuentre su pulsera como la dejó—.
+   Si el navegador no deja escribir (modo privado en algunos iOS, cuota llena),
+   no pasa nada: el checkout recibe el mismo pedido por la URL. */
+const LLAVE='zephora.carrito.v1';
+/* Se pone en true en cuanto la clienta toca algo. Hasta entonces, un render()
+   con el carrito vacío no puede pisar lo que hubiera guardado: si recuperar()
+   falla por lo que sea —JSON corrupto, localStorage que no deja leer— el
+   primer render borraría la selección de forma definitiva, y el síntoma sería
+   justo «se me borraron las joyas». */
+let tocado=false;
+function guardar(){
+  if(base||sel.length) tocado=true;   /* desde que hay algo, se persiste todo */
+  if(!tocado) return;                 /* incluido el vaciado deliberado */
+  try{
+    localStorage.setItem(LLAVE,JSON.stringify({
+      v:1, base:base, charms:sel,
+      empaque:document.getElementById('pack').checked,
+      pago:pago, cuando:Date.now()
+    }));
+  }catch(_){}
+}
+function recuperar(){
+  let d=null;
+  try{ d=JSON.parse(localStorage.getItem(LLAVE)||'null'); }catch(_){ return; }
+  if(!d||d.v!==1) return;
+  if(d.base||(Array.isArray(d.charms)&&d.charms.length)) tocado=true;
+  /* Una semana. Más allá, los precios y el inventario ya no son los mismos y
+     devolver un carrito viejo promete algo que puede no existir. */
+  if(!d.cuando||Date.now()-d.cuando>7*24*3600*1000) return;
+  if(d.base&&d.base.id&&PU[d.base.id]) base={id:d.base.id,talla:d.base.talla||null};
+  if(Array.isArray(d.charms)) sel=d.charms.filter(id=>CH[id]);
+  if(d.empaque) document.getElementById('pack').checked=true;
+  if(d.pago==='contraentrega'){
+    const b=document.querySelector('.pbtn[data-pago="contraentrega"]');
+    if(b) b.click();          // click para que el grupo de radio quede coherente
+  }
+}
+
+/* Al checkout con lo que haya en el carrito. */
+function comprar(){
   if(!base&&!sel.length){
     document.getElementById('brazaletes').scrollIntoView({behavior:'smooth'});
     return;
   }
-  const total=$('#v-tot').textContent;
-  const libre=$('#v-ship').textContent==='Gratis';
-  let t='Hola! Quiero pedir esto:\n';
-  if(base) t+='\n· Brazalete '+PU[base].n.replace(/^Pulsera /,'')+' — '+cop(PU[base].p);
-  const cont={};
-  sel.forEach(id=>cont[id]=(cont[id]||0)+1);
-  Object.entries(cont).forEach(([id,n])=>{
-    t+='\n· '+CH[id].n+(n>1?' (x'+n+')':'')+' — '+cop(CH[id].p*n);
-  });
-  if(document.getElementById('pack').checked) t+='\n· Empaque Premium de Regalo — '+cop(40000);
-  t+='\n\nTotal con descuento: '+total;
-  t+=libre?'\nEnvío: gratis':'\nEnvío: por cotizar según mi ciudad';
-  track('Lead',{content_name:'Pedido armador',num_items:sel.length+(base?1:0),
-    value:+total.replace(/[^0-9]/g,'')||0});
-  window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(t),'_blank');
+  tocado=true;
+  guardar();
+  const piezas=sel.length+(base?1:0);
+  const val=+$('#v-tot').textContent.replace(/[^0-9]/g,'')||0;
+  track('InitiateCheckout',{content_name:'Checkout web',num_items:piezas,value:val});
+  location.href='checkout.html';
 }
-$('#send').onclick=pedir;
-$('#dock-send').onclick=pedir;
+
+/* Los dos botones llevan al checkout. El pedido por WhatsApp desde el carrito
+   se retiró: los enlaces de asesoría del resto de la página siguen ahí. */
+$('#send').onclick=comprar;
+$('#dock-send').onclick=comprar;
 document.getElementById('pack').addEventListener('change',render);
+/* El atajo del aviso de envío: aplica el pago anticipado sin que la clienta
+   tenga que buscar el botón. Delegado porque el aviso se repinta en cada render. */
+document.getElementById('ship-note').addEventListener('click',e=>{
+  if(!e.target.closest('#ship-cta')) return;
+  const b=document.querySelector('.pbtn[data-pago="anticipado"]');
+  if(b) b.click();
+});
+document.getElementById('pago').addEventListener('click',e=>{
+  const b=e.target.closest('.pbtn'); if(!b) return;
+  pago=b.dataset.pago;
+  document.querySelectorAll('#pago .pbtn').forEach(x=>{
+    const on=x===b;
+    x.classList.toggle('is-on',on);
+    x.setAttribute('aria-checked',on?'true':'false');
+  });
+  render();
+});
+
+const bloqueado = el => el.getAttribute('aria-disabled')==='true';
+function sumarCharm(id){
+  if(agotado(id)||sel.filter(x=>x===id).length>=tope(id)) return;
+  sel.push(id); render();
+  track('AddToCart',{content_type:'product',content_ids:[id],
+    content_name:CH[id].n,value:CH[id].p});
+}
 
 document.addEventListener('click',e=>{
+  /* La foto y el nombre abren la ficha. El bloque de letras no: cada inicial se
+     agrega desde su propia casilla y no tiene ficha propia. */
+  const ver=e.target.closest('.pc-img, .pc-name');
+  if(ver && !e.target.closest('.pc-add, .tbtn, .lbtn, .pc-encargo')){
+    const t=ver.closest('.pc');
+    if(t && t.dataset.id && t.dataset.id!=='letras'){ abrirFicha(t.dataset.id); return; }
+  }
+
   const add=e.target.closest('[data-add]');
-  if(add){ sel.push(add.dataset.add); render();
-    track('AddToCart',{content_type:'product',content_ids:[add.dataset.add],
-      content_name:CH[add.dataset.add].n,value:CH[add.dataset.add].p}); return; }
+  if(add){ if(!bloqueado(add)) sumarCharm(add.dataset.add); return; }
+
+  const L=e.target.closest('[data-letra]');
+  if(L){ if(!bloqueado(L)) sumarCharm('letra-'+L.dataset.letra); return; }
+
+  /* Elegir talla fija el brazalete; volver a tocarla lo quita. */
+  const t=e.target.closest('[data-talla]');
+  if(t){
+    if(bloqueado(t)) return;
+    const id=t.dataset.para, talla=t.dataset.talla;
+    const igual=base&&base.id===id&&base.talla===talla;
+    base = igual ? null : {id:id,talla:talla};
+    render();
+    if(base) track('AddToCart',{content_type:'product',content_ids:[id],
+      content_name:PU[id].n+' · talla '+talla,value:PU[id].p});
+    return;
+  }
+
   const b=e.target.closest('[data-base]');
-  if(b){ const el=b.dataset.base; const antes=base; base = base===el?null:el; render();
-    if(base&&base!==antes) track('AddToCart',{content_type:'product',content_ids:[base],
-      content_name:PU[base].n,value:PU[base].p}); return; }
+  if(b){
+    if(bloqueado(b)) return;
+    const id=b.dataset.base;
+    const panel=b.closest('.pc').querySelector('.tallas');
+    if(panel){
+      /* Con inventario cargado, el brazalete no entra al carrito sin talla:
+         "Elegir" abre el selector y la talla es la que confirma. */
+      if(base&&base.id===id){ base=null; render(); return; }
+      document.querySelectorAll('.tallas').forEach(x=>{ if(x!==panel) x.hidden=true; });
+      panel.hidden=!panel.hidden;
+      return;
+    }
+    /* Sin inventario: comportamiento de siempre, un toque y listo. */
+    const antes=base&&base.id;
+    base = antes===id ? null : {id:id,talla:null};
+    render();
+    if(base&&base.id!==antes) track('AddToCart',{content_type:'product',content_ids:[id],
+      content_name:PU[id].n,value:PU[id].p});
+  }
 });
 
 /* subfiltro de brazaletes */
@@ -1143,40 +2132,182 @@ document.getElementById('b-filters').addEventListener('click',e=>{
 });
 
 /* catalogo completo */
-$('#more-btn').addEventListener('click',()=>{
-  const full=$('#full-cat');
-  const v=full.hidden;
+const full=$('#full-cat'), moreBtn=$('#more-btn');
+const CERRADO='Ver el catálogo completo · 86 charms';
+function abrirCat(v){
   full.hidden=!v;
-  $('#more-btn').textContent=v?'Ocultar catálogo completo':'Ver los 86 charms';
-  $('#more-btn').setAttribute('aria-expanded',v?'true':'false');
+  moreBtn.textContent=v?'Ocultar catálogo completo':CERRADO;
+  moreBtn.setAttribute('aria-expanded',v?'true':'false');
+}
+moreBtn.addEventListener('click',()=>abrirCat(full.hidden));
+$('#ver-todos').addEventListener('click',()=>{
+  abrirCat(true);
+  full.scrollIntoView({behavior:'smooth',block:'start'});
 });
 
-/* filtros (solo sobre el resto del catalogo) */
+/* filtros del catálogo
+   El conteo suma los destacados del carrusel, que viven fuera de #resto-grid:
+   si no, "Disney" decía 13 cuando en pantalla hay 15. */
 const grid=document.getElementById('resto-grid');
+const destacados=document.getElementById('rail-top');
 const cuenta=document.getElementById('count');
-document.getElementById('filters').addEventListener('click',e=>{
-  const b=e.target.closest('.fbtn'); if(!b) return;
-  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('is-on'));
-  b.classList.add('is-on');
-  const f=b.dataset.f;
+let filtroActual='todos', soloDisp=false, busqueda='';
+/* Sin tildes y en minúscula: quien busca "angel" debe encontrar "Ángel Guardián". */
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+/* El bloque de letras cuenta por las iniciales que ofrece, no como una tarjeta. */
+const cuentaLetras = () => LETRAS.filter(L=>!soloDisp||!agotado('letra-'+L)).length;
+
+function aplicarFiltro(f){
+  filtroActual=f;
+  /* acotado a #filters: sin esto también apagaba el botón activo de #b-filters */
+  document.querySelectorAll('#filters .fbtn:not(.fbtn--disp)').forEach(x=>{
+    x.classList.toggle('is-on',x.dataset.f===f);
+  });
+  const q=norm(busqueda.trim());
   let v=0;
   grid.querySelectorAll('.pc').forEach(p=>{
-    const ok = f==='todos' || p.dataset.g===f;
-    p.hidden=!ok; if(ok) v++;
+    const id=p.dataset.id;
+    const esLetras=id==='letras';
+    const nombre=norm(p.querySelector('.pc-name').textContent);
+    const casa = !q || nombre.indexOf(q)>=0 ||
+      (esLetras && LETRAS.some(L=>norm('letra '+L).indexOf(q)>=0));
+    const ok = casa && (f==='todos'||p.dataset.g===f) &&
+               (esLetras ? (!soloDisp||cuentaLetras()>0) : (!soloDisp||!agotado(id)));
+    p.hidden=!ok;
+    if(ok) v+= esLetras ? cuentaLetras() : 1;
   });
-  cuenta.textContent=f==='todos'?'':v+' charms en esta colección';
+  if(f!=='todos'||q){
+    destacados.querySelectorAll('.pc').forEach(p=>{
+      const id=p.dataset.id;
+      if((f==='todos'||p.dataset.g===f) &&
+         (!q||norm(p.querySelector('.pc-name').textContent).indexOf(q)>=0) &&
+         (!soloDisp||!agotado(id))) v++;
+    });
+  }
+
+  /* Un catálogo en blanco sin explicación parece roto. */
+  let vacio=document.getElementById('sin-res');
+  if(v===0){
+    if(!vacio){
+      vacio=document.createElement('p');
+      vacio.className='sin-res'; vacio.id='sin-res';
+      grid.parentNode.insertBefore(vacio,grid);
+    }
+    vacio.innerHTML='<b>Sin resultados</b>No encontramos charms con esos criterios. '+
+      'Prueba con otra palabra o <a href="'+
+      'https://wa.me/'+WA+'?text='+encodeURIComponent(
+        'Hola, Zephora Charms. Busco un charm que no encontré en la página. ¿Me ayudan?')+
+      '" data-wa="sin-resultados">pregúntanos por WhatsApp</a>.';
+  }else if(vacio) vacio.remove();
+
+  cuenta.textContent = f==='todos' && !soloDisp && !q ? ''
+    : v+(v===1?' charm':' charms')+(q?' encontrados':(soloDisp?' disponibles':' en esta colección'));
+}
+document.getElementById('filters').addEventListener('click',e=>{
+  const d=e.target.closest('.fbtn--disp');
+  if(d){
+    soloDisp=!soloDisp;
+    d.setAttribute('aria-pressed',soloDisp?'true':'false');
+    aplicarFiltro(filtroActual);
+    return;
+  }
+  const b=e.target.closest('.fbtn'); if(!b) return;
+  aplicarFiltro(b.dataset.f);
 });
 
+/* buscador */
+(function(){
+  const q=document.getElementById('q'), x=document.getElementById('q-x');
+  let t=null;
+  q.addEventListener('input',()=>{
+    x.hidden=!q.value;
+    clearTimeout(t);
+    t=setTimeout(()=>{ busqueda=q.value; aplicarFiltro(filtroActual); },140);
+  });
+  x.addEventListener('click',()=>{
+    q.value=''; x.hidden=true; busqueda=''; aplicarFiltro(filtroActual); q.focus();
+  });
+  q.addEventListener('keydown',e=>{ if(e.key==='Escape'&&q.value) x.click(); });
+})();
+
+/* calculadora de talla */
+(function(){
+  const i=document.getElementById('muneca');
+  let t=null;
+  i.addEventListener('input',()=>{ clearTimeout(t); t=setTimeout(pintarCalculadora,180); });
+  i.addEventListener('change',pintarCalculadora);
+})();
+
+/* tarjetas de categoría → abren el catálogo ya filtrado */
+document.querySelectorAll('.cat[data-cat]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    abrirCat(true);
+    aplicarFiltro(a.dataset.cat);
+    full.scrollIntoView({behavior:'smooth',block:'start'});
+    track('ViewContent',{content_type:'product_group',content_name:'Categoría '+a.dataset.cat});
+  });
+});
+
+/* flechas del carrusel de destacados */
+(function(){
+  const rail=document.getElementById('rail-top');
+  const prev=document.getElementById('rail-prev'), next=document.getElementById('rail-next');
+  const paso=()=>Math.max(200,rail.clientWidth*.8);
+  const estado=()=>{
+    prev.disabled = rail.scrollLeft<8;
+    next.disabled = rail.scrollLeft >= rail.scrollWidth-rail.clientWidth-8;
+  };
+  prev.addEventListener('click',()=>rail.scrollBy({left:-paso(),behavior:'smooth'}));
+  next.addEventListener('click',()=>rail.scrollBy({left:paso(),behavior:'smooth'}));
+  rail.addEventListener('scroll',estado,{passive:true});
+  addEventListener('resize',estado);
+  estado();
+})();
+
+/* Todo clic que lleve a WhatsApp cuenta como inicio de compra:
+   el checkout ocurre en el chat, fuera del sitio. */
 document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
-  a.addEventListener('click',()=>track('Contact',{content_name:a.closest('section')?.id||'general'}));
+  a.addEventListener('click',()=>track('InitiateCheckout',{
+    content_name:'WhatsApp · '+(a.dataset.wa||a.closest('section')?.id||'general')
+  }));
 });
 
+document.getElementById('year').textContent=new Date().getFullYear();
+
+/* Antes del primer render: si quedó una pulsera a medio armar de una visita
+   anterior, se pinta ya armada en vez de aparecer y cambiar un instante después.
+   El fetch de inventario que viene abajo la depura contra lo que hay hoy. */
+recuperar();
 render();
+marcarVerDetalle();
+
+/* El inventario llega después de pintar: la página ya es usable sin él, y si
+   falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
+fetch('assets/stock.json',{cache:'no-cache'})
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d||!d.items) return;
+    STOCK=d.items;
+    document.body.classList.add('con-stock');
+    /* Lo que ya estuviera elegido se depura contra el inventario real. */
+    sel=sel.filter(id=>!agotado(id));
+    if(base&&agotado(base.id)) base=null;
+    render();
+    aplicarFiltro(filtroActual);
+    pintarCalculadora();   /* ahora sí puede marcar las tallas sin unidades */
+    if(fichaId) abrirFicha(fichaId);
+    const n=document.getElementById('stock-fecha');
+    if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
+  })
+  .catch(()=>{});
 })();
 </script>
+
 <div class="lb" id="lb" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Foto ampliada">
   <button class="lb-x" type="button" id="lb-x" aria-label="Cerrar">&#10005;</button>
-  <img id="lb-img" src="" alt="">
+  <!-- sin src: el visor lo pone al abrir. Un src="" dispara una petición extra al propio HTML. -->
+  <img id="lb-img" alt="">
 </div>
 
 <script>

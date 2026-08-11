@@ -1,0 +1,8 @@
+{
+  "name": "zephora-charms",
+  "private": true,
+  "description": "Dependencias de las funciones de netlify/functions/. Este archivo NO existía a propósito —pruebas/package.json explica por qué: un package.json en la raíz hace que Netlify instale dependencias en cada build— y esa decisión se deshace aquí a conciencia. Se tomó cuando el proyecto tenía cero dependencias; la reserva de inventario necesita @netlify/blobs dentro de las funciones, y sin declararla el bundler no la incluye, las funciones se caen al arrancar y el sitio deja de cobrar. Sigue sin haber comando de build: netlify.toml mantiene command vacío y el sitio se publica tal cual. Lo único que cambia es que Netlify instala esta dependencia antes de empaquetar las funciones.",
+  "dependencies": {
+    "@netlify/blobs": "^10.7.12"
+  }
+}

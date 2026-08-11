@@ -1,0 +1,831 @@
+{
+ "generado": "2026-08-09",
+ "conteo_inventario": "2026-08-01",
+ "items": {
+  "letra-a": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "letra-b": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "letra-c": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "letra-d": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "letra-e": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "letra-j": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "letra-k": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "letra-l": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "letra-m": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "letra-n": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "letra-o": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "letra-s": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "letra-v": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "aries": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "tauro": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "geminis": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "leo": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "virgo": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "libra": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "escorpio": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "sagitario": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "capricornio": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "piscis": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "charm-medicina": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "charm-psicologia": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "charm-fisioterapia": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "charm-odontologia": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "ariel": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "blancanieves": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "jasmine": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "princesa-bella": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "mickey-mouse": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "minnie-mouse": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "stitch": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "stitch-azul": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "olaf-de-frozen": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "lilo-stitch": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "colgante"
+  },
+  "dalmata": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "jack-sally": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "gato-cheshire": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "buzz-lightyear": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "sulley": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "mike-wazowski": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "hulk": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "iron-man": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "mjolnir-martillo-de-thor": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "escudo-capitan-america": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 3,
+   "familia": "colgante"
+  },
+  "deadpool": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 1,
+   "familia": "pasador"
+  },
+  "spider-man": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "colgante"
+  },
+  "guantelete-del-infinito": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "capitan-america": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "wolverine": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "corazon-de-filigrana": {
+   "tipo": "charm",
+   "precio": 78000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "cadena-seguridad-love-forever": {
+   "tipo": "charm",
+   "precio": 65000,
+   "stock": 3,
+   "familia": "cadena"
+  },
+  "cadena-seguridad-hamsa-y-ojo": {
+   "tipo": "charm",
+   "precio": 65000,
+   "stock": 2,
+   "familia": "cadena"
+  },
+  "cadena-seguridad-luna-y-sol": {
+   "tipo": "charm",
+   "precio": 65000,
+   "stock": 2,
+   "familia": "cadena"
+  },
+  "clip-infinito-con-corazon": {
+   "tipo": "charm",
+   "precio": 68000,
+   "stock": 3,
+   "familia": "clip"
+  },
+  "clip-forever-multicolor": {
+   "tipo": "charm",
+   "precio": 68000,
+   "stock": 2,
+   "familia": "clip"
+  },
+  "clip-orquideas-moradas": {
+   "tipo": "charm",
+   "precio": 68000,
+   "stock": 3,
+   "familia": "clip"
+  },
+  "clip-mariposas-de-colores": {
+   "tipo": "charm",
+   "precio": 68000,
+   "stock": 1,
+   "familia": "clip"
+  },
+  "torre-eiffel-y-camara": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 1,
+   "familia": "colgante"
+  },
+  "avion-globo-y-pasaporte": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 2,
+   "familia": "colgante"
+  },
+  "carrusel-rosado": {
+   "tipo": "charm",
+   "precio": 82000,
+   "stock": 3,
+   "familia": "colgante"
+  },
+  "conejita-con-corazon-rosa": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 4,
+   "familia": "colgante"
+  },
+  "virgen-maria": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 4,
+   "familia": "colgante"
+  },
+  "huella-con-huesito": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "gatito-con-corazon-azul": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "sol-y-luna-con-cristales": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 4,
+   "familia": "colgante"
+  },
+  "bola-roja-remolino": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 3,
+   "familia": "murano"
+  },
+  "bola-rosa-con-flores": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 1,
+   "familia": "murano"
+  },
+  "bola-azul-con-flor-rosa": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 1,
+   "familia": "murano"
+  },
+  "elefantito-rosa": {
+   "tipo": "charm",
+   "precio": 78000,
+   "stock": 1,
+   "familia": "colgante"
+  },
+  "osito-graduacion": {
+   "tipo": "charm",
+   "precio": 84000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "mariposas-tricolor-colgantes": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 3,
+   "familia": "colgante"
+  },
+  "osito-pave-con-corazon": {
+   "tipo": "charm",
+   "precio": 80000,
+   "stock": 3,
+   "familia": "colgante"
+  },
+  "osito-con-rosa-y-corazon": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "flor-azul-con-cristales": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "esfera-azul-con-cristales": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 5,
+   "familia": "murano"
+  },
+  "atrapasuenos-azul": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 7,
+   "familia": "pasador"
+  },
+  "atrapasuenos-corazon-multicolor": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 5,
+   "familia": "pasador"
+  },
+  "pulpo-azul-cristal": {
+   "tipo": "charm",
+   "precio": 84000,
+   "stock": 5,
+   "familia": "colgante"
+  },
+  "caballo-herradura": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 3,
+   "familia": "colgante"
+  },
+  "trebol-verde-giratorio": {
+   "tipo": "charm",
+   "precio": 84000,
+   "stock": 5,
+   "familia": "colgante"
+  },
+  "corazon-arbol-de-la-vida": {
+   "tipo": "charm",
+   "precio": 78000,
+   "stock": 3,
+   "familia": "pasador"
+  },
+  "camaleon-verde": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "manos-orando-con-cruz": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 4,
+   "familia": "colgante"
+  },
+  "angel-guardian": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 2,
+   "familia": "colgante"
+  },
+  "pulsera-copo-de-nieve": {
+   "tipo": "pulsera",
+   "precio": 58000,
+   "tallas": {
+    "18": 2
+   }
+  },
+  "pulsera-corazon-luminoso": {
+   "tipo": "pulsera",
+   "precio": 68000,
+   "tallas": {
+    "19": 1,
+    "20": 1
+   }
+  },
+  "pulsera-trebol-verde": {
+   "tipo": "pulsera",
+   "precio": 58000,
+   "tallas": {
+    "20": 2
+   }
+  },
+  "pulsera-mano-de-hamsa": {
+   "tipo": "pulsera",
+   "precio": 68000,
+   "tallas": {
+    "18": 2,
+    "20": 1
+   }
+  },
+  "pulsera-sol-con-cadena-seguridad": {
+   "tipo": "pulsera",
+   "precio": 78000,
+   "tallas": {
+    "19": 2
+   }
+  },
+  "pulsera-corazon-rosado-con-cadena": {
+   "tipo": "pulsera",
+   "precio": 78000,
+   "tallas": {
+    "19": 1,
+    "21": 1
+   }
+  },
+  "pulsera-corazon-pave": {
+   "tipo": "pulsera",
+   "precio": 68000,
+   "tallas": {
+    "18": 1,
+    "19": 1
+   }
+  },
+  "pulsera-corazon-pave-pequeno": {
+   "tipo": "pulsera",
+   "precio": 58000,
+   "tallas": {
+    "17": 1,
+    "18": 1,
+    "19": 2,
+    "20": 2
+   }
+  },
+  "pulsera-corazon-con-diamante": {
+   "tipo": "pulsera",
+   "precio": 58000,
+   "tallas": {
+    "17": 1,
+    "19": 1,
+    "20": 1,
+    "21": 1
+   }
+  },
+  "pulsera-corazon-liso": {
+   "tipo": "pulsera",
+   "precio": 58000,
+   "tallas": {
+    "17": 2,
+    "18": 2,
+    "19": 2,
+    "20": 2
+   }
+  },
+  "pulsera-clasica-cierre-barril": {
+   "tipo": "pulsera",
+   "precio": 58000,
+   "tallas": {
+    "20": 3,
+    "21": 3
+   }
+  },
+  "pulsera-corona-con-cristales": {
+   "tipo": "pulsera",
+   "precio": 68000,
+   "tallas": {
+    "17": 2,
+    "19": 2,
+    "20": 2
+   }
+  },
+  "pulsera-corona-pave": {
+   "tipo": "pulsera",
+   "precio": 68000,
+   "tallas": {
+    "17": 2,
+    "18": 2,
+    "19": 2,
+    "20": 2
+   }
+  },
+  "pulsera-avengers": {
+   "tipo": "pulsera",
+   "precio": 58000,
+   "tallas": {
+    "20": 1
+   }
+  },
+  "pulsera-mono-rosa-con-cadena": {
+   "tipo": "pulsera",
+   "precio": 78000,
+   "tallas": {
+    "18": 1
+   }
+  },
+  "pulsera-candado-rosa-con-cadena": {
+   "tipo": "pulsera",
+   "precio": 78000,
+   "tallas": {
+    "20": 1
+   }
+  },
+  "elsa": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "angel": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "casa-de-los-globos": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "walle": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 0,
+   "familia": "colgante"
+  },
+  "nina-con-arcoiris": {
+   "tipo": "charm",
+   "precio": 80000,
+   "stock": 0,
+   "familia": "colgante"
+  },
+  "tortuga-marina-cristal": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 0,
+   "familia": "colgante"
+  },
+  "tortuga-azul-grande": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 0,
+   "familia": "colgante"
+  },
+  "libelula-morada": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 0,
+   "familia": "colgante"
+  },
+  "luciernaga-you-are-my-light": {
+   "tipo": "charm",
+   "precio": 72000,
+   "stock": 0,
+   "familia": "colgante"
+  },
+  "cancer": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "acuario": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-f": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-g": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-h": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-i": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-p": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-q": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-r": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-t": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-u": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-w": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-x": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-y": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-z": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "letra-ñ": {
+   "tipo": "charm",
+   "precio": 76000,
+   "stock": 0,
+   "familia": "pasador"
+  },
+  "pulsera-mickey-mouse-pave": {
+   "tipo": "pulsera",
+   "precio": 68000,
+   "tallas": {}
+  },
+  "pulsera-rosa-clasica": {
+   "tipo": "pulsera",
+   "precio": 58000,
+   "tallas": {}
+  },
+  "cenicienta": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 2,
+   "familia": "pasador"
+  },
+  "corazon-mama-e-hija": {
+   "tipo": "charm",
+   "precio": 68000,
+   "stock": 2,
+   "familia": "colgante"
+  }
+ }
+}
