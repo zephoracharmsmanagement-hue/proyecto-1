@@ -311,9 +311,15 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **4 functions**
-(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`); si no salen, el sitio
-queda sin cobrar y hay que restaurar el despliegue anterior.
+En la salida de cualquier despliegue hay que confirmar que diga **5 functions**
+(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`); si no
+salen, el sitio queda sin cobrar y hay que restaurar el despliegue anterior.
+
+Y que `crear-pago` y `wompi-webhook` pesen ~306 KB, no ~295 KB: esos ~11 KB de
+diferencia son `@netlify/blobs` empaquetado. Si vuelven al tamaño de antes, la
+dependencia no entró y la tienda está vendiendo sin reservar —seguirá cobrando,
+porque eso falla hacia adelante, pero la carrera de la última unidad estaría
+otra vez abierta y nadie se enteraría—.
 
 Netlify Drop **no sirve** desde que existen las funciones: sube archivos
 estáticos y no monta `netlify/functions/`, así que un sitio soltado a mano
