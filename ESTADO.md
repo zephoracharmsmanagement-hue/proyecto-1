@@ -15,30 +15,54 @@ razonamiento, no solo el cambio.
 
 ---
 
-## 🔴 Lo primero: producción está congelada
+## Lo primero: el bloqueo de despliegues, y qué lo causó
 
-**Se acabaron los minutos de build de Netlify.** El último despliegue es del
-commit `cdd8865`; desde entonces hay **cinco commits construidos, probados y
-empujados que nadie ha visto**, incluida la reforma del carrito y el correo de
-confirmación.
+Durante un tiempo producción estuvo congelada en el commit `cdd8865`, con seis
+commits probados que nadie había visto. **El diagnóstico inicial era erróneo y
+conviene dejar escrito el bueno**, porque el error se repite fácil.
 
-Ese es el bloqueador número uno: hasta resolverlo, nada de lo que se programe
-llega al público.
+No eran «minutos de build». Netlify cobra por **créditos**, y un despliegue de
+producción cuesta **~15 créditos fijos, dure lo que dure**. Este sitio construye
+en 8–16 segundos, así que el razonamiento «300 minutos son 1.800 builds» daba
+una sensación de holgura que no existía: **el plan gratuito son ~20 despliegues
+al mes**. Se hicieron 18 en dos semanas construyendo la pasarela y se fueron 270
+de 300 créditos. Ancho de banda y ejecuciones no llegaron a 35 créditos entre
+los dos: el consumo es de publicar, no de vender.
 
-Antes de pagar o mudarse, **conviene dudar del diagnóstico**: los builds de este
-sitio tardan 8–16 segundos, y 300 minutos gratis son unas 1.800 construcciones.
-Si se agotaron, o el mes venía cargado o hay otro proyecto en el mismo equipo
-quemándolos. Está en *Team settings → Usage*. Mudarse sin saber qué los consumió
-es llevarse el problema puesto.
+**Con el saldo en cero, Netlify bloquea los despliegues a nivel de cuenta.** Está
+comprobado: con el sitio vinculado por CLI, `netlify deploy --build --prod`
+devuelve `403 Forbidden`. El `link` funciona y el `deploy` no, que es la firma de
+un bloqueo por saldo y no de un problema de credenciales.
 
-Las cuatro salidas, evaluadas:
+De ahí sale la conclusión que más importa recordar: **construir fuera de Netlify
+no esquiva el bloqueo.** No es una tarifa por operación que se pueda evitar
+empaquetando en otro lado; es una puerta cerrada en la cuenta.
+
+Las salidas, ya evaluadas:
 
 | Opción | Veredicto |
 |---|---|
-| **GitHub Actions + Netlify CLI** | **La recomendada.** Los minutos se gastan cuando construye Netlify; si el paquete se arma en Actions y se sube hecho, no cuenta minutos. El repo es público, así que Actions es gratis e ilimitado. Cero migración: mismo dominio, mismas llaves, misma URL de webhook. Y de paso las pruebas corren antes de publicar. Necesita un `NETLIFY_AUTH_TOKEN` en los secrets de GitHub |
-| **Netlify Pro** | Funciona y no tiene riesgo, pero ~$19/mes (unos 80.000 pesos) es más que el margen de un brazalete, para lo poco que se le exige a la plataforma |
-| **Cloudflare Pages** | Gratis y permite comercio, pero cuesta una migración: reescribir las dos funciones (`onRequest`, variables por `context.env`), traducir `netlify.toml` a `_redirects`/`_headers`, mover el DNS y **actualizar en Wompi la URL de eventos y la de retorno**. Más volver a probar el circuito de pago con otro pago real |
-| **Vercel** | **Descartada.** Su plan gratuito prohíbe el uso comercial en los términos, y esto es una tienda que cobra. Para estar en regla haría falta Pro (~$20/mes), o sea que no es la opción gratis que parece |
+| **Plan pago de Netlify** | **Lo que se hizo.** Desbloquea de inmediato y da margen de sobra (~66 despliegues). Es suscripción mensual, se cancela cuando se quiera y volver a Free no rompe nada: el dominio propio y las funciones ya corrían en el plan gratuito. Si se cancela, poner el recordatorio el mismo día |
+| **GitHub Actions + Netlify CLI** | **Sigue valiendo, pero no por lo que se creía.** No ahorra créditos ni desbloquea nada — el 403 es de cuenta. Vale por otra razón: que las pruebas corran antes de publicar. Necesita un `NETLIFY_AUTH_TOKEN` en los secrets de GitHub |
+| **Cloudflare Pages** | Gratis, permite comercio y no penaliza por despliegue (500/mes). Pero **no es «mudar el repositorio»**: es cirugía sobre la infraestructura de pagos. Ver el detalle abajo. Decisión meditada para más adelante, con la tienda estable — nunca bajo presión |
+| **Vercel** | **Descartada.** Su plan gratuito prohíbe el uso comercial en los términos, y esto es una tienda que cobra |
+| **Abrir otra cuenta gratuita** | **Descartada.** Es lo que los términos prohíben, y el modo de falla es mucho peor que el actual: quedarse sin créditos deja la tienda arriba cobrando; una suspensión la tumba sin aviso. Además no arregla nada, reinicia un reloj — y cada mudanza obliga a rehacer dominio, certificado, variables de Wompi y Resend, y la URL de eventos |
+
+**Lo que costaría Cloudflare, para que la decisión sea informada.** El código usa
+`crypto.createHash` síncrono (WebCrypto es asíncrono y contagia `await` a todos
+sus llamadores), `crypto.timingSafeEqual` (no existe en workerd), `randomBytes`,
+`Buffer` y `require()` de JSON; el flag `nodejs_compat` cubre buena parte, pero
+queda pasar a ESM, cambiar `exports.handler` por `onRequest(context)` y
+`process.env` por `context.env`. Y esas líneas no son cualquiera:
+`crear-pago.js:49` es el hash de integridad de los cobros y
+`wompi-webhook.js:39-49` la verificación de firma de los eventos. Más DNS,
+traducir `netlify.toml` y **cambiar la URL de eventos en Wompi**, que falla en
+silencio: el pago se aprueba, la clienta paga, la tienda no se entera.
+
+**La disciplina que de verdad evita repetir esto: agrupar.** Los 18 despliegues
+fueron ritmo de obra. Una tienda montada, tocando catálogo y precios, hace 2 o 3
+al mes, y ahí el plan gratuito sobra. Varios commits en la rama salen en **un
+solo despliegue** y cuestan 15 créditos, no 15 por commit.
 
 ---
 
@@ -125,24 +149,43 @@ de seguridad.
 | **Logos de medios de pago** al pie del carrito | Los **archivos oficiales** de cada marca. Visa, Mastercard, Nequi, Bancolombia y Daviplata son marcas registradas con guías de uso; no se dibujan aproximaciones |
 | Micro-leyenda de confianza | Se pidió «Garantía de Satisfacción». **No se puso a propósito**: bajo la Ley 1480 lo que se anuncia obliga, y la tienda ya ofrece retracto de 5 días hábiles, que es concreto y verificable. La redacción sostenible es *«Pago procesado por Wompi (Bancolombia) · Retracto de 5 días hábiles»* |
 
-### 6 · «A veces se borran las joyas» — reportado, no reproducido
+### 6 · «A veces se borran las joyas» — reproducido y diagnosticado
 
-El propietario reportó que a veces la selección desaparece en el checkout y hay
-que recargar para que vuelva. **No se logró reproducir**: ir y volver entre
-tienda y checkout no lo dispara.
+Ya no es un misterio, y **la causa no era la que se estaba persiguiendo**. La
+pista que faltaba la dio el propietario: *«llega un momento en el que disminuye
+mucho el área de selecciones»*, con una captura de la tienda en producción.
 
-Como no se reprodujo, no está confirmado que esté arreglado. Lo que sí se
-blindó, que son las tres causas plausibles:
+**Las joyas nunca se borraron.** En esa captura el resumen dice «3 charms ·
+$255.000» mientras en pantalla solo asoma una pieza, cortada a la mitad. El dato
+estaba íntegro; lo que se encogió fue la ventana por la que se veía.
 
-- **El primer render ya no puede borrar el carrito.** Antes, si `recuperar()`
-  fallaba por lo que fuera, el `render()` inmediato guardaba un carrito vacío
-  encima del bueno — y el síntoma sería exactamente ese. Ahora solo se guarda
-  cuando hay algo, o cuando se vació deliberadamente.
-- **Volver atrás y avanzar** relee el carrito (`pageshow`), en vez de dejar una
-  pantalla restaurada de caché que miente.
-- **Dos pestañas** se sincronizan por el evento `storage`.
+La causa, en el carrito viejo:
 
-Si vuelve a pasar, lo que hace falta es **qué se hizo justo antes**.
+```
+.sheet-body{overflow-y:auto; flex:1 1 auto}   ← única zona con scroll
+.sheet-tot {flex:0 0 auto}                     ← empaque, pago, subtotales,
+                                                  total, dos botones y la nota
+```
+
+Todo el bloque de abajo era fijo. A medida que creció —y creció mucho al sumarle
+las opciones de pago y el desglose— le comió la altura a la lista hasta dejarla
+en unos 65 px: con cuatro piezas se veía una. En un teléfono, la clienta llegaba
+a pagar $200.000 sin poder ver qué llevaba.
+
+**Arreglado en `5858207`.** La hoja tiene ahora *una sola zona que rueda*
+(`.sheet-scroll`) con la lista **y** los extras dentro; abajo queda fijo solo lo
+que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
+`min-height:96px` para que la lista no pueda volver a colapsar.
+
+> **La lección.** Las tres protecciones de persistencia que se escribieron antes
+> —no guardar en el primer render, releer en `pageshow`, sincronizar por el
+> evento `storage`— se construyeron sobre la hipótesis de que el carrito se
+> estaba vaciando. Era falsa. Se quedan porque valen por sí solas, pero no eran
+> esto. El síntoma que describió el usuario («desaparecen») se tradujo demasiado
+> rápido a una causa técnica («se borra el estado») sin preguntar antes qué se
+> veía en pantalla. Una captura habría ahorrado el rodeo entero.
+
+Queda **confirmarlo en producción** una vez desplegado.
 
 ---
 
@@ -209,9 +252,17 @@ mecanismo puede estar certificando nada.
 ## Al desplegar
 
 **Ya no se arrastra nada.** El repo está conectado a Netlify y cada push a
-`claude/install-frontend-design-skill-8t655e` publica — cuando hay minutos de
-build, ver el bloqueador de arriba. `netlify.toml` trae publicación, funciones,
-redirecciones y cabeceras.
+`claude/install-frontend-design-skill-8t655e` publica. `netlify.toml` trae
+publicación, funciones, redirecciones y cabeceras.
+
+Recordar que **cada publicación cuesta ~15 créditos**, así que conviene juntar
+cambios en vez de empujar de a uno (ver el bloque de arriba).
+
+También se puede publicar a mano con `npx netlify-cli deploy --prod`, que sube
+el directorio de trabajo tal cual esté — útil cuando el trabajo va en otra rama
+y no se quiere mover la rama que publica. En la salida hay que confirmar que
+diga **3 functions** (`crear-pago`, `wompi-webhook`, `_precios`); si no salen,
+el sitio queda sin cobrar y hay que restaurar el despliegue anterior.
 
 Netlify Drop **no sirve** desde que existen las funciones: sube archivos
 estáticos y no monta `netlify/functions/`, así que un sitio soltado a mano
