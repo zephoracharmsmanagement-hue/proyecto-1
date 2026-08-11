@@ -50,6 +50,27 @@
   to = "/404.html"
   status = 404
 
+# Los documentos internos viven en la raíz, que es justo lo que se publica, así
+# que no los cubría el bloqueo de las carpetas de arriba: quedaban servidos en
+# zephoracharms.com/ESTADO.md. No hay llaves en ellos —esas viven solo en
+# Netlify—, pero sí el razonamiento de márgenes, las dudas legales pendientes y
+# qué piezas no tienen foto real. Nada de eso se le sirve a una clienta desde el
+# dominio de la tienda.
+[[redirects]]
+  from = "/ESTADO.md"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/README.md"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/skills-lock.json"
+  to = "/404.html"
+  status = 404
+
 [[headers]]
   for = "/*"
   [headers.values]
