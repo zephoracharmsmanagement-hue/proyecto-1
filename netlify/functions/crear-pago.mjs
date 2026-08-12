@@ -21,6 +21,7 @@ import { reservar, confirmar, liberar } from './_inventario.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
 import { purchase, hashearCliente } from './_meta.js';
 import { guardar as guardarSenales } from './_atribucion.mjs';
+import { anotar as anotarPendiente } from './_pendientes.mjs';
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -351,6 +352,17 @@ export default async (req) => {
      confirme. Va aquí, ya pasadas todas las salidas de emergencia, para no
      dejar en el almacén pedidos que nunca van a llegar a la pasarela.
      No bloquea la venta: guardar() nunca lanza. */
+  /* Y anota el pedido como pendiente de pago.
+   *
+   * Si la clienta no vuelve con un pago aprobado, esto es lo que permite
+   * escribirle: aquí ya dio nombre, correo, celular y piezas. Ver
+   * _pendientes.mjs — es un carrito abandonado con contacto completo, sin
+   * tener que rastrear nada.
+   *
+   * Nunca lanza, por lo mismo que todo lo de este bloque: una herramienta de
+   * recuperación no puede costar la venta que iba a recuperar. */
+  await anotarPendiente(ref, { cliente, lineas, cuentas, pago: pedido.pago });
+
   const guardado = await guardarSenales(ref, senales);
   if (guardado.modo !== 'guardado') {
     console.log(JSON.stringify({

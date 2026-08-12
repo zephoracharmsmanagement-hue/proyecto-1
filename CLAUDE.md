@@ -35,7 +35,8 @@ Claude Code en varias sesiones/terminales a la vez.
   el doble de compras **sin avisar de nada**. `pruebas/meta.js` lo comprueba
   leyendo el HTML.
 
-  Solo falta `META_CAPI_TOKEN` en Netlify para encenderlo.
+  `META_CAPI_TOKEN` **ya está en Netlify**: esto manda eventos reales desde
+  que se puso. Falta comprobar la deduplicación en Events Manager.
 - **`meta/` — scripts de solo lectura** (`verificar.mjs`, `pixel.mjs`,
   `metricas.mjs`), corren en la máquina del usuario con su token en `.env`.
   Graph API **v25.0** (v19.0, el default anterior, expiró 2026-05-21).
@@ -116,6 +117,13 @@ cotiza con precios viejos hace más daño que no tener asesor.
 | `automatizaciones/contratos/` | Qué manda cada pieza y qué espera. Lo primero que se lee y lo primero que se actualiza |
 | `automatizaciones/n8n/` | Workflows exportados en JSON |
 | `automatizaciones/prompts/` | Prompts de sistema, versionados como código |
+
+**Canal de WhatsApp decidido: API Cloud oficial de WhatsApp Business.** No
+puentes no oficiales. Con eso desbloqueado, lo que falta del asesor es el
+número verificado, el flujo en n8n y guardar los borradores con sus
+correcciones. Ojo con la ventana de 24 h de Meta: fuera de ella solo se puede
+escribir con plantilla aprobada, lo que afecta también a los carritos
+abandonados por WhatsApp.
 
 Empezar por [`automatizaciones/README.md`](automatizaciones/README.md), que
 lleva el estado de las tres.

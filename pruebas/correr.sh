@@ -36,7 +36,7 @@ if [ ! -d "$AQUI/node_modules" ]; then
 fi
 
 ROJAS=""
-for BATERIA in regresion stock dudas precios inventario meta disponibilidad checkout; do
+for BATERIA in regresion stock dudas precios inventario meta disponibilidad recuperacion checkout; do
   echo "──────── $BATERIA ────────"
   # Los scripts imprimen "✗ FALLA" en vez de salir con código de error, así que
   # se revisa la salida. Se guarda para no correr cada batería dos veces.

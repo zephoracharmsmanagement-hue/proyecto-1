@@ -21,6 +21,7 @@ import { cop } from './_precios.js';
 import { confirmar, liberar } from './_inventario.mjs';
 import { purchase } from './_meta.js';
 import { tomar as tomarSenales } from './_atribucion.mjs';
+import { cerrar as cerrarPendiente, marcarFallido } from './_pendientes.mjs';
 import { enviar } from './_correo.js';
 
 const ok = (cuerpo) => new Response(JSON.stringify(cuerpo || { recibido: true }),
@@ -138,6 +139,19 @@ export default async (req) => {
    * borra al leer: si solo se recogieran en el camino bueno, cada pago
    * rechazado dejaría datos de una clienta guardados sin que nadie los limpie. */
   const senales = registro.referencia ? await tomarSenales(registro.referencia) : null;
+
+  /* Cierra el pedido pendiente.
+   *
+   * Aprobado: se borra. Ya compró, no hay nada que recuperar, y sus datos en
+   * claro no tienen por qué seguir guardados.
+   *
+   * Rechazado o anulado: NO se borra, se marca. Es justo el caso donde un
+   * mensaje sirve más —la clienta quiso comprar y el banco dijo que no— y se le
+   * puede ofrecer otro medio de pago. La función programada se encarga. */
+  if (registro.referencia) {
+    if (tx.status === 'APPROVED') await cerrarPendiente(registro.referencia);
+    else await marcarFallido(registro.referencia, tx.status);
+  }
 
   if (tx.status === 'APPROVED') {
     /* Purchase a Meta desde el servidor.
