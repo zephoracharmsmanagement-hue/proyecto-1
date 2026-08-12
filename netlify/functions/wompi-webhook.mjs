@@ -16,17 +16,16 @@
  *   WOMPI_EVENTOS      prod_events_… — el secreto con que Wompi firma
  *   PEDIDOS_WEBHOOK    opcional: a dónde reenviar el aviso de pago aprobado
  */
-const crypto = require('crypto');
-const { cop } = require('./_precios');
-const { confirmar, liberar } = require('./_inventario');
-const { enviar } = require('./_correo');
-const { tomarSenales, enviarPurchase } = require('./_capi');
+import crypto from 'node:crypto';
+import { cop } from './_precios.js';
+import { confirmar, liberar } from './_inventario.mjs';
+import { purchase } from './_meta.js';
+import { enviar } from './_correo.js';
 
-const ok = (cuerpo) => ({
-  statusCode: 200,
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(cuerpo || { recibido: true }),
-});
+const ok = (cuerpo) => new Response(JSON.stringify(cuerpo || { recibido: true }),
+  { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+const texto = (codigo, mensaje) => new Response(mensaje, { status: codigo });
 
 /* Wompi firma así: se concatenan los valores de las propiedades que él mismo
    lista en signature.properties, en ese orden, luego el timestamp y luego el
@@ -51,19 +50,6 @@ function igual(a, b) {
   return x.length === y.length && crypto.timingSafeEqual(x, y);
 }
 
-/* Cuándo ocurrió el pago, en milisegundos.
- *
- * Wompi manda `timestamp` en SEGUNDOS, como número. Pasarlo por Date.parse()
- * como si fuera una fecha ISO no da error: da una fecha absurda, y Meta descarta
- * en silencio los eventos con más de siete días. Por eso se convierte a mano y
- * se cae a `finalized_at` —esa sí es ISO— y por último al reloj de ahora. */
-function cuandoDelEvento(evento, tx) {
-  const seg = Number(evento && evento.timestamp);
-  if (Number.isFinite(seg) && seg > 0) return seg * 1000;
-  const fin = Date.parse((tx && tx.finalized_at) || '');
-  return Number.isFinite(fin) ? fin : Date.now();
-}
-
 async function reenviar(carga) {
   const url = process.env.PEDIDOS_WEBHOOK;
   if (!url) return;
@@ -79,9 +65,9 @@ async function reenviar(carga) {
   }
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Solo POST' };
+export default async (req) => {
+  if (req.method !== 'POST') {
+    return texto(405, 'Solo POST');
   }
 
   const secreto = process.env.WOMPI_EVENTOS;
@@ -94,9 +80,9 @@ exports.handler = async (event) => {
 
   let evento;
   try {
-    evento = JSON.parse(event.body || '{}');
+    evento = JSON.parse((await req.text()) || '{}');
   } catch (_) {
-    return { statusCode: 400, body: 'JSON inválido' };
+    return texto(400, 'JSON inválido');
   }
 
   const recibida = evento.signature && evento.signature.checksum;
@@ -105,7 +91,7 @@ exports.handler = async (event) => {
       evento: evento.event,
       referencia: evento.data && evento.data.transaction && evento.data.transaction.reference,
     });
-    return { statusCode: 401, body: 'Firma inválida' };
+    return texto(401, 'Firma inválida');
   }
 
   const tx = (evento.data && evento.data.transaction) || {};
@@ -143,48 +129,31 @@ exports.handler = async (event) => {
     }));
   }
 
-  /* El `Purchase` que la pauta necesita ver.
-   *
-   * Aquí es donde consta que alguien pagó de verdad. El pixel de gracias.html
-   * dispara su propio Purchase, pero solo si la clienta vuelve al sitio, y
-   * volver es opcional: puede cerrar el navegador, quedarse sin datos, o pagar
-   * por PSE desde la app del banco y no regresar. Es el mismo razonamiento por
-   * el que el correo de confirmación sale de aquí y no de la página de gracias.
-   *
-   * Los dos eventos se deduplican por `event_id`, que en las dos puntas es la
-   * referencia del pedido. _capi.js explica el trato completo.
-   *
-   * Las señales se recogen pase lo que pase con el pago —tomarSenales() borra
-   * al leer—: si se dejaran solo en el camino aprobado, cada pago rechazado
-   * dejaría datos de una clienta guardados sin que nadie los recoja.
-   *
-   * Nada de esto puede tumbar la respuesta a Wompi: enviarPurchase() no lanza,
-   * y un evento de marketing perdido no vale un reintento del webhook. */
-  if (registro.referencia) {
-    const senales = await tomarSenales(registro.referencia);
-    if (tx.status === 'APPROVED') {
-      const capi = await enviarPurchase({
-        referencia: registro.referencia,
-        /* El monto que Wompi dice haber cobrado, no el que el sitio calculó:
-           es el que de verdad entró. */
-        valor: registro.total != null ? registro.total : (senales && senales.total),
-        moneda: tx.currency || 'COP',
-        cuando: cuandoDelEvento(evento, tx),
-        senales,
-        sitio: (process.env.URL_SITIO || process.env.URL || '').replace(/\/$/, '') + '/gracias.html',
-      });
-      console.log(JSON.stringify({
-        evento: 'capi_' + capi.modo,
-        referencia: registro.referencia,
-        /* Queda escrito si el evento salió con señales de atribución o pelado.
-           Un Purchase sin fbc no está mal, pero empareja mucho peor, y al
-           revisar por qué una campaña no aprende esto es lo primero que mirar. */
-        atribucion: senales ? Boolean(senales.fbc || senales.fbp) : false,
-      }));
-    }
-  }
-
   if (tx.status === 'APPROVED') {
+    /* Purchase a Meta desde el servidor.
+     *
+     * gracias.html ya lo dispara, pero solo si la clienta vuelve al sitio
+     * después de pagar — y volver es opcional. Este siempre llega, porque lo
+     * dispara Wompi. Los dos mandan la referencia como identificador del
+     * evento, que es lo que hace que Meta cuente una compra y no dos.
+     *
+     * Del evento de Wompi se saca lo que haya para emparejar: el correo viene
+     * siempre, el teléfono y el nombre solo a veces. _meta.js descarta lo que
+     * no cuadre en vez de mandar basura que no empareja con nadie. */
+    const cd = tx.customer_data || {};
+    const aMeta = await purchase({
+      referencia: registro.referencia,
+      total: registro.total,
+      correo: registro.correo,
+      telefono: cd.phone_number || cd.phone || null,
+      nombre: cd.full_name || cd.fullName || null,
+      cuando: evento.timestamp ? evento.timestamp * 1000 : null,
+    });
+    console.log(JSON.stringify({
+      evento: 'meta_purchase', referencia: registro.referencia,
+      enviado: aMeta.enviado, motivo: aMeta.motivo || null, campos: aMeta.campos || null,
+    }));
+
     await reenviar(Object.assign({
       titulo: `Pago aprobado · ${registro.referencia} · ${cop(registro.total || 0)}`,
     }, registro));
@@ -246,4 +215,4 @@ exports.handler = async (event) => {
   return ok({ recibido: true, referencia: registro.referencia, estado: registro.estado });
 };
 
-exports._interno = { calcularFirma, igual, cuandoDelEvento };
+export const _interno = { calcularFirma, igual };

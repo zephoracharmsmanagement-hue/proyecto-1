@@ -210,6 +210,9 @@ En *Site configuration → Environment variables*. **Ninguna va al repo.**
 | `CORREO_DESDE` | `Zephora Charms <pedidos@zephoracharms.com>` | Remitente |
 | `CORREO_TIENDA` | `zephoracharms@gmail.com` | Copia interna de cada pedido |
 | `PEDIDOS_WEBHOOK` | opcional | A dónde avisar de cada pedido y cada pago |
+| `META_CAPI_TOKEN` | Events Manager → dataset `2130673404542988` → Configuración → Conversions API → *Generar token de acceso* | Mandar `Purchase` a Meta desde el servidor. Sin él no se manda y no se rompe nada |
+| `META_PIXEL_ID` | opcional | Solo para apuntar a un dataset de pruebas; por defecto usa el de producción |
+| `META_TEST_EVENT_CODE` | opcional | Mientras se prueba: manda los eventos a *Probar eventos* sin que entren en la optimización. **Quitarla al terminar** |
 
 En el panel de Wompi, la **URL de eventos** apunta a
 `https://zephoracharms.com/.netlify/functions/wompi-webhook`.
@@ -343,6 +346,26 @@ embudo entre entrar a pagar y pagar.
 - **Wompi**: en `gracias.html`, y solo si al consultar la transacción el estado
   es `APPROVED`. No se dispara con un parámetro de la URL — eso le regalaría a
   cualquiera una página de "pagado" y ensuciaría la cuenta.
+
+  **Y también desde el servidor**, por la Conversions API, en
+  `wompi-webhook.js` (`netlify/functions/_meta.js`). El de `gracias.html` solo
+  llega si la clienta vuelve al sitio después de pagar, y volver es opcional:
+  quien cierra el navegador en la pasarela pagó igual, pero Meta no se entera.
+  Es el mismo motivo por el que el correo de «Pago recibido» salió de
+  `gracias.html`. Y no es un detalle de reporte: Meta optimiza la entrega con
+  los eventos que recibe, así que faltarle las compras de quien no volvió es
+  gastar presupuesto aprendiendo de una muestra sesgada.
+
+  > **Los dos mandan la referencia del pedido como identificador del evento**
+  > —`eventID` en `fbq`, `event_id` en CAPI— y por eso Meta cuenta una compra y
+  > no dos. Contarla doble sería peor que perderla: inflaría el retorno
+  > declarado y las decisiones de presupuesto saldrían de un número falso. Si se
+  > toca uno de los dos lados, hay que tocar el otro.
+  >
+  > Los identificadores de la clienta (correo, teléfono, nombre) viajan
+  > **hasheados en SHA-256** y normalizados como Meta espera; si la
+  > normalización no coincide, el hash no empareja con nadie, Meta responde 200
+  > y el evento no sirve para nada. `pruebas/meta.js` lo vigila.
 - **Contraentrega**: al registrar el pedido, con `content_name: 'Contraentrega'`
   para poder separarlo. Todavía no hay plata cobrada, pero sí un pedido real que
   se despacha; contarlo como venta es lo que hace comparable el embudo.

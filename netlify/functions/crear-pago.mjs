@@ -14,12 +14,11 @@
  *   URL_SITIO               https://zephoracharms.com (opcional; Netlify ya da URL)
  *   PEDIDOS_WEBHOOK         opcional: a dónde avisar de cada pedido nuevo
  */
-const crypto = require('crypto');
-const { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario } = require('./_precios');
-const { reservar, confirmar, liberar } = require('./_inventario');
-const { pedidoRecibido, avisoTienda } = require('./_correo');
-const { guardarSenales, hashearCliente } = require('./_capi');
+import crypto from 'node:crypto';
+import { leerPedido, comprobarInventario, calcular, detallar, cop,
+  PedidoInvalido, SinInventario } from './_precios.js';
+import { reservar, confirmar, liberar } from './_inventario.mjs';
+import { pedidoRecibido, avisoTienda } from './_correo.js';
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -28,11 +27,8 @@ const CORS = {
   'Cache-Control': 'no-store',
 };
 
-const responder = (codigo, cuerpo) => ({
-  statusCode: codigo,
-  headers: CORS,
-  body: JSON.stringify(cuerpo),
-});
+const responder = (codigo, cuerpo) =>
+  new Response(JSON.stringify(cuerpo), { status: codigo, headers: CORS });
 
 /* Referencia del pedido. Tiene que ser única de verdad: Wompi rechaza una
    referencia repetida, y dos pedidos con la misma referencia son dos pagos que
@@ -92,40 +88,6 @@ function leerCliente(c) {
   return cliente;
 }
 
-/* Las cookies del pixel de Meta, tal como las manda el navegador.
- *
- * `_fbc` guarda el clic en el anuncio y `_fbp` identifica el navegador: son las
- * dos señales con las que Meta ata una compra a la pauta que la produjo. Llegan
- * en el cuerpo porque el webhook de Wompi no las va a ver nunca —ver _capi.js—.
- *
- * Se validan como todo lo que entra por aquí: esta es una URL pública y lo que
- * se guarde acaba viajando a Meta en claro. El formato lo fija Meta,
- * `fb.1.<milisegundos>.<identificador>`; lo que no encaje se descarta entero en
- * vez de mandarse a medias y ensuciar el emparejamiento. */
-const COOKIE_PIXEL = /^fb\.\d\.\d{1,20}\.[\w-]{1,200}$/;
-const cookiePixel = v => (COOKIE_PIXEL.test(String(v == null ? '' : v)) ? String(v) : null);
-
-/* La IP real de la clienta. Netlify la pone en su propia cabecera; el
-   x-forwarded-for es el respaldo, y de él solo sirve la primera entrada —las
-   siguientes son los proxies por los que pasó. */
-function ipCliente(headers) {
-  const h = headers || {};
-  const directa = h['x-nf-client-connection-ip'];
-  if (directa) return directa;
-  const cadena = h['x-forwarded-for'] || '';
-  return cadena.split(',')[0].trim() || null;
-}
-
-/* Lo que llevó el pedido, en la forma que Meta espera para `contents`. La talla
-   no entra: un brazalete es el mismo producto en cualquiera de ellas, y Meta
-   cuenta productos, no unidades de inventario. */
-function contenidosDe(pedido) {
-  const cuenta = {};
-  if (pedido.base) cuenta[pedido.base.id] = (cuenta[pedido.base.id] || 0) + 1;
-  pedido.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
-  return Object.entries(cuenta).map(([id, quantity]) => ({ id, quantity }));
-}
-
 /* ¿Wompi reconoce este comercio?
  *
  * Existe porque pasó: las llaves estaban puestas, la firma era correcta, y aun
@@ -177,14 +139,14 @@ async function avisar(carga) {
   }
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
+export default async (req) => {
+  if (req.method !== 'POST') {
     return responder(405, { error: 'Solo POST' });
   }
 
   let cuerpo;
   try {
-    cuerpo = JSON.parse(event.body || '{}');
+    cuerpo = JSON.parse((await req.text()) || '{}');
   } catch (_) {
     return responder(400, { error: 'El pedido no llegó en JSON válido' });
   }
@@ -311,31 +273,6 @@ exports.handler = async (event) => {
     });
   }
 
-  /* Guarda lo que hace falta para el `Purchase` que mandará el webhook.
-   *
-   * Va aquí y no antes a propósito: solo tiene sentido para un pedido que sí va
-   * a la pasarela. Contraentrega no pasa por el webhook de Wompi, y escribirle
-   * señales dejaría en el almacén datos que nadie va a recoger.
-   *
-   * Estas señales existen únicamente en esta petición —viene del navegador de
-   * la clienta, con sus cookies, su IP y su user-agent—. El webhook de Wompi es
-   * servidor a servidor y no ve nada de eso; _capi.js explica por qué mandar el
-   * evento sin ellas sería peor que no mandarlo.
-   *
-   * No bloquea la venta: guardarSenales() nunca lanza. */
-  const senales = await guardarSenales(ref, {
-    usuario: hashearCliente(cliente),
-    fbp: cookiePixel(cuerpo.fbp),
-    fbc: cookiePixel(cuerpo.fbc),
-    ip: ipCliente(event.headers),
-    ua: (event.headers && event.headers['user-agent']) || null,
-    contenidos: contenidosDe(pedido),
-    total: cuentas.total,
-  });
-  if (senales.modo !== 'guardado') {
-    console.log(JSON.stringify({ evento: 'capi_senales', referencia: ref, modo: senales.modo }));
-  }
-
   return responder(200, Object.assign({
     modo: 'wompi',
     checkout: CHECKOUT_WOMPI,
@@ -347,4 +284,4 @@ exports.handler = async (event) => {
 
 /* Se exportan para que las pruebas comprueben la firma y la referencia sin
    tener que levantar Netlify. */
-exports._interno = { referencia, firmar, leerCliente, cookiePixel, ipCliente, contenidosDe };
+export const _interno = { referencia, firmar, leerCliente };

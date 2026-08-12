@@ -1,4 +1,3 @@
-'use strict';
 /* Reserva de inventario, con estado.
  *
  * `comprobarInventario()` en _precios.js cierra el caso corriente: pagar algo
@@ -38,9 +37,45 @@
  * hay. Si Blobs no responde, si no está configurado, o si el CAS no converge, la
  * venta pasa y queda registrado en el log. Una lectura que no se pudo hacer no
  * puede costar una compra buena.
+ *
+ * ── Por qué las funciones que llaman a esto son v2 (.mjs) ──
+ *
+ * `getStore()` se autoconfigura leyendo la variable `NETLIFY_BLOBS_CONTEXT`, y
+ * **el runtime de Netlify solo la inyecta en funciones v2**. Con las funciones
+ * v1 de antes (`exports.handler`, `runtimeAPIVersion: 1`) esa variable no
+ * existe, `getStore()` lanza MissingBlobsEnvironmentError y este módulo se cae
+ * al camino de emergencia: la tienda vende, pero sin reservar nada.
+ *
+ * Y ese fallo es silencioso por diseño —falla hacia adelante—, así que estuvo
+ * en producción una jornada entera sin que nada se rompiera. Se detectó leyendo
+ * el log de `crear-pago`, no porque algo fallara.
+ *
+ * Por eso `crear-pago.mjs` y `wompi-webhook.mjs` son v2 y terminan en `.mjs`:
+ * sin `"type": "module"` en package.json, un `.js` sería CommonJS y no podría
+ * exportar el handler que v2 espera. Este módulo también es `.mjs`, por el
+ * import estático de abajo. Los demás auxiliares —`_precios`, `_correo`,
+ * `_meta`— siguen en CommonJS: no importan paquetes de terceros, así que no
+ * les afecta nada de esto.
+ *
+ * **Si alguien vuelve a poner una función en v1, esto deja de reservar y nadie
+ * se entera.** El campo `reserva` del log de `pedido_creado` dice si se apartó
+ * de verdad: `reservado` es lo bueno, `sin-almacen` es esto volviendo a pasar.
  */
-const INV = require('../../assets/stock.json');
-const { SinInventario, nombres } = require('./_precios');
+/* Importación **estática** y arriba del todo, a propósito.
+ *
+ * Antes esto era un `require('@netlify/blobs')` metido dentro de un try, para
+ * que un paquete ausente no tumbara la función al arrancar. Salió el tiro por
+ * la culata: el rastreador de dependencias de Netlify no ve un require
+ * escondido en el cuerpo de una función, así que no empaquetaba la librería, y
+ * en producción el require fallaba con «Cannot find module». La red de
+ * seguridad hacía su trabajo —la tienda vendía— pero sin reservar nada.
+ *
+ * Con un import estático eso no puede volver a pasar: ningún empaquetador ni
+ * rastreador lo pasa por alto. Y si algún día no se resuelve, **falla el build**
+ * en vez de degradarse en silencio en producción, que es justo el cambio que
+ * hacía falta. */
+import { getStore } from '@netlify/blobs';
+import { SinInventario, nombres, inventario as INV } from './_precios.js';
 
 const TIENDA = 'inventario';
 const CLAVE = 'estado';
@@ -64,24 +99,17 @@ let avisado = false;
 function almacen() {
   if (almacenInyectado) return almacenInyectado;
   try {
-    /* Se requiere aquí dentro y no arriba a propósito: si el paquete no está en
-       el bundle, esto devuelve null y la tienda sigue vendiendo sin reserva, en
-       vez de que la función entera se caiga al arrancar y deje de cobrar. */
-    const { getStore } = require('@netlify/blobs');
     /* Consistencia fuerte: con la eventual, una reserva recién escrita puede
        tardar hasta un minuto en verse, que es justo la ventana de la carrera. */
     return getStore({ name: TIENDA, consistency: 'strong' });
   } catch (e) {
-    /* Dos causas distintas y conviene distinguirlas en el log: o el paquete no
-       entró en el bundle —cosa del despliegue— o entró pero el entorno no tiene
-       Blobs configurado. La tienda sigue vendiendo en ambos casos, pero lo que
-       hay que ir a arreglar no es lo mismo. */
+    /* Ya no puede ser que falte el paquete —el import estático lo garantiza—,
+       así que llegar aquí significa una sola cosa: el entorno no tiene Blobs
+       configurado. Pasa al correr las pruebas fuera de Netlify, y pasaría en
+       producción si una función volviera a v1. La tienda sigue vendiendo. */
     if (!avisado) {
-      const falta = /Cannot find module/.test(e.message);
-      console.error(falta
-        ? 'inventario: @netlify/blobs no está en el bundle — se vende sin reserva'
-        : 'inventario: Blobs no está configurado en este entorno — se vende sin reserva',
-        e.message);
+      console.error('inventario: Blobs no está configurado en este entorno'
+        + ' — se vende sin reserva', e.message);
       avisado = true;
     }
     return null;
@@ -123,7 +151,31 @@ function itemsDe(pedido) {
   return piden;
 }
 
-const vacio = () => ({ v: 1, vendido: {}, reservas: {} });
+/* Contra qué versión de stock.json está contando lo vendido. Ver `rebasar()`. */
+const BASE = (INV && INV.generado) || '';
+
+const vacio = () => ({ v: 1, base: BASE, vendido: {}, reservas: {} });
+
+/* Cuando se repone inventario, `vendido` tiene que volver a cero.
+ *
+ * stock.json dice cuántas unidades HAY; este almacén solo lleva la cuenta de lo
+ * comprometido desde entonces. Si al reponer una pieza a 5 unidades siguiéramos
+ * restando la que se vendió antes, la tienda ofrecería 4 — y el desfase se
+ * acumularía con cada venta, para siempre, hasta dejar de vender cosas que
+ * están en la mano. Nadie lo notaría: no hay error, solo menos existencias de
+ * las reales.
+ *
+ * El campo `generado` de stock.json es la señal: cuando cambia, el archivo trae
+ * un conteo nuevo y lo vendido antes ya está descontado de él.
+ *
+ * Las reservas en vuelo NO se tocan: son pedidos que alguien está pagando ahora
+ * mismo, y esas unidades siguen sin poder venderse a otra persona. */
+function rebasar(estado) {
+  if (estado.base === BASE) return false;
+  estado.base = BASE;
+  estado.vendido = {};
+  return true;
+}
 
 /* Las reservas caducan solas. Se limpian al leer, que es la única vez que hace
    falta: nadie tiene que barrer nada en segundo plano. */
@@ -179,6 +231,12 @@ async function transaccion(mutar, etiqueta) {
     estado.vendido = estado.vendido || {};
     estado.reservas = estado.reservas || {};
     limpiar(estado, Date.now());
+    if (rebasar(estado)) {
+      console.log(JSON.stringify({
+        evento: 'inventario_repuesto', base: estado.base,
+        motivo: 'stock.json cambió: lo vendido vuelve a cero porque el conteo nuevo ya lo descuenta',
+      }));
+    }
 
     const salida = mutar(estado);   // SinInventario sale por aquí sin escribir
 
@@ -251,5 +309,5 @@ async function liberar(referencia) {
   }, 'liberar');
 }
 
-module.exports = { reservar, confirmar, liberar,
-  _interno: { usarAlmacen, itemsDe, libre, existencias, sku, vacio, VIGENCIA_MS } };
+export { reservar, confirmar, liberar };
+export const _interno = { usarAlmacen, itemsDe, libre, existencias, sku, vacio, VIGENCIA_MS };

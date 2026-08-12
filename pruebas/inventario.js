@@ -18,8 +18,13 @@
  * pago que en producción no cobraba.
  */
 const path = require('path');
+const { pathToFileURL } = require('url');
 const RAIZ = path.join(__dirname, '..');
-const inventario = require(path.join(RAIZ, 'netlify', 'functions', '_inventario.js'));
+const cargar = f => import(pathToFileURL(path.join(RAIZ, 'netlify', 'functions', f)).href);
+/* _inventario es ESM —importa @netlify/blobs de forma estática, que es lo que
+   garantiza que el empaquetador lo incluya—, así que desde esta batería, que es
+   CommonJS, se carga con import() dentro de main(). */
+let inventario;
 const { SinInventario } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
 const INV = require(path.join(RAIZ, 'assets', 'stock.json'));
 
@@ -70,6 +75,8 @@ const CON_TALLAS = Object.entries((INV && INV.items) || {})
 const pedidoDe = (charms, base) => ({ charms, base: base || null, pago: 'anticipado', empaque: false });
 
 async function main() {
+  inventario = await cargar('_inventario.mjs');
+
   console.log('1 · Apartar y devolver');
 
   if (!UNICA) { mal('no hay ninguna pieza con una sola unidad en stock.json'); return; }
@@ -218,6 +225,54 @@ async function main() {
       'y se limpia sola al escribir, sin barrido en segundo plano');
   }
 
+  console.log('\n4b · Reponer inventario');
+
+  {
+    /* El desfase que esto evita no da ningún error: la tienda simplemente
+       ofrece menos de lo que tiene, y cada venta lo empeora. Sin esta prueba
+       solo se vería semanas después, como piezas «agotadas» que están en la
+       mano. */
+    {
+      const almacen = almacenFalso();
+      inventario._interno.usarAlmacen(almacen);
+
+      const viejo = inventario._interno.vacio();
+      viejo.base = '1999-01-01';            // contando contra un stock.json anterior
+      viejo.vendido[pieza] = 1;             // y con la única unidad ya vendida
+      await almacen.setJSON('estado', viejo, { onlyIfNew: true });
+
+      /* Con el conteo viejo esta pieza estaría a cero y la venta se caería. Es
+         justo el síntoma que esto evita: una pieza «agotada» que está en la mano. */
+      const r = await inventario.reservar('ZC-REPUESTO', pedidoDe([pieza]));
+      comprobar(r.modo === 'reservado',
+        'tras reponer, la pieza vuelve a venderse en vez de quedarse agotada de mentira',
+        r.modo);
+
+      const estado = almacen._estado();
+      comprobar(Object.keys(estado.vendido).length === 0,
+        'lo vendido vuelve a cero — el conteo nuevo de stock.json ya lo descuenta');
+      comprobar(estado.base && estado.base !== '1999-01-01',
+        'y queda anotado contra qué versión de stock.json se está contando');
+    }
+
+    {
+      /* Reponer no puede regalar unidades que alguien está pagando ahora mismo. */
+      const almacen = almacenFalso();
+      inventario._interno.usarAlmacen(almacen);
+
+      const viejo = inventario._interno.vacio();
+      viejo.base = '1999-01-01';
+      viejo.reservas['ZC-EN-VUELO'] = { items: { [pieza]: 1 }, vence: Date.now() + 600000 };
+      await almacen.setJSON('estado', viejo, { onlyIfNew: true });
+
+      let error = null;
+      try { await inventario.reservar('ZC-OTRA', pedidoDe([pieza])); }
+      catch (e) { error = e; }
+      comprobar(error instanceof SinInventario,
+        'las reservas en vuelo sobreviven al rebase: esas unidades siguen apartadas');
+    }
+  }
+
   console.log('\n5 · Falla hacia adelante');
 
   {
@@ -253,6 +308,52 @@ async function main() {
   }
 
   inventario._interno.usarAlmacen(null);
+
+  console.log('\n6 · Las funciones tienen que ser v2');
+
+  /* Esta sección existe porque el fallo ya ocurrió y ninguna prueba lo vio.
+   *
+   * Netlify solo inyecta NETLIFY_BLOBS_CONTEXT en funciones v2. Con las v1 de
+   * antes, getStore() lanzaba y todo esto se caía al camino de emergencia: la
+   * tienda vendía, nada se rompía, y no se reservaba nada. Estuvo así en
+   * producción una jornada entera.
+   *
+   * Y las cinco secciones de arriba pasaban igual, porque en local siempre se
+   * usa el almacén falso o el camino de emergencia — nunca el de verdad. Una
+   * batería que no mira el mecanismo puede estar certificando nada, que es la
+   * lección que este proyecto ya se había llevado con un pago que no cobraba.
+   *
+   * Comprobar la versión del handler es lo más cerca que se puede estar de eso
+   * sin levantar Netlify: si alguien vuelve a v1, esto se pone rojo. */
+  {
+    /* Y la forma del import, que fue el segundo fallo silencioso seguido de la
+       misma pieza. @netlify/blobs tiene que importarse de forma estática y a
+       nivel de módulo: con un require perezoso dentro de una función, el
+       rastreador de dependencias de Netlify no lo veía, no empaquetaba la
+       librería, y en producción reventaba con «Cannot find module» — sin romper
+       nada, porque esto falla hacia adelante. */
+    const fuente = require('fs').readFileSync(
+      path.join(RAIZ, 'netlify', 'functions', '_inventario.mjs'), 'utf8');
+    /* Sin comentarios: la cabecera del módulo explica por qué el require
+       perezoso era un error, y mencionarlo no puede hacer fallar la prueba. */
+    const codigo = fuente.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    comprobar(/^import \{[^}]*getStore[^}]*\} from '@netlify\/blobs';$/m.test(codigo),
+      '_inventario.mjs importa @netlify/blobs de forma estática');
+    comprobar(!/require\(\s*['"]@netlify\/blobs['"]\s*\)/.test(codigo),
+      'y no queda ningún require perezoso, que el empaquetador no vería');
+
+    for (const archivo of ['crear-pago.mjs', 'wompi-webhook.mjs']) {
+      const ruta = path.join(RAIZ, 'netlify', 'functions', archivo);
+      let mod = null;
+      try { mod = await import(pathToFileURL(ruta).href); } catch (e) { void e; }
+      comprobar(mod !== null, `${archivo} existe y se puede cargar`);
+      if (!mod) continue;
+      comprobar(typeof mod.default === 'function',
+        `${archivo} exporta el handler v2 por defecto`);
+      comprobar(mod.handler === undefined,
+        `${archivo} ya no exporta el handler v1 — con v1, Blobs no se configura`);
+    }
+  }
 
   console.log(fallos ? `\nReserva de inventario: ${fallos} en rojo` : '\nReserva de inventario en verde ✓');
 }

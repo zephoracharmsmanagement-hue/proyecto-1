@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Corre las baterías contra una copia servida del sitio.
+# Corre las tres baterías contra una copia servida del sitio.
 #
 #   ./pruebas/correr.sh              levanta un servidor local y prueba contra él
 #   URL=https://zephoracharms.com ./pruebas/correr.sh   prueba contra producción
@@ -36,7 +36,7 @@ if [ ! -d "$AQUI/node_modules" ]; then
 fi
 
 ROJAS=""
-for BATERIA in regresion stock dudas precios inventario capi checkout; do
+for BATERIA in regresion stock dudas precios inventario meta checkout; do
   echo "──────── $BATERIA ────────"
   # Los scripts imprimen "✗ FALLA" en vez de salir con código de error, así que
   # se revisa la salida. Se guarda para no correr cada batería dos veces.

@@ -186,5 +186,9 @@ function detallar(pedido) {
 
 const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
 
+/* `inventario` se exporta para que _inventario.mjs no tenga que volver a leer
+   stock.json por su cuenta: siendo ESM, cargar JSON le obligaría a atributos de
+   importación o a createRequire, y las dos formas se comportan distinto según
+   si Netlify empaqueta o no. Pasando por aquí, hay un solo sitio que lo lee. */
 module.exports = { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario, reglas, nombres };
+  PedidoInvalido, SinInventario, reglas, nombres, inventario: INV };
