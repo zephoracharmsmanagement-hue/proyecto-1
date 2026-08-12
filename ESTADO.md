@@ -201,7 +201,38 @@ configurado, no responde, o el CAS no converge en seis intentos, la venta pasa
 y queda registrado en el log con el motivo. La reserva es una red de seguridad,
 no un peaje. En el log de `crear-pago`, el campo `reserva` del evento
 `pedido_creado` dice si las unidades se apartaron de verdad — es lo primero que
-hay que mirar si algún día aparece una sobreventa.
+hay que mirar si algún día aparece una sobreventa. **Confirmado funcionando en
+producción** (`"reserva":"reservado"`).
+
+> **Al reponer inventario, `vendido` se reinicia solo.** `stock.json` dice
+> cuántas unidades hay; el almacén solo cuenta lo comprometido desde la última
+> vez. Si al reponer una pieza a 5 se siguiera restando la que se vendió antes,
+> la tienda ofrecería 4 — y el desfase crecería con cada venta hasta dejar de
+> vender cosas que están en la mano, **sin dar ningún error**. La señal es el
+> campo `generado` de `stock.json`: cuando cambia, lo vendido vuelve a cero
+> porque el conteo nuevo ya lo descuenta. Las reservas en vuelo no se tocan.
+> Queda un `inventario_repuesto` en el log cada vez que pasa.
+
+### Los dos fallos silenciosos que costó dejarlo funcionando
+
+Vale la pena leerlos antes de tocar esta pieza, porque los dos fueron invisibles:
+
+1. **Las funciones eran v1.** Netlify solo inyecta `NETLIFY_BLOBS_CONTEXT` en
+   v2, así que `getStore()` lanzaba y todo caía al camino de emergencia.
+2. **Después, la librería no entraba en el bundle.** El `require` estaba dentro
+   de un `try` para que un paquete ausente no tumbara la función — y el
+   rastreador de dependencias de Netlify no ve un require escondido en el cuerpo
+   de una función, así que nunca la empaquetaba. La protección causó el fallo
+   que pretendía sobrevivir.
+
+Las dos veces la tienda cobró, salieron los correos y viajó el `Purchase`; las
+dos veces la reserva no existía. **Falla hacia adelante es lo correcto para no
+perder ventas, pero convierte cada error en algo que solo se ve leyendo el log.**
+
+Por eso `pruebas/inventario.js` § 6 comprueba **la forma del código** y no solo
+su comportamiento: que las funciones exporten el handler v2, y que el import de
+`@netlify/blobs` sea estático. Ninguna prueba de comportamiento las habría
+cazado, porque en local siempre se usa el almacén falso.
 
 ### 5 · Piezas sueltas que el propietario pidió y están bloqueadas
 

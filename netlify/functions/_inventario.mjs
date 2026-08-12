@@ -151,7 +151,31 @@ function itemsDe(pedido) {
   return piden;
 }
 
-const vacio = () => ({ v: 1, vendido: {}, reservas: {} });
+/* Contra qué versión de stock.json está contando lo vendido. Ver `rebasar()`. */
+const BASE = (INV && INV.generado) || '';
+
+const vacio = () => ({ v: 1, base: BASE, vendido: {}, reservas: {} });
+
+/* Cuando se repone inventario, `vendido` tiene que volver a cero.
+ *
+ * stock.json dice cuántas unidades HAY; este almacén solo lleva la cuenta de lo
+ * comprometido desde entonces. Si al reponer una pieza a 5 unidades siguiéramos
+ * restando la que se vendió antes, la tienda ofrecería 4 — y el desfase se
+ * acumularía con cada venta, para siempre, hasta dejar de vender cosas que
+ * están en la mano. Nadie lo notaría: no hay error, solo menos existencias de
+ * las reales.
+ *
+ * El campo `generado` de stock.json es la señal: cuando cambia, el archivo trae
+ * un conteo nuevo y lo vendido antes ya está descontado de él.
+ *
+ * Las reservas en vuelo NO se tocan: son pedidos que alguien está pagando ahora
+ * mismo, y esas unidades siguen sin poder venderse a otra persona. */
+function rebasar(estado) {
+  if (estado.base === BASE) return false;
+  estado.base = BASE;
+  estado.vendido = {};
+  return true;
+}
 
 /* Las reservas caducan solas. Se limpian al leer, que es la única vez que hace
    falta: nadie tiene que barrer nada en segundo plano. */
@@ -207,6 +231,12 @@ async function transaccion(mutar, etiqueta) {
     estado.vendido = estado.vendido || {};
     estado.reservas = estado.reservas || {};
     limpiar(estado, Date.now());
+    if (rebasar(estado)) {
+      console.log(JSON.stringify({
+        evento: 'inventario_repuesto', base: estado.base,
+        motivo: 'stock.json cambió: lo vendido vuelve a cero porque el conteo nuevo ya lo descuenta',
+      }));
+    }
 
     const salida = mutar(estado);   // SinInventario sale por aquí sin escribir
 

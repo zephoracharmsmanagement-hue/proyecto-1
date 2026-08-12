@@ -225,6 +225,54 @@ async function main() {
       'y se limpia sola al escribir, sin barrido en segundo plano');
   }
 
+  console.log('\n4b · Reponer inventario');
+
+  {
+    /* El desfase que esto evita no da ningún error: la tienda simplemente
+       ofrece menos de lo que tiene, y cada venta lo empeora. Sin esta prueba
+       solo se vería semanas después, como piezas «agotadas» que están en la
+       mano. */
+    {
+      const almacen = almacenFalso();
+      inventario._interno.usarAlmacen(almacen);
+
+      const viejo = inventario._interno.vacio();
+      viejo.base = '1999-01-01';            // contando contra un stock.json anterior
+      viejo.vendido[pieza] = 1;             // y con la única unidad ya vendida
+      await almacen.setJSON('estado', viejo, { onlyIfNew: true });
+
+      /* Con el conteo viejo esta pieza estaría a cero y la venta se caería. Es
+         justo el síntoma que esto evita: una pieza «agotada» que está en la mano. */
+      const r = await inventario.reservar('ZC-REPUESTO', pedidoDe([pieza]));
+      comprobar(r.modo === 'reservado',
+        'tras reponer, la pieza vuelve a venderse en vez de quedarse agotada de mentira',
+        r.modo);
+
+      const estado = almacen._estado();
+      comprobar(Object.keys(estado.vendido).length === 0,
+        'lo vendido vuelve a cero — el conteo nuevo de stock.json ya lo descuenta');
+      comprobar(estado.base && estado.base !== '1999-01-01',
+        'y queda anotado contra qué versión de stock.json se está contando');
+    }
+
+    {
+      /* Reponer no puede regalar unidades que alguien está pagando ahora mismo. */
+      const almacen = almacenFalso();
+      inventario._interno.usarAlmacen(almacen);
+
+      const viejo = inventario._interno.vacio();
+      viejo.base = '1999-01-01';
+      viejo.reservas['ZC-EN-VUELO'] = { items: { [pieza]: 1 }, vence: Date.now() + 600000 };
+      await almacen.setJSON('estado', viejo, { onlyIfNew: true });
+
+      let error = null;
+      try { await inventario.reservar('ZC-OTRA', pedidoDe([pieza])); }
+      catch (e) { error = e; }
+      comprobar(error instanceof SinInventario,
+        'las reservas en vuelo sobreviven al rebase: esas unidades siguen apartadas');
+    }
+  }
+
   console.log('\n5 · Falla hacia adelante');
 
   {
