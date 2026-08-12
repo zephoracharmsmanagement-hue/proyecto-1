@@ -35,7 +35,7 @@ Le falta la credential del token CAPI (Bearer Auth, nombre `Meta CAPI Zephora`)
 y una prueba con `test_event_code`.
 
 **Este workflow no se pisa con el `Purchase` de la web.** Son dos ventas
-distintas: la del checkout la manda `netlify/functions/_capi.js` con
+distintas: la del checkout la manda `netlify/functions/_meta.js` con
 `action_source: website`, y esta la manda n8n con `action_source: chat`. Los
 `order_id` son diferentes, así que Meta no las deduplica entre sí — que es lo
 correcto, porque son dos compras.

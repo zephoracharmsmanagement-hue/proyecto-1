@@ -1,7 +1,7 @@
 # Contrato · `Purchase` a la Conversions API de Meta
 
-Implementado en `netlify/functions/_capi.js`, disparado desde
-`netlify/functions/wompi-webhook.js`. Esto documenta **qué sale, por qué, y cómo
+Implementado en `netlify/functions/_meta.js`, con las señales de atribución en
+`netlify/functions/_atribucion.mjs`. Esto documenta **qué sale, por qué, y cómo
 comprobarlo**.
 
 ## Por qué existe
@@ -18,13 +18,13 @@ paciencia— aprende de una muestra torcida.
 ## El camino completo
 
 ```
-checkout.html ──POST /crear-pago──► crear-pago.js
+checkout.html ──POST /crear-pago──► crear-pago.mjs
    cookies _fbp/_fbc                  hashea la clienta (SHA-256)
                                       guarda señales en Blobs, clave = referencia
                                              │
                                      Wompi cobra
                                              │
-Meta ◄──Purchase (CAPI)──── wompi-webhook.js ┘
+Meta ◄──Purchase (CAPI)──── wompi-webhook.mjs ┘
                              recoge y BORRA las señales
                              manda el evento si el pago fue APPROVED
 
@@ -42,13 +42,13 @@ Se le dice con `event_id`, que en las dos puntas es **la referencia del pedido**
 | Punta | Dónde | Qué manda |
 |---|---|---|
 | Navegador | `gracias.html` | `fbq('track','Purchase',{…},{eventID: rr})` |
-| Servidor | `_capi.js` | `event_id` y `custom_data.order_id` |
+| Servidor | `_meta.js` | `event_id` y `custom_data.order_id` |
 
 **Si alguien toca una punta sin la otra, las compras se duplican y nada avisa.**
 El panel de Meta reporta el doble, la pauta optimiza hacia un ROAS inventado, y
 para cuando se nota lleva semanas decidiendo presupuesto con números falsos.
 
-Por eso `pruebas/capi.js` comprueba el `eventID` **leyendo el HTML**: es la única
+Por eso `pruebas/meta.js` comprueba el `eventID` **leyendo el HTML**: es la única
 forma de que quitarlo salga en rojo en el mismo push.
 
 ## Por qué se guardan señales en Blobs
@@ -75,9 +75,13 @@ Almacén `atribucion` en Netlify Blobs, clave = referencia del pedido:
   "total": 214000 }
 ```
 
-Se escribe **solo para pedidos que van a la pasarela** —contraentrega no pasa por
-el webhook, y escribirle señales dejaría datos que nadie recoge— y **se borra al
-leerlas**, con o sin pago aprobado.
+Se escribe **solo para pedidos que van a la pasarela**, y **se borra al
+recogerlas**, con el pago aprobado o rechazado.
+
+Contraentrega no escribe nada aquí: no pasa por Wompi, así que no hay webhook
+que venga después a recoger. Su `Purchase` sale de `crear-pago.mjs` en el mismo
+momento de registrar el pedido, usando las señales al vuelo. Se deduplica contra
+el pixel de `checkout.html` por la misma referencia.
 
 ## Qué se manda y qué no
 
@@ -122,30 +126,33 @@ pequeño.
    `Servidor` como origen. Si también se vuelve a `gracias.html`, Meta debe
    mostrar **uno solo**, marcado como deduplicado — no dos.
 4. En Netlify → Logs → Functions → `wompi-webhook`, buscar la línea
-   `"evento":"capi_…"`.
+   `"evento":"meta_purchase"` y comprobar que dice `"atribuido":true`. Para
+   contraentrega la misma línea sale en `crear-pago`.
 5. **Quitar `META_TEST_EVENT_CODE`** cuando esté verificado. Mientras esté
    puesto, ninguna compra real llega a las campañas.
 
 ## Qué dice el log
 
-`wompi-webhook` escribe una línea por pago aprobado:
+Una línea por pedido, en `wompi-webhook` (pago anticipado) o en `crear-pago`
+(contraentrega):
 
 ```json
-{"evento":"capi_enviado","referencia":"ZC-260811-ABCD1234","atribucion":true}
+{"evento":"meta_purchase","referencia":"ZC-260811-ABCD1234",
+ "enviado":true,"motivo":null,"atribuido":true}
 ```
 
-| `evento` | Qué significa |
+| Campo | Qué mirar |
 |---|---|
-| `capi_enviado` | ✅ Meta lo recibió y cuenta como conversión |
-| `capi_prueba` | Salió, pero con `META_TEST_EVENT_CODE`: **no cuenta** |
-| `capi_sin-token` | Falta `META_CAPI_TOKEN`. No está roto, está sin configurar |
-| `capi_sin-datos` | No había señales guardadas. Meta lo habría rechazado |
-| `capi_rechazado` | Meta devolvió un error — el motivo va en el log de al lado |
-| `capi_sin-respuesta` | Meta no contestó en 5 s. Se abandonó el evento |
+| `"enviado": true` | ✅ Meta lo recibió y cuenta como conversión |
+| `"motivo": "sin configurar"` | Falta `META_CAPI_TOKEN`. No está roto, está sin configurar |
+| `"motivo": "sin datos de emparejamiento"` | Ni señales guardadas ni datos de Wompi. Meta lo habría rechazado |
+| `"motivo": "error 400"` | Meta devolvió un error — el campo exacto que no le gustó sale en la línea `Meta CAPI respondió` de al lado |
+| `"motivo"` con texto de red | Se cayó o expiró (5 s). Se abandonó el evento |
+| `"atribuido": false` | Salió **sin `fbc` ni `fbp`** |
 
-`"atribucion": false` significa que el evento salió sin `fbc` ni `fbp`. No está
-mal —cuenta como conversión— pero empareja mucho peor. **Al revisar por qué una
-campaña no aprende, esto es lo primero que hay que mirar.**
+`"atribuido": false` cuenta como conversión igual, pero empareja mucho peor. **Al
+revisar por qué una campaña no aprende, esto es lo primero que hay que mirar.**
+Con `META_TEST_EVENT_CODE` puesto, `enviado` es `true` pero **nada cuenta**.
 
 ## Falla hacia adelante
 
@@ -156,9 +163,6 @@ de marketing perdido no vale que Wompi reintente un pago en bucle.
 
 ## Pendiente / decisiones abiertas
 
-- **Contraentrega no manda CAPI.** Su `Purchase` sigue siendo solo el del
-  navegador, como hasta ahora. El `eventID` ya va puesto en `checkout.html` para
-  que activarlo sea añadir el envío, sin tener que acordarse de volver al HTML.
 - **Nadie barre el almacén `atribucion`.** Se borra al recoger, que cubre todo lo
   que llega al webhook. Quedan huérfanas las señales de pedidos que nunca
   llegaron a Wompi. El campo `vence` está puesto para que una función programada

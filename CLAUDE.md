@@ -21,15 +21,19 @@ Claude Code en varias sesiones/terminales a la vez.
   antes que el pago ocurría fuera del sitio; dejó de ser cierto cuando el
   checkout empezó a cobrar por Wompi.
 - **`Purchase` server-side (CAPI) — implementado.**
-  `netlify/functions/_capi.js`, disparado desde `wompi-webhook.js` cuando
-  Wompi confirma un pago. Contrato completo y cómo probarlo en
+  `netlify/functions/_meta.js`, disparado desde `wompi-webhook.mjs` cuando
+  Wompi confirma un pago, y desde `crear-pago.mjs` para contraentrega, que
+  no pasa por Wompi. Las señales de atribución (`_fbp`/`_fbc`, IP,
+  user-agent) las guarda `_atribucion.mjs` en Blobs entre una punta y otra.
+  Contrato completo y cómo probarlo en
   [`automatizaciones/contratos/purchase-capi.md`](automatizaciones/contratos/purchase-capi.md).
 
   **Antes de tocar `Purchase` en cualquier punta, leer ese contrato.** El
   pixel y el servidor mandan el mismo evento y se deduplican por `event_id`
-  = referencia del pedido; quitar el `eventID` de `gracias.html` o cambiar el
-  `event_id` del servidor hace que Meta cuente el doble de compras **sin
-  avisar de nada**. `pruebas/capi.js` lo comprueba leyendo el HTML.
+  = referencia del pedido; quitar el `eventID` de `gracias.html` o de
+  `checkout.html`, o cambiar el `event_id` del servidor, hace que Meta cuente
+  el doble de compras **sin avisar de nada**. `pruebas/meta.js` lo comprueba
+  leyendo el HTML.
 
   Solo falta `META_CAPI_TOKEN` en Netlify para encenderlo.
 - **`meta/` — scripts de solo lectura** (`verificar.mjs`, `pixel.mjs`,
@@ -49,7 +53,7 @@ Claude Code en varias sesiones/terminales a la vez.
   `test_event_code`.
 
   Nota: **ya no son dos disparadores compitiendo, son dos ventas distintas.**
-  Lo que se compra en el sitio lo manda `_capi.js` con
+  Lo que se compra en el sitio lo manda `_meta.js` con
   `action_source: website`; lo que se cierra por WhatsApp lo manda este
   workflow con `action_source: chat`. Los `order_id` son distintos, así que
   Meta no los deduplica entre sí — correcto, porque son dos compras. No hay

@@ -370,33 +370,44 @@ embudo entre entrar a pagar y pagar.
   para poder separarlo. Todavía no hay plata cobrada, pero sí un pedido real que
   se despacha; contarlo como venta es lo que hace comparable el embudo.
 
+  **Y también desde el servidor**, pero desde `crear-pago.mjs` y no desde el
+  webhook: contraentrega no pasa por Wompi, así que no hay webhook que lo
+  dispare. El momento en que consta que el pedido existe es el de registrarlo.
+  Se deduplica igual, por la referencia.
+
 `Lead` queda para el pedido que se cierra por WhatsApp, que sigue existiendo.
 
-### `Purchase` también desde el servidor (Conversions API)
+### Atribución: por qué el evento de servidor necesita las cookies
 
-El `Purchase` del navegador tiene un agujero: **solo se dispara si la clienta
-vuelve al sitio** después de pagar, y volver es opcional. Puede cerrar el
-navegador, quedarse sin datos, o pagar por PSE desde la app del banco y no
-regresar. Ese pago fue bueno y Meta no lo veía — el mismo motivo por el que el
-correo de confirmación sale del webhook y no de `gracias.html`.
+Meta ata una compra al anuncio que la produjo sobre todo por dos cookies del
+navegador: `_fbc` (el clic en el anuncio) y `_fbp`. El webhook de Wompi es una
+llamada servidor a servidor y **no ve ninguna de las dos**, ni la IP ni el
+user-agent.
 
-Desde `netlify/functions/_capi.js`, **`wompi-webhook.js` manda el mismo
-`Purchase` a la Conversions API** en cuanto Wompi confirma el pago como
-`APPROVED`. Los dos eventos describen el mismo hecho, así que se deduplican con
-`event_id`, que en las dos puntas es la referencia del pedido; `gracias.html` la
-pasa como `eventID` en su `fbq('track', …)`. **Si se toca una punta sin la otra,
-Meta cuenta el doble de compras** — `pruebas/capi.js` lo comprueba leyendo el
-HTML precisamente por eso.
+Y eso importa por el orden en que llegan las cosas: el webhook entra segundos
+después del pago, la clienta vuelve a `gracias.html` cuando vuelve. El evento de
+servidor suele llegar **primero**, y al deduplicar Meta se queda con el primero.
+Mandarlo pelado no solo no añadiría atribución — **se la quitaría al del
+navegador, que sí la traía**.
 
-`checkout.html` manda las cookies `_fbp` y `_fbc` con el pedido, y `crear-pago`
-las guarda junto a los datos de la clienta —ya hasheados— en el almacén
-`atribucion` de Netlify Blobs. El webhook las recoge y las borra. Sin ese paso
-el evento de servidor llegaría sin atribución, y como suele llegar antes que el
-del navegador, sería el que Meta conserva: peor que no mandarlo.
+Por eso `checkout.html` manda `_fbp` y `_fbc` con el pedido, y `crear-pago.mjs`
+los guarda junto a los datos de la clienta —ya hasheados, ver
+`netlify/functions/_atribucion.mjs`— en el almacén `atribucion` de Netlify
+Blobs. El webhook los recoge y los borra. Contraentrega no guarda nada: usa las
+señales en el momento y se acaban.
 
-Hace falta `META_CAPI_TOKEN` en el entorno. Sin él no se manda nada y se
-registra `capi_sin-token` en el log; la venta sigue igual. Contraentrega no pasa
-por aquí: su `Purchase` sigue siendo solo el del navegador.
+Cada evento deja en el log si salió atribuido:
+
+```json
+{"evento":"meta_purchase","referencia":"ZC-…","enviado":true,"atribuido":true}
+```
+
+`"atribuido": false` cuenta como conversión igual, pero empareja mucho peor. **Al
+revisar por qué una campaña no aprende, esto es lo primero que hay que mirar.**
+
+El documento de identidad **no se manda, ni hasheado**: Meta no lo usa para
+emparejar y el SHA-256 de una cédula colombiana se revierte por fuerza bruta en
+segundos.
 
 Cada enlace a WhatsApp lleva un `data-wa` con su origen (`hero`, `asesoria-regalo`,
 `pie`), que viaja en `content_name` para poder separar en Events Manager qué botón
