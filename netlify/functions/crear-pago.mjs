@@ -17,7 +17,7 @@
 import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
   PedidoInvalido, SinInventario } from './_precios.js';
-import { reservar, confirmar, liberar } from './_inventario.js';
+import { reservar, confirmar, liberar } from './_inventario.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';

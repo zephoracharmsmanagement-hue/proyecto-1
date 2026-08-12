@@ -18,7 +18,7 @@
  */
 import crypto from 'node:crypto';
 import { cop } from './_precios.js';
-import { confirmar, liberar } from './_inventario.js';
+import { confirmar, liberar } from './_inventario.mjs';
 import { purchase } from './_meta.js';
 import { enviar } from './_correo.js';
 

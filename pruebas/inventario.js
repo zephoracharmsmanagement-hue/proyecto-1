@@ -18,8 +18,13 @@
  * pago que en producción no cobraba.
  */
 const path = require('path');
+const { pathToFileURL } = require('url');
 const RAIZ = path.join(__dirname, '..');
-const inventario = require(path.join(RAIZ, 'netlify', 'functions', '_inventario.js'));
+const cargar = f => import(pathToFileURL(path.join(RAIZ, 'netlify', 'functions', f)).href);
+/* _inventario es ESM —importa @netlify/blobs de forma estática, que es lo que
+   garantiza que el empaquetador lo incluya—, así que desde esta batería, que es
+   CommonJS, se carga con import() dentro de main(). */
+let inventario;
 const { SinInventario } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
 const INV = require(path.join(RAIZ, 'assets', 'stock.json'));
 
@@ -70,6 +75,8 @@ const CON_TALLAS = Object.entries((INV && INV.items) || {})
 const pedidoDe = (charms, base) => ({ charms, base: base || null, pago: 'anticipado', empaque: false });
 
 async function main() {
+  inventario = await cargar('_inventario.mjs');
+
   console.log('1 · Apartar y devolver');
 
   if (!UNICA) { mal('no hay ninguna pieza con una sola unidad en stock.json'); return; }
@@ -271,7 +278,22 @@ async function main() {
    * Comprobar la versión del handler es lo más cerca que se puede estar de eso
    * sin levantar Netlify: si alguien vuelve a v1, esto se pone rojo. */
   {
-    const { pathToFileURL } = require('url');
+    /* Y la forma del import, que fue el segundo fallo silencioso seguido de la
+       misma pieza. @netlify/blobs tiene que importarse de forma estática y a
+       nivel de módulo: con un require perezoso dentro de una función, el
+       rastreador de dependencias de Netlify no lo veía, no empaquetaba la
+       librería, y en producción reventaba con «Cannot find module» — sin romper
+       nada, porque esto falla hacia adelante. */
+    const fuente = require('fs').readFileSync(
+      path.join(RAIZ, 'netlify', 'functions', '_inventario.mjs'), 'utf8');
+    /* Sin comentarios: la cabecera del módulo explica por qué el require
+       perezoso era un error, y mencionarlo no puede hacer fallar la prueba. */
+    const codigo = fuente.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+    comprobar(/^import \{[^}]*getStore[^}]*\} from '@netlify\/blobs';$/m.test(codigo),
+      '_inventario.mjs importa @netlify/blobs de forma estática');
+    comprobar(!/require\(\s*['"]@netlify\/blobs['"]\s*\)/.test(codigo),
+      'y no queda ningún require perezoso, que el empaquetador no vería');
+
     for (const archivo of ['crear-pago.mjs', 'wompi-webhook.mjs']) {
       const ruta = path.join(RAIZ, 'netlify', 'functions', archivo);
       let mod = null;
