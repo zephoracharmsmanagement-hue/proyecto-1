@@ -38,6 +38,27 @@
  * hay. Si Blobs no responde, si no está configurado, o si el CAS no converge, la
  * venta pasa y queda registrado en el log. Una lectura que no se pudo hacer no
  * puede costar una compra buena.
+ *
+ * ── Por qué las funciones que llaman a esto son v2 (.mjs) ──
+ *
+ * `getStore()` se autoconfigura leyendo la variable `NETLIFY_BLOBS_CONTEXT`, y
+ * **el runtime de Netlify solo la inyecta en funciones v2**. Con las funciones
+ * v1 de antes (`exports.handler`, `runtimeAPIVersion: 1`) esa variable no
+ * existe, `getStore()` lanza MissingBlobsEnvironmentError y este módulo se cae
+ * al camino de emergencia: la tienda vende, pero sin reservar nada.
+ *
+ * Y ese fallo es silencioso por diseño —falla hacia adelante—, así que estuvo
+ * en producción una jornada entera sin que nada se rompiera. Se detectó leyendo
+ * el log de `crear-pago`, no porque algo fallara.
+ *
+ * Por eso `crear-pago.mjs` y `wompi-webhook.mjs` son v2 y terminan en `.mjs`:
+ * sin `"type": "module"` en package.json, un `.js` sería CommonJS y no podría
+ * exportar el handler que v2 espera. Los módulos auxiliares siguen en CommonJS
+ * porque no hacía falta tocarlos.
+ *
+ * **Si alguien vuelve a poner una función en v1, esto deja de reservar y nadie
+ * se entera.** El campo `reserva` del log de `pedido_creado` dice si se apartó
+ * de verdad: `reservado` es lo bueno, `sin-almacen` es esto volviendo a pasar.
  */
 const INV = require('../../assets/stock.json');
 const { SinInventario, nombres } = require('./_precios');

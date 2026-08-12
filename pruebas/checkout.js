@@ -23,8 +23,26 @@ process.env.WOMPI_LLAVE_PUBLICA = 'pub_test_zephora';
 process.env.WOMPI_INTEGRIDAD = INTEGRIDAD;
 process.env.URL_SITIO = BASE;
 
-const crearPago = require(path.join(RAIZ, 'netlify', 'functions', 'crear-pago.js'));
-const webhook = require(path.join(RAIZ, 'netlify', 'functions', 'wompi-webhook.js'));
+/* Las funciones son v2 (`export default`, en .mjs) porque Netlify solo inyecta
+   el contexto de Blobs en esa versión — ver la cabecera de _inventario.js. Como
+   esta batería es CommonJS, se cargan con import() dinámico dentro del IIFE. */
+const { pathToFileURL } = require('url');
+const cargar = f => import(pathToFileURL(path.join(RAIZ, 'netlify', 'functions', f)).href);
+let crearPago, webhook;
+
+/* Adaptador: las pruebas hablan en {httpMethod, body} → {statusCode, body},
+   que es como se leen bien las aserciones, y aquí se traduce a la Request y la
+   Response que la función v2 espera y devuelve. Traducir en un solo sitio
+   evitó reescribir las quince llamadas de esta batería. */
+const invocar = async (fn, opciones) => {
+  const init = { method: opciones.httpMethod || 'GET' };
+  if (opciones.body != null) {
+    init.body = opciones.body;
+    init.headers = { 'Content-Type': 'application/json' };
+  }
+  const res = await fn(new Request('https://zephoracharms.com/.netlify/functions/x', init));
+  return { statusCode: res.status, body: await res.text() };
+};
 
 /* Las funciones salen a la red por dos motivos: preguntarle a Wompi si el
    comercio existe, y mandar los correos por Resend. Se responde que sí a todo
@@ -75,7 +93,7 @@ async function ponerCarrito(p, carrito) {
 function interceptar(p, capturado) {
   return p.route('**/.netlify/functions/crear-pago', async route => {
     const body = route.request().postData() || '{}';
-    const r = await crearPago.handler({ httpMethod: 'POST', body });
+    const r = await invocar(crearPago.default, { httpMethod: 'POST', body });
     capturado.push({ pedido: JSON.parse(body), respuesta: JSON.parse(r.body), codigo: r.statusCode });
     await route.fulfill({ status: r.statusCode, contentType: 'application/json', body: r.body });
   });
@@ -95,6 +113,7 @@ async function llenarPaso1(p, d) {
 }
 
 (async () => {
+  [crearPago, webhook] = await Promise.all([cargar("crear-pago.mjs"), cargar("wompi-webhook.mjs")]);
   const b = await chromium.launch();
   const errores = [];
 
@@ -281,7 +300,7 @@ async function llenarPaso1(p, d) {
     globalThis.fetch = async () => ({ status: 200 });
 
     const llamar = async cuerpo => {
-      const r = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify(cuerpo) });
+      const r = await invocar(crearPago.default, { httpMethod: 'POST', body: JSON.stringify(cuerpo) });
       return { codigo: r.statusCode, cuerpo: JSON.parse(r.body) };
     };
     const bueno = {
@@ -311,7 +330,7 @@ async function llenarPaso1(p, d) {
     const inventado = await llamar(Object.assign({}, bueno, { charms: ['charm-de-oro'] }));
     ok(inventado.codigo === 400, 'rechaza una pieza que no existe en el catálogo');
 
-    const get = await crearPago.handler({ httpMethod: 'GET' });
+    const get = await invocar(crearPago.default, { httpMethod: 'GET' });
     ok(get.statusCode === 405, 'no responde a GET');
 
     /* Inventario. El navegador ya bloquea lo agotado, pero entre armar la
@@ -375,7 +394,7 @@ async function llenarPaso1(p, d) {
   out.push('\n5b · Comprobante por correo');
   {
     correos.length = 0;
-    const r = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
+    const r = await invocar(crearPago.default, { httpMethod: 'POST', body: JSON.stringify({
       base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
@@ -418,7 +437,7 @@ async function llenarPaso1(p, d) {
       if (String(url).includes('api.resend.com')) throw new Error('Resend caído');
       return { ok: true, status: 200, text: async () => '' };
     };
-    const conCorreoCaido = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
+    const conCorreoCaido = await invocar(crearPago.default, { httpMethod: 'POST', body: JSON.stringify({
       base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
@@ -431,7 +450,7 @@ async function llenarPaso1(p, d) {
     const llave = process.env.RESEND_API_KEY;
     delete process.env.RESEND_API_KEY;
     correos.length = 0;
-    const sinLlave = await crearPago.handler({ httpMethod: 'POST', body: JSON.stringify({
+    const sinLlave = await invocar(crearPago.default, { httpMethod: 'POST', body: JSON.stringify({
       base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
@@ -456,16 +475,16 @@ async function llenarPaso1(p, d) {
     const firma = crypto.createHash('sha256')
       .update('01-1234APPROVED29735000' + evento.timestamp + 'prueba_eventos').digest('hex');
 
-    const bueno = await webhook.handler({ httpMethod: 'POST',
+    const bueno = await invocar(webhook.default, { httpMethod: 'POST',
       body: JSON.stringify(Object.assign({}, evento, { signature: Object.assign({}, evento.signature, { checksum: firma }) })) });
     ok(bueno.statusCode === 200, 'acepta un evento con firma correcta');
     ok(JSON.parse(bueno.body).estado === 'APPROVED', 'y lee el estado del pago');
 
-    const falso = await webhook.handler({ httpMethod: 'POST',
+    const falso = await invocar(webhook.default, { httpMethod: 'POST',
       body: JSON.stringify(Object.assign({}, evento, { signature: Object.assign({}, evento.signature, { checksum: 'a'.repeat(64) }) })) });
     ok(falso.statusCode === 401, 'rechaza un «ya te pagaron» inventado por un tercero');
 
-    const sinFirma = await webhook.handler({ httpMethod: 'POST', body: JSON.stringify(evento) });
+    const sinFirma = await invocar(webhook.default, { httpMethod: 'POST', body: JSON.stringify(evento) });
     ok(sinFirma.statusCode === 401, 'rechaza un evento sin firma');
   }
 

@@ -254,6 +254,37 @@ async function main() {
 
   inventario._interno.usarAlmacen(null);
 
+  console.log('\n6 · Las funciones tienen que ser v2');
+
+  /* Esta sección existe porque el fallo ya ocurrió y ninguna prueba lo vio.
+   *
+   * Netlify solo inyecta NETLIFY_BLOBS_CONTEXT en funciones v2. Con las v1 de
+   * antes, getStore() lanzaba y todo esto se caía al camino de emergencia: la
+   * tienda vendía, nada se rompía, y no se reservaba nada. Estuvo así en
+   * producción una jornada entera.
+   *
+   * Y las cinco secciones de arriba pasaban igual, porque en local siempre se
+   * usa el almacén falso o el camino de emergencia — nunca el de verdad. Una
+   * batería que no mira el mecanismo puede estar certificando nada, que es la
+   * lección que este proyecto ya se había llevado con un pago que no cobraba.
+   *
+   * Comprobar la versión del handler es lo más cerca que se puede estar de eso
+   * sin levantar Netlify: si alguien vuelve a v1, esto se pone rojo. */
+  {
+    const { pathToFileURL } = require('url');
+    for (const archivo of ['crear-pago.mjs', 'wompi-webhook.mjs']) {
+      const ruta = path.join(RAIZ, 'netlify', 'functions', archivo);
+      let mod = null;
+      try { mod = await import(pathToFileURL(ruta).href); } catch (e) { void e; }
+      comprobar(mod !== null, `${archivo} existe y se puede cargar`);
+      if (!mod) continue;
+      comprobar(typeof mod.default === 'function',
+        `${archivo} exporta el handler v2 por defecto`);
+      comprobar(mod.handler === undefined,
+        `${archivo} ya no exporta el handler v1 — con v1, Blobs no se configura`);
+    }
+  }
+
   console.log(fallos ? `\nReserva de inventario: ${fallos} en rojo` : '\nReserva de inventario en verde ✓');
 }
 

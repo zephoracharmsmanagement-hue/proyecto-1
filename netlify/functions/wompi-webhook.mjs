@@ -16,17 +16,16 @@
  *   WOMPI_EVENTOS      prod_events_… — el secreto con que Wompi firma
  *   PEDIDOS_WEBHOOK    opcional: a dónde reenviar el aviso de pago aprobado
  */
-const crypto = require('crypto');
-const { cop } = require('./_precios');
-const { confirmar, liberar } = require('./_inventario');
-const { purchase } = require('./_meta');
-const { enviar } = require('./_correo');
+import crypto from 'node:crypto';
+import { cop } from './_precios.js';
+import { confirmar, liberar } from './_inventario.js';
+import { purchase } from './_meta.js';
+import { enviar } from './_correo.js';
 
-const ok = (cuerpo) => ({
-  statusCode: 200,
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(cuerpo || { recibido: true }),
-});
+const ok = (cuerpo) => new Response(JSON.stringify(cuerpo || { recibido: true }),
+  { status: 200, headers: { 'Content-Type': 'application/json' } });
+
+const texto = (codigo, mensaje) => new Response(mensaje, { status: codigo });
 
 /* Wompi firma así: se concatenan los valores de las propiedades que él mismo
    lista en signature.properties, en ese orden, luego el timestamp y luego el
@@ -66,9 +65,9 @@ async function reenviar(carga) {
   }
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Solo POST' };
+export default async (req) => {
+  if (req.method !== 'POST') {
+    return texto(405, 'Solo POST');
   }
 
   const secreto = process.env.WOMPI_EVENTOS;
@@ -81,9 +80,9 @@ exports.handler = async (event) => {
 
   let evento;
   try {
-    evento = JSON.parse(event.body || '{}');
+    evento = JSON.parse((await req.text()) || '{}');
   } catch (_) {
-    return { statusCode: 400, body: 'JSON inválido' };
+    return texto(400, 'JSON inválido');
   }
 
   const recibida = evento.signature && evento.signature.checksum;
@@ -92,7 +91,7 @@ exports.handler = async (event) => {
       evento: evento.event,
       referencia: evento.data && evento.data.transaction && evento.data.transaction.reference,
     });
-    return { statusCode: 401, body: 'Firma inválida' };
+    return texto(401, 'Firma inválida');
   }
 
   const tx = (evento.data && evento.data.transaction) || {};
@@ -216,4 +215,4 @@ exports.handler = async (event) => {
   return ok({ recibido: true, referencia: registro.referencia, estado: registro.estado });
 };
 
-exports._interno = { calcularFirma, igual };
+export const _interno = { calcularFirma, igual };

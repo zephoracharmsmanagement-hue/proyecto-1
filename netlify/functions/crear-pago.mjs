@@ -14,11 +14,11 @@
  *   URL_SITIO               https://zephoracharms.com (opcional; Netlify ya da URL)
  *   PEDIDOS_WEBHOOK         opcional: a dónde avisar de cada pedido nuevo
  */
-const crypto = require('crypto');
-const { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario } = require('./_precios');
-const { reservar, confirmar, liberar } = require('./_inventario');
-const { pedidoRecibido, avisoTienda } = require('./_correo');
+import crypto from 'node:crypto';
+import { leerPedido, comprobarInventario, calcular, detallar, cop,
+  PedidoInvalido, SinInventario } from './_precios.js';
+import { reservar, confirmar, liberar } from './_inventario.js';
+import { pedidoRecibido, avisoTienda } from './_correo.js';
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -27,11 +27,8 @@ const CORS = {
   'Cache-Control': 'no-store',
 };
 
-const responder = (codigo, cuerpo) => ({
-  statusCode: codigo,
-  headers: CORS,
-  body: JSON.stringify(cuerpo),
-});
+const responder = (codigo, cuerpo) =>
+  new Response(JSON.stringify(cuerpo), { status: codigo, headers: CORS });
 
 /* Referencia del pedido. Tiene que ser única de verdad: Wompi rechaza una
    referencia repetida, y dos pedidos con la misma referencia son dos pagos que
@@ -142,14 +139,14 @@ async function avisar(carga) {
   }
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
+export default async (req) => {
+  if (req.method !== 'POST') {
     return responder(405, { error: 'Solo POST' });
   }
 
   let cuerpo;
   try {
-    cuerpo = JSON.parse(event.body || '{}');
+    cuerpo = JSON.parse((await req.text()) || '{}');
   } catch (_) {
     return responder(400, { error: 'El pedido no llegó en JSON válido' });
   }
@@ -287,4 +284,4 @@ exports.handler = async (event) => {
 
 /* Se exportan para que las pruebas comprueben la firma y la referencia sin
    tener que levantar Netlify. */
-exports._interno = { referencia, firmar, leerCliente };
+export const _interno = { referencia, firmar, leerCliente };
