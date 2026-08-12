@@ -309,5 +309,38 @@ async function liberar(referencia) {
   }, 'liberar');
 }
 
+/* Lo que hay disponible ahora mismo, sin tocar nada.
+ *
+ * Existe para el asesor de WhatsApp: `stock.json` dice cuántas unidades se
+ * contaron, pero no cuántas están apartadas por un pago en curso ni cuántas ya
+ * se vendieron. Un asesor que lea solo el archivo promete piezas que ya tienen
+ * dueña — el mismo error que esta reserva vino a arreglar, solo que ahora por
+ * WhatsApp y con una persona esperando respuesta.
+ *
+ * Devuelve el número libre por sku (`id` o `id|talla`). Si no hay almacén,
+ * devuelve null en vez de mentir con las existencias en bruto: quien pregunta
+ * necesita distinguir «quedan 2» de «no lo sé». */
+export async function disponibles(skus) {
+  const store = almacen();
+  if (!store) return null;
+
+  let estado;
+  try {
+    estado = (await store.get(CLAVE, { type: 'json' })) || vacio();
+  } catch (e) {
+    console.error('inventario/disponibles: no se pudo leer —', e.message);
+    return null;
+  }
+  estado.vendido = estado.vendido || {};
+  estado.reservas = estado.reservas || {};
+  /* Se limpia en memoria y no se escribe: una consulta no debe modificar nada,
+     y las caducadas ya no cuentan contra lo libre aunque sigan en el blob. */
+  limpiar(estado, Date.now());
+
+  const salida = {};
+  skus.forEach(s => { salida[s] = Math.max(0, libre(estado, s, null)); });
+  return salida;
+}
+
 export { reservar, confirmar, liberar };
 export const _interno = { usarAlmacen, itemsDe, libre, existencias, sku, vacio, VIGENCIA_MS };

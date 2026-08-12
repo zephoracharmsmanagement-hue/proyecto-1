@@ -11,7 +11,7 @@ precios de la semana pasada hace más daño que no tener asesor.
 
 | Carpeta | Qué guarda |
 |---|---|
-| `contratos/` | Qué manda cada pieza y qué espera recibir. Es lo primero que hay que leer y lo primero que hay que actualizar cuando algo cambia |
+| `contratos/` | Qué manda cada pieza y qué espera recibir. Es lo primero que hay que leer y lo primero que hay que actualizar cuando algo cambia. Hoy: [`purchase-capi.md`](contratos/purchase-capi.md) y [`disponibilidad.md`](contratos/disponibilidad.md) |
 | `n8n/` | Los workflows exportados en JSON, para que existan en git y no solo dentro del servidor de n8n |
 | `prompts/` | Los prompts de sistema del asesor comercial, versionados como código |
 
@@ -23,28 +23,34 @@ Tener dos sitios donde buscar un handler es tener un sitio donde no buscar.
 
 ### 1. `Purchase` server-side a Meta (CAPI) — **hecho, falta el token**
 
-Cuando Wompi confirma un pago, `netlify/functions/wompi-webhook.js` manda el
-evento `Purchase` a la Conversions API. El contrato completo, el porqué de cada
+Cuando Wompi confirma un pago, `netlify/functions/wompi-webhook.mjs` manda el
+evento `Purchase` a la Conversions API. Contraentrega lo manda `crear-pago.mjs`,
+que para ese pedido es el único momento en que consta que existe. El contrato completo, el porqué de cada
 decisión y **cómo probarlo** están en
 [`contratos/purchase-capi.md`](contratos/purchase-capi.md).
 
 Para encenderlo solo falta poner `META_CAPI_TOKEN` en Netlify. Sin esa variable
 el código no manda nada y lo dice en el log; nada más se rompe.
 
-### 2. Asesor comercial por WhatsApp (Gemini) — **sin empezar**
+### 2. Asesor comercial por WhatsApp (Gemini) — **prompt y datos listos, falta conectarlo**
 
-Flujo en n8n contra la API de Gemini, con el catálogo y el inventario reales
-como contexto.
+- ✅ **De dónde lee el stock: resuelto.** `/.netlify/functions/disponibilidad`
+  devuelve catálogo, precios, reglas de cobro y disponibilidad **ya restada** —el
+  conteo menos lo apartado por pagos en curso— en una lectura. Contrato en
+  [`contratos/disponibilidad.md`](contratos/disponibilidad.md). Era el bloqueo
+  real: prometer por WhatsApp una pieza ya reservada es el mismo error que la
+  reserva de inventario vino a arreglar.
+- ✅ **Prompt de sistema escrito**, en
+  [`prompts/asesor-whatsapp.md`](prompts/asesor-whatsapp.md). Rescatado de una
+  rama vieja y corregido: traía Addi como medio de pago (Wompi confirmó que no
+  lo es), precios desactualizados y el envío gratis mal aplicado.
+- ❌ **Falta decidir cómo se conecta a WhatsApp.** Es lo que bloquea el resto:
+  hace falta la API Cloud de WhatsApp Business. Los puentes no oficiales
+  funcionan hasta que Meta banea el número del negocio.
+- ❌ Falta el flujo en n8n y guardar los borradores con sus correcciones.
 
-**Sin base vectorial.** `assets/catalogo.json` son 10 KB —132 piezas y 18
-pulseras— y cabe entero en el contexto del modelo. Montar embeddings para eso
-añade un componente que puede recuperar el fragmento equivocado, a cambio de
-nada. Si el catálogo creciera un orden de magnitud, se revisa.
-
-Lo que hay que resolver antes de escribir el primer prompt: **de dónde lee el
-stock**. `stock.json` es un archivo estático y no sabe lo que hay apartado; el
-estado real está en Blobs. Prometer por WhatsApp una pieza que ya está reservada
-es el mismo error que la reserva de inventario vino a arreglar.
+Arranca en modo borrador: redacta, una persona envía. El porqué y el camino para
+abrir la mano están en el prompt.
 
 ### 3. Carritos abandonados — **sin empezar**
 

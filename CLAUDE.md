@@ -120,12 +120,26 @@ cotiza con precios viejos hace más daño que no tener asesor.
 Empezar por [`automatizaciones/README.md`](automatizaciones/README.md), que
 lleva el estado de las tres.
 
-**Decisión tomada sobre el asesor de Gemini: sin base vectorial.** El catálogo
-son 10 KB (132 piezas, 18 pulseras) y cabe entero en el contexto. Montar
-embeddings añade un componente que puede recuperar el fragmento equivocado a
-cambio de nada. Lo que sí hay que resolver antes de escribir el prompt es de
-dónde lee el stock: `stock.json` no sabe lo que está apartado, y eso vive en
-Blobs.
+**Asesor de Gemini — dos decisiones tomadas:**
+
+- **Sin base vectorial.** El catálogo son 10 KB (132 piezas, 18 pulseras) y cabe
+  entero en el contexto. Montar embeddings añade un componente que puede
+  recuperar el fragmento equivocado a cambio de nada.
+- **El stock sale de `/.netlify/functions/disponibilidad`, no de `stock.json`.**
+  Ese archivo dice cuántas se contaron, no cuántas están apartadas por un pago
+  en curso — eso vive en Blobs. La función hace la resta y devuelve un número;
+  la aritmética de inventario no se le delega a un modelo. Contrato en
+  `automatizaciones/contratos/disponibilidad.md`.
+
+El prompt está escrito en `automatizaciones/prompts/asesor-whatsapp.md`, en modo
+borrador (redacta, una persona envía). **Lo que lo bloquea es la conexión a
+WhatsApp**: hace falta la API Cloud de WhatsApp Business; los puentes no
+oficiales funcionan hasta que Meta banea el número del negocio.
+
+**Ojo con la rama `claude/sephora-whatsapp-response-system-682wvv`:** tiene 28
+macros auditadas y material útil, pero precede al checkout y trae cifras falsas
+hoy (Addi como medio de pago, precios viejos, envío gratis mal aplicado). No
+copiar de ahí sin contrastar contra `_precios.js`.
 
 ### Modo de operación acordado
 
