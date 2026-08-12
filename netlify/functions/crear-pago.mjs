@@ -18,6 +18,7 @@ import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
   PedidoInvalido, SinInventario } from './_precios.js';
 import { reservar, confirmar, liberar } from './_inventario.mjs';
+import { guardar, marcar } from './_pedidos.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
@@ -194,6 +195,8 @@ export default async (req) => {
   /* Queda en el log de la función: es el registro de que el pedido se creó, y
      con qué total, antes de que la clienta llegue a la pasarela. Al conciliar,
      esto es lo que se compara contra lo que Wompi diga que cobró. */
+  const lineas = detallar(pedido);
+
   console.log(JSON.stringify({
     evento: 'pedido_creado',
     referencia: ref,
@@ -205,9 +208,25 @@ export default async (req) => {
        saltó por lo que fuera. Al conciliar un sobreventa, esto es lo primero
        que hay que mirar. */
     reserva: reserva.modo,
+    /* Qué se pidió, en el propio log. Sin esto, la primera venta real obligó a
+       reconstruir el pedido desde el total porque el detalle solo existía en un
+       correo. Van las piezas y la talla —lo que hace falta para alistar— y no
+       la dirección ni el contacto: eso vive en el registro de pedidos, no en
+       un log que se consulta desde cualquier parte. */
+    lineas: lineas.map(l => ({ id: l.id, nombre: l.nombre, talla: l.talla, unidades: l.unidades })),
   }));
 
-  const lineas = detallar(pedido);
+  /* El pedido entero, guardado aparte del correo. Si Resend falla o el correo
+     se pierde, esto sigue diciendo qué despachar y a dónde. */
+  const registro = await guardar(ref, {
+    estado: pedido.pago === 'contraentrega' ? 'confirmado' : 'esperando-pago',
+    pago: pedido.pago, lineas, cuentas, cliente,
+  });
+  if (!registro.ok) {
+    console.error(JSON.stringify({
+      evento: 'pedido_sin_registrar', referencia: ref, motivo: registro.motivo,
+    }));
+  }
 
   await avisar({
     evento: 'pedido_creado',
@@ -259,6 +278,7 @@ export default async (req) => {
        mostrador ahora, en vez de tenerlas congeladas media hora por un pago
        que nunca se va a intentar. */
     await liberar(ref);
+    await marcar(ref, { estado: 'no-llego-a-la-pasarela', motivo: 'faltan las llaves de Wompi' });
     return responder(503, {
       error: 'El pago en línea no está configurado todavía. Puedes pedirlo '
         + 'contraentrega o escribirnos por WhatsApp.',
@@ -267,6 +287,7 @@ export default async (req) => {
 
   if (!(await comercioActivo(llave))) {
     await liberar(ref);
+    await marcar(ref, { estado: 'no-llego-a-la-pasarela', motivo: 'Wompi no reconoce el comercio' });
     return responder(503, {
       error: 'El pago en línea no está disponible en este momento. Puedes elegir '
         + 'pago contraentrega aquí mismo, o escribirnos y lo cerramos por WhatsApp.',

@@ -11,7 +11,7 @@ que un charm nunca puede describirse como enchapado.
 ./pruebas/correr.sh
 ```
 
-Levanta un servidor estático sobre la raíz del repo, corre las siete baterías y
+Levanta un servidor estático sobre la raíz del repo, corre las ocho baterías y
 lo apaga. La primera vez instala Playwright dentro de `pruebas/node_modules`.
 
 Contra el sitio publicado:
@@ -32,6 +32,7 @@ para un hook o para CI.
 | `dudas.js` | Calculadora de talla contra los casos de las reglas de negocio, ficha de producto de las cinco familias con sus dos medidas, y buscador combinado con categoría y disponibilidad |
 | `precios.js` | Que el servidor cobre lo que la página prometió: 40 carritos armados al azar tocando el armador de verdad, comparados contra `netlify/functions/_precios.js`. Más los rechazos: ids inventados, brazaletes colados como charms, tallas inexistentes, 500 unidades |
 | `inventario.js` | **La carrera de la última unidad.** Que dos pedidos simultáneos por la misma pieza terminen con exactamente uno aprobado y el otro con `SinInventario` — y diez sobre tres unidades, con tres. Más caducidad de reservas, tallas contadas por separado, idempotencia de `confirmar` (Wompi reintenta), y las cuatro rutas de falla hacia adelante. El almacén falso imita de Blobs lo único que importa: que una escritura condicional solo pase si el etag sigue siendo el que se leyó, **con latencia**, para que las dos lecturas ocurran antes de cualquier escritura. Sin esa latencia la prueba pasaría sin haber probado nada |
+| `pedidos.js` | El registro de pedidos: que guarde lo que hace falta para alistar —piezas, talla, dirección—, que el aviso de Wompi lo **complete y no lo pise** (el evento no trae ni las piezas ni la dirección), que un pago sin pedido previo se guarde igual, y que nada del medio de pago acabe ahí. Más las rutas de falla hacia adelante y que los pedidos de prueba no se mezclen con los reales |
 | `meta.js` | El `Purchase` que el webhook manda a Meta por la Conversions API. Vigila las dos cosas que no se ven mirando la pantalla: que el `event_id` sea la referencia del pedido —lo que impide que Meta cuente dos veces cada compra, ahora que el evento sale también desde `gracias.html`— y que los identificadores se normalicen antes de hashear. Si la normalización no coincide con la de Meta, el hash no empareja con nadie, Meta responde 200 y el evento no sirve para nada: un fallo sin ninguna señal de que algo va mal. Más las cuatro rutas de falla hacia adelante |
 | `checkout.js` | El camino completo de la compra ejecutando las funciones de Netlify reales dentro de Node: validación de datos de envío, firma de integridad que Wompi va a recalcular, formulario que llega a la pasarela, contraentrega sin firma, carrito que se vacía al confirmar, referencias únicas, y el webhook rechazando eventos con firma falsa |
 

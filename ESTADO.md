@@ -163,6 +163,44 @@ Para cerrarlo:
 3. Comprobar en Events Manager que la compra aparece **una sola vez**, no dos.
    Eso es lo que confirma que la deduplicación funciona de verdad.
 
+### 4c · Dónde queda el registro de cada pedido
+
+**Lo enseñó la primera venta real.** El detalle de qué se pidió vivía solo en el
+correo a la tienda: si Resend falla, si cae en spam o si alguien lo borra, la
+tienda cobró y no sabe qué despachar — el log solo decía «2 piezas, $159.440».
+Hubo que reconstruir el pedido desde el total.
+
+Ahora hay tres copias, y ninguna depende de las otras:
+
+| Dónde | Qué trae |
+|---|---|
+| **Registro en Blobs** (`_pedidos.mjs`) | El pedido entero: piezas, tallas, dirección, cuentas, estado, transacción de Wompi |
+| **Log de `crear-pago`** | El evento `pedido_creado` lleva ahora las `lineas` — lo que hay que empacar. Sin dirección ni contacto a propósito: eso no va en un log |
+| **Correo a la tienda** | Como antes |
+
+Se consulta desde la terminal, sin exponer ningún endpoint nuevo en un sitio
+que cobra:
+
+```sh
+netlify blobs:get pedidos ZC-260812-35FCB0D5
+```
+
+(`netlify blobs --help` lista los subcomandos de la versión instalada.)
+
+Dos decisiones de esa pieza:
+
+- **Almacén y clave aparte del inventario.** El de inventario es una sola clave
+  que todos los pedidos reescriben con CAS; meter ahí los pedidos añadiría
+  contención a la pieza más delicada y la haría crecer sin límite.
+- **El aviso de Wompi fusiona, no reescribe.** El evento no trae ni las piezas
+  ni la dirección: si el estado se guardara encima, el registro perdería justo
+  lo que sirve para despachar.
+
+Guarda **datos personales** —nombre, teléfono, correo, dirección—, que es lo que
+hace falta para enviar y lo mismo que ya viaja en el correo. Sujeto a la Ley
+1581; conviene que la política de privacidad diga dónde se guardan. Del pago no
+se guarda nada: la tarjeta no pasa por el sitio en ningún momento.
+
 ### 4b · Lo que quedó del bloqueador de inventario
 
 El servidor ya **comprueba inventario antes de cobrar**: rechaza con 409 lo
@@ -374,8 +412,9 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **6 functions**
-(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`);
+En la salida de cualquier despliegue hay que confirmar que diga **7 functions**
+(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
+`_pedidos`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 

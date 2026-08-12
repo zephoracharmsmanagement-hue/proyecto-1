@@ -19,6 +19,7 @@
 import crypto from 'node:crypto';
 import { cop } from './_precios.js';
 import { confirmar, liberar } from './_inventario.mjs';
+import { marcar } from './_pedidos.mjs';
 import { purchase } from './_meta.js';
 import { enviar } from './_correo.js';
 
@@ -127,6 +128,18 @@ export default async (req) => {
     console.log(JSON.stringify({
       evento: 'inventario_' + cierre.modo, referencia: registro.referencia, estado: registro.estado,
     }));
+
+    /* En qué quedó el pedido, sobre el registro que dejó crear-pago. Se fusiona
+       para no perder el detalle de las piezas ni la dirección, que el evento de
+       Wompi no trae. Con esto, `netlify blobs:get pedidos <referencia>` cuenta
+       la historia completa sin depender de que llegara ningún correo. */
+    await marcar(registro.referencia, {
+      estado: tx.status === 'APPROVED' ? 'pagado' : 'pago-' + String(tx.status || 'desconocido').toLowerCase(),
+      transaccion: registro.transaccion,
+      metodo: registro.metodo,
+      cobrado: registro.total,
+      pagadoEn: evento.timestamp ? new Date(evento.timestamp * 1000).toISOString() : null,
+    });
   }
 
   if (tx.status === 'APPROVED') {

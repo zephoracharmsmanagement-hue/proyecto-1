@@ -77,7 +77,11 @@
 import { getStore } from '@netlify/blobs';
 import { SinInventario, nombres, inventario as INV } from './_precios.js';
 
-const TIENDA = 'inventario';
+/* En producción, el almacén de verdad —el nombre no cambia, para no perder la
+   cuenta que ya lleva—. En cualquier otro contexto (deploy preview, branch
+   deploy) uno aparte: un pedido de prueba no puede descontar existencias
+   reales ni bloquear la última unidad de una pieza que sí está a la venta. */
+const TIENDA = process.env.CONTEXT === 'production' ? 'inventario' : 'inventario-pruebas';
 const CLAVE = 'estado';
 
 /* Cuánto vale una reserva sin pagar. Tiene que cubrir con holgura el viaje a
