@@ -601,6 +601,12 @@ body.sheet-open{overflow:hidden}
 .tot-row{display:flex;justify-content:space-between;font-size:13.5px;color:#c3b4c6;margin-bottom:5px}
 .tot-row.save{color:#e39aae}
 .ship-note{font-size:12px;color:#a495a8;margin:2px 0 0;line-height:1.45}
+/* El aviso del siguiente tramo de descuento. Mismo tono discreto que el del
+   envío: es información, no un empujón. Dice una cifra comprobable —lo que
+   baja el descuento sobre lo que YA lleva— y nunca insinúa que el total baje,
+   porque el charm que añada lo paga igual. */
+.desc-nota{font-size:12px;color:#c9a5b6;margin:5px 0 0;line-height:1.45}
+.desc-nota b{color:var(--bone);font-weight:400}
 .ship-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.13);margin:7px 0 2px;overflow:hidden}
 .ship-bar i{display:block;height:100%;background:var(--rose);width:0;transition:width .3s}
 .ship-ok{color:#7fc7ae}
@@ -1496,6 +1502,7 @@ body.sheet-open{overflow:hidden}
     <div class="tot-row"><span>Envío</span><span id="v-ship">—</span></div>
     <div class="ship-bar" id="ship-bar"><i></i></div>
     <p class="ship-note" id="ship-note"></p>
+    <p class="desc-nota" id="desc-nota" hidden></p>
     <p class="stock-nota"><span id="stock-fecha"></span></p>
   </div>
   </div>
@@ -1933,6 +1940,32 @@ function render(){
     nota.textContent='Agrega '+cop(LIBRE-subtotal)+' más y el envío es gratis'
       +(LIBRE_SOLO_ANTICIPADO?' con pago anticipado':'');
     nota.className='ship-note'; barra.style.width=Math.min(100,subtotal/LIBRE*100)+'%';
+  }
+
+  /* El siguiente tramo de descuento.
+   *
+   * La escala por cantidad ya existía pero no se anunciaba en ninguna parte: la
+   * clienta solo veía el descuento que ya tenía, nunca el que estaba a un charm
+   * de distancia. Pasó en la primera venta real —dos charms, 8%— sin que nada
+   * le dijera que el tercero la subía al 15%.
+   *
+   * La cifra que se muestra es lo que baja el descuento sobre lo que YA lleva,
+   * que es comprobable en el propio resumen. No se dice que el total baje,
+   * porque no baja: el charm que añada lo paga. Prometer un ahorro que no
+   * existe es la clase de cosa que se descubre en la pantalla de pago. */
+  const dn=$('#desc-nota');
+  const sigue=escala(nC+1)>escala(nC) || (base && nC+1>=3 && nC<3);
+  if(nC>=1 && sigue){
+    const ahoraD=brutoC*escala(nC)+descB;
+    const luegoD=brutoC*escala(nC+1)+((base&&nC+1>=3)?brutoB*.30:0);
+    const extra=Math.round(luegoD-ahoraD);
+    const pct=Math.round(escala(nC+1)*100);
+    dn.hidden=extra<=0;
+    dn.innerHTML='Con un charm más el descuento sube al <b>'+pct+'%</b>'
+      +(base&&nC+1>=3&&nC<3?' y se activa el 30% del brazalete':'')
+      +': <b>'+cop(extra)+' menos</b> en lo que ya llevas.';
+  }else{
+    dn.hidden=true;
   }
 
   /* Cada opción muestra lo que le costaría el envío a ESTE carrito, para que
