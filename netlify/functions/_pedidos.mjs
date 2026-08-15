@@ -92,6 +92,26 @@ async function marcar(referencia, cambios) {
   }
 }
 
+/* Todos los pedidos. Al volumen de esta tienda cabe leerlos de una vez; si algún
+   día son miles, `list({ paginate: true })` devuelve un iterador y esto se
+   convierte en un bucle. Los que no se puedan leer se saltan en vez de tumbar
+   la lectura entera: un pedido corrupto no puede esconder a los demás. */
+async function listar() {
+  const store = almacen();
+  if (!store) return [];
+  try {
+    const { blobs } = await store.list();
+    const todos = await Promise.all(blobs.map(async b => {
+      try { return await store.get(b.key, { type: 'json' }); }
+      catch (e) { console.error('pedidos: no se pudo leer', b.key, e.message); return null; }
+    }));
+    return todos.filter(Boolean);
+  } catch (e) {
+    console.error('pedidos: no se pudo listar', e.message);
+    return [];
+  }
+}
+
 /* Para consultarlo desde la terminal, sin exponer ningún endpoint nuevo en un
    sitio que cobra:
      netlify blobs:get pedidos ZC-260812-35FCB0D5
@@ -107,5 +127,5 @@ async function leer(referencia) {
   }
 }
 
-export { guardar, marcar, leer };
+export { guardar, marcar, leer, listar };
 export const _interno = { usarAlmacen, TIENDA };

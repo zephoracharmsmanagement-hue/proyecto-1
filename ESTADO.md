@@ -253,6 +253,37 @@ hace falta para enviar y lo mismo que ya viaja en el correo. Sujeto a la Ley
 1581; conviene que la política de privacidad diga dónde se guardan. Del pago no
 se guarda nada: la tarjeta no pasa por el sitio en ningún momento.
 
+### 4d · Rescate de checkouts abandonados
+
+Una clienta que escribió nombre, celular, correo y dirección, eligió sus piezas
+y no llegó a pagar es la persona más caliente que tiene la tienda. Hasta ahora
+se perdía en silencio: el pedido quedaba en `esperando-pago` y nadie volvía a
+mirarlo. Con el registro de pedidos ya se pueden encontrar.
+
+`rescate.mjs` corre **una vez al día a las 9:00 de Colombia** y le manda a
+`CORREO_TIENDA` la lista, con un enlace de WhatsApp listo para tocar en cada
+uno.
+
+> **Avisa a la tienda; no le escribe a la clienta.** Es la decisión importante
+> de esta pieza. Escribirle automáticamente a alguien que dejó sus datos **para
+> comprar**, no para recibir mensajes, es terreno resbaladizo bajo la Ley 1581:
+> la finalidad autorizada era la compra. Y en esta tienda la venta se cierra
+> hablando, así que un mensaje del propietario, con su tono y respondiendo
+> dudas, recupera más que un automático. Lo que se automatiza es *encontrarlos*,
+> que es el trabajo que no se hace nunca.
+
+La ventana tampoco es un capricho: **antes de 2 horas** la clienta puede seguir
+en la pasarela, y escribirle es interrumpir una compra que iba a ocurrir sola;
+**después de 7 días** el mensaje se lee como vigilancia y no como servicio.
+Tampoco se avisa dos veces del mismo pedido — un correo que repite lo de ayer se
+deja de abrir.
+
+Si Resend falla, no se marca ninguno y mañana vuelven a salir: un fallo de
+correo no puede hacer que se pierdan.
+
+**Falta comprobar que Netlify dispare el `schedule`** — se ve en Functions →
+`rescate`, o forzándolo desde el panel.
+
 ### 4b · Lo que quedó del bloqueador de inventario
 
 El servidor ya **comprueba inventario antes de cobrar**: rechaza con 409 lo
@@ -466,9 +497,9 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **7 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **8 functions**
 (`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`);
+`_pedidos`, `rescate`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 
