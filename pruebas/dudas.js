@@ -76,6 +76,15 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   console.log('3 · Buscador');
   await p.click('#more-btn');
   await p.waitForTimeout(200);
+  /* Cuántas tarjetas hay sin buscar nada. Se mide en vez de clavarla: el
+     catálogo cambia —el día que se retiraron tres duplicados esta prueba se
+     puso roja con la página en lo cierto— y lo que hay que comprobar no es un
+     número, sino que al limpiar la búsqueda vuelvan TODAS. */
+  const visibles = () => p.evaluate(
+    () => document.querySelectorAll('#resto-grid .pc:not([hidden])').length);
+  const base = await visibles();
+  ok(base > 0, `el catálogo abre con ${base} tarjetas visibles`);
+
   const buscar = async q => {
     await p.fill('#q', q);
     await p.waitForTimeout(320);
@@ -94,7 +103,9 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   await p.click('#q-x');
   await p.waitForTimeout(250);
   s = await p.evaluate(() => ({ n: document.querySelectorAll('#resto-grid .pc:not([hidden])').length, v: document.getElementById('q').value }));
-  ok(s.v === '' && s.n >= 78, `la X limpia la búsqueda y vuelven las ${s.n} tarjetas`);
+  ok(s.v === '' && s.n === base,
+    `la X limpia la búsqueda y vuelven las ${base} tarjetas` +
+    (s.n === base ? '' : ` — volvieron ${s.n}`));
 
   // buscador + categoría + solo disponibles
   await p.click('#filters .fbtn[data-f="Disney"]');

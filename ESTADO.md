@@ -68,22 +68,36 @@ solo despliegue** y cuestan 15 créditos, no 15 por commit.
 
 ## Pendientes
 
-### 1 · Tres fotos de producto
+### 1 · Una foto de producto
 
-Faltan por conseguir. Las tarjetas **ya existen y se venden**, con un marcador
-"Foto en camino" en lugar de la imagen:
+Falta **una sola**: la del Stitch Plateado, en `assets/stitch-azul.webp`. La
+tarjeta ya existe y se vende, con un marcador "Foto en camino" en lugar de la
+imagen. Cómo enchufarla: la sección *Piezas sin foto* del README.
 
-| Pieza | Archivo que espera |
-|---|---|
-| Cenicienta | `assets/cenicienta.webp` |
-| Corazón Mamá e Hija | `assets/corazon-mama-e-hija.webp` |
-| Stitch Plateado | `assets/stitch-azul.webp` |
+> Ojo con el nombre del archivo. `stitch-azul` **es el Stitch plateado**, no el
+> azul. La foto que tenía era copia byte a byte de `stitch.webp` —el azul
+> esmaltado, que es otra pieza— y se borró. Necesita la del plateado de orejas
+> rosadas.
 
-Cómo enchufar cada una: la sección *Piezas sin foto* del README.
+**Las otras dos no faltaban: estaban guardadas con el nombre equivocado.** El
+propietario detectó que el catálogo tenía tres piezas duplicadas bajo dos
+nombres cada una, y al mirar las fotos quedó confirmado:
 
-> Ojo con la tercera. `stitch-azul` **es el Stitch plateado**, no el azul. La foto
-> que tenía era copia byte a byte de `stitch.webp` —el azul esmaltado, que es otra
-> pieza— y se borró. Necesita la foto del plateado de orejas rosadas.
+| Ficha retirada | Era en realidad | Se quedó |
+|---|---|---|
+| `elsa` | Cenicienta —moño con diadema y vestido turquesa, no la trenza de Elsa— | `cenicienta`, que ya tenía las 2 unidades |
+| `nina-con-arcoiris` | El corazón con madre e hija y arcoíris de circonias | `corazon-mama-e-hija`, con sus 2 unidades |
+| `tortuga-azul-grande` | La misma tortuga de cristal, otra foto | `tortuga-marina-cristal` |
+
+En cada caso sobrevivió el id **con inventario**, y se le enchufó la foto que
+estaba bajo el nombre equivocado. Las tres retiradas tenían stock 0, así que no
+se dejó de vender nada.
+
+> **El duplicado de Mamá e Hija estaba publicado a dos precios**: $68.000 en la
+> ficha con inventario y $80.000 en la que tenía la foto. Lo confirmó el
+> propietario: el bueno es **$68.000**. Merece decirse porque es la clase de
+> cosa que un duplicado esconde — dos precios para la misma pieza, y la clienta
+> comprando por el que encuentre primero.
 
 ### 2 · Domicilio
 
@@ -346,6 +360,7 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 | La comprobación de inventario **falla hacia adelante** | Solo bloquea con un dato claro de que no hay. Si `stock.json` no se puede leer, la venta pasa: una lectura fallida no puede costar una compra buena |
 | `crear-pago` y `wompi-webhook` son **funciones v2** (`export default`, en `.mjs`) | No es estilo: Netlify solo inyecta `NETLIFY_BLOBS_CONTEXT` en v2, y sin esa variable `getStore()` lanza y la reserva de inventario se cae al camino de emergencia — la tienda vende, nada se rompe, y no se aparta nada. Ya pasó: estuvo así en producción una jornada entera y se detectó leyendo el log, no porque algo fallara. `pruebas/inventario.js` § 6 lo vigila. Los módulos auxiliares siguen en CommonJS porque no hacía falta tocarlos |
 | Ahora **sí hay `package.json` en la raíz** | `pruebas/package.json` explica que no lo había a propósito, para que Netlify no instalara dependencias. Esa decisión se tomó con cero dependencias; la reserva necesita `@netlify/blobs` **dentro de las funciones**, y sin declararla el bundler no la incluye, las funciones se caen al arrancar y el sitio deja de cobrar. Sigue sin haber comando de build (`command = ""`): lo único que cambia es que Netlify instala esa dependencia antes de empaquetar |
+| Las pruebas **no clavan datos del catálogo**: los leen de `stock.json` o los miden en pantalla | Al retirar tres piezas duplicadas, dos baterías se pusieron rojas con la página en lo cierto: una esperaba «77 tarjetas» y otra nombraba `elsa` entre los agotados. Un número o un id escrito a mano convierte cada cambio de catálogo en una falla falsa, y las fallas falsas enseñan a ignorar el rojo. Lo que hay que comprobar es la regla —que al limpiar la búsqueda vuelvan **todas**, que un agotado salga en gris y bloqueado—, no una cifra concreta |
 | La reserva de inventario **se prueba con latencia** | `pruebas/inventario.js` mete demora en el almacén falso para que las dos lecturas ocurran antes de cualquier escritura. Sin eso, las dos operaciones corren una tras otra, la prueba pasa, y no ha probado nada — el mismo error que dio verde a un pago que no cobraba |
 | La **verificación del comercio en Wompi** también falla hacia adelante | Solo bloquea con un 404 explícito. Existe porque una llave mal transcrita mandaba a todas las clientas a una pantalla de error sin retorno |
 

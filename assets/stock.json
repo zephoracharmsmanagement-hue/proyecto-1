@@ -655,12 +655,6 @@
     "20": 1
    }
   },
-  "elsa": {
-   "tipo": "charm",
-   "precio": 85000,
-   "stock": 0,
-   "familia": "pasador"
-  },
   "angel": {
    "tipo": "charm",
    "precio": 85000,
@@ -679,19 +673,7 @@
    "stock": 0,
    "familia": "colgante"
   },
-  "nina-con-arcoiris": {
-   "tipo": "charm",
-   "precio": 80000,
-   "stock": 0,
-   "familia": "colgante"
-  },
   "tortuga-marina-cristal": {
-   "tipo": "charm",
-   "precio": 72000,
-   "stock": 0,
-   "familia": "colgante"
-  },
-  "tortuga-azul-grande": {
    "tipo": "charm",
    "precio": 72000,
    "stock": 0,
