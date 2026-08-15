@@ -150,6 +150,13 @@ button{font-family:inherit}
 .op-d{margin:4px 0 0;font-size:12.5px;color:#6d6070;line-height:1.5}
 .op:has(input:checked){border-color:var(--pagar);box-shadow:0 0 0 1px var(--pagar)}
 .op-logos{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+/* La autorizacion no es una opcion de compra: se ve mas discreta que las
+   tarjetas de envio y pago para que no compita con ellas ni parezca un paso
+   obligatorio. */
+.op--optin{margin-top:14px;padding:12px 13px;background:transparent;border-style:dashed}
+.op--optin b{font-weight:400;font-size:13.5px;display:block}
+.op--optin small{display:block;margin-top:4px;font-size:11.5px;color:#6d6070;line-height:1.5}
+.op--optin:has(input:checked){box-shadow:none}
 .op-logos span{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#7c7681;
   border:1px solid var(--line);border-radius:1px;padding:3px 6px;background:#fbf9fa}
 
@@ -323,6 +330,20 @@ button{font-family:inherit}
                 <span class="error">Revisa el correo: falta el @ o el dominio</span>
               </div>
             </div>
+
+            <!-- Autorización aparte, sin marcar y opcional.
+                 Bajo la Ley 1581 la finalidad que autoriza estos datos es la
+                 compra; escribir después por otra cosa —una promo, un carrito a
+                 medias— necesita permiso propio y separado. Va sin marcar a
+                 propósito: una casilla premarcada no es consentimiento, y
+                 tampoco condiciona la compra. Lo que quede aquí es lo que
+                 decide si un pedido sin pagar se puede recuperar escribiéndole
+                 a ella o solo avisándole a la tienda. -->
+            <label class="op op--optin">
+              <input type="checkbox" id="optin" name="optin">
+              <span><b>Quiero recibir novedades y ofertas por WhatsApp o correo</b>
+                <small>Opcional — tu pedido sigue igual si no la marcas. Puedes pedirnos que paremos cuando quieras. Tratamos tus datos según nuestra <a href="politica-de-privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</small></span>
+            </label>
 
             <div class="dos">
               <div class="campo" data-c="depto">
@@ -672,7 +693,12 @@ function datos(){
     celular:val('celular').replace(/\D/g,''), correo:val('correo').toLowerCase(),
     depto:val('depto'), ciudad:ciu, direccion:val('direccion'),
     adicional:val('adicional'), barrio:val('barrio'),
-    notas:val('notas'), dedicatoria:carrito.empaque?val('dedicatoria'):''
+    notas:val('notas'), dedicatoria:carrito.empaque?val('dedicatoria'):'',
+    /* Autorización para escribirle por algo que no sea este pedido. Viaja con
+       el resto y la guarda el registro: es lo que decide, más adelante, si un
+       checkout sin pagar se puede recuperar escribiéndole a ella o solo
+       avisándole a la tienda. */
+    optin:!!$('#optin').checked
   };
 }
 

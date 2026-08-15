@@ -327,6 +327,27 @@ async function llenarPaso1(p, d) {
       cliente: Object.assign({}, bueno.cliente, { direccion: '' }) }));
     ok(sinDir.codigo === 400, 'rechaza un pedido sin dirección');
 
+    /* Autorización de comunicaciones comerciales.
+     *
+     * Es la única casilla del formulario que no cambia nada de la compra, y por
+     * eso es fácil que se rompa sin que nadie lo note: el pedido pasa igual, el
+     * cobro sale igual, los correos salen igual. Lo que cambia es a quién se le
+     * puede escribir después, y eso solo se descubre el día que hay que
+     * demostrar que hubo permiso.
+     *
+     * `crear-pago` es un endpoint público: cualquiera puede mandarle un cuerpo
+     * a mano. Por eso el permiso solo se concede con un booleano `true` — un
+     * "false", un 1 o un "no" son valores que en JavaScript pasan por
+     * verdaderos y fabricarían una autorización que nadie dio. */
+    const consent = v => crearPago._interno.leerCliente(
+      Object.assign({}, bueno.cliente, { optin: v })).optin;
+    ok(consent(true) === true, 'marcar la casilla queda guardado como autorización');
+    ok(consent(false) === false && consent(undefined) === false,
+      'sin marcarla no queda ninguna autorización');
+    ok(['false', 'no', 1, 'sí', {}].every(v => consent(v) === false),
+      'un valor colado por la API pública no fabrica un permiso',
+      'probados "false", "no", 1, "sí" y {}');
+
     const inventado = await llamar(Object.assign({}, bueno, { charms: ['charm-de-oro'] }));
     ok(inventado.codigo === 400, 'rechaza una pieza que no existe en el catálogo');
 

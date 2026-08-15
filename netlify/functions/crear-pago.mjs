@@ -71,6 +71,14 @@ function leerCliente(c) {
     barrio: txt(c.barrio, 80),
     notas: txt(c.notas, 400),
     dedicatoria: txt(c.dedicatoria, 200),
+    /* Autorización de comunicaciones comerciales, separada de la compra.
+     *
+     * Se guarda con el pedido porque es la prueba de la autorización: la Ley
+     * 1581 pide poder demostrar cuándo y para qué se dio, y el registro del
+     * pedido ya lleva fecha. Booleano estricto —no `Boolean(c.optin)` sobre
+     * cualquier cosa— para que un `"false"` o un `1` colados en el cuerpo no
+     * se conviertan en un permiso que nadie dio: esta llamada es pública. */
+    optin: c.optin === true,
   };
 
   if (cliente.nombre.length < 2) throw new PedidoInvalido('Falta el nombre');

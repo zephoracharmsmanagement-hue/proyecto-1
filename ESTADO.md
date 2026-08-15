@@ -453,6 +453,53 @@ quedado bien):
   nuevo entero. Aplazado; mientras tanto se mide por WhatsApp con
   `data-wa="pagos"`, y ese dato es justamente con el que decidir (§ 4).
 
+### 5c · Conversión: lo que se montó y por qué
+
+Primer tramo del trabajo de conversión. La decisión de fondo la tomó el
+propietario: **la venta se cierra en el checkout de la web, no por WhatsApp** —
+por WhatsApp se estaban cayendo—. Todo lo de abajo sale de ahí.
+
+- **El CTA del hero es «Armar mi pulsera», no WhatsApp.** Antes el botón grande
+  sacaba a la clienta de la página hacia una conversación que hay que atender a
+  mano. WhatsApp sigue, en secundario y como *asesoría*. Conserva su `data-wa`,
+  así que la medición del salto al chat no cambió.
+- **Venta cruzada al fijar el brazalete** (`#xs`). La promo «brazalete + 3
+  charms = 30%» estaba anunciada arriba en una tarjeta y no en el momento de
+  decidir. Ahora aparece al confirmar la talla y **se apaga sola al llegar a 3
+  charms**, que es donde el 30% ya está activo. La cifra que muestra es el
+  descuento que gana sobre lo que **ya lleva** —misma disciplina que
+  `#desc-nota`—, nunca una rebaja del total: el charm que añada lo paga.
+- **El envío gratis salió a la barra fija.** Falta y barra de progreso en el
+  dock. Antes el umbral solo lo veía quien abría el detalle; el resto armaba sin
+  saber que le faltaban $20.000 para no pagar envío.
+- **Casilla de consentimiento en el checkout** (`#optin`), sin marcar y
+  opcional. Es el requisito que faltaba para poder automatizar la recuperación
+  de carritos escribiéndole **a la clienta**: bajo la Ley 1581 la finalidad que
+  autorizó esos datos era la compra. Viaja con el pedido, la guarda el registro
+  —que ya lleva fecha, o sea prueba de cuándo se dio— y el correo diario de
+  `rescate` marca quién autorizó.
+
+> **El permiso solo se concede con un booleano `true`.** `crear-pago` es un
+> endpoint público: `optin: "false"`, `1` o `"no"` son valores que en JavaScript
+> pasan por verdaderos y fabricarían una autorización que nadie dio.
+> `pruebas/checkout.js` lo vigila.
+
+**El fallo mudo de este tramo, para la colección:** el aviso de venta cruzada se
+oculta con `[hidden]`, pero tenía `display:flex` propio y el display gana. Nació
+visible y **vacío** antes de elegir brazalete, y no se iba al llegar a 3 charms.
+Ni un error en consola. Lo cazó recorrer el flujo en el navegador, no las
+pruebas que ya existían. Está resuelto con `.xs[hidden]{display:none}` —igual
+que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` § 6.
+
+> **Y tres pruebas estaban clavadas al estilo en vez de a la regla.** Al pasar
+> el CTA del hero a secundario, `regresion.js` seguía midiendo `a.btn--wa`: se
+> fue a un botón verde a 1.900 px de scroll y dio «FUERA» con el hero intacto.
+> Otra buscaba el píxel por `a.btn--wa[data-wa="hero"]` en vez de por `data-wa`.
+> Y la nueva usaba `:not([disabled])` para las tallas cuando el bloqueo real de
+> la página es `aria-disabled` — elegía una talla agotada y salía un rojo que no
+> era del sitio. Las tres ahora apuntan a la regla: *el CTA principal cae sobre
+> el pliegue*, *el salto a WhatsApp mide*, *la talla libre confirma*.
+
 ### 6 · «A veces se borran las joyas» — cerrado
 
 Ya no es un misterio, y **la causa no era la que se estaba persiguiendo**. La
@@ -512,6 +559,9 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 | El **webhook de Wompi verifica la firma** de cada evento | Su URL es pública: sin verificación, cualquiera manda un POST diciendo «pagado» |
 | `Purchase` **solo con estado APPROVED consultado a la API** de Wompi | Dispararlo por un parámetro de URL regalaría una página de «pagado» y ensuciaría la optimización de campañas |
 | El **envío gratis es solo del pago anticipado** | La contraentrega cuesta comisión de recaudo y riesgo de devolución: regalarle el envío es subsidiar la opción más cara. Lo delicado no es la regla sino no prometerla y quitarla al final — por eso cada opción muestra su costo antes de elegir, y quien ya pasó el umbral con contraentrega ve por qué y un botón que aplica el cambio |
+| La **acción principal de la página es armar y comprar**; WhatsApp es asesoría | Decisión del propietario: por WhatsApp se estaban cayendo las ventas. Un CTA principal que saca a la clienta a un chat convierte la compra en una conversación que hay que atender a mano, y depende de que alguien responda. WhatsApp no se quita —rescata cuando hay dudas o el pago falla— pero deja de ser la vía por defecto. `pruebas/regresion.js` § 1 comprueba que el CTA principal caiga sobre el pliegue, sin nombrar su estilo |
+| El aviso de venta cruzada **se apaga al llegar a 3 charms** | En 3 ya está activo el 30% del brazalete y el 15% de los charms: seguir empujando después es pedir por pedir, y un aviso que no se calla nunca se deja de leer. Y la cifra es siempre el descuento sobre lo que **ya lleva**, nunca una rebaja del total |
+| La **autorización de comunicaciones va sin marcar y no condiciona la compra** | Una casilla premarcada no es consentimiento, y condicionar la venta a aceptarla tampoco. Es lo que separa poder escribirle después por una promo de solo poder responder por su pedido |
 | **No hay salida a WhatsApp en el carrito** | A esa altura la clienta ya decidió comprar; una opción de menor compromiso pegada al botón de pagar se come checkouts terminados en vez de sumar pedidos. WhatsApp sigue en el resto de la página y en el checkout **si el pago falla**, que es donde rescata una venta en vez de robarla |
 | Los **medios de pago anunciados son los que Wompi tiene habilitados** | Se sacan de `accepted_payment_methods` de su API. Prometer uno que la pasarela no ofrece se descubre con la clienta ya decidida, buscando un botón que no existe. Por eso Addi salió del checkout y quedó como opción por WhatsApp |
 | Los **correos no pueden tumbar una venta** | Sin `RESEND_API_KEY` no se manda nada y el pedido sigue; si Resend falla, se registra y el cobro continúa. Perder un comprobante es molesto; perder una compra cobrada porque el proveedor de correo estaba lento, no |

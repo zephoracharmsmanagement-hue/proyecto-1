@@ -11,7 +11,12 @@ const U = BASE + '/index.html';
     const p = await b.newPage({ viewport: { width: w, height: h } });
     await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
     const h1 = await p.locator('h1').first().boundingBox();
-    const cta = await p.locator('a.btn--wa').first().boundingBox();
+    /* El CTA principal del hero, sea cual sea su estilo. Estaba clavado en
+       `a.btn--wa`, y al pasar el botón de compra a primario —WhatsApp quedó
+       secundario— la prueba se fue a medir un botón verde a 1.900 px de
+       scroll y decía FUERA con el hero intacto. Lo que importa es que la
+       acción principal caiga sobre el pliegue, no de qué color es. */
+    const cta = await p.locator('.hero-cta .btn').first().boundingBox();
     const ann = await p.locator('.ann').first().boundingBox();
     // ¿se corta algún aviso?
     const cortes = await p.$$eval('.ann-slide', (els) =>
@@ -19,7 +24,7 @@ const U = BASE + '/index.html';
     );
     const annCorta = cortes.some(c => c.alto > c.caja + 1);
     out.push(`${etiqueta}\n  h1 en y=${Math.round(h1.y)}  (pliegue ${h})  ${h1.y + h1.height < h ? 'VISIBLE' : 'FUERA'}` +
-      `\n  CTA WhatsApp en y=${Math.round(cta.y)}  ${cta.y + cta.height < h ? 'VISIBLE' : 'FUERA'}` +
+      `\n  CTA principal en y=${Math.round(cta.y)}  ${cta.y + cta.height < h ? 'VISIBLE' : 'FUERA'}` +
       `\n  barra avisos alto=${Math.round(ann.height)}px  ${annCorta ? 'SE CORTA ✗' : 'sin cortes ✓'}`);
     await p.close();
   }
@@ -59,14 +64,71 @@ const U = BASE + '/index.html';
   // ---- 5. Eventos del pixel en clic a WhatsApp ----
   await p.evaluate(() => { window.__ev = []; window.fbq = (a, b, c) => window.__ev.push([a, b, c]); });
   await p.evaluate(() => {
-    const a = document.querySelector('a.btn--wa[data-wa="hero"]');
+    /* Por data-wa y no por la clase: lo que se prueba es que el salto a
+       WhatsApp mida, no de qué color es el botón. Se cayó al pasar el CTA del
+       hero a secundario —perdió btn--wa— con la medición intacta. */
+    const a = document.querySelector('a[data-wa="hero"]');
     a.addEventListener('click', e => e.preventDefault(), true);
     a.click();
   });
   const ev = await p.evaluate(() => window.__ev);
   out.push(`\nPixel al tocar WhatsApp: ${JSON.stringify(ev)}`);
 
-  // ---- 6. Desbordamiento horizontal ----
+  // ---- 6. Venta cruzada y barra de envío gratis ----
+  //
+  // El aviso de charms se oculta con [hidden], pero tiene display:flex propio y
+  // el display gana: nació visible y vacío antes de elegir brazalete, y no se
+  // iba al llegar a 3 charms. Nada falla en pantalla —solo sale un recuadro sin
+  // texto—, así que solo lo caza recorrer el flujo. Misma familia que .pc[hidden]
+  // y .tallas[hidden]: cada elemento con display propio tiene que ganarle a
+  // [hidden] explícitamente.
+  //
+  // No se clava ninguna pieza del catálogo: se toma el primer brazalete con
+  // talla libre y los primeros charms disponibles, sean los que sean.
+  const xsAntes = await p.locator('#xs').isVisible();
+  // El bloqueo de esta página es aria-disabled, no el atributo disabled
+  // (`bloqueado()` en index.html). Con :not([disabled]) la prueba elegía una
+  // talla agotada, el clic no hacía nada y salía un rojo que no era del sitio.
+  const libre = '[data-talla]:not([aria-disabled="true"])';
+  const elegido = await p.evaluate(sel => {
+    const card = [...document.querySelectorAll('#brazaletes .pc')]
+      .find(c => c.querySelector(sel) || !c.querySelector('[data-talla]'));
+    if (!card) return null;
+    card.querySelector('.pc-add').click();
+    return card.dataset.id;
+  }, libre);
+  await p.waitForTimeout(200);
+  // Con inventario cargado la talla es la que confirma; sin él, ya quedó puesto.
+  await p.evaluate(([id, sel]) => {
+    const t = document.querySelector(`.pc[data-id="${id}"] ${sel}`);
+    if (t) t.click();
+  }, [elegido, libre]);
+  await p.waitForTimeout(250);
+  const xsBase = await p.locator('#xs').isVisible();
+  const xsTxt = (await p.locator('#xs-tx').textContent()).trim();
+  const dockBase = (await p.locator('#dock-n').textContent()).trim();
+  const puestos = await p.evaluate(() => {
+    const libres = [...document.querySelectorAll('#charms [data-add]')]
+      .filter(b => b.getAttribute('aria-disabled') !== 'true');
+    libres.slice(0, 3).forEach(b => b.click());
+    return Math.min(3, libres.length);
+  });
+  await p.waitForTimeout(300);
+  const xsTres = await p.locator('#xs').isVisible();
+
+  out.push('\nVenta cruzada y envío gratis en la barra fija'
+    + `\n  oculto antes de elegir brazalete: ${xsAntes === false ? 'sí ✓' : 'NO ✗ (sale vacío)'}`
+    + `\n  aparece al fijar el brazalete: ${xsBase ? 'sí ✓' : 'NO ✗'}`
+    + `\n  y nombra el 30% del brazalete: ${/30\s*%/.test(xsTxt) ? 'sí ✓' : 'NO ✗'} — "${xsTxt}"`
+    + `\n  la barra dice cuánto falta para envío gratis: `
+    + `${/para envío gratis|envío gratis/.test(dockBase) ? 'sí ✓' : 'NO ✗'} — "${dockBase}"`
+    + `\n  se retira con ${puestos} charms puestos: `
+    + `${puestos < 3 || xsTres === false ? 'sí ✓' : 'NO ✗ (sigue pidiendo charms)'}`);
+
+  // Se deja el carrito como estaba para no arrastrar estado a lo que sigue.
+  await p.evaluate(() => { try { localStorage.removeItem('zephora.sel'); } catch (e) {} });
+
+  // ---- 7. Desbordamiento horizontal ----
   for (const w of [360, 390, 430, 768, 1280]) {
     await p.setViewportSize({ width: w, height: 900 });
     await p.waitForTimeout(120);

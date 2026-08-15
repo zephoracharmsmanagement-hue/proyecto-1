@@ -569,6 +569,37 @@ section{scroll-margin-top:64px}
   cursor:pointer;padding:8px 2px}
 .dock-open svg{transition:transform .25s}
 .dock .btn--wa{padding:11px 14px;font-size:11.5px;letter-spacing:.07em}
+/* Barra de progreso hacia el envío gratis, pegada al borde superior del dock.
+   Vive aquí y no solo dentro de la hoja porque el umbral solo servía a quien
+   ya había abierto el detalle: el resto armaba sin saber que le faltaban
+   $20.000 para no pagar envío. 3 px no le quitan altura a nada. */
+.dock-bar{position:absolute;left:0;right:0;top:0;height:3px;background:rgba(255,255,255,.12)}
+.dock-bar i{display:block;height:100%;width:0;background:var(--rose,#B4657F);
+  transition:width .35s ease}
+.dock-bar.is-ok i{background:#3E9E7A}
+
+/* Aviso de venta cruzada. Sale al fijar el brazalete y se va sola en cuanto
+   llega a 3 charms, que es donde se activa el 30%. Nunca tapa el dock ni
+   convive con la hoja abierta: ahí el mismo dato ya está en #desc-nota. */
+.xs{position:fixed;left:12px;right:12px;bottom:calc(var(--dock) + 10px);z-index:79;
+  background:var(--bone,#FBF7F4);border:1px solid rgba(92,61,99,.18);
+  border-radius:10px;box-shadow:0 10px 30px rgba(20,12,24,.18);
+  padding:12px 12px 12px 14px;display:flex;align-items:center;gap:10px;
+  animation:xs-in .3s ease both}
+@keyframes xs-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.xs{animation:none}.dock-bar i{transition:none}}
+/* display:flex le gana al [hidden] del navegador y dejaba el aviso visible
+   siempre — vacío antes de elegir brazalete, y sin irse al llegar a 3 charms.
+   Mismo empate que ya resuelven .pc[hidden] y .tallas[hidden] más arriba. */
+.xs[hidden]{display:none}
+.xs-tx{flex:1 1 auto;min-width:0;font-size:12.5px;line-height:1.45;color:#3B2A40}
+.xs-tx b{color:#5C3D63}
+.xs-go{flex:0 0 auto;padding:10px 13px;font-size:11.5px;letter-spacing:.06em;
+  white-space:nowrap}
+.xs-x{flex:0 0 auto;background:none;border:0;cursor:pointer;color:#A9A6AE;
+  font-size:13px;line-height:1;padding:6px 2px}
+body.sheet-open .xs{display:none}
+@media(min-width:900px){.xs{left:auto;right:24px;width:380px}}
 .veil{position:fixed;inset:0;background:rgba(20,12,24,.5);z-index:85;opacity:0;
   pointer-events:none;transition:opacity .25s}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;background:#231a27;color:var(--bone);
@@ -748,11 +779,15 @@ body.sheet-open{overflow:hidden}
       <h1>Diseña una historia<br><i>tan única como tú</i></h1>
       <p class="hero-sub">Joyería personalizada con charms elaborados en Plata Esterlina 925 verificada y brazaletes con acabado de alta calidad en baño de plata, compatibles con Pandora.</p>
       <p class="hero-badges"><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="dot">·</span><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span><span class="hero-badge-n">+2.400 pulseras creadas</span></p>
+      <!-- El botón grande arma y compra en el sitio; WhatsApp queda como
+           asesoría, no como vía de compra. Antes era al revés y el CTA
+           principal sacaba a la clienta de la página hacia una conversación
+           que hay que atender a mano: las ventas se estaban cayendo ahí. -->
       <div class="hero-cta">
-        <a class="btn btn--wa btn--big" data-wa="hero" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20web%20y%20quiero%20dise%C3%B1ar%20mi%20pulsera%20personalizada.%20%C2%BFMe%20pueden%20asesorar%20con%20los%20charms%20y%20la%20talla%3F">💬 Diseñar mi pulsera por WhatsApp</a>
-        <a class="btn btn--ghost" href="#brazaletes">Ver brazaletes y charms</a>
+        <a class="btn btn--pagar btn--big" href="#brazaletes">Armar mi pulsera</a>
+        <a class="btn btn--ghost" data-wa="hero" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20web%20y%20quiero%20dise%C3%B1ar%20mi%20pulsera%20personalizada.%20%C2%BFMe%20pueden%20asesorar%20con%20los%20charms%20y%20la%20talla%3F">💬 Asesoría por WhatsApp</a>
       </div>
-      <p class="hero-hint">O ármala tú misma aquí abajo — el precio se calcula solo, con la promo incluida.</p>
+      <p class="hero-hint">El precio se calcula solo mientras eliges, con la promo ya incluida. Pagas aquí mismo con Nequi, PSE, Bancolombia o tarjeta.</p>
     </div>
     <div class="hero-img">
       <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp" alt="Pulsera Zephora armada con charms en plata 925" width="502" height="900" fetchpriority="high" decoding="async">
@@ -1518,7 +1553,14 @@ body.sheet-open{overflow:hidden}
   </div>
 </aside>
 
+<div class="xs" id="xs" hidden>
+  <p class="xs-tx" id="xs-tx"></p>
+  <a class="btn btn--pagar xs-go" href="#charms" id="xs-go">Ver charms</a>
+  <button class="xs-x" type="button" id="xs-x" aria-label="Cerrar aviso">✕</button>
+</div>
+
 <div class="dock" id="dock" role="button" tabindex="0" aria-label="Ver tu selección">
+  <div class="dock-bar" id="dock-bar" aria-hidden="true"><i></i></div>
   <div class="dock-info">
     <div class="dock-n" id="dock-n">Tu selección está vacía</div>
     <div class="dock-p" id="dock-p">$0</div>
@@ -1615,6 +1657,10 @@ const escala=n=>n<=0?0:ESC[Math.min(n,4)];
 const $=s=>document.querySelector(s);
 
 let base=null, sel=[];
+/* Si la clienta cierra el aviso de charms, no vuelve a salir en esa visita.
+   En sessionStorage y no en localStorage: cerrarlo hoy no es decir que no
+   quiere verlo nunca más. */
+let xsFuera=(()=>{ try{ return sessionStorage.getItem('zephora.xs')==='1'; }catch(e){ return false; } })();
 const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
 
 function imgDe(id){
@@ -1984,9 +2030,50 @@ function render(){
   pintarLetras();
 
   const piezas=nC+(base?1:0);
-  $('#dock-n').textContent=piezas?piezas+(piezas===1?' pieza':' piezas')+(libre?' · envío gratis':''):'Tu selección está vacía';
+  /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
+     estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
+     saber que le faltaban $20.000 para no pagar envío. */
+  const falta=Math.max(0,LIBRE-subtotal);
+  $('#dock-n').textContent = piezas
+    ? piezas+(piezas===1?' pieza':' piezas')
+      +(libre?' · envío gratis'
+        :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
+    : 'Tu selección está vacía';
   $('#dock-p').textContent=cop(total);
+
+  const dbar=$('#dock-bar');
+  dbar.classList.toggle('is-ok',libre);
+  dbar.firstElementChild.style.width=subtotal>0?Math.min(100,subtotal/LIBRE*100)+'%':'0';
+
+  pintarCross(nC,brutoC,brutoB,descB);
   guardar();
+}
+
+/* Venta cruzada, al fijar el brazalete.
+ *
+ * La promo «brazalete + 3 charms = 30% menos» estaba anunciada arriba, en una
+ * tarjeta, y no en el momento en que se decide: al elegir el brazalete la
+ * página no volvía a mencionarla y la clienta seguía sola. Este aviso la trae
+ * al momento exacto.
+ *
+ * La cifra es el descuento que gana sobre lo que YA lleva —la misma disciplina
+ * de #desc-nota—, nunca una rebaja del total: el charm que añada lo paga. Y se
+ * apaga solo al llegar a 3, que es donde el 30% ya está activo; seguir
+ * empujando después sería pedir por pedir. */
+function pintarCross(nC,brutoC,brutoB,descB){
+  const xs=$('#xs');
+  if(xsFuera||!base||nC>=3||brutoB<=0){ xs.hidden=true; return; }
+  if(nC===0){
+    $('#xs-tx').innerHTML='Tu brazalete ya está. Con <b>3 charms</b> baja un 30%: '
+      +'<b>'+cop(Math.round(brutoB*.30))+' menos</b>, sin códigos ni letra pequeña.';
+  }else{
+    const extra=Math.round(brutoC*(escala(3)-escala(nC))+(brutoB*.30-descB));
+    const faltan=3-nC;
+    $('#xs-tx').innerHTML='Llevas '+nC+(nC===1?' charm':' charms')+'. Con '
+      +(faltan===1?'uno más':faltan+' más')+' se activa el 30% del brazalete y el 15% '
+      +'en charms: <b>'+cop(extra)+' menos</b> en lo que ya llevas.';
+  }
+  xs.hidden=false;
 }
 
 /* Abrir el detalle ya no dispara InitiateCheckout: ese evento ahora marca
@@ -2006,6 +2093,11 @@ $('#dock').addEventListener('keydown',e=>{
 });
 $('#sheet-x').onclick=()=>abrir(false);
 $('#veil').onclick=()=>abrir(false);
+$('#xs-x').onclick=()=>{
+  xsFuera=true;
+  try{ sessionStorage.setItem('zephora.xs','1'); }catch(e){}
+  $('#xs').hidden=true;
+};
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
   if(!$('#ficha').hidden){ cerrarFicha(); return; }   /* la ficha va encima */

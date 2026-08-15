@@ -92,6 +92,16 @@ function cuerpo(lista) {
       + `<span style="color:#6d6070">${piezas || 'sin detalle'}</span><br>`
       + `<span style="color:#8a8290;font-size:12.5px">${esc(p.referencia)} · ${esc(cuando)} · `
       + `${esc(c.ciudad)}, ${esc(c.depto)}</span><br>`
+      /* Si autorizó comunicaciones comerciales, se dice aquí. No cambia lo que
+         se puede hacer hoy —el mensaje lo escribe una persona, y responder por
+         un pedido a medias entra en la finalidad de la compra— pero es el dato
+         que separa a quién se le puede escribir después por una promo y a quién
+         no. Sin marcarlo, esa distinción se pierde en el momento de usarla. */
+      + (c.optin === true
+        ? `<span style="display:inline-block;margin-top:4px;font:400 11.5px/1 Arial,sans-serif;`
+          + `color:#1F7A5C;background:#E8F4EF;padding:5px 8px;border-radius:2px">`
+          + `Autorizó recibir novedades</span><br>`
+        : '')
       + `<a href="${enlaceWa(p)}" style="display:inline-block;margin-top:8px;background:#25806a;`
       + `color:#fff;text-decoration:none;font:400 13px/1 Arial,sans-serif;padding:10px 16px;`
       + `border-radius:2px">Escribirle por WhatsApp</a>`
