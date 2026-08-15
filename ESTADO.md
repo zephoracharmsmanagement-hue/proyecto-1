@@ -15,9 +15,39 @@ que han pasado por aquí: `claude/ecommerce-landing-page-elivwb`,
 > rechazados por historial divergente.** Antes de empujar, `git fetch` y mirar
 > qué llegó: en una sola jornada entraron por otra sesión un `CLAUDE.md` y el
 > doble píxel de Meta. Mezclar en vez de forzar.
+>
+> **Y mirar antes de mezclar, no solo antes de empujar** — ver
+> *[Ramas abiertas de otras sesiones](#ramas-abiertas-de-otras-sesiones)*, más
+> abajo. Hoy hay tres sin mezclar, y una trae una **segunda implementación
+> completa del rescate de carritos** que ya está en producción por otro camino.
 
 Para ver qué se hizo y por qué, `git log`: los mensajes de commit explican el
 razonamiento, no solo el cambio.
+
+---
+
+## Ramas abiertas de otras sesiones
+
+Al cierre de esta sesión, la rama publicada
+(`claude/install-frontend-design-skill-8t655e`) está al día y todo lo que
+describe este documento vive ahí. **Pero hay tres ramas de otras sesiones sin
+mezclar**, y no son "unos commits pendientes": dos de ellas salieron de un punto
+anterior al trabajo de esta jornada y **reconstruyeron por su cuenta piezas que
+ya existen**. Mezclarlas a ciegas no da un conflicto de git — da dos sistemas
+haciendo lo mismo, que es la clase de fallo mudo del que trata la sección de
+abajo.
+
+| Rama | Qué trae | Con qué choca |
+|---|---|---|
+| `claude/zephora-charms-automation-hub-5aihdu` | `recuperar-carritos.mjs` + `_pendientes.mjs`, `disponibilidad.mjs`, `_atribucion.mjs`, contratos y prompts en `automatizaciones/` | **Lo grave.** Salió de `e889bd7`, antes del registro de pedidos y del rescate. `_pendientes.mjs` es otro registro de pedidos —no tiene `_pedidos.mjs`— y `recuperar-carritos.mjs` es **otro rescate de abandonados**. En producción ya corre `rescate.mjs`. Mezclado tal cual, la tienda tendría dos cosas persiguiendo el mismo pedido y **dos correos por clienta** |
+| `claude/revision-pantalla-pauta-cmv7uz` | En `index.html`: `eventID` propio en cada evento de navegador, `content_ids` en `ViewContent`, y evita que tocar "Pedir" dos veces cuente dos `Lead` | Salió de antes del **doble píxel**: su bloque `<head>` tiene un solo `fbq('init', …)`. Mezclarlo sin cuidado **borra el píxel nuevo** y con él el `Purchase` de servidor. El contenido vale —el `Lead` repetido es un problema real—; lo que hay que rehacer a mano es el bloque del `<head>` |
+| `claude/sephora-whatsapp-response-system-682wvv` | Macros y system prompt para atender WhatsApp con otra IA, `docs/whatsapp/`, `scripts/` | Añade `data/stock.json` (el bueno está en la raíz) y su propio `package.json` + `package-lock.json` en la raíz, donde ya hay uno que existe por una razón concreta —ver la tabla de decisiones—. El grueso es documentación y no toca la tienda |
+
+**El orden que menos duele:** primero la de WhatsApp (casi no toca código),
+después la del píxel (un archivo, rehaciendo el `<head>` a mano), y la de
+automatizaciones **la última y decidiendo pieza por pieza qué se queda** — no
+merge directo. De esa rama lo que no está duplicado es `disponibilidad.mjs` y
+`_atribucion.mjs`; el rescate y el registro de pedidos ya están resueltos aquí.
 
 ---
 
@@ -48,7 +78,7 @@ Las salidas, ya evaluadas:
 
 | Opción | Veredicto |
 |---|---|
-| **Plan pago de Netlify** | **Lo que se hizo.** Desbloquea de inmediato y da margen de sobra (~66 despliegues). Es suscripción mensual, se cancela cuando se quiera y volver a Free no rompe nada: el dominio propio y las funciones ya corrían en el plan gratuito. Si se cancela, poner el recordatorio el mismo día |
+| **Plan pago de Netlify** | **Lo que se hizo.** Desbloquea de inmediato y da margen de sobra (~66 despliegues). Es suscripción mensual, se cancela cuando se quiera y volver a Free no rompe nada: el dominio propio y las funciones ya corrían en el plan gratuito. **Es mensual y se sigue cobrando solo**: si se decide cancelar, el recordatorio va el mismo día que se decide, no "más adelante". Al cierre de esta sesión van **19 despliegues de los ~66** del ciclo |
 | **GitHub Actions + Netlify CLI** | **Sigue valiendo, pero no por lo que se creía.** No ahorra créditos ni desbloquea nada — el 403 es de cuenta. Vale por otra razón: que las pruebas corran antes de publicar. Necesita un `NETLIFY_AUTH_TOKEN` en los secrets de GitHub |
 | **Cloudflare Pages** | Gratis, permite comercio y no penaliza por despliegue (500/mes). Pero **no es «mudar el repositorio»**: es cirugía sobre la infraestructura de pagos. Ver el detalle abajo. Decisión meditada para más adelante, con la tienda estable — nunca bajo presión |
 | **Vercel** | **Descartada.** Su plan gratuito prohíbe el uso comercial en los términos, y esto es una tienda que cobra |
@@ -340,26 +370,42 @@ producción** (`"reserva":"reservado"`).
 > porque el conteo nuevo ya lo descuenta. Las reservas en vuelo no se tocan.
 > Queda un `inventario_repuesto` en el log cada vez que pasa.
 
-### Los dos fallos silenciosos que costó dejarlo funcionando
+### Los fallos silenciosos — el patrón que más caro salió
 
-Vale la pena leerlos antes de tocar esta pieza, porque los dos fueron invisibles:
+Los tres problemas que más tiempo consumieron en esta jornada **no dieron ningún
+error**. La tienda cobraba, los correos salían, el `Purchase` viajaba, y en
+pantalla no había nada raro:
 
 1. **Las funciones eran v1.** Netlify solo inyecta `NETLIFY_BLOBS_CONTEXT` en
-   v2, así que `getStore()` lanzaba y todo caía al camino de emergencia.
+   v2, así que `getStore()` lanzaba y todo caía al camino de emergencia: se
+   vendía sin apartar inventario.
 2. **Después, la librería no entraba en el bundle.** El `require` estaba dentro
    de un `try` para que un paquete ausente no tumbara la función — y el
    rastreador de dependencias de Netlify no ve un require escondido en el cuerpo
    de una función, así que nunca la empaquetaba. La protección causó el fallo
-   que pretendía sobrevivir.
+   que pretendía sobrevivir. Mismo síntoma: cero.
+3. **La foto con el nombre roto** (§ 1). Extensión duplicada y un **U+2060
+   invisible** en medio: la página no habría encontrado nunca el archivo y la
+   tarjeta habría seguido diciendo "Foto en camino" sin que nada fallara.
 
-Las dos veces la tienda cobró, salieron los correos y viajó el `Purchase`; las
-dos veces la reserva no existía. **Falla hacia adelante es lo correcto para no
-perder ventas, pero convierte cada error en algo que solo se ve leyendo el log.**
+**El «falla hacia adelante» es la decisión correcta —ninguna de estas cosas debe
+costar una venta— pero tiene un precio: convierte cada error en algo que solo se
+ve leyendo un log.** Es el precio que se paga a cambio de no tumbar la tienda, y
+hay que pagarlo a conciencia: cada red de seguridad que se añada tiene que traer
+consigo **cómo se va a notar que se rompió**.
 
-Por eso `pruebas/inventario.js` § 6 comprueba **la forma del código** y no solo
-su comportamiento: que las funciones exporten el handler v2, y que el import de
-`@netlify/blobs` sea estático. Ninguna prueba de comportamiento las habría
-cazado, porque en local siempre se usa el almacén falso.
+De ahí sale el cambio de método que conviene mantener: `pruebas/inventario.js`
+§ 6 comprueba **la forma del código** y no solo su comportamiento — que las
+funciones exporten el handler v2, y que el import de `@netlify/blobs` sea
+estático. Ninguna prueba de comportamiento las habría cazado, porque en local
+siempre se usa el almacén falso. Lo mismo vale para el nombre de un archivo:
+`ls -1b assets/` enseña los caracteres invisibles.
+
+**Antes de añadir la próxima red de seguridad, la pregunta es qué la delata
+cuando falle** — un campo en el log como el `reserva` de `pedido_creado`, un
+tamaño esperado en la salida del despliegue como los ~306 KB, o una prueba que
+mire el mecanismo y no el resultado. Sin eso, la red nueva se cae sola y nadie
+se entera hasta que alguien va a leer un log por otro motivo.
 
 ### 5 · Piezas sueltas que el propietario pidió y están bloqueadas
 
@@ -368,6 +414,44 @@ cazado, porque en local siempre se usa el almacén falso.
 | **Empaque Premium destacado** en el carrito (marco, badge «Recomendado para regalo», miniatura) | La **foto real del empaque**. Sin ella no hay miniatura, y poner una imagen de catálogo sería vender algo que no es lo que se manda. Nota aparte: el problema del bump probablemente no es el diseño sino el precio — $40.000 sobre un brazalete de $58.000 es un 69% adicional; antes de rediseñarlo conviene probar bajarlo |
 | **Logos de medios de pago** al pie del carrito | Los **archivos oficiales** de cada marca. Visa, Mastercard, Nequi, Bancolombia y Daviplata son marcas registradas con guías de uso; no se dibujan aproximaciones |
 | Micro-leyenda de confianza | **Hecha y cerrada.** Bajo el botón de pagar del carrito sale *«Pago procesado por Wompi (Bancolombia)»*, la misma frase que el pie del checkout. **Lo del retracto se descartó por decisión del propietario**, que lo resolvió por otra vía: no va en la leyenda ni en la página, y no hay nada más que hacer ahí. (Había además un motivo para no ponerlo: la política de devoluciones recoge la excepción del artículo 47 para bienes claramente personalizados, y el titular de la tienda es «Personalización total») |
+
+### 5b · Lo que está esperando algo del propietario
+
+Ninguna de estas se puede resolver desde el repo: o se comprueban en un panel
+al que solo entra él, o son decisiones de negocio que arrancan con él. Se
+juntan aquí para que quien retome no las tenga que ir pescando por el
+documento.
+
+**Comprobaciones** (todo el código está desplegado; falta mirar que haya
+quedado bien):
+
+- [ ] Que el último despliegue diga **8 functions** — es el que estrena
+      `rescate`. Ver *Al desplegar*.
+- [ ] **Que Netlify dispare el `schedule` del rescate.** Es lo único de esta
+      jornada que no se ha visto funcionar de verdad. No hay que esperar a
+      mañana: se fuerza desde Functions → `rescate` en el panel.
+- [ ] Que el **`Purchase` salga una sola vez** por compra en Events Manager —
+      es lo que confirma la deduplicación navegador/servidor— y **quitar
+      `META_TEST_EVENT_CODE`** al terminar (§ 4a).
+- [ ] **Despachar el pedido pendiente y reponer `stock.json`.** Al cambiar el
+      campo `generado`, lo vendido vuelve a cero solo (§ 4b).
+
+**Decisiones:**
+
+- **Precio del Empaque Premium.** Los $40.000 sobre un brazalete de $58.000 son
+  un 69% adicional; la hipótesis es que el bump no convierte por precio y no
+  por diseño (§ 5).
+- **Venta sugerida de brazalete.** Proponer el brazalete a quien lleva charms
+  sueltos. Sin decidir: si va, dónde va y con qué texto. Cuidado con dónde —
+  la tabla de decisiones ya explica por qué en el carrito no se mete nada que
+  compita con el botón de pagar.
+- **GitHub Actions como puerta de despliegue.** Hoy las pruebas avisan pero no
+  bloquean. Convertirlas en puerta exige apagar el despliegue automático en
+  Netlify y desplegar desde el flujo con un `NETLIFY_AUTH_TOKEN` (ver *Cómo
+  comprobar que nada se rompió*).
+- **Addi.** No lo activa Wompi: es integración propia contra Addi, un frente
+  nuevo entero. Aplazado; mientras tanto se mide por WhatsApp con
+  `data-wa="pagos"`, y ese dato es justamente con el que decidir (§ 4).
 
 ### 6 · «A veces se borran las joyas» — cerrado
 
