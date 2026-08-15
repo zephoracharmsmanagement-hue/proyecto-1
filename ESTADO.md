@@ -5,10 +5,19 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-Rama de trabajo: **`claude/ecommerce-landing-page-elivwb`**, que se empuja
-también a **`claude/install-frontend-design-skill-8t655e`** — esa segunda es la
-rama por defecto del repo y la que Netlify publica. Los dos push van juntos en
-cada entrega; si solo se empuja la primera, el sitio no se entera.
+**La rama que Netlify publica es `claude/install-frontend-design-skill-8t655e`**
+— la rama por defecto del repo. Cada sesión trabaja en su propia rama y empuja a
+las dos; si solo se empuja la suya, el sitio no se entera. Las ramas de trabajo
+que han pasado por aquí: `claude/ecommerce-landing-page-elivwb`,
+`claude/netlify-deployment-blocked-e7qx93`.
+
+> **Este repo se trabaja desde varias sesiones a la vez y ya ha habido pushes
+> rechazados por historial divergente.** Antes de empujar, `git fetch` y mirar
+> qué llegó: en una sola jornada entraron por otra sesión un `CLAUDE.md` y el
+> doble píxel de Meta. Mezclar en vez de forzar.
+
+Para ver qué se hizo y por qué, `git log`: los mensajes de commit explican el
+razonamiento, no solo el cambio.
 
 Para ver qué se hizo y por qué, `git log`: los mensajes de commit explican el
 razonamiento, no solo el cambio.
