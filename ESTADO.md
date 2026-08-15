@@ -251,6 +251,51 @@ Ya hecho, para no repetirlo:
    deduplicación navegador/servidor funciona de verdad ahí. **Quitar la
    variable de prueba al terminar.**
 
+### 4e · La hoja de despacho — por qué se perdió un pedido
+
+**Costó un producto.** Una clienta pidió que se lo entregaran en un local
+concreto y lo escribió en «Indicaciones para la entrega». El campo viajaba bien
+—llegaba al servidor, se guardaba en el registro— pero **no se imprimía en
+ningún correo**. El pedido salió sin la indicación y se perdió. La tienda acabó
+leyendo los datos en el panel de Resend, que es el último sitio donde alguien
+mira mientras empaca.
+
+La causa: **el correo de la tienda era el recibo de la clienta con otro
+título** — misma plantilla, mismos campos. Nunca imprimió `notas`,
+`dedicatoria`, `documento` ni `correo`. Nada falló: la tienda cobró, los correos
+salieron, no hubo un solo error. Otro fallo mudo, y de los caros.
+
+Ahora los dos correos tienen plantillas separadas, porque tienen trabajos
+distintos:
+
+| Correo | Qué es |
+|---|---|
+| A la clienta (`plantilla`) | Un **comprobante**: qué compró y cuánto pagó |
+| A la tienda (`plantillaTienda`) | Una **orden de trabajo**: qué meter en la caja, qué escribir a mano, qué poner en la guía |
+
+La hoja de despacho abre con lo que se pierde si se lee en diagonal —
+**indicaciones de entrega y dedicatoria, destacadas en rojo y antes que la
+dirección**— y sigue con qué empacar (con talla y unidades), destinatario
+completo con documento, dirección y cuentas. El **asunto** avisa `⚠ CON
+INDICACIONES` / `✎ DEDICATORIA`, porque el correo se ve primero en una lista y
+lo que no está ahí se empaca sin abrirlo.
+
+**Y ahora la tienda se entera de que le pagaron.** El «Pago recibido» iba solo a
+la clienta: con pago en línea, el único correo interno salía al **crear** el
+pedido —antes de que existiera el pago— y la bandeja no distinguía lo cobrado de
+lo abandonado. `wompi-webhook` manda ahora `pagoTienda()` al aprobarse, **con la
+hoja completa otra vez**, indicaciones incluidas: quien empaca no debería tener
+que buscar el correo anterior. Y el correo de creación con pago en línea dice
+explícitamente *«sin confirmar todavía, no despachar aún»*.
+
+> **La regla que sostiene esto, y la prueba que la vigila.** Ningún dato que la
+> clienta escriba puede quedarse sin imprimir. `pruebas/correo-tienda.js`
+> comprueba la cadena entera y **sin nombrar los campos a mano**: saca la lista
+> de lo que acepta `crear-pago`, y exige que cada valor aparezca en el HTML y en
+> el texto plano; y saca los `name=` del formulario, y exige que todos estén
+> dentro de `datos()`. El día que el checkout gane un campo y alguien olvide la
+> plantilla, sale en rojo aquí — en vez de descubrirse con un paquete perdido.
+
 ### 4c · Dónde queda el registro de cada pedido
 
 **Lo enseñó la primera venta real.** El detalle de qué se pidió vivía solo en el
@@ -564,6 +609,8 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 | La **autorización de comunicaciones va sin marcar y no condiciona la compra** | Una casilla premarcada no es consentimiento, y condicionar la venta a aceptarla tampoco. Es lo que separa poder escribirle después por una promo de solo poder responder por su pedido |
 | **No hay salida a WhatsApp en el carrito** | A esa altura la clienta ya decidió comprar; una opción de menor compromiso pegada al botón de pagar se come checkouts terminados en vez de sumar pedidos. WhatsApp sigue en el resto de la página y en el checkout **si el pago falla**, que es donde rescata una venta en vez de robarla |
 | Los **medios de pago anunciados son los que Wompi tiene habilitados** | Se sacan de `accepted_payment_methods` de su API. Prometer uno que la pasarela no ofrece se descubre con la clienta ya decidida, buscando un botón que no existe. Por eso Addi salió del checkout y quedó como opción por WhatsApp |
+| El correo de la tienda es una **hoja de despacho**, no una copia del recibo | Los dos tienen trabajos distintos, y compartir plantilla costó un pedido: las indicaciones de entrega no se imprimían en ninguna parte. Lo que se lee al empacar abre por lo que se pierde si se lee en diagonal —indicaciones y dedicatoria— y lleva documento y unidades, que el recibo no necesita |
+| **Ningún dato que la clienta escriba puede quedarse sin imprimir** | Es la regla, y `pruebas/correo-tienda.js` la comprueba sin nombrar campos: los saca de lo que acepta `crear-pago` y de los `name=` del formulario. Un campo nuevo queda vigilado solo; olvidar la plantilla sale en rojo en vez de descubrirse con un paquete perdido |
 | Los **correos no pueden tumbar una venta** | Sin `RESEND_API_KEY` no se manda nada y el pedido sigue; si Resend falla, se registra y el cobro continúa. Perder un comprobante es molesto; perder una compra cobrada porque el proveedor de correo estaba lento, no |
 | El **«Pago recibido» sale del webhook**, no de `gracias.html` | La clienta puede cerrar el navegador antes de volver, y el pago fue bueno igual |
 | La comprobación de inventario **falla hacia adelante** | Solo bloquea con un dato claro de que no hay. Si `stock.json` no se puede leer, la venta pasa: una lectura fallida no puede costar una compra buena |
@@ -581,11 +628,13 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 ./pruebas/correr.sh
 ```
 
-Cinco baterías en un navegador real: los bugs de la auditoría inicial;
-disponibilidad y tallas; la calculadora, la ficha y el buscador; que el servidor
-cobre lo mismo que promete la página en 40 carritos al azar; y la compra
-completa de punta a punta, ejecutando las funciones de Netlify reales dentro de
-Node. Sale con código 1 si algo queda en rojo. Detalle en
+Diez baterías: los bugs de la auditoría inicial y la venta cruzada, en un
+navegador real; disponibilidad y tallas; la calculadora, la ficha y el buscador;
+que el servidor cobre lo mismo que promete la página en 40 carritos al azar; la
+reserva de inventario, el registro de pedidos y el rescate de abandonados; que
+la hoja de despacho imprima **todo** lo que la clienta escribió; el `Purchase` a
+Meta; y la compra completa de punta a punta, ejecutando las funciones de Netlify
+reales dentro de Node. Sale con código 1 si algo queda en rojo. Detalle en
 [`pruebas/README.md`](pruebas/README.md), incluidas dos comprobaciones de texto
 por `grep` que no están automatizadas.
 

@@ -19,9 +19,9 @@
 import crypto from 'node:crypto';
 import { cop } from './_precios.js';
 import { confirmar, liberar } from './_inventario.mjs';
-import { marcar } from './_pedidos.mjs';
+import { marcar, leer } from './_pedidos.mjs';
 import { purchase } from './_meta.js';
-import { enviar } from './_correo.js';
+import { enviar, pagoTienda } from './_correo.js';
 
 const ok = (cuerpo) => new Response(JSON.stringify(cuerpo || { recibido: true }),
   { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -170,6 +170,29 @@ export default async (req) => {
     await reenviar(Object.assign({
       titulo: `Pago aprobado · ${registro.referencia} · ${cop(registro.total || 0)}`,
     }, registro));
+
+    /* «Ya pagó, despacha» a la tienda, con la hoja completa.
+     *
+     * Antes de esto el único correo que recibía la tienda salía al CREAR el
+     * pedido, o sea antes de que hubiera pago: con pago en línea, la bandeja no
+     * distinguía lo cobrado de lo abandonado. Y el detalle de qué empacar y a
+     * dónde entregar quedaba en aquel primer correo, que hay que ir a buscar.
+     *
+     * Falla hacia adelante como todo lo demás: si no se puede leer el registro
+     * o Resend no responde, se anota y el webhook sigue. Un aviso que no sale
+     * es molesto; que Wompi reintente el evento porque esto lanzó, no. */
+    try {
+      const pedido = await leer(registro.referencia);
+      const aTienda = await pagoTienda({
+        referencia: registro.referencia, total: registro.total, pedido,
+      });
+      console.log(JSON.stringify({
+        evento: 'aviso_tienda_pagado', referencia: registro.referencia,
+        enviado: aTienda.enviado !== false, conRegistro: Boolean(pedido && pedido.cliente),
+      }));
+    } catch (e) {
+      console.error('No se pudo avisar a la tienda del pago', registro.referencia, e.message);
+    }
 
     /* El «ya está» que la clienta espera. El primer correo dijo «estamos
        confirmando tu pago»; este cierra esa frase. Sale del webhook y no de la
