@@ -68,16 +68,25 @@ solo despliegue** y cuestan 15 créditos, no 15 por commit.
 
 ## Pendientes
 
-### 1 · Una foto de producto
+### 1 · Fotos de producto — cerrado
 
-Falta **una sola**: la del Stitch Plateado, en `assets/stitch-azul.webp`. La
-tarjeta ya existe y se vende, con un marcador "Foto en camino" en lugar de la
-imagen. Cómo enchufarla: la sección *Piezas sin foto* del README.
+**Ya no falta ninguna.** Las 129 piezas del catálogo tienen foto; no queda ni
+una tarjeta con el marcador "Foto en camino". El marcador y su CSS se dejan en
+su sitio para la próxima pieza que entre sin imagen.
 
-> Ojo con el nombre del archivo. `stitch-azul` **es el Stitch plateado**, no el
-> azul. La foto que tenía era copia byte a byte de `stitch.webp` —el azul
-> esmaltado, que es otra pieza— y se borró. Necesita la del plateado de orejas
-> rosadas.
+> Ojo con el nombre del archivo del Stitch. `stitch-azul` **es el plateado**, no
+> el azul. La foto que tenía antes era copia byte a byte de `stitch.webp` —el
+> azul esmaltado, que es otra pieza— y se borró.
+>
+> La que llegó venía como `stitch-azul.webp⁠.webp`: extensión duplicada y un
+> **U+2060 invisible** en medio, cortesía de copiar el nombre desde un chat. La
+> página no la habría encontrado nunca y la tarjeta habría seguido diciendo
+> "Foto en camino" sin que nada fallara. Al subir una foto conviene comprobar el
+> nombre con `ls -1b assets/`, que muestra los caracteres invisibles.
+>
+> Venía además a 1078×1046 y 58 KB, contra los 440×440 y ~13 KB del resto. Se
+> reescaló: **10,8 KB**. Servir 1080 px para pintar 440 es cuadruplicar la
+> descarga en un móvil, que es donde compra casi todo el mundo aquí.
 
 **Las otras dos no faltaban: estaban guardadas con el nombre equivocado.** El
 propietario detectó que el catálogo tenía tres piezas duplicadas bajo dos
