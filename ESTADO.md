@@ -19,9 +19,6 @@ que han pasado por aquí: `claude/ecommerce-landing-page-elivwb`,
 Para ver qué se hizo y por qué, `git log`: los mensajes de commit explican el
 razonamiento, no solo el cambio.
 
-Para ver qué se hizo y por qué, `git log`: los mensajes de commit explican el
-razonamiento, no solo el cambio.
-
 ---
 
 ## Lo primero: el bloqueo de despliegues, y qué lo causó
