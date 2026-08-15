@@ -35,6 +35,16 @@ n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
 document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','2130673404542988');
+/* Doble píxel temporal: el nuevo (1029982529813994) vive en el portafolio de
+   negocio "Zephora Charms", donde sí se puede generar token de Conversions
+   API — el viejo quedó fuera de cualquier portafolio y Meta no deja
+   compartirlo ni token generarle uno. Mientras la cuenta publicitaria real
+   no pueda usar el nuevo (Meta bloquea compartir activos con negocios
+   "nuevos" varias semanas), el viejo se queda igual para no dejar la
+   campaña activa sin señal, y el nuevo mide en paralelo con CAPI completo.
+   Quitar este segundo init cuando se pueda compartir el nuevo y migrar del
+   todo — ver ESTADO.md. */
+fbq('init','1029982529813994');
 fbq('track','PageView');
 fbq('track','ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',currency:'COP'});
 </script>

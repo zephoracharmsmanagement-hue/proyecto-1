@@ -147,35 +147,64 @@ puestas. Lo que queda de esta línea de trabajo:
 > cargar la información del undefined»— no apunta a nada. Antes de dar una
 > llave por buena: `curl https://production.wompi.co/v1/merchants/<llave>`.
 
-### 4a · `Purchase` a Meta desde el servidor — falta el token
+### 4a · `Purchase` a Meta desde el servidor — dos píxeles mientras se resuelve el negocio
 
-**El código está puesto y probado; solo falta `META_CAPI_TOKEN`.** Sin él no se
-manda nada y nada se rompe, igual que con Resend.
+**El código funciona; el bloqueo era del negocio de Meta, no del sitio.** El
+píxel original (`2130673404542988`, "zephora charms pixel 1") corre en una
+cuenta publicitaria (`1583713932705268`, la real, la que tiene la campaña) que
+**no pertenece a ningún portafolio comercial** — quedó suelta en la capacidad
+individual de la cuenta de Facebook. Sin portafolio dueño, nadie —ni la persona,
+ni un usuario del sistema— puede generar un token de Conversions API para ese
+píxel: Meta pide ser administrador o desarrollador *del portafolio comercial*
+que lo posee, y ese píxel no tiene uno. Confirmado con datos, no solo con la
+pantalla de error: `ads_get_dataset_details` de ese píxel muestra
+`server_last_fired_time` en época cero — nunca en su vida recibió un evento de
+servidor.
 
-El pixel ya disparaba `Purchase` en `gracias.html`, pero solo llega si la
-clienta vuelve al sitio después de pagar — y volver es opcional. Quien cierra el
-navegador en la pasarela pagó igual y Meta no se enteraba. Ahora el webhook lo
-manda también por la Conversions API, que siempre llega porque lo dispara Wompi.
-No es cosmética: Meta optimiza la entrega con los eventos que recibe, así que
-faltarle las compras de quien no volvió es gastar presupuesto aprendiendo de una
-muestra sesgada.
+**La solución no fue arreglar el píxel viejo — fue crear uno nuevo donde sí hay
+control.** `1029982529813994` ("zephora charms pixel web") vive dentro del
+portafolio **"Zephora Charms"**, donde el usuario del sistema **"Netlify CAPI"**
+ya es Admin. Con `META_CAPI_TOKEN` generado ahí, el `Purchase` de servidor por
+fin sale.
 
-**Lo que no hay que romper:** los dos lados mandan la referencia del pedido como
-identificador del evento, y eso es lo único que impide que Meta cuente cada
-compra dos veces. Contarla doble sería peor que perderla — inflaría el retorno
-declarado. Está en `_meta.js` y en `gracias.html`; tocar uno obliga a tocar el
-otro, y `pruebas/meta.js` lo vigila.
+**Por qué hay dos píxeles en el HTML y no uno.** Mover la cuenta publicitaria
+real al portafolio (para que use el píxel nuevo directamente) o compartirle el
+píxel nuevo choca con el mismo muro: Meta limita cuántos activos puede
+mover/compartir un portafolio comercial "nuevo" hasta cumplir **varias
+semanas** de antigüedad con sus políticas — probado por los tres caminos
+(reclamar la cuenta, compartir con socio, conectar activo) y los tres dan el
+mismo aviso. No hay atajo de interfaz; es una restricción de cuenta, igual que
+fue el bloqueo de despliegues de Netlify más arriba.
 
-Para cerrarlo:
+Mientras tanto, `index.html`, `checkout.html` y `gracias.html` inicializan
+**los dos píxeles** (`fbq('init', …)` dos veces): el viejo sigue recibiendo
+exactamente lo mismo que hoy, así que **la campaña activa no pierde señal**; el
+nuevo recibe lo mismo por navegador **y además** el `Purchase` de servidor
+desde `wompi-webhook.mjs` (que apunta al nuevo vía `META_PIXEL_ID` en Netlify,
+no por código — `_meta.js` ya leía esa variable con el viejo como default).
 
-1. Generar el token en Events Manager → dataset `2130673404542988` →
-   Configuración → Conversions API → *Generar token de acceso*. Va como
-   `META_CAPI_TOKEN` en Netlify, **marcada como secreta**. No pegarlo en un chat.
-2. Probar con `META_TEST_EVENT_CODE` (Events Manager → *Probar eventos*), que
-   manda el evento ahí sin que entre en la optimización. **Quitar esa variable
-   al terminar**, o los eventos reales seguirán yendo a pruebas.
-3. Comprobar en Events Manager que la compra aparece **una sola vez**, no dos.
-   Eso es lo que confirma que la deduplicación funciona de verdad.
+**Cuándo quitar el segundo píxel.** En cuanto pasen las semanas y se pueda
+compartir `1029982529813994` con la cuenta publicitaria `1583713932705268` (o
+reclamar la cuenta hacia el portafolio), conviene migrar del todo al nuevo y
+sacar el `fbq('init', '2130673404542988')` de los tres HTML — dos píxeles
+permanentes solo duplican datos sin necesidad. Revisar primero en Business
+Settings → Cuentas publicitarias si ya deja reclamar una segunda cuenta.
+
+**Lo que no hay que romper:** los dos lados —`_meta.js` y `gracias.html`—
+mandan la referencia del pedido como identificador del evento (`event_id` /
+`eventID`), y eso es lo único que impide que Meta cuente cada compra dos veces
+dentro de un mismo píxel. `pruebas/meta.js` lo vigila.
+
+Ya hecho, para no repetirlo:
+
+1. ~~Generar el token~~ — hecho, con el píxel nuevo vía Events Manager →
+   Configuración → Conversions API → *Generar token de acceso*, ya con permiso
+   real. `META_CAPI_TOKEN` puesto en Netlify, marcada como secreta.
+2. Falta: probar con `META_TEST_EVENT_CODE` (Events Manager → *Probar
+   eventos*) y confirmar en Events Manager que el `Purchase` del píxel nuevo
+   aparece **una sola vez** por compra, no dos — eso confirma que la
+   deduplicación navegador/servidor funciona de verdad ahí. **Quitar la
+   variable de prueba al terminar.**
 
 ### 4c · Dónde queda el registro de cada pedido
 
