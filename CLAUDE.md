@@ -81,6 +81,47 @@ diagnósticos y consultas de datos van directo. Esto sigue vigente aunque el
 conector de Ads MCP termine con permisos de escritura completos — el
 permiso técnico no cambia el acuerdo.
 
+## Cómo se reparte el trabajo entre sesiones — leer antes de construir
+
+**El riesgo de este repo no son los conflictos de git: es construir dos veces
+la misma pieza.** Ya pasó. Dos sesiones hicieron cada una su sistema de rescate
+de carritos abandonados y su registro de pedidos, en archivos con nombres
+distintos (`rescate.mjs` / `_pedidos.mjs` contra `recuperar-carritos.mjs` /
+`_pendientes.mjs`). Git no ve nada raro ahí — archivos distintos, merge limpio,
+cero conflictos — y el resultado en producción serían **dos cosas persiguiendo
+el mismo pedido y dos correos a la misma clienta**. El detalle de las ramas
+implicadas está en `ESTADO.md` § *Ramas abiertas de otras sesiones*.
+
+Por eso la regla va **antes** de empezar a escribir código, no en el momento de
+mezclar:
+
+1. **Una sola sesión toca la tienda.** El paralelo solo vale con alcance
+   genuinamente disjunto — documentación, macros de WhatsApp, cosas que no
+   entran en `netlify/functions/`. Dos tareas que *suenan* distintas
+   («medición» y «checkout», «inventario» y «rescate») acaban en los mismos
+   archivos.
+2. **Antes de construir, comprobar si ya existe.** `ls netlify/functions/` y la
+   sección de pendientes de `ESTADO.md`, en ese orden. Las sesiones que
+   duplicaron trabajo no fueron descuidadas: partieron de un punto viejo del
+   repo donde de verdad no existía.
+3. **Arrancar con `git fetch` y desde la rama publicada**
+   (`claude/install-frontend-design-skill-8t655e`). El contenedor clona fresco,
+   pero clona *un* punto; si es viejo, la sesión trabaja sobre una realidad que
+   ya no existe. Es exactamente lo que les pasó a las ramas duplicadas.
+4. **Reclamar el trabajo en `ESTADO.md` al empezar**, si va a haber paralelo.
+   Es el único canal que las sesiones comparten, porque se lee al abrir el
+   repo. Una línea —«sesión X está en el rescate de abandonados»— habría
+   evitado el caso entero. Se borra al terminar.
+5. **Ramas cortas: mezclar a la rama publicada el mismo día.** El tiempo que
+   una rama vive separada es justo lo que le da para reconstruir lo que ya
+   existe. Y no cuesta despliegues extra: varios commits juntos salen en un
+   solo deploy de ~15 créditos (ver `ESTADO.md` § *Al desplegar*).
+
+Al mezclar una rama vieja, mirar **de dónde salió** (`git merge-base`) antes
+que el diff: una rama anterior al doble píxel trae un `<head>` con un solo
+`fbq('init', …)`, y un merge descuidado borra el píxel nuevo —y con él el
+`Purchase` de servidor— sin que nada dé error.
+
 ## Trabajar con Claude Code en varias sesiones/terminales — trampas ya pisadas
 
 - **Los conectores de claude.ai y el registro `claude mcp add` de una
@@ -96,11 +137,11 @@ permiso técnico no cambia el acuerdo.
 - **Meta Developer Tools MCP ≠ Meta Ads MCP.** El primero es para apps,
   webhooks, App Review y documentación de desarrollador — no lee campañas,
   gasto ni métricas de anuncios. Fácil confundirlos por el nombre.
-- **Este repo se ha trabajado en paralelo desde varias sesiones** (esta
-  conversación y al menos una sesión de terminal en la rama
-  `claude/ecommerce-landing-page-elivwb`, empujada también aquí). Antes de
+- **Este repo se ha trabajado en paralelo desde varias sesiones.** Antes de
   hacer push, `git fetch` y revisar si hay commits nuevos — ya pasó un
-  push rechazado por historial divergente en este proyecto.
+  push rechazado por historial divergente en este proyecto. Pero el push
+  rechazado es la versión benigna del problema; la cara cara está arriba, en
+  *Cómo se reparte el trabajo entre sesiones*.
 - Algunas verificaciones contra APIs externas (`graph.facebook.com`,
   `netlify.com`, etc.) están bloqueadas por política de red en entornos de
   ejecución remota — hay que correrlas desde una terminal con acceso real,
