@@ -288,6 +288,25 @@ hoja completa otra vez**, indicaciones incluidas: quien empaca no debería tener
 que buscar el correo anterior. Y el correo de creación con pago en línea dice
 explícitamente *«sin confirmar todavía, no despachar aún»*.
 
+> **`CORREO_TIENDA` ha faltado dos veces, y ahora ya no puede tumbar nada.** La
+> primera dejó a la tienda sin copia de ningún pedido. La segunda tiró a la
+> basura la hoja de despacho del pedido de prueba `ZC-260816-9561CFF4`: el
+> comprobante de la clienta salió bien —Resend, la llave y el dominio estaban
+> perfectos— y la copia interna no, con `{"tienda":{"enviado":false,"motivo":"sin
+> CORREO_TIENDA"}}` en el log como única señal. «Falla hacia adelante» estaba mal
+> aplicado ahí: no mandar el correo no salvaba ninguna venta, solo perdía el
+> pedido. Ahora hay **destinatario por defecto** (`zephoracharms@gmail.com`, que
+> ya iba en el pie de todos los correos, así que no es ningún secreto), el valor
+> se pasa por `.trim()` —un espacio al pegarlo en Netlify se comportaba como
+> ausencia— y el resultado dice `destinatarioPorDefecto` para que el log lo
+> cuente. `rescate.mjs` usa el mismo camino: antes se rendía y los carritos
+> abandonados del día no los veía nadie.
+>
+> Si vuelve a faltar, el sitio donde mirar es **Netlify → Site configuration →
+> Environment variables**, y no basta con que la variable exista: sus **Scopes**
+> tienen que incluir *Functions* y sus **deploy contexts**, *Production*. Una
+> variable creada solo para *Builds* se ve en el panel y la función no la lee.
+
 > **La regla que sostiene esto, y la prueba que la vigila.** Ningún dato que la
 > clienta escriba puede quedarse sin imprimir. `pruebas/correo-tienda.js`
 > comprueba la cadena entera y **sin nombrar los campos a mano**: saca la lista

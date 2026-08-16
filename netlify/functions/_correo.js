@@ -23,6 +23,33 @@ const WA = '573018990672';
 const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, m => ESC[m]);
 
+/* A dónde va la hoja de despacho cuando `CORREO_TIENDA` no está.
+ *
+ * Ha faltado dos veces. La primera dejó a la tienda sin copia de ningún pedido;
+ * la segunda tiró a la basura la hoja de despacho del pedido de prueba
+ * ZC-260816-9561CFF4 —el comprobante de la clienta salió bien, así que Resend
+ * estaba perfecto— y solo se supo leyendo el log. Siempre igual: la venta pasa,
+ * nada da error, y lo que se pierde es lo que hacía falta para despachar.
+ *
+ * «Falla hacia adelante» es correcto para no tumbar una venta, pero aquí estaba
+ * mal aplicado: no mandar el correo no salva ninguna venta, solo pierde el
+ * pedido. Así que hay destinatario por defecto. No es ningún secreto —esta
+ * misma dirección va en el pie de todos los correos a clientas, unas líneas más
+ * abajo— y una variable de entorno no debería ser lo único que separe a la
+ * tienda de saber qué tiene que empacar.
+ *
+ * La variable sigue mandando cuando está: cambiar el buzón no exige tocar
+ * código. El `.trim()` es por el espacio que se cuela al pegar un valor.
+ */
+const TIENDA_POR_DEFECTO = 'zephoracharms@gmail.com';
+function correoTienda() {
+  const puesta = String(process.env.CORREO_TIENDA || '').trim();
+  if (puesta) return { para: puesta, defecto: false };
+  console.error('CORREO_TIENDA no está puesta: la copia interna sale a '
+    + `${TIENDA_POR_DEFECTO} por defecto. Ponla en Netlify (Scopes: Functions).`);
+  return { para: TIENDA_POR_DEFECTO, defecto: true };
+}
+
 /* Sin imágenes ni fuentes externas: los clientes de correo bloquean lo remoto
    por defecto, y una plantilla que depende de eso llega rota. Tabla y estilos
    en línea porque Gmail descarta el <style> del <head>. */
@@ -153,7 +180,7 @@ async function enviar({ para, asunto, html, txt, responder }) {
       headers: { Authorization: `Bearer ${llave}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: desde, to: [para], subject: asunto, html, text: txt,
-        reply_to: responder || process.env.CORREO_TIENDA || undefined,
+        reply_to: responder || correoTienda().para,
       }),
       signal: AbortSignal.timeout(8000),
     });
@@ -314,21 +341,21 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado }) {
 
 /* Copia interna, para no depender de mirar el panel de Wompi. */
 async function avisoTienda({ referencia, lineas, cuentas, pago, cliente }) {
-  const para = process.env.CORREO_TIENDA;
-  if (!para) return { enviado: false, motivo: 'sin CORREO_TIENDA' };
+  const { para, defecto } = correoTienda();
   const datos = { referencia, lineas, cuentas, pago, cliente };
   /* Las indicaciones y la dedicatoria van en el asunto —marcadas— porque el
      correo se ve primero en una lista, y lo que no se ve ahí se empaca sin
      leer. */
   const avisos = [cliente.notas ? '⚠ CON INDICACIONES' : '', cliente.dedicatoria ? '✎ DEDICATORIA' : '']
     .filter(Boolean).join(' ');
-  return enviar({
+  const r = await enviar({
     para,
     asunto: `Pedido ${referencia} · ${cop(cuentas.total)} · `
       + `${pago === 'contraentrega' ? 'CONTRAENTREGA' : 'en línea'}${avisos ? ' · ' + avisos : ''}`,
     html: plantillaTienda(datos), txt: textoTienda(datos),
     responder: cliente.correo,
   });
+  return Object.assign({ destinatarioPorDefecto: defecto }, r);
 }
 
 /* «Ya pagó, despacha» — la misma hoja, cuando Wompi confirma el cobro.
@@ -345,8 +372,7 @@ async function avisoTienda({ referencia, lineas, cuentas, pago, cliente }) {
  * Si el registro no está —almacén caído al crear el pedido—, se manda lo que se
  * sepa igual. Un aviso incompleto sirve; ninguno, no. */
 async function pagoTienda({ referencia, total, pedido }) {
-  const para = process.env.CORREO_TIENDA;
-  if (!para) return { enviado: false, motivo: 'sin CORREO_TIENDA' };
+  const { para, defecto } = correoTienda();
 
   if (!pedido || !pedido.cliente || !pedido.lineas) {
     return enviar({
@@ -368,15 +394,16 @@ async function pagoTienda({ referencia, total, pedido }) {
   };
   const avisos = [pedido.cliente.notas ? '⚠ CON INDICACIONES' : '',
     pedido.cliente.dedicatoria ? '✎ DEDICATORIA' : ''].filter(Boolean).join(' ');
-  return enviar({
+  const r = await enviar({
     para,
     asunto: `PAGADO · ${referencia} · ${cop(cuentas.total)} — despachar${avisos ? ' · ' + avisos : ''}`,
     html: plantillaTienda(datos), txt: textoTienda(datos),
     responder: pedido.cliente.correo,
   });
+  return Object.assign({ destinatarioPorDefecto: defecto }, r);
 }
 
 module.exports = {
   enviar, plantilla, texto, pedidoRecibido, avisoTienda, pagoTienda,
-  plantillaTienda, textoTienda,
+  plantillaTienda, textoTienda, correoTienda,
 };

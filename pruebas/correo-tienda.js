@@ -193,5 +193,46 @@ const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra'
       'sin registro en el almacén, el aviso del cobro sale igual', asunto2 || '—');
   }
 
+  console.log('\n6 · Sin CORREO_TIENDA');
+  {
+    /* Ha faltado dos veces. La última tiró a la basura la hoja de despacho del
+       pedido ZC-260816-9561CFF4: el comprobante de la clienta salió, la copia
+       interna no, y solo se supo leyendo el log. Antes esto devolvía
+       `{enviado:false}` y se acabó — «falla hacia adelante» mal aplicado, porque
+       no mandar el correo no salvaba ninguna venta, solo perdía el pedido. */
+    const limpio = crearPago._interno.leerCliente(CLIENTE);
+    const guardada = process.env.CORREO_TIENDA;
+    const fetchReal = globalThis.fetch;
+    let destino = null;
+    globalThis.fetch = async (u, o) => {
+      destino = JSON.parse(o.body).to;
+      return { ok: true, status: 200, json: async () => ({ id: 'x' }) };
+    };
+
+    delete process.env.CORREO_TIENDA;
+    const sinVar = await correo.avisoTienda({
+      referencia: 'ZC-260815-TEST0005', lineas: LINEAS, cuentas: CUENTAS,
+      pago: 'contraentrega', cliente: limpio });
+    comprobar(sinVar.enviado !== false && String(destino).includes('zephoracharms@gmail.com'),
+      'sin la variable, la hoja de despacho sale igual al buzón de la tienda',
+      `fue a ${destino}`);
+    comprobar(sinVar.destinatarioPorDefecto === true,
+      'y queda dicho en el resultado que salió por defecto, para que el log lo cuente');
+
+    /* Un espacio al final al pegar el valor en Netlify no puede cambiar el
+       destinatario ni tumbar el envío. */
+    process.env.CORREO_TIENDA = '  otro@ejemplo.com  ';
+    await correo.avisoTienda({
+      referencia: 'ZC-260815-TEST0006', lineas: LINEAS, cuentas: CUENTAS,
+      pago: 'contraentrega', cliente: limpio });
+    comprobar(String(destino).includes('otro@ejemplo.com') && !String(destino).includes(' '),
+      'la variable manda cuando está, y se le quitan los espacios de pegarla',
+      `fue a ${JSON.stringify(destino)}`);
+
+    globalThis.fetch = fetchReal;
+    if (guardada === undefined) delete process.env.CORREO_TIENDA;
+    else process.env.CORREO_TIENDA = guardada;
+  }
+
   console.log(fallos ? `\nHoja de despacho: ${fallos} en rojo` : '\nHoja de despacho en verde ✓');
 })();

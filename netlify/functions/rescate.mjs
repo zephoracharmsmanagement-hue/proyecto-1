@@ -29,7 +29,7 @@
  * ayuda, no parte del cobro: nunca puede tumbar nada.
  */
 import { listar, marcar } from './_pedidos.mjs';
-import { enviar } from './_correo.js';
+import { enviar, correoTienda } from './_correo.js';
 import { cop } from './_precios.js';
 
 /* Una vez al día, 9:00 en Colombia (14:00 UTC). Por la mañana, que es cuando
@@ -134,11 +134,11 @@ function cuerpo(lista) {
 }
 
 export default async () => {
-  const para = process.env.CORREO_TIENDA;
-  if (!para) {
-    console.error('rescate: sin CORREO_TIENDA, no hay a quién avisar');
-    return new Response('sin destinatario', { status: 200 });
-  }
+  /* Mismo destinatario por defecto que la hoja de despacho: sin la variable,
+     esto se rendía y los carritos abandonados del día no los veía nadie —y a
+     diferencia de un correo tardío, ese aviso no se recupera al día siguiente
+     porque los pedidos ya salieron de la ventana de 7 días. */
+  const { para } = correoTienda();
 
   const todos = await listar();
   const lista = rescatables(todos);
