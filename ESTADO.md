@@ -315,6 +315,51 @@ explícitamente *«sin confirmar todavía, no despachar aún»*.
 > dentro de `datos()`. El día que el checkout gane un campo y alguien olvide la
 > plantilla, sale en rojo aquí — en vez de descubrirse con un paquete perdido.
 
+### 4f · Hoja de inventario automática — a medias, esperando Google
+
+**El hueco que cierra.** La tienda no tenía dónde ver cuánto le quedaba de nada.
+`stock.json` dice lo que había el día del conteo y lo vendido desde entonces vive
+en el almacén de Blobs, invisible. Se notó reponiendo después de las pruebas del
+16 de agosto: hubo que **preguntarle al propietario de memoria** qué se había
+vendido, porque no había dónde mirarlo. Una memoria no es un inventario.
+
+**Diseño acordado:** Netlify → webhook de n8n → Google Sheets, con dos pestañas
+(*Movimientos*, una fila por pieza vendida; *Existencias*, lo que queda). Solo
+ventas cobradas. Y la reposición se hace apuntando el recuento físico en la hoja
+y convirtiéndolo a `stock.json` con **un paso explícito**.
+
+> **La hoja es un espejo, no un mando.** Lo que decide si se puede vender sigue
+> siendo `stock.json` más el contador de Blobs. Si la hoja se volviera un
+> inventario paralelo editable, habría dos sistemas afirmando cosas distintas
+> sobre la misma pieza — y este repo ya sabe cómo acaba eso. Por lo mismo, el
+> aviso lleva `quedan` **calculado dentro del mismo CAS que confirma la venta**
+> (`confirmar()` en `_inventario.mjs`): la hoja *muestra* ese número, no lo
+> deduce. Una hoja que hace su propia resta acaba discrepando del inventario que
+> de verdad manda.
+
+**Hecho y desplegado (lado Netlify):** `_hoja.mjs` manda un aviso por venta
+cobrada. Contraentrega lo dispara `crear-pago` al confirmar; el pago en línea lo
+dispara `wompi-webhook` al aprobarse —y no antes, porque hasta que Wompi aprueba
+no ha salido nada del inventario, y apuntar ventas que se declinan infla lo
+vendido y esconde existencias que sí están—. Vigilado por `pruebas/hoja.js`.
+
+- Variables: `HOJA_WEBHOOK` (URL del webhook) y `HOJA_TOKEN` (opcional, viaja
+  como cabecera `X-Zephora-Token`, **no en la URL**: las URLs quedan en logs e
+  historiales). Sin `HOJA_WEBHOOK` no se manda nada y no pasa nada.
+- Cada intento deja línea `hoja_inventario` en el log. No es adorno: un aviso
+  perdido deja la hoja con **más existencias de las que hay**, que es la
+  dirección peligrosa del error. Por eso la referencia va en el cuerpo — mejor
+  reintentar y que n8n deduplique, que callarse.
+
+**Bloqueado en:** n8n no tiene **ninguna credencial** (`list_credentials`
+devuelve 0). Hay que conectar Google Sheets ahí —es un OAuth que solo puede
+autorizar el propietario— y crear la hoja. Hasta entonces el workflow no se puede
+construir: el nodo necesita una credencial para poder siquiera elegir la hoja.
+
+**Lo que falta, en orden:** conectar Google en n8n → crear la hoja con las dos
+pestañas → construir el workflow → poner `HOJA_WEBHOOK` y `HOJA_TOKEN` en Netlify
+→ el paso de recuento físico → `stock.json`.
+
 ### 4c · Dónde queda el registro de cada pedido
 
 **Lo enseñó la primera venta real.** El detalle de qué se pidió vivía solo en el

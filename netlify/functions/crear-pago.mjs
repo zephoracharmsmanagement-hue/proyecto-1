@@ -18,6 +18,7 @@ import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
   PedidoInvalido, SinInventario } from './_precios.js';
 import { reservar, confirmar, liberar } from './_inventario.mjs';
+import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
 
@@ -274,7 +275,17 @@ export default async (req) => {
        confirmación de existencias sigue haciéndose por WhatsApp, como hoy.
        La reserva se confirma ya: no hay pasarela de la que esperar un aviso, y
        dejarla caducando media hora liberaría unidades de un pedido en firme. */
-    await confirmar(ref);
+    const cierre = await confirmar(ref);
+    /* A la hoja de inventario. Contraentrega es la única venta que se cierra
+       aquí: el pago en línea la anota `wompi-webhook` al aprobarse, porque hasta
+       ese momento no ha salido nada del inventario. `quedan` sale del propio CAS
+       que acaba de confirmar, así que es el número cierto y no una resta de la
+       hoja. Nunca se espera a que esto salga bien para responder. */
+    await anotarVenta({
+      referencia: ref, pago: 'contraentrega', cuando: new Date().toISOString(),
+      ciudad: `${cliente.ciudad}, ${cliente.depto}`,
+      total: cuentas.total, lineas, restante: cierre.restante,
+    });
     return responder(200, Object.assign({ modo: 'contraentrega' }, base));
   }
 

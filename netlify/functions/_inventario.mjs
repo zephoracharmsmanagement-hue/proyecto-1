@@ -299,7 +299,23 @@ async function confirmar(referencia) {
       estado.vendido[s] = (estado.vendido[s] || 0) + n;
     });
     delete estado.reservas[referencia];
-    return { ok: true, modo: 'confirmado', items: r.items };
+    /* Cuántas quedan libres de cada pieza que acaba de salir.
+     *
+     * Se calcula aquí dentro, sobre el estado ya mutado y dentro del mismo CAS,
+     * porque es el único punto del programa donde el número es cierto: leerlo
+     * después sería otra lectura, con otras ventas de por medio. Lo consume la
+     * hoja de inventario, para que muestre el dato de la fuente de verdad en vez
+     * de restar por su cuenta —una hoja que hace su propia cuenta acaba siendo
+     * un segundo inventario que discrepa del que decide las ventas—.
+     *
+     * `Infinity` (pieza sin conteo declarado) viaja como null: no es que queden
+     * cero, es que no se lleva la cuenta, y un 0 ahí haría pensar que se agotó. */
+    const restante = {};
+    Object.keys(r.items).forEach(s => {
+      const n = libre(estado, s);
+      restante[s] = Number.isFinite(n) ? n : null;
+    });
+    return { ok: true, modo: 'confirmado', items: r.items, restante };
   }, 'confirmar');
 }
 
