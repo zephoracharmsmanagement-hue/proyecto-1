@@ -19,6 +19,7 @@
 import crypto from 'node:crypto';
 import { cop } from './_precios.js';
 import { confirmar, liberar } from './_inventario.mjs';
+import { anotarVenta } from './_hoja.mjs';
 import { marcar, leer } from './_pedidos.mjs';
 import { purchase } from './_meta.js';
 import { enviar, pagoTienda } from './_correo.js';
@@ -121,8 +122,9 @@ export default async (req) => {
    * Va antes de los correos a propósito: es lo único de este bloque que afecta
    * a otras clientas, y no puede quedarse sin hacer porque Resend tarde. Ambas
    * son idempotentes, así que los reintentos de Wompi no descuentan dos veces. */
+  let cierre = null;
   if (registro.referencia) {
-    const cierre = tx.status === 'APPROVED'
+    cierre = tx.status === 'APPROVED'
       ? await confirmar(registro.referencia)
       : await liberar(registro.referencia);
     console.log(JSON.stringify({
@@ -183,6 +185,24 @@ export default async (req) => {
      * es molesto; que Wompi reintente el evento porque esto lanzó, no. */
     try {
       const pedido = await leer(registro.referencia);
+
+      /* A la hoja de inventario. Aquí y no al crear el pedido: hasta que Wompi
+         aprueba, el pago en línea no ha sacado nada del inventario —y una hoja
+         que apunta ventas que se declinaron acaba inflando lo vendido y
+         escondiendo existencias que sí están—. `quedan` viene del CAS que acabó
+         de confirmar, unas líneas arriba. */
+      await anotarVenta({
+        referencia: registro.referencia,
+        pago: (pedido && pedido.pago) || 'anticipado',
+        cuando: evento.timestamp
+          ? new Date(evento.timestamp * 1000).toISOString() : new Date().toISOString(),
+        ciudad: pedido && pedido.cliente
+          ? `${pedido.cliente.ciudad}, ${pedido.cliente.depto}` : '',
+        total: (pedido && pedido.cuentas && pedido.cuentas.total) || registro.total,
+        lineas: (pedido && pedido.lineas) || [],
+        restante: cierre && cierre.restante,
+      });
+
       const aTienda = await pagoTienda({
         referencia: registro.referencia, total: registro.total, pedido,
       });
