@@ -12,6 +12,78 @@ Claude Code en varias sesiones/terminales a la vez.
 
 ## Meta Ads — estado de la automatización
 
+### Campañas en producción (cuenta `1583713932705268`)
+
+Esa cuenta **no pertenece a ningún portafolio comercial** — de ahí sale casi
+todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
+`2021753038744595` ("cuenta publicitaria 1 ZC", dentro del portafolio
+"Zephora Charms"), existe pero no tiene campañas.
+
+- **"Nueva campaña de Ventas"** (`120247398773240534`) — ACTIVA, $15.000
+  COP/día. Optimiza por `InitiateCheckout`, **no por `Purchase`**: es la
+  limitación de fondo, no un descuido de configuración. 4 anuncios, de los
+  cuales **Copia 4 (`120247400350270534`) y Copia 5 (`120247400376370534`)
+  están PAUSADOS** desde esta sesión: costaban $6.388 y $9.424 por checkout
+  contra $663 de Copia 2 y $1.724 de Copia 3.
+
+  Lección del diagnóstico, para no repetirla: **Copia 4 tenía el mejor CTR de
+  la cuenta (15,43%) y era de los peores en conversión.** Juzgar creativos por
+  CTR habría escalado justo el que peor rendía. La métrica que manda es costo
+  por resultado.
+
+- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) — creada,
+  ACTIVA, $10.000 COP/día, **$0 gastados y 0 impresiones**. Sí optimiza por
+  `Purchase`. No entrega por dos razones: un error de segmentación por lugar
+  (#1870194, tipo de ubicación descontinuado por Meta) y, más de fondo, que
+  **el público tiene ~55 personas**. Pendiente de pausar.
+
+### Públicos
+
+- `Zephora · Iniciaron checkout sin comprar (30d)` (`120247672124730534`) —
+  ACTIVE, sano, lee del píxel viejo `2130673404542988` (el correcto: es el que
+  tiene historia). Incluye `InitiateCheckout` 30d, excluye `Purchase`.
+  **Demasiado pequeño para pautar**: la campaña principal produce ~55
+  checkouts/mes. Para hacerlo viable: ventana a 180 días e incluir también
+  `AddToCart` (134 en 30 días).
+- `Público similar (CO, 1%)` (`120247672160220534`) — **INACTIVE,
+  `operation_status_code: 433`**. La semilla es demasiado chica para construir
+  un lookalike. No sirve hasta que crezca el público de origen.
+
+### Píxeles — hay dos a propósito
+
+- **`2130673404542988`** ("zephora charms pixel 1") — el viejo. Vive en la
+  cuenta sin portafolio, así que **nunca podrá tener CAPI** (`server_last_fired_time`
+  en época cero). Es el que las campañas y los públicos pueden usar.
+- **`1029982529813994`** ("zephora charms pixel web") — el nuevo, dentro del
+  portafolio "Zephora Charms". Sí recibe `Purchase` de servidor desde
+  `wompi-webhook.mjs`. **La cuenta publicitaria no lo tiene compartido**, así
+  que Meta no puede optimizar con él hasta que el portafolio cumpla antigüedad
+  (semanas). Detalle y plan de migración en `ESTADO.md` § 4a.
+
+Consecuencia práctica: durante estas semanas el píxel nuevo **acumula la
+verdad** mientras las campañas **siguen optimizando a ciegas** sobre
+`InitiateCheckout` del viejo. No hay atajo; es restricción de cuenta.
+
+### Economía unitaria (del inventario, agosto 2026)
+
+Margen real: **charms 87,9%** ($9.305 costo / $77.449 venta) · **pulseras
+70,7%** ($18.742 / $64.571). Una venta de 2 charms deja **~$110.386 de
+utilidad neta** tras envío — ese es el CAC máximo por compra. Con costo por
+checkout de ~$1.950, el negocio aguanta hasta una conversión checkout→pago
+del 2% antes de perder plata. **El presupuesto actual está muy por debajo de
+lo que la economía soporta**; el limitante es inventario, no dinero.
+
+El dato de costo **no está en el repo**: vive en `Inventario_Zephora_v3.xlsx`
+(hojas Productos y Movimientos). `stock.json` solo trae precio de venta.
+
+### Creativos
+
+`assets/ads/` tiene 10 imágenes alojadas para usar como imagen de anuncio
+(la CAPI necesita URL pública). Queda fuera a propósito la variante que
+nombra a Pandora — riesgo de marca.
+
+### Píxel del sitio
+
 - **Pixel `2130673404542988`** ("zephora charms pixel 1"), en producción.
   Dispara `PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`, `Lead`
   (conversión real del sitio — el pago ocurre fuera, ver abajo) y `Contact`.
@@ -48,29 +120,33 @@ optimiza las campañas hacia gente que escribe, no hacia gente que compra.
 
 ### Pendiente
 
-1. **Generar token CAPI** en Events Manager → dataset `2130673404542988` →
-   Configuración → Conversions API → *Generar token de acceso*. Va como
-   credential Bearer Auth en n8n, nombre `Meta CAPI Zephora`. **No pegarlo
-   en ningún chat.**
-2. **Probar el workflow de CAPI** con `test_event_code` (Events Manager →
-   Probar eventos) antes de publicarlo.
-3. **Conectar Meta Ads MCP** para lectura y escritura completa de campañas.
-   No hay URL fija pública para pegar directo — el camino confirmado en la
-   documentación de Meta: developers.facebook.com → app **`1910139459666391`**
-   ("AGENTE CLAUDE"; la otra app listada, `28046634668340224`, no es
-   accesible) → Casos de uso → Añadir → "Ads and monetization" → **"Create &
-   manage ads with ads MCP server"** → Guardar. Cuenta propia, no gestión de
-   terceros → no requiere App Review. El panel debería mostrar después la
-   URL de conexión específica para pegar como conector personalizado en
-   claude.ai. **A la fecha de este archivo, sigue sin completarse** — ni en
-   claude.ai ni vía `claude mcp add` en ninguna terminal verificada.
-4. **Revisar el access token que se pegó en un chat hace tiempo.** Si sigue
+Por orden de impacto sobre el dinero:
+
+1. **Reponer inventario.** Es el cuello de botella real, no el presupuesto.
+   Faltan **14 letras que nunca se compraron** (F G H I P Q R T U W X Y Z Ñ —
+   el 52% del abecedario): ~$73.000 de costo para ~$1.064.000 de utilidad
+   potencial, el mejor retorno del negocio y además arregla que media
+   Colombia no encuentre su inicial. Después, **83 referencias en 1-2
+   unidades** ($2,64M para habilitar ~$11,7M de utilidad), priorizando
+   charms (88% de margen) sobre pulseras (71%).
+2. **Pausar "Retargeting · Recuperación de checkout"** hasta tener público.
+   Con ~55 personas no entrega; el presupuesto rinde más en la campaña
+   principal.
+3. **Probar el `Purchase` de servidor** con `META_TEST_EVENT_CODE` y
+   confirmar en Events Manager que aparece **una sola vez** por compra (no
+   dos) en el píxel nuevo. **Quitar la variable de prueba al terminar.**
+4. **Registrar ventas en la hoja *Movimientos*** del Excel. Hoy las
+   recomendaciones de reposición salen de "subir todo a 4 unidades", que es
+   una regla pareja, no rotación real. Con unas semanas de movimientos se
+   vuelve reposición informada.
+5. **Cuando el portafolio cumpla antigüedad**: compartir `1029982529813994`
+   con la cuenta `1583713932705268` (o reclamar la cuenta hacia el
+   portafolio), migrar la optimización de `InitiateCheckout` a `Purchase`, y
+   sacar el segundo `fbq('init', …)` de los tres HTML.
+6. **Revisar el access token que se pegó en un chat hace tiempo.** Si sigue
    activo, revocarlo en Configuración del negocio → Usuarios del sistema y
    usar en su lugar un usuario del sistema con permisos acotados.
-5. **Probar el embudo completo** en Events Manager → Probar eventos:
-   `AddToCart`, `InitiateCheckout` y `Lead` — solo `PageView` está
-   confirmado en vivo.
-6. **Marcar `Lead` como conversión personalizada** en Meta.
+7. **Marcar `Lead` como conversión personalizada** en Meta.
 
 ### Modo de operación acordado
 
@@ -134,9 +210,22 @@ que el diff: una rama anterior al doble píxel trae un `<head>` con un solo
   claude.ai (Netlify, Meta Developer Tools, n8n) tienen un interruptor por
   conversación además del estado de cuenta. Verificar ambos antes de
   asumir que algo "no sirve".
-- **Meta Developer Tools MCP ≠ Meta Ads MCP.** El primero es para apps,
-  webhooks, App Review y documentación de desarrollador — no lee campañas,
-  gasto ni métricas de anuncios. Fácil confundirlos por el nombre.
+- **Meta Developer Tools MCP ≠ Meta Ads MCP, y los nombres se prestan a
+  confusión de verdad.** El de developer tools (UUID
+  `ae1781cf-f2bf-4f2a-902a-0573c66798dc`, herramientas `devtools_*`) sirve
+  para apps, webhooks, App Review y documentación — **no lee campañas ni
+  métricas**. En algún momento apareció renombrado como "Meta ads" y
+  "Meta_ads", que es casi idéntico al bueno, y eso costó varias rondas de
+  "reconecté y sigue sin funcionar". El que sí lee campañas ha aparecido como
+  "Meta Ads" (`11f49046-c27c-4c2a-a932-46daee29c03b`) y "Meta Ads MCP", con
+  herramientas `ads_*` (`ads_get_ad_entities`, `ads_update_entity`, …).
+  **Diagnóstico rápido:** si `ToolSearch` de "ads campaign insights" no
+  devuelve nada, el conector activo es el equivocado, por más que el nombre
+  diga "ads". Conviene renombrar el de devtools a su nombre real para que
+  deje de disfrazarse.
+- **El interruptor por chat se apaga solo en cada reconexión.** En una
+  conversación larga esto pasa muchas veces y parece que el conector "se
+  cayó". Trabajar desde terminal con `claude mcp add` evita el ciclo.
 - **Este repo se ha trabajado en paralelo desde varias sesiones.** Antes de
   hacer push, `git fetch` y revisar si hay commits nuevos — ya pasó un
   push rechazado por historial divergente en este proyecto. Pero el push
