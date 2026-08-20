@@ -534,10 +534,14 @@ documento.
 **Comprobaciones** (todo el código está desplegado; falta mirar que haya
 quedado bien):
 
-- [ ] Que el último despliegue diga **8 functions** — es el que estrena
-      `rescate`. Ver *Al desplegar*.
-- [ ] **Que Netlify dispare el `schedule` del rescate.** Es lo único de esta
-      jornada que no se ha visto funcionar de verdad. No hay que esperar a
+- [x] Que el despliegue diga el número correcto de functions. **Comprobado el
+      2026-08-20**: el despliegue `c7942f0` reporta **9 functions** —las 8 de
+      entonces más `_hoja`— y `crear-pago`/`wompi-webhook` pesan ~385 KB, o sea
+      que `@netlify/blobs` entró. Ver *Al desplegar*.
+- [x] **Que Netlify registre el `schedule` del rescate. Comprobado**: el
+      despliegue lo reporta como `{"cron":"0 14 * * *","name":"rescate"}`, que
+      son las 9:00 de Colombia. Queda ver una ejecución real con pedidos
+      dentro. No hay que esperar a
       mañana: se fuerza desde Functions → `rescate` en el panel.
 - [ ] Que el **`Purchase` salga una sola vez** por compra en Events Manager —
       es lo que confirma la deduplicación navegador/servidor— y **quitar
@@ -750,11 +754,18 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **8 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **9 functions**
 (`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`, `rescate`);
+`_pedidos`, `_hoja`, `rescate`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
+
+> **Este número sube cada vez que se añade un módulo a `netlify/functions/`, y
+> hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`.
+> Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
+> persona ve «9» donde el documento pide «8», da por bueno el desajuste, y la
+> comprobación deja de servir justo para lo que existe — detectar que las
+> funciones no se empaquetaron y el sitio quedó sin cobrar.
 
 Y que `crear-pago` y `wompi-webhook` pesen ~306 KB, no ~295 KB: esos ~11 KB de
 diferencia son `@netlify/blobs` empaquetado. Si vuelven al tamaño de antes, la
