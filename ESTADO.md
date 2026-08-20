@@ -5,11 +5,40 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-**La rama que Netlify publica es `claude/install-frontend-design-skill-8t655e`**
-— la rama por defecto del repo. Cada sesión trabaja en su propia rama y empuja a
-las dos; si solo se empuja la suya, el sitio no se entera. Las ramas de trabajo
-que han pasado por aquí: `claude/ecommerce-landing-page-elivwb`,
-`claude/netlify-deployment-blocked-e7qx93`.
+## ⚠️ Consolidación de ramas — 2026-08-20
+
+**El tronco es `main`.** Se creó consolidando las nueve ramas `claude/*` que
+tenía el repo, ninguna de las cuales era un tronco: la que publicaba Netlify se
+llamaba `claude/install-frontend-design-skill-8t655e`, por el nombre de la tarea
+que la abrió.
+
+No era cosmético. Sin tronco, tres sesiones construyeron en paralelo **lo mismo
+dos veces**: el `Purchase` server-side, el rescate de carritos y el registro de
+pedidos. Cada duplicado costó una reconciliación y en un caso estuvo a punto de
+hacer que Meta contara el doble de compras.
+
+`main` contiene todo lo de las ocho ramas fusionables. Queda fuera
+`claude/sephora-whatsapp-response-system-682wvv` — ver abajo.
+
+### Lo que falta y solo se puede hacer desde los paneles
+
+1. **GitHub → Settings → Branches → Default branch → `main`.**
+2. **Netlify → Site configuration → Build & deploy → Branch to deploy → `main`.**
+   Hasta que esto se cambie, **el sitio se sigue publicando desde
+   `claude/install-frontend-design-skill-8t655e`** y lo que se empuje a `main`
+   no sale al aire.
+3. Cuando las dos estén hechas, borrar las ramas `claude/*` ya fusionadas.
+
+### La rama que no se fusionó
+
+`claude/sephora-whatsapp-response-system-682wvv` tiene otro árbol de archivos
+(`data/`, `docs/`, `scripts/`) y un `index.html` anterior al checkout: fusionarla
+retrocedería la tienda. Lo que vale de ahí ya se rescató —el prompt del asesor,
+en `automatizaciones/prompts/asesor-whatsapp.md`—. Lo que queda por minar son
+las **28 macros de WhatsApp** en `docs/whatsapp/macros-para-copiar.md`, útiles
+pero con cifras falsas hoy (Addi como medio de pago, precios viejos, envío
+gratis mal aplicado). **No copiar de ahí sin contrastar contra `_precios.js`.**
+Se deja como archivo histórico, no se borra.
 
 > **Este repo se trabaja desde varias sesiones a la vez y ya ha habido pushes
 > rechazados por historial divergente.** Antes de empujar, `git fetch` y mirar

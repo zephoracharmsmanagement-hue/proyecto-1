@@ -19,7 +19,10 @@ name: Pruebas
 on:
   push:
     branches:
-      - claude/install-frontend-design-skill-8t655e
+      # main es el tronco desde la consolidación del 2026-08-20. Las ramas
+      # claude/** siguen listadas mientras se apagan: una rama que deja de
+      # correr las pruebas es una rama que se rompe sin que nadie lo note.
+      - main
       - 'claude/**'
   pull_request:
   workflow_dispatch:
