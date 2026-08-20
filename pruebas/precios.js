@@ -125,11 +125,14 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       document.querySelector(`.pbtn[data-pago="${pago}"]`).click();
       await esperar();
 
+      const dn = document.getElementById('desc-nota');
       return {
         total: document.getElementById('v-tot').textContent.trim(),
         envio: document.getElementById('v-ship').textContent.trim(),
         piezas: document.querySelectorAll('#sheet-body .srow').length,
         talla,
+        /* El aviso del siguiente tramo de descuento: null si no se muestra. */
+        descNota: dn.hidden ? null : dn.textContent.trim(),
       };
     }, { base, charms, empaque, pago });
 
@@ -140,6 +143,37 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     const esperado = cop(servidor.total);
     const igual = esperado === enPantalla.total;
     if (!igual) fallas++;
+
+    /* El aviso del siguiente tramo de descuento anuncia una cifra de ahorro, y
+       una cifra que no cuadre es peor que no ponerla: se descubre en la
+       pantalla de pago, con la clienta ya decidida. Se comprueba contra las
+       mismas reglas que usa el servidor, no contra lo que diga la página. */
+    {
+      const R = require(path.join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
+      const esc = n => (n <= 0 ? 0 : R.escalaCharms[Math.min(n, R.escalaCharms.length - 1)]);
+      const nC = charms.length;
+      const brutoC = servidor.brutoCharms;
+      const brutoB = servidor.brutoBrazalete;
+      const sube = esc(nC + 1) > esc(nC) || (base && nC + 1 >= 3 && nC < 3);
+      const dAhora = brutoC * esc(nC) + (base && nC >= 3 ? brutoB * R.descuentoBrazalete : 0);
+      const dLuego = brutoC * esc(nC + 1) + (base && nC + 1 >= 3 ? brutoB * R.descuentoBrazalete : 0);
+      const extra = Math.round(dLuego - dAhora);
+      const debe = nC >= 1 && sube && extra > 0;
+
+      if (debe && !enPantalla.descNota) {
+        fallas++;
+        console.log(`  ✗ ${nC} charms: falta el aviso del siguiente descuento (${cop(extra)})`);
+      } else if (!debe && enPantalla.descNota) {
+        fallas++;
+        console.log(`  ✗ ${nC} charms: el aviso sale cuando no hay tramo siguiente`);
+        console.log(`      «${enPantalla.descNota}»`);
+      } else if (debe && !enPantalla.descNota.includes(cop(extra))) {
+        fallas++;
+        console.log(`  ✗ ${nC} charms: el aviso promete un ahorro que no cuadra`);
+        console.log(`      página: «${enPantalla.descNota}»`);
+        console.log(`      reglas: ${cop(extra)} menos en lo que ya lleva`);
+      }
+    }
 
     const resumen = `${base ? base.replace('pulsera-', 'brz:') : 'sin brazalete'}` +
       ` + ${charms.length} charms${empaque ? ' + empaque' : ''} · ${pago}`;

@@ -1,5 +1,5 @@
 {
- "generado": "2026-08-09",
+ "generado": "2026-08-16",
  "conteo_inventario": "2026-08-01",
  "items": {
   "letra-a": {
@@ -305,7 +305,7 @@
   "capitan-america": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 2,
+   "stock": 1,
    "familia": "pasador"
   },
   "wolverine": {
@@ -401,7 +401,7 @@
   "gatito-con-corazon-azul": {
    "tipo": "charm",
    "precio": 72000,
-   "stock": 4,
+   "stock": 3,
    "familia": "pasador"
   },
   "sol-y-luna-con-cristales": {
@@ -655,12 +655,6 @@
     "20": 1
    }
   },
-  "elsa": {
-   "tipo": "charm",
-   "precio": 85000,
-   "stock": 0,
-   "familia": "pasador"
-  },
   "angel": {
    "tipo": "charm",
    "precio": 85000,
@@ -679,19 +673,7 @@
    "stock": 0,
    "familia": "colgante"
   },
-  "nina-con-arcoiris": {
-   "tipo": "charm",
-   "precio": 80000,
-   "stock": 0,
-   "familia": "colgante"
-  },
   "tortuga-marina-cristal": {
-   "tipo": "charm",
-   "precio": 72000,
-   "stock": 0,
-   "familia": "colgante"
-  },
-  "tortuga-azul-grande": {
    "tipo": "charm",
    "precio": 72000,
    "stock": 0,

@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const path = require('path');
 const BASE = process.env.URL || 'http://localhost:8899';
 const U = BASE + '/index.html';
 
@@ -32,8 +33,16 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   t = await tallasDe('pulsera-avengers');
   ok(t.filter(v => !v.off).map(v => v.t).join() === '20', 'solo la 20 disponible');
 
-  console.log('3 · elsa, walle, cancer, acuario agotados');
-  for (const id of ['elsa', 'walle', 'cancer', 'acuario']) {
+  /* Los agotados salen de stock.json, no de una lista escrita a mano: el día
+     que se retiraron tres duplicados del catálogo esta batería reventó porque
+     nombraba una pieza que ya no existe. Lo que hay que comprobar es la regla
+     —un agotado se muestra en gris, bloqueado y con encargo—, no unos ids. */
+  const INV = require(path.join(__dirname, '..', 'assets', 'stock.json')).items;
+  const agotados = Object.keys(INV)
+    .filter(k => INV[k].stock === 0 && INV[k].tipo === 'charm').slice(0, 4);
+  console.log(`3 · ${agotados.join(', ')} agotados`);
+  ok(agotados.length > 0, 'hay piezas agotadas en el inventario para comprobar');
+  for (const id of agotados) {
     const r = await p.evaluate(i => {
       const c = document.querySelector(`.pc[data-id="${i}"]`);
       const b = c.querySelector('.pc-add');
@@ -42,7 +51,7 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
     ok(r.out && r.off && r.txt === 'Agotado' && r.enc, `${id}: agotado, bloqueado y con "pedir por encargo"`);
   }
   const antes = await p.evaluate(() => document.querySelectorAll('#sheet-body .srow').length);
-  await p.click('.pc[data-id="elsa"] .pc-add', { force: true });
+  await p.click(`.pc[data-id="${agotados[0]}"] .pc-add`, { force: true });
   await p.waitForTimeout(150);
   const desp = await p.evaluate(() => document.querySelectorAll('#sheet-body .srow').length);
   ok(antes === desp, 'tocar un agotado no lo agrega al carrito');

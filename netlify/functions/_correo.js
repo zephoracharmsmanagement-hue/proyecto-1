@@ -23,6 +23,33 @@ const WA = '573018990672';
 const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, m => ESC[m]);
 
+/* A dónde va la hoja de despacho cuando `CORREO_TIENDA` no está.
+ *
+ * Ha faltado dos veces. La primera dejó a la tienda sin copia de ningún pedido;
+ * la segunda tiró a la basura la hoja de despacho del pedido de prueba
+ * ZC-260816-9561CFF4 —el comprobante de la clienta salió bien, así que Resend
+ * estaba perfecto— y solo se supo leyendo el log. Siempre igual: la venta pasa,
+ * nada da error, y lo que se pierde es lo que hacía falta para despachar.
+ *
+ * «Falla hacia adelante» es correcto para no tumbar una venta, pero aquí estaba
+ * mal aplicado: no mandar el correo no salva ninguna venta, solo pierde el
+ * pedido. Así que hay destinatario por defecto. No es ningún secreto —esta
+ * misma dirección va en el pie de todos los correos a clientas, unas líneas más
+ * abajo— y una variable de entorno no debería ser lo único que separe a la
+ * tienda de saber qué tiene que empacar.
+ *
+ * La variable sigue mandando cuando está: cambiar el buzón no exige tocar
+ * código. El `.trim()` es por el espacio que se cuela al pegar un valor.
+ */
+const TIENDA_POR_DEFECTO = 'zephoracharms@gmail.com';
+function correoTienda() {
+  const puesta = String(process.env.CORREO_TIENDA || '').trim();
+  if (puesta) return { para: puesta, defecto: false };
+  console.error('CORREO_TIENDA no está puesta: la copia interna sale a '
+    + `${TIENDA_POR_DEFECTO} por defecto. Ponla en Netlify (Scopes: Functions).`);
+  return { para: TIENDA_POR_DEFECTO, defecto: true };
+}
+
 /* Sin imágenes ni fuentes externas: los clientes de correo bloquean lo remoto
    por defecto, y una plantilla que depende de eso llega rota. Tabla y estilos
    en línea porque Gmail descarta el <style> del <head>. */
@@ -153,7 +180,7 @@ async function enviar({ para, asunto, html, txt, responder }) {
       headers: { Authorization: `Bearer ${llave}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: desde, to: [para], subject: asunto, html, text: txt,
-        reply_to: responder || process.env.CORREO_TIENDA || undefined,
+        reply_to: responder || correoTienda().para,
       }),
       signal: AbortSignal.timeout(8000),
     });
@@ -195,24 +222,188 @@ async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente }) {
   });
 }
 
-/* Copia interna, para no depender de mirar el panel de Wompi. */
-async function avisoTienda({ referencia, lineas, cuentas, pago, cliente }) {
-  const para = process.env.CORREO_TIENDA;
-  if (!para) return { enviado: false, motivo: 'sin CORREO_TIENDA' };
-  const datos = {
-    titulo: 'Pedido nuevo',
-    entrada: `${pago === 'contraentrega' ? 'Contraentrega' : 'Pago en línea'} · `
-      + `${cliente.ciudad}, ${cliente.depto}`,
-    referencia, lineas,
-    envio: cuentas.envio, envioGratis: cuentas.envioGratis, total: cuentas.total,
-    pago, cliente, pasos: null,
-  };
-  return enviar({
-    para,
-    asunto: `Pedido ${referencia} · ${cop(cuentas.total)} · ${pago === 'contraentrega' ? 'CONTRAENTREGA' : 'en línea'}`,
-    html: plantilla(datos), txt: texto(datos),
-    responder: cliente.correo,
-  });
+/* ——— La hoja de despacho ———
+ *
+ * La copia interna era el recibo de la clienta con otro título, y eso costó un
+ * producto: alguien pidió que se lo entregaran en un local concreto, lo escribió
+ * en «Indicaciones para la entrega», y ese campo no se imprimía en ninguna parte.
+ * El pedido salió sin la indicación. La tienda tuvo que ir a leer los datos al
+ * panel de Resend, que es el sitio donde nadie mira cuando está empacando.
+ *
+ * Los dos correos tienen trabajos distintos: el de la clienta es un comprobante
+ * —dice qué compró y cuánto pagó—; el de la tienda es una orden de trabajo —dice
+ * qué meter en la caja, qué escribir a mano y qué poner en la guía—. Por eso
+ * dejan de compartir plantilla.
+ *
+ * La regla que sostiene esto: **ningún dato que la clienta escriba puede
+ * quedarse sin imprimir.** Lo vigila `pruebas/correo-tienda.js`, que rellena
+ * todos los campos que acepta `crear-pago` y comprueba que cada uno aparezca en
+ * el correo. Si mañana el formulario gana un campo y esta plantilla no, sale en
+ * rojo — que es justo lo que no pasó la vez que se perdió el pedido.
+ */
+const BLOQUE = (rotulo, valor, destacado) => !valor ? '' : `
+  <tr><td style="padding:0 26px 14px">
+    <p style="margin:0 0 4px;font:400 12px/1 Arial,sans-serif;letter-spacing:.12em;
+       text-transform:uppercase;color:${destacado ? '#B03A48' : '#A9A6AE'}">${esc(rotulo)}</p>
+    <p style="margin:0;font:400 ${destacado ? '15' : '14'}px/1.6 Arial,sans-serif;color:#2A1F2E;
+       ${destacado ? 'background:#FDF1F2;border-left:3px solid #B03A48;padding:10px 12px' : ''}">${valor}</p>
+  </td></tr>`;
+
+function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado }) {
+  const contra = pago === 'contraentrega';
+  const piezas = lineas.map(l =>
+    `• ${esc(l.nombre)}${l.talla ? ` — <b>talla ${esc(l.talla)} cm</b>` : ''}`
+    + `${l.unidades > 1 ? ` — <b>×${l.unidades}</b>` : ''}`).join('<br>');
+  const direccion = [
+    esc(cliente.direccion) + (cliente.adicional ? ', ' + esc(cliente.adicional) : ''),
+    cliente.barrio ? 'Barrio ' + esc(cliente.barrio) : '',
+    esc(cliente.ciudad) + ', ' + esc(cliente.depto),
+  ].filter(Boolean).join('<br>');
+  const contacto = `${esc(cliente.nombre)} ${esc(cliente.apellido)}<br>`
+    + `${esc(cliente.tipodoc)} ${esc(cliente.documento)}<br>`
+    + `Cel. ${esc(cliente.celular)}<br>${esc(cliente.correo)}`;
+
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#F6F3F4">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F6F3F4">
+<tr><td align="center" style="padding:20px 12px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+       style="max-width:560px;background:#fff;border:1px solid #E4DDE0">
+
+  ${pagado ? `
+  <tr><td style="padding:14px 26px;background:#1F7A5C">
+    <p style="margin:0;font:400 15px/1.4 Arial,sans-serif;color:#fff">
+      <b>PAGO CONFIRMADO</b> — ya se puede despachar</p>
+  </td></tr>` : ''}
+
+  <tr><td style="padding:20px 26px 4px">
+    <p style="margin:0;font:400 12px/1 Arial,sans-serif;letter-spacing:.14em;
+       text-transform:uppercase;color:#A9A6AE">${pagado ? 'Listo para despachar' : 'Pedido nuevo · para despachar'}</p>
+    <p style="margin:6px 0 0;font:400 24px/1.2 Georgia,serif;color:#2A1F2E">${esc(referencia)}</p>
+    <p style="margin:4px 0 18px;font:400 13px/1.5 Arial,sans-serif;color:#6d6070">
+      ${contra ? 'CONTRAENTREGA — cobrar al entregar'
+        : (pagado ? 'Pagado en línea — confirmado por Wompi'
+          : 'Pago en línea — <b>sin confirmar todavía</b>, no despachar aún')}
+      · ${esc(cop(cuentas.total))}</p>
+  </td></tr>
+
+  ${/* Lo primero, y en rojo: es lo que se pierde si se lee en diagonal. */''}
+  ${BLOQUE('⚠ Indicaciones para la entrega', esc(cliente.notas).replace(/\n/g, '<br>'), true)}
+  ${BLOQUE('✎ Dedicatoria — va escrita a mano',
+    esc(cliente.dedicatoria).replace(/\n/g, '<br>'), true)}
+  ${BLOQUE('Qué empacar', piezas)}
+  ${BLOQUE('Para la guía — destinatario', contacto)}
+  ${BLOQUE('Para la guía — dirección', direccion)}
+  ${BLOQUE('Cuentas', `Mercancía ${esc(cop(cuentas.total - cuentas.envio))}<br>`
+    + `Envío ${cuentas.envioGratis ? 'GRATIS' : esc(cop(cuentas.envio))}<br>`
+    + `<b>Total ${esc(cop(cuentas.total))}</b>`)}
+
+  <tr><td style="padding:4px 26px 22px">
+    <a href="https://wa.me/${esc(cliente.celular.replace(/^57/, '57') || WA)}"
+       style="display:block;text-align:center;background:#25806a;color:#fff;text-decoration:none;
+              font:400 14px/1 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;
+              padding:14px 20px;border-radius:2px">Escribirle a la clienta</a>
+  </td></tr>
+
+</table></td></tr></table></body></html>`;
 }
 
-module.exports = { enviar, plantilla, texto, pedidoRecibido, avisoTienda };
+/* La misma hoja en texto plano. No es un respaldo decorativo: empacando se lee
+   en el teléfono, y ahí muchos clientes de correo muestran esta versión. */
+function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado }) {
+  const bloque = (rotulo, valor) => (valor ? [rotulo, valor, ''] : []);
+  return [
+    pagado ? `PAGO CONFIRMADO — YA SE PUEDE DESPACHAR · ${referencia}` : `PEDIDO NUEVO · ${referencia}`,
+    `${pago === 'contraentrega' ? 'CONTRAENTREGA — cobrar al entregar'
+      : (pagado ? 'Pagado en linea — confirmado por Wompi'
+        : 'Pago en linea — SIN CONFIRMAR todavia, no despachar aun')} · ${cop(cuentas.total)}`,
+    '',
+    ...bloque('>> INDICACIONES PARA LA ENTREGA:', cliente.notas),
+    ...bloque('>> DEDICATORIA (va escrita a mano):', cliente.dedicatoria),
+    'QUÉ EMPACAR:',
+    ...lineas.map(l => `- ${l.nombre}${l.talla ? ` (talla ${l.talla} cm)` : ''}`
+      + `${l.unidades > 1 ? ` x${l.unidades}` : ''}`),
+    '',
+    'PARA LA GUÍA:',
+    `${cliente.nombre} ${cliente.apellido}`,
+    `${cliente.tipodoc} ${cliente.documento}`,
+    `Cel. ${cliente.celular}`,
+    cliente.correo,
+    `${cliente.direccion}${cliente.adicional ? ', ' + cliente.adicional : ''}`,
+    ...(cliente.barrio ? [`Barrio ${cliente.barrio}`] : []),
+    `${cliente.ciudad}, ${cliente.depto}`,
+    '',
+    `Envío: ${cuentas.envioGratis ? 'GRATIS' : cop(cuentas.envio)}`,
+    `Total: ${cop(cuentas.total)}`,
+  ].join('\n');
+}
+
+/* Copia interna, para no depender de mirar el panel de Wompi. */
+async function avisoTienda({ referencia, lineas, cuentas, pago, cliente }) {
+  const { para, defecto } = correoTienda();
+  const datos = { referencia, lineas, cuentas, pago, cliente };
+  /* Las indicaciones y la dedicatoria van en el asunto —marcadas— porque el
+     correo se ve primero en una lista, y lo que no se ve ahí se empaca sin
+     leer. */
+  const avisos = [cliente.notas ? '⚠ CON INDICACIONES' : '', cliente.dedicatoria ? '✎ DEDICATORIA' : '']
+    .filter(Boolean).join(' ');
+  const r = await enviar({
+    para,
+    asunto: `Pedido ${referencia} · ${cop(cuentas.total)} · `
+      + `${pago === 'contraentrega' ? 'CONTRAENTREGA' : 'en línea'}${avisos ? ' · ' + avisos : ''}`,
+    html: plantillaTienda(datos), txt: textoTienda(datos),
+    responder: cliente.correo,
+  });
+  return Object.assign({ destinatarioPorDefecto: defecto }, r);
+}
+
+/* «Ya pagó, despacha» — la misma hoja, cuando Wompi confirma el cobro.
+ *
+ * Hasta ahora el aviso de pago aprobado iba solo a la clienta: la tienda recibía
+ * el pedido al crearse —antes de que hubiera pago— y nada más. Con pago en línea
+ * eso deja la bandeja sin distinguir lo cobrado de lo abandonado, que es
+ * justamente lo que hay que saber para empacar.
+ *
+ * Va la hoja completa y no un «pagado» a secas: quien empaca no debería tener
+ * que buscar el correo anterior para saber qué meter en la caja ni dónde
+ * entregarlo. Repetir es más barato que perder otro pedido.
+ *
+ * Si el registro no está —almacén caído al crear el pedido—, se manda lo que se
+ * sepa igual. Un aviso incompleto sirve; ninguno, no. */
+async function pagoTienda({ referencia, total, pedido }) {
+  const { para, defecto } = correoTienda();
+
+  if (!pedido || !pedido.cliente || !pedido.lineas) {
+    return enviar({
+      para,
+      asunto: `PAGADO · ${referencia} · ${cop(total || 0)} — despachar`,
+      html: `<p style="font:400 15px/1.6 Arial,sans-serif">Wompi confirmó el pago de `
+        + `<b>${esc(referencia)}</b> por <b>${esc(cop(total || 0))}</b>.</p>`
+        + `<p style="font:400 15px/1.6 Arial,sans-serif">No se pudo leer el registro del pedido, `
+        + `así que el detalle está en el correo «Pedido nuevo» con esta misma referencia.</p>`,
+      txt: `PAGADO · ${referencia} · ${cop(total || 0)}\n\n`
+        + `No se pudo leer el registro. El detalle está en el correo «Pedido nuevo» con esta referencia.`,
+    });
+  }
+
+  const cuentas = pedido.cuentas || { envio: 0, envioGratis: false, total: total || 0 };
+  const datos = {
+    referencia, lineas: pedido.lineas, cuentas,
+    pago: pedido.pago || 'anticipado', cliente: pedido.cliente, pagado: true,
+  };
+  const avisos = [pedido.cliente.notas ? '⚠ CON INDICACIONES' : '',
+    pedido.cliente.dedicatoria ? '✎ DEDICATORIA' : ''].filter(Boolean).join(' ');
+  const r = await enviar({
+    para,
+    asunto: `PAGADO · ${referencia} · ${cop(cuentas.total)} — despachar${avisos ? ' · ' + avisos : ''}`,
+    html: plantillaTienda(datos), txt: textoTienda(datos),
+    responder: pedido.cliente.correo,
+  });
+  return Object.assign({ destinatarioPorDefecto: defecto }, r);
+}
+
+module.exports = {
+  enviar, plantilla, texto, pedidoRecibido, avisoTienda, pagoTienda,
+  plantillaTienda, textoTienda, correoTienda,
+};

@@ -35,6 +35,16 @@ n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
 document,'script','https://connect.facebook.net/en_US/fbevents.js');
 fbq('init','2130673404542988');
+/* Doble píxel temporal: el nuevo (1029982529813994) vive en el portafolio de
+   negocio "Zephora Charms", donde sí se puede generar token de Conversions
+   API — el viejo quedó fuera de cualquier portafolio y Meta no deja
+   compartirlo ni token generarle uno. Mientras la cuenta publicitaria real
+   no pueda usar el nuevo (Meta bloquea compartir activos con negocios
+   "nuevos" varias semanas), el viejo se queda igual para no dejar la
+   campaña activa sin señal, y el nuevo mide en paralelo con CAPI completo.
+   Quitar este segundo init cuando se pueda compartir el nuevo y migrar del
+   todo — ver ESTADO.md. */
+fbq('init','1029982529813994');
 fbq('track','PageView');
 fbq('track','ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',currency:'COP'});
 </script>
@@ -406,6 +416,37 @@ section{scroll-margin-top:64px}
   aspect-ratio:1;padding:14px;border-radius:5px 5px 0 0}
 .fx-ph img{width:100%;height:100%;object-fit:contain}
 .fx-ph .nofoto-m{font-size:64px}
+
+/* Galería de la ficha.
+ *
+ * Varias piezas tienen detalle por delante, por detrás o de lado, y con una
+ * sola foto ese detalle no se compra: no se ve. La tira rueda con el dedo
+ * —scroll-snap, sin librería— y las miniaturas dan el salto directo en
+ * escritorio, donde arrastrar es menos natural.
+ *
+ * Con una sola foto no se pinta nada de esto: ni tira, ni puntos, ni
+ * miniaturas. Una galería de un elemento es ruido que promete algo que no hay. */
+.fx-ph{position:relative;overflow:hidden}
+.fx-gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  width:100%;height:100%;gap:0;scrollbar-width:none;-ms-overflow-style:none}
+.fx-gal::-webkit-scrollbar{display:none}
+.fx-gal>figure{flex:0 0 100%;scroll-snap-align:center;margin:0;display:flex;
+  align-items:center;justify-content:center;min-width:0}
+.fx-gal img{width:100%;height:100%;object-fit:contain}
+.fx-pts{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;
+  gap:6px;pointer-events:none}
+.fx-pts i{width:6px;height:6px;border-radius:50%;background:rgba(42,31,46,.22);transition:.2s}
+.fx-pts i.is-on{background:var(--plum);width:16px;border-radius:3px}
+.fx-mini{display:flex;gap:6px;padding:8px 10px 0;justify-content:center;flex-wrap:wrap}
+/* Tercera vez que muerde lo mismo: display propio contra [hidden], y gana el
+   display. Aquí dejaba las miniaturas del charm anterior puestas sobre una
+   pieza que solo tiene una foto. La caza pruebas/regresion.js § 7. */
+.fx-mini[hidden]{display:none}
+.fx-mini button{width:46px;height:46px;padding:2px;border:1px solid var(--line);border-radius:3px;
+  background:#fff;cursor:pointer;flex:0 0 auto}
+.fx-mini button.is-on{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
+.fx-mini img{width:100%;height:100%;object-fit:contain}
+@media(prefers-reduced-motion:reduce){.fx-gal{scroll-behavior:auto}}
 .fx-tx{padding:20px 22px 24px}
 .fx-tx h3{font-size:clamp(24px,6vw,31px);line-height:1.15;margin:6px 0 6px}
 .fx-p{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;margin:0 0 4px}
@@ -559,6 +600,37 @@ section{scroll-margin-top:64px}
   cursor:pointer;padding:8px 2px}
 .dock-open svg{transition:transform .25s}
 .dock .btn--wa{padding:11px 14px;font-size:11.5px;letter-spacing:.07em}
+/* Barra de progreso hacia el envío gratis, pegada al borde superior del dock.
+   Vive aquí y no solo dentro de la hoja porque el umbral solo servía a quien
+   ya había abierto el detalle: el resto armaba sin saber que le faltaban
+   $20.000 para no pagar envío. 3 px no le quitan altura a nada. */
+.dock-bar{position:absolute;left:0;right:0;top:0;height:3px;background:rgba(255,255,255,.12)}
+.dock-bar i{display:block;height:100%;width:0;background:var(--rose,#B4657F);
+  transition:width .35s ease}
+.dock-bar.is-ok i{background:#3E9E7A}
+
+/* Aviso de venta cruzada. Sale al fijar el brazalete y se va sola en cuanto
+   llega a 3 charms, que es donde se activa el 30%. Nunca tapa el dock ni
+   convive con la hoja abierta: ahí el mismo dato ya está en #desc-nota. */
+.xs{position:fixed;left:12px;right:12px;bottom:calc(var(--dock) + 10px);z-index:79;
+  background:var(--bone,#FBF7F4);border:1px solid rgba(92,61,99,.18);
+  border-radius:10px;box-shadow:0 10px 30px rgba(20,12,24,.18);
+  padding:12px 12px 12px 14px;display:flex;align-items:center;gap:10px;
+  animation:xs-in .3s ease both}
+@keyframes xs-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.xs{animation:none}.dock-bar i{transition:none}}
+/* display:flex le gana al [hidden] del navegador y dejaba el aviso visible
+   siempre — vacío antes de elegir brazalete, y sin irse al llegar a 3 charms.
+   Mismo empate que ya resuelven .pc[hidden] y .tallas[hidden] más arriba. */
+.xs[hidden]{display:none}
+.xs-tx{flex:1 1 auto;min-width:0;font-size:12.5px;line-height:1.45;color:#3B2A40}
+.xs-tx b{color:#5C3D63}
+.xs-go{flex:0 0 auto;padding:10px 13px;font-size:11.5px;letter-spacing:.06em;
+  white-space:nowrap}
+.xs-x{flex:0 0 auto;background:none;border:0;cursor:pointer;color:#A9A6AE;
+  font-size:13px;line-height:1;padding:6px 2px}
+body.sheet-open .xs{display:none}
+@media(min-width:900px){.xs{left:auto;right:24px;width:380px}}
 .veil{position:fixed;inset:0;background:rgba(20,12,24,.5);z-index:85;opacity:0;
   pointer-events:none;transition:opacity .25s}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;background:#231a27;color:var(--bone);
@@ -601,6 +673,12 @@ body.sheet-open{overflow:hidden}
 .tot-row{display:flex;justify-content:space-between;font-size:13.5px;color:#c3b4c6;margin-bottom:5px}
 .tot-row.save{color:#e39aae}
 .ship-note{font-size:12px;color:#a495a8;margin:2px 0 0;line-height:1.45}
+/* El aviso del siguiente tramo de descuento. Mismo tono discreto que el del
+   envío: es información, no un empujón. Dice una cifra comprobable —lo que
+   baja el descuento sobre lo que YA lleva— y nunca insinúa que el total baje,
+   porque el charm que añada lo paga igual. */
+.desc-nota{font-size:12px;color:#c9a5b6;margin:5px 0 0;line-height:1.45}
+.desc-nota b{color:var(--bone);font-weight:400}
 .ship-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.13);margin:7px 0 2px;overflow:hidden}
 .ship-bar i{display:block;height:100%;background:var(--rose);width:0;transition:width .3s}
 .ship-ok{color:#7fc7ae}
@@ -672,7 +750,12 @@ body.sheet-open{overflow:hidden}
   .talla-sec,.pe{padding:60px 0}
   .calc{grid-template-columns:300px 1fr;gap:26px;align-items:start;max-width:none}
   .fx-box{grid-template-columns:1fr 1fr;max-height:82dvh}
-  .fx-ph{aspect-ratio:auto;border-radius:5px 0 0 5px;min-height:340px}
+  /* En dos columnas, la foto y sus miniaturas van juntas a la izquierda y el
+     texto ocupa la derecha entero. Sin esto, el bloque de miniaturas se cuela
+     en la segunda columna y empuja la descripción a la fila de abajo. */
+  .fx-ph{aspect-ratio:auto;border-radius:5px 0 0 5px;min-height:340px;grid-column:1;grid-row:1}
+  .fx-mini{grid-column:1;grid-row:2;padding-bottom:12px}
+  .fx-tx{grid-column:2;grid-row:1/span 2}
   .fx-tx{padding:26px 28px 28px}
   .fx-cta{grid-template-columns:1fr 1fr}
   .pe-grid{grid-template-columns:1fr 1fr;gap:20px}
@@ -732,11 +815,15 @@ body.sheet-open{overflow:hidden}
       <h1>Diseña una historia<br><i>tan única como tú</i></h1>
       <p class="hero-sub">Joyería personalizada con charms elaborados en Plata Esterlina 925 verificada y brazaletes con acabado de alta calidad en baño de plata, compatibles con Pandora.</p>
       <p class="hero-badges"><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="dot">·</span><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span><span class="hero-badge-n">+2.400 pulseras creadas</span></p>
+      <!-- El botón grande arma y compra en el sitio; WhatsApp queda como
+           asesoría, no como vía de compra. Antes era al revés y el CTA
+           principal sacaba a la clienta de la página hacia una conversación
+           que hay que atender a mano: las ventas se estaban cayendo ahí. -->
       <div class="hero-cta">
-        <a class="btn btn--wa btn--big" data-wa="hero" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20web%20y%20quiero%20dise%C3%B1ar%20mi%20pulsera%20personalizada.%20%C2%BFMe%20pueden%20asesorar%20con%20los%20charms%20y%20la%20talla%3F">💬 Diseñar mi pulsera por WhatsApp</a>
-        <a class="btn btn--ghost" href="#brazaletes">Ver brazaletes y charms</a>
+        <a class="btn btn--pagar btn--big" href="#brazaletes">Armar mi pulsera</a>
+        <a class="btn btn--ghost" data-wa="hero" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20web%20y%20quiero%20dise%C3%B1ar%20mi%20pulsera%20personalizada.%20%C2%BFMe%20pueden%20asesorar%20con%20los%20charms%20y%20la%20talla%3F">💬 Asesoría por WhatsApp</a>
       </div>
-      <p class="hero-hint">O ármala tú misma aquí abajo — el precio se calcula solo, con la promo incluida.</p>
+      <p class="hero-hint">El precio se calcula solo mientras eliges, con la promo ya incluida. Pagas aquí mismo con Nequi, PSE, Bancolombia o tarjeta.</p>
     </div>
     <div class="hero-img">
       <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp" alt="Pulsera Zephora armada con charms en plata 925" width="502" height="900" fetchpriority="high" decoding="async">
@@ -1006,20 +1093,16 @@ body.sheet-open{overflow:hidden}
 <div class="pc-img"><img src="assets/princesa-bella.webp" alt="Princesa Bella" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Princesa Bella</h3><p class="pc-meta">La Bella y la Bestia</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="princesa-bella" aria-label="Agregar Princesa Bella">Agregar</button></div></div></article>
-<article class="pc" data-id="elsa" data-g="Disney">
-<div class="pc-img"><img src="assets/elsa.webp" alt="Elsa" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name">Elsa</h3><p class="pc-meta">Frozen</p>
-<div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="elsa" aria-label="Agregar Elsa">Agregar</button></div></div></article>
 <article class="pc" data-id="olaf-de-frozen" data-g="Disney">
 <div class="pc-img"><img src="assets/olaf-de-frozen.webp" alt="Olaf de Frozen" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Olaf de Frozen</h3><p class="pc-meta">Frozen</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="olaf-de-frozen" aria-label="Agregar Olaf de Frozen">Agregar</button></div></div></article>
 <article class="pc" data-id="stitch-azul" data-g="Disney">
-<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">S</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
+<div class="pc-img"><img src="assets/stitch-azul.webp" alt="Stitch Plateado" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Stitch Plateado</h3><p class="pc-meta">Lilo &amp; Stitch</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="stitch-azul" aria-label="Agregar Stitch Plateado">Agregar</button></div></div></article>
 <article class="pc" data-id="cenicienta" data-g="Disney">
-<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">C</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
+<div class="pc-img"><img src="assets/cenicienta.webp" alt="Cenicienta" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Cenicienta</h3><p class="pc-meta">Princesas Disney</p>
 <div class="pc-foot"><span class="pc-price">$85.000</span><button class="pc-add" type="button" data-add="cenicienta" aria-label="Agregar Cenicienta">Agregar</button></div></div></article>
 <article class="pc" data-id="angel" data-g="Disney">
@@ -1142,10 +1225,6 @@ body.sheet-open{overflow:hidden}
 <div class="pc-img"><img src="assets/trebol-verde-giratorio.webp" alt="Trébol Verde Giratorio" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Trébol Verde Giratorio</h3><p class="pc-meta">Dije giratorio</p>
 <div class="pc-foot"><span class="pc-price">$84.000</span><button class="pc-add" type="button" data-add="trebol-verde-giratorio" aria-label="Agregar Trébol Verde Giratorio">Agregar</button></div></div></article>
-<article class="pc" data-id="nina-con-arcoiris" data-g="Símbolos">
-<div class="pc-img"><img src="assets/nina-con-arcoiris.webp" alt="Niña con Arcoíris" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name">Niña con Arcoíris</h3><p class="pc-meta">Dije colgante</p>
-<div class="pc-foot"><span class="pc-price">$80.000</span><button class="pc-add" type="button" data-add="nina-con-arcoiris" aria-label="Agregar Niña con Arcoíris">Agregar</button></div></div></article>
 <article class="pc" data-id="gatito-con-corazon-azul" data-g="Símbolos">
 <div class="pc-img"><img src="assets/gatito-con-corazon-azul.webp" alt="Gatito con Corazón Azul" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Gatito con Corazón Azul</h3><p class="pc-meta">S925</p>
@@ -1171,7 +1250,7 @@ body.sheet-open{overflow:hidden}
 <div class="pc-body"><h3 class="pc-name">Mariposas Tricolor Colgantes</h3><p class="pc-meta">Dije colgante</p>
 <div class="pc-foot"><span class="pc-price">$72.000</span><button class="pc-add" type="button" data-add="mariposas-tricolor-colgantes" aria-label="Agregar Mariposas Tricolor Colgantes">Agregar</button></div></div></article>
 <article class="pc" data-id="corazon-mama-e-hija" data-g="Símbolos">
-<div class="pc-img pc-img--nofoto"><span class="nofoto-m" aria-hidden="true">M</span><span class="nofoto-t">Foto en camino</span><span class="pc-mark">Plata 925</span></div>
+<div class="pc-img"><img src="assets/corazon-mama-e-hija.webp" alt="Corazón Mamá e Hija" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Corazón Mamá e Hija</h3><p class="pc-meta">Dije colgante</p>
 <div class="pc-foot"><span class="pc-price">$68.000</span><button class="pc-add" type="button" data-add="corazon-mama-e-hija" aria-label="Agregar Corazón Mamá e Hija">Agregar</button></div></div></article>
 <article class="pc pc--letras" data-id="letras" data-g="Letras">
@@ -1205,10 +1284,6 @@ body.sheet-open{overflow:hidden}
 <div class="pc-img"><img src="assets/bola-azul-con-flor-rosa.webp" alt="Bola Azul con Flor Rosa" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Bola Azul con Flor Rosa</h3><p class="pc-meta">Cristal Murano</p>
 <div class="pc-foot"><span class="pc-price">$72.000</span><button class="pc-add" type="button" data-add="bola-azul-con-flor-rosa" aria-label="Agregar Bola Azul con Flor Rosa">Agregar</button></div></div></article>
-<article class="pc" data-id="tortuga-azul-grande" data-g="Símbolos">
-<div class="pc-img"><img src="assets/tortuga-azul-grande.webp" alt="Tortuga Azul Grande" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name">Tortuga Azul Grande</h3><p class="pc-meta">Dije colgante</p>
-<div class="pc-foot"><span class="pc-price">$72.000</span><button class="pc-add" type="button" data-add="tortuga-azul-grande" aria-label="Agregar Tortuga Azul Grande">Agregar</button></div></div></article>
 <article class="pc" data-id="elefantito-rosa" data-g="Símbolos">
 <div class="pc-img"><img src="assets/elefantito-rosa.webp" alt="Elefantito Rosa" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name">Elefantito Rosa</h3><p class="pc-meta">Dije colgante</p>
@@ -1496,6 +1571,7 @@ body.sheet-open{overflow:hidden}
     <div class="tot-row"><span>Envío</span><span id="v-ship">—</span></div>
     <div class="ship-bar" id="ship-bar"><i></i></div>
     <p class="ship-note" id="ship-note"></p>
+    <p class="desc-nota" id="desc-nota" hidden></p>
     <p class="stock-nota"><span id="stock-fecha"></span></p>
   </div>
   </div>
@@ -1513,7 +1589,14 @@ body.sheet-open{overflow:hidden}
   </div>
 </aside>
 
+<div class="xs" id="xs" hidden>
+  <p class="xs-tx" id="xs-tx"></p>
+  <a class="btn btn--pagar xs-go" href="#charms" id="xs-go">Ver charms</a>
+  <button class="xs-x" type="button" id="xs-x" aria-label="Cerrar aviso">✕</button>
+</div>
+
 <div class="dock" id="dock" role="button" tabindex="0" aria-label="Ver tu selección">
+  <div class="dock-bar" id="dock-bar" aria-hidden="true"><i></i></div>
   <div class="dock-info">
     <div class="dock-n" id="dock-n">Tu selección está vacía</div>
     <div class="dock-p" id="dock-p">$0</div>
@@ -1528,6 +1611,7 @@ body.sheet-open{overflow:hidden}
   <div class="fx-box">
     <button class="fx-x" type="button" id="fx-x" aria-label="Cerrar">✕</button>
     <div class="fx-ph" id="fx-ph"></div>
+    <div class="fx-mini" id="fx-mini" hidden></div>
     <div class="fx-tx">
       <p class="eyebrow" id="fx-tipo"></p>
       <h3 id="fx-n"></h3>
@@ -1555,7 +1639,7 @@ const ENVIO={anticipado:15000, contraentrega:25000};
    opción más cara. Se dice de frente en el carrito, no en letra chica. */
 const LIBRE_SOLO_ANTICIPADO=true;
 let pago='anticipado';
-const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 85000}, {"id": "dalmata", "n": "Dálmata", "p": 85000}, {"id": "ariel", "n": "Ariel", "p": 85000}, {"id": "jasmine", "n": "Jasmine", "p": 85000}, {"id": "blancanieves", "n": "Blancanieves", "p": 85000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 85000}, {"id": "elsa", "n": "Elsa", "p": 85000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 85000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 85000}, {"id": "stitch", "n": "Stitch", "p": 85000}, {"id": "angel", "n": "Angel", "p": 85000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 85000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 85000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 85000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 85000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 85000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 85000}, {"id": "sulley", "n": "Sulley", "p": 85000}, {"id": "walle", "n": "WALL·E", "p": 85000}, {"id": "capitan-america", "n": "Capitán América", "p": 85000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 85000}, {"id": "spider-man", "n": "Spider-Man", "p": 85000}, {"id": "wolverine", "n": "Wolverine", "p": 85000}, {"id": "hulk", "n": "Hulk", "p": 85000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 85000}, {"id": "iron-man", "n": "Iron Man", "p": 85000}, {"id": "deadpool", "n": "Deadpool", "p": 85000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 85000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 78000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 68000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 68000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 68000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 68000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 65000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 65000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 65000}, {"id": "bola-rosa-con-flores", "n": "Bola Rosa con Flores", "p": 72000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 80000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 76000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 84000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 84000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 72000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 76000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 84000}, {"id": "nina-con-arcoiris", "n": "Niña con Arcoíris", "p": 80000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 72000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 72000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 72000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 72000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 72000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 76000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 72000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 72000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 72000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 72000}, {"id": "bola-roja-remolino", "n": "Bola Roja Remolino", "p": 72000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 72000}, {"id": "virgen-maria", "n": "Virgen María", "p": 76000}, {"id": "bola-azul-con-flor-rosa", "n": "Bola Azul con Flor Rosa", "p": 72000}, {"id": "tortuga-azul-grande", "n": "Tortuga Azul Grande", "p": 72000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 78000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 76000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 72000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 72000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 72000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga \"You Are My Light\"", "p": 72000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 78000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 72000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 72000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 72000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 72000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 82000}, {"id": "aries", "n": "Aries", "p": 76000}, {"id": "tauro", "n": "Tauro", "p": 76000}, {"id": "geminis", "n": "Géminis", "p": 76000}, {"id": "cancer", "n": "Cáncer", "p": 76000}, {"id": "leo", "n": "Leo", "p": 76000}, {"id": "virgo", "n": "Virgo", "p": 76000}, {"id": "libra", "n": "Libra", "p": 76000}, {"id": "escorpio", "n": "Escorpio", "p": 76000}, {"id": "sagitario", "n": "Sagitario", "p": 76000}, {"id": "capricornio", "n": "Capricornio", "p": 76000}, {"id": "acuario", "n": "Acuario", "p": 76000}, {"id": "piscis", "n": "Piscis", "p": 76000}, {"id": "cenicienta", "n": "Cenicienta", "p": 85000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 68000}, {"id": "letra-a", "n": "Letra A", "p": 76000}, {"id": "letra-b", "n": "Letra B", "p": 76000}, {"id": "letra-c", "n": "Letra C", "p": 76000}, {"id": "letra-d", "n": "Letra D", "p": 76000}, {"id": "letra-e", "n": "Letra E", "p": 76000}, {"id": "letra-f", "n": "Letra F", "p": 76000}, {"id": "letra-g", "n": "Letra G", "p": 76000}, {"id": "letra-h", "n": "Letra H", "p": 76000}, {"id": "letra-i", "n": "Letra I", "p": 76000}, {"id": "letra-j", "n": "Letra J", "p": 76000}, {"id": "letra-k", "n": "Letra K", "p": 76000}, {"id": "letra-l", "n": "Letra L", "p": 76000}, {"id": "letra-m", "n": "Letra M", "p": 76000}, {"id": "letra-n", "n": "Letra N", "p": 76000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 76000}, {"id": "letra-o", "n": "Letra O", "p": 76000}, {"id": "letra-p", "n": "Letra P", "p": 76000}, {"id": "letra-q", "n": "Letra Q", "p": 76000}, {"id": "letra-r", "n": "Letra R", "p": 76000}, {"id": "letra-s", "n": "Letra S", "p": 76000}, {"id": "letra-t", "n": "Letra T", "p": 76000}, {"id": "letra-u", "n": "Letra U", "p": 76000}, {"id": "letra-v", "n": "Letra V", "p": 76000}, {"id": "letra-w", "n": "Letra W", "p": 76000}, {"id": "letra-x", "n": "Letra X", "p": 76000}, {"id": "letra-y", "n": "Letra Y", "p": 76000}, {"id": "letra-z", "n": "Letra Z", "p": 76000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 68000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 58000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 58000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 58000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 58000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 68000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 58000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 78000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 68000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 68000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 78000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 68000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 58000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 68000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 78000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 58000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 78000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 58000}]};
+const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 85000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 85000}, {"id": "dalmata", "n": "Dálmata", "p": 85000}, {"id": "ariel", "n": "Ariel", "p": 85000}, {"id": "jasmine", "n": "Jasmine", "p": 85000}, {"id": "blancanieves", "n": "Blancanieves", "p": 85000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 85000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 85000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 85000}, {"id": "stitch", "n": "Stitch", "p": 85000}, {"id": "angel", "n": "Angel", "p": 85000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 85000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 85000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 85000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 85000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 85000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 85000}, {"id": "sulley", "n": "Sulley", "p": 85000}, {"id": "walle", "n": "WALL·E", "p": 85000}, {"id": "capitan-america", "n": "Capitán América", "p": 85000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 85000}, {"id": "spider-man", "n": "Spider-Man", "p": 85000}, {"id": "wolverine", "n": "Wolverine", "p": 85000}, {"id": "hulk", "n": "Hulk", "p": 85000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 85000}, {"id": "iron-man", "n": "Iron Man", "p": 85000}, {"id": "deadpool", "n": "Deadpool", "p": 85000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 85000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 78000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 68000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 68000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 68000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 68000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 65000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 65000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 65000}, {"id": "bola-rosa-con-flores", "n": "Bola Rosa con Flores", "p": 72000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 80000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 76000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 84000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 84000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 72000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 76000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 84000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 72000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 72000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 72000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 72000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 72000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 76000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 72000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 72000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 72000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 72000}, {"id": "bola-roja-remolino", "n": "Bola Roja Remolino", "p": 72000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 72000}, {"id": "virgen-maria", "n": "Virgen María", "p": 76000}, {"id": "bola-azul-con-flor-rosa", "n": "Bola Azul con Flor Rosa", "p": 72000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 78000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 76000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 72000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 72000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 72000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga \"You Are My Light\"", "p": 72000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 78000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 72000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 72000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 72000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 72000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 82000}, {"id": "aries", "n": "Aries", "p": 76000}, {"id": "tauro", "n": "Tauro", "p": 76000}, {"id": "geminis", "n": "Géminis", "p": 76000}, {"id": "cancer", "n": "Cáncer", "p": 76000}, {"id": "leo", "n": "Leo", "p": 76000}, {"id": "virgo", "n": "Virgo", "p": 76000}, {"id": "libra", "n": "Libra", "p": 76000}, {"id": "escorpio", "n": "Escorpio", "p": 76000}, {"id": "sagitario", "n": "Sagitario", "p": 76000}, {"id": "capricornio", "n": "Capricornio", "p": 76000}, {"id": "acuario", "n": "Acuario", "p": 76000}, {"id": "piscis", "n": "Piscis", "p": 76000}, {"id": "cenicienta", "n": "Cenicienta", "p": 85000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 68000}, {"id": "letra-a", "n": "Letra A", "p": 76000}, {"id": "letra-b", "n": "Letra B", "p": 76000}, {"id": "letra-c", "n": "Letra C", "p": 76000}, {"id": "letra-d", "n": "Letra D", "p": 76000}, {"id": "letra-e", "n": "Letra E", "p": 76000}, {"id": "letra-f", "n": "Letra F", "p": 76000}, {"id": "letra-g", "n": "Letra G", "p": 76000}, {"id": "letra-h", "n": "Letra H", "p": 76000}, {"id": "letra-i", "n": "Letra I", "p": 76000}, {"id": "letra-j", "n": "Letra J", "p": 76000}, {"id": "letra-k", "n": "Letra K", "p": 76000}, {"id": "letra-l", "n": "Letra L", "p": 76000}, {"id": "letra-m", "n": "Letra M", "p": 76000}, {"id": "letra-n", "n": "Letra N", "p": 76000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 76000}, {"id": "letra-o", "n": "Letra O", "p": 76000}, {"id": "letra-p", "n": "Letra P", "p": 76000}, {"id": "letra-q", "n": "Letra Q", "p": 76000}, {"id": "letra-r", "n": "Letra R", "p": 76000}, {"id": "letra-s", "n": "Letra S", "p": 76000}, {"id": "letra-t", "n": "Letra T", "p": 76000}, {"id": "letra-u", "n": "Letra U", "p": 76000}, {"id": "letra-v", "n": "Letra V", "p": 76000}, {"id": "letra-w", "n": "Letra W", "p": 76000}, {"id": "letra-x", "n": "Letra X", "p": 76000}, {"id": "letra-y", "n": "Letra Y", "p": 76000}, {"id": "letra-z", "n": "Letra Z", "p": 76000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 68000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 58000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 58000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 58000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 58000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 68000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 58000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 78000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 68000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 68000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 78000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 68000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 58000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 68000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 78000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 58000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 78000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 58000}]};
 const byId=(a)=>a.reduce((o,x)=>(o[x.id]=x,o),{});
 const CH=byId(DATA.charms), PU=byId(DATA.pulseras);
 const TALLAS=['17','18','19','20','21'];
@@ -1609,7 +1693,26 @@ const ESC=[0,0,.08,.15,.20];
 const escala=n=>n<=0?0:ESC[Math.min(n,4)];
 const $=s=>document.querySelector(s);
 
+/* Vistas adicionales por pieza, en orden: la principal es la de la tarjeta y
+ * estas van detrás. Se declara a mano y no por convención de nombres porque el
+ * navegador no puede preguntar si un archivo existe sin pedirlo: una convención
+ * «prueba -2, -3, -4» dispara 404 en cada ficha que se abre.
+ *
+ * `pruebas/regresion.js` comprueba que cada archivo listado aquí exista de
+ * verdad. Sin eso, un nombre mal escrito da un hueco en la galería y no un
+ * error: la ficha abre, la foto no carga, y nadie se entera. */
+const FOTOS = {
+  'hulk': ['hulk-2.webp'],
+  'mjolnir-martillo-de-thor': ['mjolnir-martillo-de-thor-2.webp', 'mjolnir-martillo-de-thor-3.webp'],
+  'spider-man': ['spider-man-2.webp'],
+  'dalmata': ['dalmata-2.webp'],
+};
+
 let base=null, sel=[];
+/* Si la clienta cierra el aviso de charms, no vuelve a salir en esa visita.
+   En sessionStorage y no en localStorage: cerrarlo hoy no es decir que no
+   quiere verlo nunca más. */
+let xsFuera=(()=>{ try{ return sessionStorage.getItem('zephora.xs')==='1'; }catch(e){ return false; } })();
 const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
 
 function imgDe(id){
@@ -1791,6 +1894,49 @@ function pintarLetras(){
 
 /* ——— ficha de producto ——— */
 let fichaId=null;
+/* La galería de la ficha. Recibe la <img> de la tarjeta —que es la foto
+   principal, la misma que ya se está viendo— y le añade las vistas extra. */
+function pintarGaleria(id, img, nombre){
+  const ph=$('#fx-ph'), mini=$('#fx-mini');
+  const alt=nombre.replace(/"/g,'&quot;');
+  if(!img){
+    ph.innerHTML='<span class="nofoto-m" aria-hidden="true">'+nombre.trim().charAt(0).toUpperCase()+'</span>';
+    mini.innerHTML=''; mini.hidden=true;
+    return;
+  }
+  const extra=FOTOS[id]||[];
+  if(!extra.length){
+    ph.innerHTML='<img src="'+img.src+'" alt="'+alt+'">';
+    mini.innerHTML=''; mini.hidden=true;
+    return;
+  }
+  const fuentes=[img.getAttribute('src')].concat(extra.map(f=>'assets/'+f));
+  ph.innerHTML='<div class="fx-gal" id="fx-gal">'
+    + fuentes.map((src,i)=>'<figure><img src="'+src+'" alt="'+alt
+        +(i?' — vista '+(i+1):'')+'" loading="'+(i?'lazy':'eager')+'" decoding="async"></figure>').join('')
+    + '</div><div class="fx-pts" id="fx-pts" aria-hidden="true">'
+    + fuentes.map((_,i)=>'<i'+(i?'':' class="is-on"')+'></i>').join('')+'</div>';
+  mini.innerHTML=fuentes.map((src,i)=>
+    '<button type="button" data-i="'+i+'"'+(i?'':' class="is-on"')
+    +' aria-label="Ver foto '+(i+1)+' de '+fuentes.length+'">'
+    +'<img src="'+src+'" alt="" loading="lazy"></button>').join('');
+  mini.hidden=false;
+
+  const gal=$('#fx-gal'), pts=[...$('#fx-pts').children], btns=[...mini.children];
+  const marcar=i=>{
+    pts.forEach((x,j)=>x.classList.toggle('is-on',j===i));
+    btns.forEach((x,j)=>x.classList.toggle('is-on',j===i));
+  };
+  /* La posición se lee del scroll y no de un contador propio: el dedo puede
+     dejar la tira a medio camino, y un contador se desincroniza en cuanto eso
+     pasa. El ancho de la caja es el paso. */
+  gal.addEventListener('scroll',()=>marcar(Math.round(gal.scrollLeft/gal.clientWidth)),{passive:true});
+  mini.onclick=e=>{
+    const b=e.target.closest('[data-i]'); if(!b) return;
+    gal.scrollTo({left:gal.clientWidth*(+b.dataset.i), behavior:'smooth'});
+  };
+}
+
 function abrirFicha(id){
   const esB=!!PU[id], p=esB?PU[id]:CH[id];
   if(!p) return;
@@ -1800,9 +1946,7 @@ function abrirFicha(id){
   const inv=STOCK?STOCK[id]:null;
   const fam=inv&&inv.familia?FAMILIAS[inv.familia]:null;
 
-  $('#fx-ph').innerHTML = img
-    ? '<img src="'+img.src+'" alt="'+p.n.replace(/"/g,'&quot;')+'">'
-    : '<span class="nofoto-m" aria-hidden="true">'+p.n.trim().charAt(0).toUpperCase()+'</span>';
+  pintarGaleria(id, img, p.n);
   $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
   $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
   $('#fx-p').textContent = cop(p.p);
@@ -1935,6 +2079,32 @@ function render(){
     nota.className='ship-note'; barra.style.width=Math.min(100,subtotal/LIBRE*100)+'%';
   }
 
+  /* El siguiente tramo de descuento.
+   *
+   * La escala por cantidad ya existía pero no se anunciaba en ninguna parte: la
+   * clienta solo veía el descuento que ya tenía, nunca el que estaba a un charm
+   * de distancia. Pasó en la primera venta real —dos charms, 8%— sin que nada
+   * le dijera que el tercero la subía al 15%.
+   *
+   * La cifra que se muestra es lo que baja el descuento sobre lo que YA lleva,
+   * que es comprobable en el propio resumen. No se dice que el total baje,
+   * porque no baja: el charm que añada lo paga. Prometer un ahorro que no
+   * existe es la clase de cosa que se descubre en la pantalla de pago. */
+  const dn=$('#desc-nota');
+  const sigue=escala(nC+1)>escala(nC) || (base && nC+1>=3 && nC<3);
+  if(nC>=1 && sigue){
+    const ahoraD=brutoC*escala(nC)+descB;
+    const luegoD=brutoC*escala(nC+1)+((base&&nC+1>=3)?brutoB*.30:0);
+    const extra=Math.round(luegoD-ahoraD);
+    const pct=Math.round(escala(nC+1)*100);
+    dn.hidden=extra<=0;
+    dn.innerHTML='Con un charm más el descuento sube al <b>'+pct+'%</b>'
+      +(base&&nC+1>=3&&nC<3?' y se activa el 30% del brazalete':'')
+      +': <b>'+cop(extra)+' menos</b> en lo que ya llevas.';
+  }else{
+    dn.hidden=true;
+  }
+
   /* Cada opción muestra lo que le costaría el envío a ESTE carrito, para que
      la diferencia se vea antes de elegir y no después. */
   const ant=$('#pb-ant'), con=$('#pb-con');
@@ -1953,9 +2123,50 @@ function render(){
   pintarLetras();
 
   const piezas=nC+(base?1:0);
-  $('#dock-n').textContent=piezas?piezas+(piezas===1?' pieza':' piezas')+(libre?' · envío gratis':''):'Tu selección está vacía';
+  /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
+     estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
+     saber que le faltaban $20.000 para no pagar envío. */
+  const falta=Math.max(0,LIBRE-subtotal);
+  $('#dock-n').textContent = piezas
+    ? piezas+(piezas===1?' pieza':' piezas')
+      +(libre?' · envío gratis'
+        :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
+    : 'Tu selección está vacía';
   $('#dock-p').textContent=cop(total);
+
+  const dbar=$('#dock-bar');
+  dbar.classList.toggle('is-ok',libre);
+  dbar.firstElementChild.style.width=subtotal>0?Math.min(100,subtotal/LIBRE*100)+'%':'0';
+
+  pintarCross(nC,brutoC,brutoB,descB);
   guardar();
+}
+
+/* Venta cruzada, al fijar el brazalete.
+ *
+ * La promo «brazalete + 3 charms = 30% menos» estaba anunciada arriba, en una
+ * tarjeta, y no en el momento en que se decide: al elegir el brazalete la
+ * página no volvía a mencionarla y la clienta seguía sola. Este aviso la trae
+ * al momento exacto.
+ *
+ * La cifra es el descuento que gana sobre lo que YA lleva —la misma disciplina
+ * de #desc-nota—, nunca una rebaja del total: el charm que añada lo paga. Y se
+ * apaga solo al llegar a 3, que es donde el 30% ya está activo; seguir
+ * empujando después sería pedir por pedir. */
+function pintarCross(nC,brutoC,brutoB,descB){
+  const xs=$('#xs');
+  if(xsFuera||!base||nC>=3||brutoB<=0){ xs.hidden=true; return; }
+  if(nC===0){
+    $('#xs-tx').innerHTML='Tu brazalete ya está. Con <b>3 charms</b> baja un 30%: '
+      +'<b>'+cop(Math.round(brutoB*.30))+' menos</b>, sin códigos ni letra pequeña.';
+  }else{
+    const extra=Math.round(brutoC*(escala(3)-escala(nC))+(brutoB*.30-descB));
+    const faltan=3-nC;
+    $('#xs-tx').innerHTML='Llevas '+nC+(nC===1?' charm':' charms')+'. Con '
+      +(faltan===1?'uno más':faltan+' más')+' se activa el 30% del brazalete y el 15% '
+      +'en charms: <b>'+cop(extra)+' menos</b> en lo que ya llevas.';
+  }
+  xs.hidden=false;
 }
 
 /* Abrir el detalle ya no dispara InitiateCheckout: ese evento ahora marca
@@ -1975,6 +2186,11 @@ $('#dock').addEventListener('keydown',e=>{
 });
 $('#sheet-x').onclick=()=>abrir(false);
 $('#veil').onclick=()=>abrir(false);
+$('#xs-x').onclick=()=>{
+  xsFuera=true;
+  try{ sessionStorage.setItem('zephora.xs','1'); }catch(e){}
+  $('#xs').hidden=true;
+};
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
   if(!$('#ficha').hidden){ cerrarFicha(); return; }   /* la ficha va encima */

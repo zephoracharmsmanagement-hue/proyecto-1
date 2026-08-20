@@ -5,13 +5,49 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-Rama de trabajo: **`claude/ecommerce-landing-page-elivwb`**, que se empuja
-también a **`claude/install-frontend-design-skill-8t655e`** — esa segunda es la
-rama por defecto del repo y la que Netlify publica. Los dos push van juntos en
-cada entrega; si solo se empuja la primera, el sitio no se entera.
+**La rama que Netlify publica es `claude/install-frontend-design-skill-8t655e`**
+— la rama por defecto del repo. Cada sesión trabaja en su propia rama y empuja a
+las dos; si solo se empuja la suya, el sitio no se entera. Las ramas de trabajo
+que han pasado por aquí: `claude/ecommerce-landing-page-elivwb`,
+`claude/netlify-deployment-blocked-e7qx93`.
+
+> **Este repo se trabaja desde varias sesiones a la vez y ya ha habido pushes
+> rechazados por historial divergente.** Antes de empujar, `git fetch` y mirar
+> qué llegó: en una sola jornada entraron por otra sesión un `CLAUDE.md` y el
+> doble píxel de Meta. Mezclar en vez de forzar.
+>
+> **Y mirar antes de mezclar, no solo antes de empujar** — ver
+> *[Ramas abiertas de otras sesiones](#ramas-abiertas-de-otras-sesiones)*, más
+> abajo. Hoy hay tres sin mezclar, y una trae una **segunda implementación
+> completa del rescate de carritos** que ya está en producción por otro camino.
 
 Para ver qué se hizo y por qué, `git log`: los mensajes de commit explican el
 razonamiento, no solo el cambio.
+
+---
+
+## Ramas abiertas de otras sesiones
+
+Al cierre de esta sesión, la rama publicada
+(`claude/install-frontend-design-skill-8t655e`) está al día y todo lo que
+describe este documento vive ahí. **Pero hay tres ramas de otras sesiones sin
+mezclar**, y no son "unos commits pendientes": dos de ellas salieron de un punto
+anterior al trabajo de esta jornada y **reconstruyeron por su cuenta piezas que
+ya existen**. Mezclarlas a ciegas no da un conflicto de git — da dos sistemas
+haciendo lo mismo, que es la clase de fallo mudo del que trata la sección de
+abajo.
+
+| Rama | Qué trae | Con qué choca |
+|---|---|---|
+| `claude/zephora-charms-automation-hub-5aihdu` | `recuperar-carritos.mjs` + `_pendientes.mjs`, `disponibilidad.mjs`, `_atribucion.mjs`, contratos y prompts en `automatizaciones/` | **Lo grave.** Salió de `e889bd7`, antes del registro de pedidos y del rescate. `_pendientes.mjs` es otro registro de pedidos —no tiene `_pedidos.mjs`— y `recuperar-carritos.mjs` es **otro rescate de abandonados**. En producción ya corre `rescate.mjs`. Mezclado tal cual, la tienda tendría dos cosas persiguiendo el mismo pedido y **dos correos por clienta** |
+| `claude/revision-pantalla-pauta-cmv7uz` | En `index.html`: `eventID` propio en cada evento de navegador, `content_ids` en `ViewContent`, y evita que tocar "Pedir" dos veces cuente dos `Lead` | Salió de antes del **doble píxel**: su bloque `<head>` tiene un solo `fbq('init', …)`. Mezclarlo sin cuidado **borra el píxel nuevo** y con él el `Purchase` de servidor. El contenido vale —el `Lead` repetido es un problema real—; lo que hay que rehacer a mano es el bloque del `<head>` |
+| `claude/sephora-whatsapp-response-system-682wvv` | Macros y system prompt para atender WhatsApp con otra IA, `docs/whatsapp/`, `scripts/` | Añade `data/stock.json` (el bueno está en la raíz) y su propio `package.json` + `package-lock.json` en la raíz, donde ya hay uno que existe por una razón concreta —ver la tabla de decisiones—. El grueso es documentación y no toca la tienda |
+
+**El orden que menos duele:** primero la de WhatsApp (casi no toca código),
+después la del píxel (un archivo, rehaciendo el `<head>` a mano), y la de
+automatizaciones **la última y decidiendo pieza por pieza qué se queda** — no
+merge directo. De esa rama lo que no está duplicado es `disponibilidad.mjs` y
+`_atribucion.mjs`; el rescate y el registro de pedidos ya están resueltos aquí.
 
 ---
 
@@ -42,7 +78,7 @@ Las salidas, ya evaluadas:
 
 | Opción | Veredicto |
 |---|---|
-| **Plan pago de Netlify** | **Lo que se hizo.** Desbloquea de inmediato y da margen de sobra (~66 despliegues). Es suscripción mensual, se cancela cuando se quiera y volver a Free no rompe nada: el dominio propio y las funciones ya corrían en el plan gratuito. Si se cancela, poner el recordatorio el mismo día |
+| **Plan pago de Netlify** | **Lo que se hizo.** Desbloquea de inmediato y da margen de sobra (~66 despliegues). Es suscripción mensual, se cancela cuando se quiera y volver a Free no rompe nada: el dominio propio y las funciones ya corrían en el plan gratuito. **Es mensual y se sigue cobrando solo**: si se decide cancelar, el recordatorio va el mismo día que se decide, no "más adelante". Al cierre de esta sesión van **19 despliegues de los ~66** del ciclo |
 | **GitHub Actions + Netlify CLI** | **Sigue valiendo, pero no por lo que se creía.** No ahorra créditos ni desbloquea nada — el 403 es de cuenta. Vale por otra razón: que las pruebas corran antes de publicar. Necesita un `NETLIFY_AUTH_TOKEN` en los secrets de GitHub |
 | **Cloudflare Pages** | Gratis, permite comercio y no penaliza por despliegue (500/mes). Pero **no es «mudar el repositorio»**: es cirugía sobre la infraestructura de pagos. Ver el detalle abajo. Decisión meditada para más adelante, con la tienda estable — nunca bajo presión |
 | **Vercel** | **Descartada.** Su plan gratuito prohíbe el uso comercial en los términos, y esto es una tienda que cobra |
@@ -68,22 +104,45 @@ solo despliegue** y cuestan 15 créditos, no 15 por commit.
 
 ## Pendientes
 
-### 1 · Tres fotos de producto
+### 1 · Fotos de producto — cerrado
 
-Faltan por conseguir. Las tarjetas **ya existen y se venden**, con un marcador
-"Foto en camino" en lugar de la imagen:
+**Ya no falta ninguna.** Las 129 piezas del catálogo tienen foto; no queda ni
+una tarjeta con el marcador "Foto en camino". El marcador y su CSS se dejan en
+su sitio para la próxima pieza que entre sin imagen.
 
-| Pieza | Archivo que espera |
-|---|---|
-| Cenicienta | `assets/cenicienta.webp` |
-| Corazón Mamá e Hija | `assets/corazon-mama-e-hija.webp` |
-| Stitch Plateado | `assets/stitch-azul.webp` |
+> Ojo con el nombre del archivo del Stitch. `stitch-azul` **es el plateado**, no
+> el azul. La foto que tenía antes era copia byte a byte de `stitch.webp` —el
+> azul esmaltado, que es otra pieza— y se borró.
+>
+> La que llegó venía como `stitch-azul.webp⁠.webp`: extensión duplicada y un
+> **U+2060 invisible** en medio, cortesía de copiar el nombre desde un chat. La
+> página no la habría encontrado nunca y la tarjeta habría seguido diciendo
+> "Foto en camino" sin que nada fallara. Al subir una foto conviene comprobar el
+> nombre con `ls -1b assets/`, que muestra los caracteres invisibles.
+>
+> Venía además a 1078×1046 y 58 KB, contra los 440×440 y ~13 KB del resto. Se
+> reescaló: **10,8 KB**. Servir 1080 px para pintar 440 es cuadruplicar la
+> descarga en un móvil, que es donde compra casi todo el mundo aquí.
 
-Cómo enchufar cada una: la sección *Piezas sin foto* del README.
+**Las otras dos no faltaban: estaban guardadas con el nombre equivocado.** El
+propietario detectó que el catálogo tenía tres piezas duplicadas bajo dos
+nombres cada una, y al mirar las fotos quedó confirmado:
 
-> Ojo con la tercera. `stitch-azul` **es el Stitch plateado**, no el azul. La foto
-> que tenía era copia byte a byte de `stitch.webp` —el azul esmaltado, que es otra
-> pieza— y se borró. Necesita la foto del plateado de orejas rosadas.
+| Ficha retirada | Era en realidad | Se quedó |
+|---|---|---|
+| `elsa` | Cenicienta —moño con diadema y vestido turquesa, no la trenza de Elsa— | `cenicienta`, que ya tenía las 2 unidades |
+| `nina-con-arcoiris` | El corazón con madre e hija y arcoíris de circonias | `corazon-mama-e-hija`, con sus 2 unidades |
+| `tortuga-azul-grande` | La misma tortuga de cristal, otra foto | `tortuga-marina-cristal` |
+
+En cada caso sobrevivió el id **con inventario**, y se le enchufó la foto que
+estaba bajo el nombre equivocado. Las tres retiradas tenían stock 0, así que no
+se dejó de vender nada.
+
+> **El duplicado de Mamá e Hija estaba publicado a dos precios**: $68.000 en la
+> ficha con inventario y $80.000 en la que tenía la foto. Lo confirmó el
+> propietario: el bueno es **$68.000**. Merece decirse porque es la clase de
+> cosa que un duplicado esconde — dos precios para la misma pieza, y la clienta
+> comprando por el que encuentre primero.
 
 ### 2 · Domicilio
 
@@ -133,35 +192,242 @@ puestas. Lo que queda de esta línea de trabajo:
 > cargar la información del undefined»— no apunta a nada. Antes de dar una
 > llave por buena: `curl https://production.wompi.co/v1/merchants/<llave>`.
 
-### 4a · `Purchase` a Meta desde el servidor — falta el token
+### 4a · `Purchase` a Meta desde el servidor — dos píxeles mientras se resuelve el negocio
 
-**El código está puesto y probado; solo falta `META_CAPI_TOKEN`.** Sin él no se
-manda nada y nada se rompe, igual que con Resend.
+**El código funciona; el bloqueo era del negocio de Meta, no del sitio.** El
+píxel original (`2130673404542988`, "zephora charms pixel 1") corre en una
+cuenta publicitaria (`1583713932705268`, la real, la que tiene la campaña) que
+**no pertenece a ningún portafolio comercial** — quedó suelta en la capacidad
+individual de la cuenta de Facebook. Sin portafolio dueño, nadie —ni la persona,
+ni un usuario del sistema— puede generar un token de Conversions API para ese
+píxel: Meta pide ser administrador o desarrollador *del portafolio comercial*
+que lo posee, y ese píxel no tiene uno. Confirmado con datos, no solo con la
+pantalla de error: `ads_get_dataset_details` de ese píxel muestra
+`server_last_fired_time` en época cero — nunca en su vida recibió un evento de
+servidor.
 
-El pixel ya disparaba `Purchase` en `gracias.html`, pero solo llega si la
-clienta vuelve al sitio después de pagar — y volver es opcional. Quien cierra el
-navegador en la pasarela pagó igual y Meta no se enteraba. Ahora el webhook lo
-manda también por la Conversions API, que siempre llega porque lo dispara Wompi.
-No es cosmética: Meta optimiza la entrega con los eventos que recibe, así que
-faltarle las compras de quien no volvió es gastar presupuesto aprendiendo de una
-muestra sesgada.
+**La solución no fue arreglar el píxel viejo — fue crear uno nuevo donde sí hay
+control.** `1029982529813994` ("zephora charms pixel web") vive dentro del
+portafolio **"Zephora Charms"**, donde el usuario del sistema **"Netlify CAPI"**
+ya es Admin. Con `META_CAPI_TOKEN` generado ahí, el `Purchase` de servidor por
+fin sale.
 
-**Lo que no hay que romper:** los dos lados mandan la referencia del pedido como
-identificador del evento, y eso es lo único que impide que Meta cuente cada
-compra dos veces. Contarla doble sería peor que perderla — inflaría el retorno
-declarado. Está en `_meta.js` y en `gracias.html`; tocar uno obliga a tocar el
-otro, y `pruebas/meta.js` lo vigila.
+**Por qué hay dos píxeles en el HTML y no uno.** Mover la cuenta publicitaria
+real al portafolio (para que use el píxel nuevo directamente) o compartirle el
+píxel nuevo choca con el mismo muro: Meta limita cuántos activos puede
+mover/compartir un portafolio comercial "nuevo" hasta cumplir **varias
+semanas** de antigüedad con sus políticas — probado por los tres caminos
+(reclamar la cuenta, compartir con socio, conectar activo) y los tres dan el
+mismo aviso. No hay atajo de interfaz; es una restricción de cuenta, igual que
+fue el bloqueo de despliegues de Netlify más arriba.
 
-Para cerrarlo:
+Mientras tanto, `index.html`, `checkout.html` y `gracias.html` inicializan
+**los dos píxeles** (`fbq('init', …)` dos veces): el viejo sigue recibiendo
+exactamente lo mismo que hoy, así que **la campaña activa no pierde señal**; el
+nuevo recibe lo mismo por navegador **y además** el `Purchase` de servidor
+desde `wompi-webhook.mjs` (que apunta al nuevo vía `META_PIXEL_ID` en Netlify,
+no por código — `_meta.js` ya leía esa variable con el viejo como default).
 
-1. Generar el token en Events Manager → dataset `2130673404542988` →
-   Configuración → Conversions API → *Generar token de acceso*. Va como
-   `META_CAPI_TOKEN` en Netlify, **marcada como secreta**. No pegarlo en un chat.
-2. Probar con `META_TEST_EVENT_CODE` (Events Manager → *Probar eventos*), que
-   manda el evento ahí sin que entre en la optimización. **Quitar esa variable
-   al terminar**, o los eventos reales seguirán yendo a pruebas.
-3. Comprobar en Events Manager que la compra aparece **una sola vez**, no dos.
-   Eso es lo que confirma que la deduplicación funciona de verdad.
+**Cuándo quitar el segundo píxel.** En cuanto pasen las semanas y se pueda
+compartir `1029982529813994` con la cuenta publicitaria `1583713932705268` (o
+reclamar la cuenta hacia el portafolio), conviene migrar del todo al nuevo y
+sacar el `fbq('init', '2130673404542988')` de los tres HTML — dos píxeles
+permanentes solo duplican datos sin necesidad. Revisar primero en Business
+Settings → Cuentas publicitarias si ya deja reclamar una segunda cuenta.
+
+**Lo que no hay que romper:** los dos lados —`_meta.js` y `gracias.html`—
+mandan la referencia del pedido como identificador del evento (`event_id` /
+`eventID`), y eso es lo único que impide que Meta cuente cada compra dos veces
+dentro de un mismo píxel. `pruebas/meta.js` lo vigila.
+
+Ya hecho, para no repetirlo:
+
+1. ~~Generar el token~~ — hecho, con el píxel nuevo vía Events Manager →
+   Configuración → Conversions API → *Generar token de acceso*, ya con permiso
+   real. `META_CAPI_TOKEN` puesto en Netlify, marcada como secreta.
+2. Falta: probar con `META_TEST_EVENT_CODE` (Events Manager → *Probar
+   eventos*) y confirmar en Events Manager que el `Purchase` del píxel nuevo
+   aparece **una sola vez** por compra, no dos — eso confirma que la
+   deduplicación navegador/servidor funciona de verdad ahí. **Quitar la
+   variable de prueba al terminar.**
+
+### 4e · La hoja de despacho — por qué se perdió un pedido
+
+**Costó un producto.** Una clienta pidió que se lo entregaran en un local
+concreto y lo escribió en «Indicaciones para la entrega». El campo viajaba bien
+—llegaba al servidor, se guardaba en el registro— pero **no se imprimía en
+ningún correo**. El pedido salió sin la indicación y se perdió. La tienda acabó
+leyendo los datos en el panel de Resend, que es el último sitio donde alguien
+mira mientras empaca.
+
+La causa: **el correo de la tienda era el recibo de la clienta con otro
+título** — misma plantilla, mismos campos. Nunca imprimió `notas`,
+`dedicatoria`, `documento` ni `correo`. Nada falló: la tienda cobró, los correos
+salieron, no hubo un solo error. Otro fallo mudo, y de los caros.
+
+Ahora los dos correos tienen plantillas separadas, porque tienen trabajos
+distintos:
+
+| Correo | Qué es |
+|---|---|
+| A la clienta (`plantilla`) | Un **comprobante**: qué compró y cuánto pagó |
+| A la tienda (`plantillaTienda`) | Una **orden de trabajo**: qué meter en la caja, qué escribir a mano, qué poner en la guía |
+
+La hoja de despacho abre con lo que se pierde si se lee en diagonal —
+**indicaciones de entrega y dedicatoria, destacadas en rojo y antes que la
+dirección**— y sigue con qué empacar (con talla y unidades), destinatario
+completo con documento, dirección y cuentas. El **asunto** avisa `⚠ CON
+INDICACIONES` / `✎ DEDICATORIA`, porque el correo se ve primero en una lista y
+lo que no está ahí se empaca sin abrirlo.
+
+**Y ahora la tienda se entera de que le pagaron.** El «Pago recibido» iba solo a
+la clienta: con pago en línea, el único correo interno salía al **crear** el
+pedido —antes de que existiera el pago— y la bandeja no distinguía lo cobrado de
+lo abandonado. `wompi-webhook` manda ahora `pagoTienda()` al aprobarse, **con la
+hoja completa otra vez**, indicaciones incluidas: quien empaca no debería tener
+que buscar el correo anterior. Y el correo de creación con pago en línea dice
+explícitamente *«sin confirmar todavía, no despachar aún»*.
+
+> **`CORREO_TIENDA` ha faltado dos veces, y ahora ya no puede tumbar nada.** La
+> primera dejó a la tienda sin copia de ningún pedido. La segunda tiró a la
+> basura la hoja de despacho del pedido de prueba `ZC-260816-9561CFF4`: el
+> comprobante de la clienta salió bien —Resend, la llave y el dominio estaban
+> perfectos— y la copia interna no, con `{"tienda":{"enviado":false,"motivo":"sin
+> CORREO_TIENDA"}}` en el log como única señal. «Falla hacia adelante» estaba mal
+> aplicado ahí: no mandar el correo no salvaba ninguna venta, solo perdía el
+> pedido. Ahora hay **destinatario por defecto** (`zephoracharms@gmail.com`, que
+> ya iba en el pie de todos los correos, así que no es ningún secreto), el valor
+> se pasa por `.trim()` —un espacio al pegarlo en Netlify se comportaba como
+> ausencia— y el resultado dice `destinatarioPorDefecto` para que el log lo
+> cuente. `rescate.mjs` usa el mismo camino: antes se rendía y los carritos
+> abandonados del día no los veía nadie.
+>
+> Si vuelve a faltar, el sitio donde mirar es **Netlify → Site configuration →
+> Environment variables**, y no basta con que la variable exista: sus **Scopes**
+> tienen que incluir *Functions* y sus **deploy contexts**, *Production*. Una
+> variable creada solo para *Builds* se ve en el panel y la función no la lee.
+
+> **La regla que sostiene esto, y la prueba que la vigila.** Ningún dato que la
+> clienta escriba puede quedarse sin imprimir. `pruebas/correo-tienda.js`
+> comprueba la cadena entera y **sin nombrar los campos a mano**: saca la lista
+> de lo que acepta `crear-pago`, y exige que cada valor aparezca en el HTML y en
+> el texto plano; y saca los `name=` del formulario, y exige que todos estén
+> dentro de `datos()`. El día que el checkout gane un campo y alguien olvide la
+> plantilla, sale en rojo aquí — en vez de descubrirse con un paquete perdido.
+
+### 4f · Hoja de inventario automática — a medias, esperando Google
+
+**El hueco que cierra.** La tienda no tenía dónde ver cuánto le quedaba de nada.
+`stock.json` dice lo que había el día del conteo y lo vendido desde entonces vive
+en el almacén de Blobs, invisible. Se notó reponiendo después de las pruebas del
+16 de agosto: hubo que **preguntarle al propietario de memoria** qué se había
+vendido, porque no había dónde mirarlo. Una memoria no es un inventario.
+
+**Diseño acordado:** Netlify → webhook de n8n → Google Sheets, con dos pestañas
+(*Movimientos*, una fila por pieza vendida; *Existencias*, lo que queda). Solo
+ventas cobradas. Y la reposición se hace apuntando el recuento físico en la hoja
+y convirtiéndolo a `stock.json` con **un paso explícito**.
+
+> **La hoja es un espejo, no un mando.** Lo que decide si se puede vender sigue
+> siendo `stock.json` más el contador de Blobs. Si la hoja se volviera un
+> inventario paralelo editable, habría dos sistemas afirmando cosas distintas
+> sobre la misma pieza — y este repo ya sabe cómo acaba eso. Por lo mismo, el
+> aviso lleva `quedan` **calculado dentro del mismo CAS que confirma la venta**
+> (`confirmar()` en `_inventario.mjs`): la hoja *muestra* ese número, no lo
+> deduce. Una hoja que hace su propia resta acaba discrepando del inventario que
+> de verdad manda.
+
+**Hecho y desplegado (lado Netlify):** `_hoja.mjs` manda un aviso por venta
+cobrada. Contraentrega lo dispara `crear-pago` al confirmar; el pago en línea lo
+dispara `wompi-webhook` al aprobarse —y no antes, porque hasta que Wompi aprueba
+no ha salido nada del inventario, y apuntar ventas que se declinan infla lo
+vendido y esconde existencias que sí están—. Vigilado por `pruebas/hoja.js`.
+
+- Variables: `HOJA_WEBHOOK` (URL del webhook) y `HOJA_TOKEN` (opcional, viaja
+  como cabecera `X-Zephora-Token`, **no en la URL**: las URLs quedan en logs e
+  historiales). Sin `HOJA_WEBHOOK` no se manda nada y no pasa nada.
+- Cada intento deja línea `hoja_inventario` en el log. No es adorno: un aviso
+  perdido deja la hoja con **más existencias de las que hay**, que es la
+  dirección peligrosa del error. Por eso la referencia va en el cuerpo — mejor
+  reintentar y que n8n deduplique, que callarse.
+
+**Bloqueado en:** n8n no tiene **ninguna credencial** (`list_credentials`
+devuelve 0). Hay que conectar Google Sheets ahí —es un OAuth que solo puede
+autorizar el propietario— y crear la hoja. Hasta entonces el workflow no se puede
+construir: el nodo necesita una credencial para poder siquiera elegir la hoja.
+
+**Lo que falta, en orden:** conectar Google en n8n → crear la hoja con las dos
+pestañas → construir el workflow → poner `HOJA_WEBHOOK` y `HOJA_TOKEN` en Netlify
+→ el paso de recuento físico → `stock.json`.
+
+### 4c · Dónde queda el registro de cada pedido
+
+**Lo enseñó la primera venta real.** El detalle de qué se pidió vivía solo en el
+correo a la tienda: si Resend falla, si cae en spam o si alguien lo borra, la
+tienda cobró y no sabe qué despachar — el log solo decía «2 piezas, $159.440».
+Hubo que reconstruir el pedido desde el total.
+
+Ahora hay tres copias, y ninguna depende de las otras:
+
+| Dónde | Qué trae |
+|---|---|
+| **Registro en Blobs** (`_pedidos.mjs`) | El pedido entero: piezas, tallas, dirección, cuentas, estado, transacción de Wompi |
+| **Log de `crear-pago`** | El evento `pedido_creado` lleva ahora las `lineas` — lo que hay que empacar. Sin dirección ni contacto a propósito: eso no va en un log |
+| **Correo a la tienda** | Como antes |
+
+Se consulta desde la terminal, sin exponer ningún endpoint nuevo en un sitio
+que cobra:
+
+```sh
+netlify blobs:get pedidos ZC-260812-35FCB0D5
+```
+
+(`netlify blobs --help` lista los subcomandos de la versión instalada.)
+
+Dos decisiones de esa pieza:
+
+- **Almacén y clave aparte del inventario.** El de inventario es una sola clave
+  que todos los pedidos reescriben con CAS; meter ahí los pedidos añadiría
+  contención a la pieza más delicada y la haría crecer sin límite.
+- **El aviso de Wompi fusiona, no reescribe.** El evento no trae ni las piezas
+  ni la dirección: si el estado se guardara encima, el registro perdería justo
+  lo que sirve para despachar.
+
+Guarda **datos personales** —nombre, teléfono, correo, dirección—, que es lo que
+hace falta para enviar y lo mismo que ya viaja en el correo. Sujeto a la Ley
+1581; conviene que la política de privacidad diga dónde se guardan. Del pago no
+se guarda nada: la tarjeta no pasa por el sitio en ningún momento.
+
+### 4d · Rescate de checkouts abandonados
+
+Una clienta que escribió nombre, celular, correo y dirección, eligió sus piezas
+y no llegó a pagar es la persona más caliente que tiene la tienda. Hasta ahora
+se perdía en silencio: el pedido quedaba en `esperando-pago` y nadie volvía a
+mirarlo. Con el registro de pedidos ya se pueden encontrar.
+
+`rescate.mjs` corre **una vez al día a las 9:00 de Colombia** y le manda a
+`CORREO_TIENDA` la lista, con un enlace de WhatsApp listo para tocar en cada
+uno.
+
+> **Avisa a la tienda; no le escribe a la clienta.** Es la decisión importante
+> de esta pieza. Escribirle automáticamente a alguien que dejó sus datos **para
+> comprar**, no para recibir mensajes, es terreno resbaladizo bajo la Ley 1581:
+> la finalidad autorizada era la compra. Y en esta tienda la venta se cierra
+> hablando, así que un mensaje del propietario, con su tono y respondiendo
+> dudas, recupera más que un automático. Lo que se automatiza es *encontrarlos*,
+> que es el trabajo que no se hace nunca.
+
+La ventana tampoco es un capricho: **antes de 2 horas** la clienta puede seguir
+en la pasarela, y escribirle es interrumpir una compra que iba a ocurrir sola;
+**después de 7 días** el mensaje se lee como vigilancia y no como servicio.
+Tampoco se avisa dos veces del mismo pedido — un correo que repite lo de ayer se
+deja de abrir.
+
+Si Resend falla, no se marca ninguno y mañana vuelven a salir: un fallo de
+correo no puede hacer que se pierdan.
+
+**Falta comprobar que Netlify dispare el `schedule`** — se ve en Functions →
+`rescate`, o forzándolo desde el panel.
 
 ### 4b · Lo que quedó del bloqueador de inventario
 
@@ -213,26 +479,42 @@ producción** (`"reserva":"reservado"`).
 > porque el conteo nuevo ya lo descuenta. Las reservas en vuelo no se tocan.
 > Queda un `inventario_repuesto` en el log cada vez que pasa.
 
-### Los dos fallos silenciosos que costó dejarlo funcionando
+### Los fallos silenciosos — el patrón que más caro salió
 
-Vale la pena leerlos antes de tocar esta pieza, porque los dos fueron invisibles:
+Los tres problemas que más tiempo consumieron en esta jornada **no dieron ningún
+error**. La tienda cobraba, los correos salían, el `Purchase` viajaba, y en
+pantalla no había nada raro:
 
 1. **Las funciones eran v1.** Netlify solo inyecta `NETLIFY_BLOBS_CONTEXT` en
-   v2, así que `getStore()` lanzaba y todo caía al camino de emergencia.
+   v2, así que `getStore()` lanzaba y todo caía al camino de emergencia: se
+   vendía sin apartar inventario.
 2. **Después, la librería no entraba en el bundle.** El `require` estaba dentro
    de un `try` para que un paquete ausente no tumbara la función — y el
    rastreador de dependencias de Netlify no ve un require escondido en el cuerpo
    de una función, así que nunca la empaquetaba. La protección causó el fallo
-   que pretendía sobrevivir.
+   que pretendía sobrevivir. Mismo síntoma: cero.
+3. **La foto con el nombre roto** (§ 1). Extensión duplicada y un **U+2060
+   invisible** en medio: la página no habría encontrado nunca el archivo y la
+   tarjeta habría seguido diciendo "Foto en camino" sin que nada fallara.
 
-Las dos veces la tienda cobró, salieron los correos y viajó el `Purchase`; las
-dos veces la reserva no existía. **Falla hacia adelante es lo correcto para no
-perder ventas, pero convierte cada error en algo que solo se ve leyendo el log.**
+**El «falla hacia adelante» es la decisión correcta —ninguna de estas cosas debe
+costar una venta— pero tiene un precio: convierte cada error en algo que solo se
+ve leyendo un log.** Es el precio que se paga a cambio de no tumbar la tienda, y
+hay que pagarlo a conciencia: cada red de seguridad que se añada tiene que traer
+consigo **cómo se va a notar que se rompió**.
 
-Por eso `pruebas/inventario.js` § 6 comprueba **la forma del código** y no solo
-su comportamiento: que las funciones exporten el handler v2, y que el import de
-`@netlify/blobs` sea estático. Ninguna prueba de comportamiento las habría
-cazado, porque en local siempre se usa el almacén falso.
+De ahí sale el cambio de método que conviene mantener: `pruebas/inventario.js`
+§ 6 comprueba **la forma del código** y no solo su comportamiento — que las
+funciones exporten el handler v2, y que el import de `@netlify/blobs` sea
+estático. Ninguna prueba de comportamiento las habría cazado, porque en local
+siempre se usa el almacén falso. Lo mismo vale para el nombre de un archivo:
+`ls -1b assets/` enseña los caracteres invisibles.
+
+**Antes de añadir la próxima red de seguridad, la pregunta es qué la delata
+cuando falle** — un campo en el log como el `reserva` de `pedido_creado`, un
+tamaño esperado en la salida del despliegue como los ~306 KB, o una prueba que
+mire el mecanismo y no el resultado. Sin eso, la red nueva se cae sola y nadie
+se entera hasta que alguien va a leer un log por otro motivo.
 
 ### 5 · Piezas sueltas que el propietario pidió y están bloqueadas
 
@@ -241,6 +523,95 @@ cazado, porque en local siempre se usa el almacén falso.
 | **Empaque Premium destacado** en el carrito (marco, badge «Recomendado para regalo», miniatura) | La **foto real del empaque**. Sin ella no hay miniatura, y poner una imagen de catálogo sería vender algo que no es lo que se manda. Nota aparte: el problema del bump probablemente no es el diseño sino el precio — $40.000 sobre un brazalete de $58.000 es un 69% adicional; antes de rediseñarlo conviene probar bajarlo |
 | **Logos de medios de pago** al pie del carrito | Los **archivos oficiales** de cada marca. Visa, Mastercard, Nequi, Bancolombia y Daviplata son marcas registradas con guías de uso; no se dibujan aproximaciones |
 | Micro-leyenda de confianza | **Hecha y cerrada.** Bajo el botón de pagar del carrito sale *«Pago procesado por Wompi (Bancolombia)»*, la misma frase que el pie del checkout. **Lo del retracto se descartó por decisión del propietario**, que lo resolvió por otra vía: no va en la leyenda ni en la página, y no hay nada más que hacer ahí. (Había además un motivo para no ponerlo: la política de devoluciones recoge la excepción del artículo 47 para bienes claramente personalizados, y el titular de la tienda es «Personalización total») |
+
+### 5b · Lo que está esperando algo del propietario
+
+Ninguna de estas se puede resolver desde el repo: o se comprueban en un panel
+al que solo entra él, o son decisiones de negocio que arrancan con él. Se
+juntan aquí para que quien retome no las tenga que ir pescando por el
+documento.
+
+**Comprobaciones** (todo el código está desplegado; falta mirar que haya
+quedado bien):
+
+- [x] Que el despliegue diga el número correcto de functions. **Comprobado el
+      2026-08-20**: el despliegue `c7942f0` reporta **9 functions** —las 8 de
+      entonces más `_hoja`— y `crear-pago`/`wompi-webhook` pesan ~385 KB, o sea
+      que `@netlify/blobs` entró. Ver *Al desplegar*.
+- [x] **Que Netlify registre el `schedule` del rescate. Comprobado**: el
+      despliegue lo reporta como `{"cron":"0 14 * * *","name":"rescate"}`, que
+      son las 9:00 de Colombia. Queda ver una ejecución real con pedidos
+      dentro. No hay que esperar a
+      mañana: se fuerza desde Functions → `rescate` en el panel.
+- [ ] Que el **`Purchase` salga una sola vez** por compra en Events Manager —
+      es lo que confirma la deduplicación navegador/servidor— y **quitar
+      `META_TEST_EVENT_CODE`** al terminar (§ 4a).
+- [ ] **Despachar el pedido pendiente y reponer `stock.json`.** Al cambiar el
+      campo `generado`, lo vendido vuelve a cero solo (§ 4b).
+
+**Decisiones:**
+
+- **Precio del Empaque Premium.** Los $40.000 sobre un brazalete de $58.000 son
+  un 69% adicional; la hipótesis es que el bump no convierte por precio y no
+  por diseño (§ 5).
+- **Venta sugerida de brazalete.** Proponer el brazalete a quien lleva charms
+  sueltos. Sin decidir: si va, dónde va y con qué texto. Cuidado con dónde —
+  la tabla de decisiones ya explica por qué en el carrito no se mete nada que
+  compita con el botón de pagar.
+- **GitHub Actions como puerta de despliegue.** Hoy las pruebas avisan pero no
+  bloquean. Convertirlas en puerta exige apagar el despliegue automático en
+  Netlify y desplegar desde el flujo con un `NETLIFY_AUTH_TOKEN` (ver *Cómo
+  comprobar que nada se rompió*).
+- **Addi.** No lo activa Wompi: es integración propia contra Addi, un frente
+  nuevo entero. Aplazado; mientras tanto se mide por WhatsApp con
+  `data-wa="pagos"`, y ese dato es justamente con el que decidir (§ 4).
+
+### 5c · Conversión: lo que se montó y por qué
+
+Primer tramo del trabajo de conversión. La decisión de fondo la tomó el
+propietario: **la venta se cierra en el checkout de la web, no por WhatsApp** —
+por WhatsApp se estaban cayendo—. Todo lo de abajo sale de ahí.
+
+- **El CTA del hero es «Armar mi pulsera», no WhatsApp.** Antes el botón grande
+  sacaba a la clienta de la página hacia una conversación que hay que atender a
+  mano. WhatsApp sigue, en secundario y como *asesoría*. Conserva su `data-wa`,
+  así que la medición del salto al chat no cambió.
+- **Venta cruzada al fijar el brazalete** (`#xs`). La promo «brazalete + 3
+  charms = 30%» estaba anunciada arriba en una tarjeta y no en el momento de
+  decidir. Ahora aparece al confirmar la talla y **se apaga sola al llegar a 3
+  charms**, que es donde el 30% ya está activo. La cifra que muestra es el
+  descuento que gana sobre lo que **ya lleva** —misma disciplina que
+  `#desc-nota`—, nunca una rebaja del total: el charm que añada lo paga.
+- **El envío gratis salió a la barra fija.** Falta y barra de progreso en el
+  dock. Antes el umbral solo lo veía quien abría el detalle; el resto armaba sin
+  saber que le faltaban $20.000 para no pagar envío.
+- **Casilla de consentimiento en el checkout** (`#optin`), sin marcar y
+  opcional. Es el requisito que faltaba para poder automatizar la recuperación
+  de carritos escribiéndole **a la clienta**: bajo la Ley 1581 la finalidad que
+  autorizó esos datos era la compra. Viaja con el pedido, la guarda el registro
+  —que ya lleva fecha, o sea prueba de cuándo se dio— y el correo diario de
+  `rescate` marca quién autorizó.
+
+> **El permiso solo se concede con un booleano `true`.** `crear-pago` es un
+> endpoint público: `optin: "false"`, `1` o `"no"` son valores que en JavaScript
+> pasan por verdaderos y fabricarían una autorización que nadie dio.
+> `pruebas/checkout.js` lo vigila.
+
+**El fallo mudo de este tramo, para la colección:** el aviso de venta cruzada se
+oculta con `[hidden]`, pero tenía `display:flex` propio y el display gana. Nació
+visible y **vacío** antes de elegir brazalete, y no se iba al llegar a 3 charms.
+Ni un error en consola. Lo cazó recorrer el flujo en el navegador, no las
+pruebas que ya existían. Está resuelto con `.xs[hidden]{display:none}` —igual
+que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` § 6.
+
+> **Y tres pruebas estaban clavadas al estilo en vez de a la regla.** Al pasar
+> el CTA del hero a secundario, `regresion.js` seguía midiendo `a.btn--wa`: se
+> fue a un botón verde a 1.900 px de scroll y dio «FUERA» con el hero intacto.
+> Otra buscaba el píxel por `a.btn--wa[data-wa="hero"]` en vez de por `data-wa`.
+> Y la nueva usaba `:not([disabled])` para las tallas cuando el bloqueo real de
+> la página es `aria-disabled` — elegía una talla agotada y salía un rojo que no
+> era del sitio. Las tres ahora apuntan a la regla: *el CTA principal cae sobre
+> el pliegue*, *el salto a WhatsApp mide*, *la talla libre confirma*.
 
 ### 6 · «A veces se borran las joyas» — cerrado
 
@@ -295,18 +666,25 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 | Las tres **piezas sin foto no están escondidas** | Tienen stock real: ocultarlas es dejar de vender inventario que existe, que es justo el problema que las trajo al catálogo |
 | Los **agotados tampoco se esconden** | Salen en gris con "Pedir por encargo", que manda a WhatsApp con el nombre de la pieza. La venta no se pierde, se mueve al chat |
 | Las etiquetas de urgencia solo con **1 o 2 unidades reales** | No se inventa escasez donde no la hay |
+| El aviso del **siguiente tramo de descuento** dice lo que baja sobre lo que YA lleva, y nunca que el total baje | Porque el total no baja: el charm que añada lo paga. La cifra que se muestra —lo que aumenta el descuento sobre las piezas ya elegidas— es comprobable en el propio resumen del carrito. Prometer un ahorro que no existe es de la misma familia que inventar escasez, y se descubre en la pantalla de pago. `pruebas/precios.js` comprueba la cifra en los 40 carritos al azar |
 | El **total a cobrar lo calcula el servidor**, nunca el navegador | El monto que viaja por el cliente se puede alterar desde la consola. `crear-pago` solo acepta identificadores y recalcula; `pruebas/precios.js` vigila que ambas calculadoras coincidan |
 | Al cambiar un precio, **correr `herramientas/extraer_catalogo.py`** | El checkout y el servidor leen `assets/catalogo.json`, que se genera desde index.html. Si se olvida, la batería `precios` sale en rojo |
 | El **webhook de Wompi verifica la firma** de cada evento | Su URL es pública: sin verificación, cualquiera manda un POST diciendo «pagado» |
 | `Purchase` **solo con estado APPROVED consultado a la API** de Wompi | Dispararlo por un parámetro de URL regalaría una página de «pagado» y ensuciaría la optimización de campañas |
 | El **envío gratis es solo del pago anticipado** | La contraentrega cuesta comisión de recaudo y riesgo de devolución: regalarle el envío es subsidiar la opción más cara. Lo delicado no es la regla sino no prometerla y quitarla al final — por eso cada opción muestra su costo antes de elegir, y quien ya pasó el umbral con contraentrega ve por qué y un botón que aplica el cambio |
+| La **acción principal de la página es armar y comprar**; WhatsApp es asesoría | Decisión del propietario: por WhatsApp se estaban cayendo las ventas. Un CTA principal que saca a la clienta a un chat convierte la compra en una conversación que hay que atender a mano, y depende de que alguien responda. WhatsApp no se quita —rescata cuando hay dudas o el pago falla— pero deja de ser la vía por defecto. `pruebas/regresion.js` § 1 comprueba que el CTA principal caiga sobre el pliegue, sin nombrar su estilo |
+| El aviso de venta cruzada **se apaga al llegar a 3 charms** | En 3 ya está activo el 30% del brazalete y el 15% de los charms: seguir empujando después es pedir por pedir, y un aviso que no se calla nunca se deja de leer. Y la cifra es siempre el descuento sobre lo que **ya lleva**, nunca una rebaja del total |
+| La **autorización de comunicaciones va sin marcar y no condiciona la compra** | Una casilla premarcada no es consentimiento, y condicionar la venta a aceptarla tampoco. Es lo que separa poder escribirle después por una promo de solo poder responder por su pedido |
 | **No hay salida a WhatsApp en el carrito** | A esa altura la clienta ya decidió comprar; una opción de menor compromiso pegada al botón de pagar se come checkouts terminados en vez de sumar pedidos. WhatsApp sigue en el resto de la página y en el checkout **si el pago falla**, que es donde rescata una venta en vez de robarla |
 | Los **medios de pago anunciados son los que Wompi tiene habilitados** | Se sacan de `accepted_payment_methods` de su API. Prometer uno que la pasarela no ofrece se descubre con la clienta ya decidida, buscando un botón que no existe. Por eso Addi salió del checkout y quedó como opción por WhatsApp |
+| El correo de la tienda es una **hoja de despacho**, no una copia del recibo | Los dos tienen trabajos distintos, y compartir plantilla costó un pedido: las indicaciones de entrega no se imprimían en ninguna parte. Lo que se lee al empacar abre por lo que se pierde si se lee en diagonal —indicaciones y dedicatoria— y lleva documento y unidades, que el recibo no necesita |
+| **Ningún dato que la clienta escriba puede quedarse sin imprimir** | Es la regla, y `pruebas/correo-tienda.js` la comprueba sin nombrar campos: los saca de lo que acepta `crear-pago` y de los `name=` del formulario. Un campo nuevo queda vigilado solo; olvidar la plantilla sale en rojo en vez de descubrirse con un paquete perdido |
 | Los **correos no pueden tumbar una venta** | Sin `RESEND_API_KEY` no se manda nada y el pedido sigue; si Resend falla, se registra y el cobro continúa. Perder un comprobante es molesto; perder una compra cobrada porque el proveedor de correo estaba lento, no |
 | El **«Pago recibido» sale del webhook**, no de `gracias.html` | La clienta puede cerrar el navegador antes de volver, y el pago fue bueno igual |
 | La comprobación de inventario **falla hacia adelante** | Solo bloquea con un dato claro de que no hay. Si `stock.json` no se puede leer, la venta pasa: una lectura fallida no puede costar una compra buena |
 | `crear-pago` y `wompi-webhook` son **funciones v2** (`export default`, en `.mjs`) | No es estilo: Netlify solo inyecta `NETLIFY_BLOBS_CONTEXT` en v2, y sin esa variable `getStore()` lanza y la reserva de inventario se cae al camino de emergencia — la tienda vende, nada se rompe, y no se aparta nada. Ya pasó: estuvo así en producción una jornada entera y se detectó leyendo el log, no porque algo fallara. `pruebas/inventario.js` § 6 lo vigila. Los módulos auxiliares siguen en CommonJS porque no hacía falta tocarlos |
 | Ahora **sí hay `package.json` en la raíz** | `pruebas/package.json` explica que no lo había a propósito, para que Netlify no instalara dependencias. Esa decisión se tomó con cero dependencias; la reserva necesita `@netlify/blobs` **dentro de las funciones**, y sin declararla el bundler no la incluye, las funciones se caen al arrancar y el sitio deja de cobrar. Sigue sin haber comando de build (`command = ""`): lo único que cambia es que Netlify instala esa dependencia antes de empaquetar |
+| Las pruebas **no clavan datos del catálogo**: los leen de `stock.json` o los miden en pantalla | Al retirar tres piezas duplicadas, dos baterías se pusieron rojas con la página en lo cierto: una esperaba «77 tarjetas» y otra nombraba `elsa` entre los agotados. Un número o un id escrito a mano convierte cada cambio de catálogo en una falla falsa, y las fallas falsas enseñan a ignorar el rojo. Lo que hay que comprobar es la regla —que al limpiar la búsqueda vuelvan **todas**, que un agotado salga en gris y bloqueado—, no una cifra concreta |
 | La reserva de inventario **se prueba con latencia** | `pruebas/inventario.js` mete demora en el almacén falso para que las dos lecturas ocurran antes de cualquier escritura. Sin eso, las dos operaciones corren una tras otra, la prueba pasa, y no ha probado nada — el mismo error que dio verde a un pago que no cobraba |
 | La **verificación del comercio en Wompi** también falla hacia adelante | Solo bloquea con un 404 explícito. Existe porque una llave mal transcrita mandaba a todas las clientas a una pantalla de error sin retorno |
 
@@ -318,11 +696,13 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 ./pruebas/correr.sh
 ```
 
-Cinco baterías en un navegador real: los bugs de la auditoría inicial;
-disponibilidad y tallas; la calculadora, la ficha y el buscador; que el servidor
-cobre lo mismo que promete la página en 40 carritos al azar; y la compra
-completa de punta a punta, ejecutando las funciones de Netlify reales dentro de
-Node. Sale con código 1 si algo queda en rojo. Detalle en
+Diez baterías: los bugs de la auditoría inicial y la venta cruzada, en un
+navegador real; disponibilidad y tallas; la calculadora, la ficha y el buscador;
+que el servidor cobre lo mismo que promete la página en 40 carritos al azar; la
+reserva de inventario, el registro de pedidos y el rescate de abandonados; que
+la hoja de despacho imprima **todo** lo que la clienta escribió; el `Purchase` a
+Meta; y la compra completa de punta a punta, ejecutando las funciones de Netlify
+reales dentro de Node. Sale con código 1 si algo queda en rojo. Detalle en
 [`pruebas/README.md`](pruebas/README.md), incluidas dos comprobaciones de texto
 por `grep` que no están automatizadas.
 
@@ -374,10 +754,18 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **6 functions**
-(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`);
+En la salida de cualquier despliegue hay que confirmar que diga **9 functions**
+(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
+`_pedidos`, `_hoja`, `rescate`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
+
+> **Este número sube cada vez que se añade un módulo a `netlify/functions/`, y
+> hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`.
+> Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
+> persona ve «9» donde el documento pide «8», da por bueno el desajuste, y la
+> comprobación deja de servir justo para lo que existe — detectar que las
+> funciones no se empaquetaron y el sitio quedó sin cobrar.
 
 Y que `crear-pago` y `wompi-webhook` pesen ~306 KB, no ~295 KB: esos ~11 KB de
 diferencia son `@netlify/blobs` empaquetado. Si vuelven al tamaño de antes, la

@@ -19,10 +19,11 @@
 import crypto from 'node:crypto';
 import { cop } from './_precios.js';
 import { confirmar, liberar } from './_inventario.mjs';
+import { anotarVenta } from './_hoja.mjs';
+import { marcar, leer } from './_pedidos.mjs';
 import { purchase } from './_meta.js';
 import { tomar as tomarSenales } from './_atribucion.mjs';
-import { cerrar as cerrarPendiente, marcarFallido } from './_pendientes.mjs';
-import { enviar } from './_correo.js';
+import { enviar, pagoTienda } from './_correo.js';
 
 const ok = (cuerpo) => new Response(JSON.stringify(cuerpo || { recibido: true }),
   { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -122,13 +123,26 @@ export default async (req) => {
    * Va antes de los correos a propósito: es lo único de este bloque que afecta
    * a otras clientas, y no puede quedarse sin hacer porque Resend tarde. Ambas
    * son idempotentes, así que los reintentos de Wompi no descuentan dos veces. */
+  let cierre = null;
   if (registro.referencia) {
-    const cierre = tx.status === 'APPROVED'
+    cierre = tx.status === 'APPROVED'
       ? await confirmar(registro.referencia)
       : await liberar(registro.referencia);
     console.log(JSON.stringify({
       evento: 'inventario_' + cierre.modo, referencia: registro.referencia, estado: registro.estado,
     }));
+
+    /* En qué quedó el pedido, sobre el registro que dejó crear-pago. Se fusiona
+       para no perder el detalle de las piezas ni la dirección, que el evento de
+       Wompi no trae. Con esto, `netlify blobs:get pedidos <referencia>` cuenta
+       la historia completa sin depender de que llegara ningún correo. */
+    await marcar(registro.referencia, {
+      estado: tx.status === 'APPROVED' ? 'pagado' : 'pago-' + String(tx.status || 'desconocido').toLowerCase(),
+      transaccion: registro.transaccion,
+      metodo: registro.metodo,
+      cobrado: registro.total,
+      pagadoEn: evento.timestamp ? new Date(evento.timestamp * 1000).toISOString() : null,
+    });
   }
 
   /* Las señales de atribución que guardó crear-pago: las cookies del pixel, la
@@ -140,18 +154,6 @@ export default async (req) => {
    * rechazado dejaría datos de una clienta guardados sin que nadie los limpie. */
   const senales = registro.referencia ? await tomarSenales(registro.referencia) : null;
 
-  /* Cierra el pedido pendiente.
-   *
-   * Aprobado: se borra. Ya compró, no hay nada que recuperar, y sus datos en
-   * claro no tienen por qué seguir guardados.
-   *
-   * Rechazado o anulado: NO se borra, se marca. Es justo el caso donde un
-   * mensaje sirve más —la clienta quiso comprar y el banco dijo que no— y se le
-   * puede ofrecer otro medio de pago. La función programada se encarga. */
-  if (registro.referencia) {
-    if (tx.status === 'APPROVED') await cerrarPendiente(registro.referencia);
-    else await marcarFallido(registro.referencia, tx.status);
-  }
 
   if (tx.status === 'APPROVED') {
     /* Purchase a Meta desde el servidor.
@@ -185,6 +187,47 @@ export default async (req) => {
     await reenviar(Object.assign({
       titulo: `Pago aprobado · ${registro.referencia} · ${cop(registro.total || 0)}`,
     }, registro));
+
+    /* «Ya pagó, despacha» a la tienda, con la hoja completa.
+     *
+     * Antes de esto el único correo que recibía la tienda salía al CREAR el
+     * pedido, o sea antes de que hubiera pago: con pago en línea, la bandeja no
+     * distinguía lo cobrado de lo abandonado. Y el detalle de qué empacar y a
+     * dónde entregar quedaba en aquel primer correo, que hay que ir a buscar.
+     *
+     * Falla hacia adelante como todo lo demás: si no se puede leer el registro
+     * o Resend no responde, se anota y el webhook sigue. Un aviso que no sale
+     * es molesto; que Wompi reintente el evento porque esto lanzó, no. */
+    try {
+      const pedido = await leer(registro.referencia);
+
+      /* A la hoja de inventario. Aquí y no al crear el pedido: hasta que Wompi
+         aprueba, el pago en línea no ha sacado nada del inventario —y una hoja
+         que apunta ventas que se declinaron acaba inflando lo vendido y
+         escondiendo existencias que sí están—. `quedan` viene del CAS que acabó
+         de confirmar, unas líneas arriba. */
+      await anotarVenta({
+        referencia: registro.referencia,
+        pago: (pedido && pedido.pago) || 'anticipado',
+        cuando: evento.timestamp
+          ? new Date(evento.timestamp * 1000).toISOString() : new Date().toISOString(),
+        ciudad: pedido && pedido.cliente
+          ? `${pedido.cliente.ciudad}, ${pedido.cliente.depto}` : '',
+        total: (pedido && pedido.cuentas && pedido.cuentas.total) || registro.total,
+        lineas: (pedido && pedido.lineas) || [],
+        restante: cierre && cierre.restante,
+      });
+
+      const aTienda = await pagoTienda({
+        referencia: registro.referencia, total: registro.total, pedido,
+      });
+      console.log(JSON.stringify({
+        evento: 'aviso_tienda_pagado', referencia: registro.referencia,
+        enviado: aTienda.enviado !== false, conRegistro: Boolean(pedido && pedido.cliente),
+      }));
+    } catch (e) {
+      console.error('No se pudo avisar a la tienda del pago', registro.referencia, e.message);
+    }
 
     /* El «ya está» que la clienta espera. El primer correo dijo «estamos
        confirmando tu pago»; este cierra esa frase. Sale del webhook y no de la

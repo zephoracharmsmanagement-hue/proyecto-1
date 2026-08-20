@@ -53,23 +53,40 @@ eventos reales. Falta verificar la deduplicación contra el pixel — ver
 Arranca en modo borrador: redacta, una persona envía. El porqué y el camino para
 abrir la mano están en el prompt.
 
-### 3. Carritos abandonados — **funcionando por correo**
+### 3. Carritos abandonados — **funcionando, avisando a la tienda**
 
-`netlify/functions/recuperar-carritos.mjs` corre cada 15 minutos y le escribe a
-quien salió hacia la pasarela y no volvió con un pago aprobado. Contrato en
-[`contratos/carritos-abandonados.md`](contratos/carritos-abandonados.md).
+`netlify/functions/rescate.mjs` corre una vez al día y le manda a `CORREO_TIENDA`
+la lista de checkouts que quedaron sin pagar, con un enlace de WhatsApp listo
+para cada uno.
 
-Resultó mucho más barato de lo previsto: **no hizo falta rastrear el carrito**.
-`crear-pago` ya conoce nombre, correo, celular y piezas de todo el que llega a
-la pasarela, y el webhook sabe si pagó. Un pedido creado que no se confirma es
-un carrito abandonado con contacto completo.
+**Le avisa a la tienda, no le escribe a la clienta**, y esa es la decisión de
+fondo: los datos se dieron para comprar, no para recibir mensajes, y bajo la Ley
+1581 esa finalidad es la que manda. Además, en esta tienda la venta se cierra
+hablando — un mensaje del propietario recupera más que un automático. Lo que se
+automatiza es *encontrarlos*, que es el trabajo que no se hace nunca.
 
-Un solo mensaje por pedido, 45 minutos de espera, sin promociones —para que siga
-siendo transaccional— y los datos se borran a los 7 días.
+> Esta rama había construido en paralelo una versión que sí le escribía a la
+> clienta (`recuperar-carritos.mjs`). Se descartó al reconciliar: el criterio de
+> `rescate.mjs` es más defendible y es el que quedó.
 
-Falta mandarlo también por WhatsApp cuando esté la API Cloud (ojo con la ventana
-de 24 h de Meta: fuera de ella hace falta plantilla aprobada) y poder retomar el
-pedido con un clic.
+### 4. Hoja de inventario — **funcionando, con un bug corregido**
+
+`netlify/functions/_hoja.mjs` avisa de cada venta cobrada a un webhook de n8n
+(**"Zephora · Hoja de Inventario"**, `K1J4pHYfvd6QuAq8`), que escribe una fila
+por pieza en la hoja de cálculo y actualiza las existencias.
+
+**La hoja es un espejo, no un mando.** `quedan` llega calculado por el CAS de
+Blobs; la hoja lo muestra y nunca lo deduce. Reponer inventario reescribe
+`stock.json`, no se hace editando celdas.
+
+Bug encontrado y corregido el 2026-08-20: el nodo que escribía la fila leía
+`$json`, que tras un lookup sin coincidencia viene vacío, así que **cada venta
+nueva escribía una fila en blanco** — y de paso la deduplicación no podía
+funcionar, porque buscaba filas anteriores que estaban todas vacías. Ahora lee
+`$('Separar Movimientos').item.json.…`.
+
+**Falta el paso de reponer**: hoy la tienda vende, la hoja lo refleja, se
+reponen piezas y ahí se corta, porque `stock.json` sigue con el conteo viejo.
 
 ## Reglas de trabajo
 

@@ -12,31 +12,82 @@ Claude Code en varias sesiones/terminales a la vez.
 
 ## Meta Ads — estado de la automatización
 
+### Campañas en producción (cuenta `1583713932705268`)
+
+Esa cuenta **no pertenece a ningún portafolio comercial** — de ahí sale casi
+todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
+`2021753038744595` ("cuenta publicitaria 1 ZC", dentro del portafolio
+"Zephora Charms"), existe pero no tiene campañas.
+
+- **"Nueva campaña de Ventas"** (`120247398773240534`) — ACTIVA, $15.000
+  COP/día. Optimiza por `InitiateCheckout`, **no por `Purchase`**: es la
+  limitación de fondo, no un descuido de configuración. 4 anuncios, de los
+  cuales **Copia 4 (`120247400350270534`) y Copia 5 (`120247400376370534`)
+  están PAUSADOS** desde esta sesión: costaban $6.388 y $9.424 por checkout
+  contra $663 de Copia 2 y $1.724 de Copia 3.
+
+  Lección del diagnóstico, para no repetirla: **Copia 4 tenía el mejor CTR de
+  la cuenta (15,43%) y era de los peores en conversión.** Juzgar creativos por
+  CTR habría escalado justo el que peor rendía. La métrica que manda es costo
+  por resultado.
+
+- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) — creada,
+  ACTIVA, $10.000 COP/día, **$0 gastados y 0 impresiones**. Sí optimiza por
+  `Purchase`. No entrega por dos razones: un error de segmentación por lugar
+  (#1870194, tipo de ubicación descontinuado por Meta) y, más de fondo, que
+  **el público tiene ~55 personas**. Pendiente de pausar.
+
+### Públicos
+
+- `Zephora · Iniciaron checkout sin comprar (30d)` (`120247672124730534`) —
+  ACTIVE, sano, lee del píxel viejo `2130673404542988` (el correcto: es el que
+  tiene historia). Incluye `InitiateCheckout` 30d, excluye `Purchase`.
+  **Demasiado pequeño para pautar**: la campaña principal produce ~55
+  checkouts/mes. Para hacerlo viable: ventana a 180 días e incluir también
+  `AddToCart` (134 en 30 días).
+- `Público similar (CO, 1%)` (`120247672160220534`) — **INACTIVE,
+  `operation_status_code: 433`**. La semilla es demasiado chica para construir
+  un lookalike. No sirve hasta que crezca el público de origen.
+
+### Píxeles — hay dos a propósito
+
+- **`2130673404542988`** ("zephora charms pixel 1") — el viejo. Vive en la
+  cuenta sin portafolio, así que **nunca podrá tener CAPI** (`server_last_fired_time`
+  en época cero). Es el que las campañas y los públicos pueden usar.
+- **`1029982529813994`** ("zephora charms pixel web") — el nuevo, dentro del
+  portafolio "Zephora Charms". Sí recibe `Purchase` de servidor desde
+  `wompi-webhook.mjs`. **La cuenta publicitaria no lo tiene compartido**, así
+  que Meta no puede optimizar con él hasta que el portafolio cumpla antigüedad
+  (semanas). Detalle y plan de migración en `ESTADO.md` § 4a.
+
+Consecuencia práctica: durante estas semanas el píxel nuevo **acumula la
+verdad** mientras las campañas **siguen optimizando a ciegas** sobre
+`InitiateCheckout` del viejo. No hay atajo; es restricción de cuenta.
+
+### Economía unitaria (del inventario, agosto 2026)
+
+Margen real: **charms 87,9%** ($9.305 costo / $77.449 venta) · **pulseras
+70,7%** ($18.742 / $64.571). Una venta de 2 charms deja **~$110.386 de
+utilidad neta** tras envío — ese es el CAC máximo por compra. Con costo por
+checkout de ~$1.950, el negocio aguanta hasta una conversión checkout→pago
+del 2% antes de perder plata. **El presupuesto actual está muy por debajo de
+lo que la economía soporta**; el limitante es inventario, no dinero.
+
+El dato de costo **no está en el repo**: vive en `Inventario_Zephora_v3.xlsx`
+(hojas Productos y Movimientos). `stock.json` solo trae precio de venta.
+
+### Creativos
+
+`assets/ads/` tiene 10 imágenes alojadas para usar como imagen de anuncio
+(la CAPI necesita URL pública). Queda fuera a propósito la variante que
+nombra a Pandora — riesgo de marca.
+
+### Píxel del sitio
+
 - **Pixel `2130673404542988`** ("zephora charms pixel 1"), en producción.
-  Dispara `PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`,
-  `AddPaymentInfo`, **`Purchase`**, `Lead` y `Contact`. Detalle completo en
-  `README.md` § Medición.
-
-  **`Purchase` es la conversión a optimizar**, no `Lead`. Este archivo decía
-  antes que el pago ocurría fuera del sitio; dejó de ser cierto cuando el
-  checkout empezó a cobrar por Wompi.
-- **`Purchase` server-side (CAPI) — implementado.**
-  `netlify/functions/_meta.js`, disparado desde `wompi-webhook.mjs` cuando
-  Wompi confirma un pago, y desde `crear-pago.mjs` para contraentrega, que
-  no pasa por Wompi. Las señales de atribución (`_fbp`/`_fbc`, IP,
-  user-agent) las guarda `_atribucion.mjs` en Blobs entre una punta y otra.
-  Contrato completo y cómo probarlo en
-  [`automatizaciones/contratos/purchase-capi.md`](automatizaciones/contratos/purchase-capi.md).
-
-  **Antes de tocar `Purchase` en cualquier punta, leer ese contrato.** El
-  pixel y el servidor mandan el mismo evento y se deduplican por `event_id`
-  = referencia del pedido; quitar el `eventID` de `gracias.html` o de
-  `checkout.html`, o cambiar el `event_id` del servidor, hace que Meta cuente
-  el doble de compras **sin avisar de nada**. `pruebas/meta.js` lo comprueba
-  leyendo el HTML.
-
-  `META_CAPI_TOKEN` **ya está en Netlify**: esto manda eventos reales desde
-  que se puso. Falta comprobar la deduplicación en Events Manager.
+  Dispara `PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`, `Lead`
+  (conversión real del sitio — el pago ocurre fuera, ver abajo) y `Contact`.
+  Detalle completo en `README.md` § Medición.
 - **`meta/` — scripts de solo lectura** (`verificar.mjs`, `pixel.mjs`,
   `metricas.mjs`), corren en la máquina del usuario con su token en `.env`.
   Graph API **v25.0** (v19.0, el default anterior, expiró 2026-05-21).
@@ -53,12 +104,12 @@ Claude Code en varias sesiones/terminales a la vez.
   todavía** — falta credential del token CAPI y una prueba con
   `test_event_code`.
 
-  Nota: **ya no son dos disparadores compitiendo, son dos ventas distintas.**
-  Lo que se compra en el sitio lo manda `_meta.js` con
-  `action_source: website`; lo que se cierra por WhatsApp lo manda este
-  workflow con `action_source: chat`. Los `order_id` son distintos, así que
-  Meta no los deduplica entre sí — correcto, porque son dos compras. No hay
-  que consolidarlos.
+  Nota: **el sitio ya cobra de verdad por Wompi** (ver `ESTADO.md` § 4).
+  Cuando ese flujo esté estable, lo correcto es que el webhook de Wompi
+  dispare el `Purchase` directamente al confirmar el pago — más confiable
+  que un formulario llenado a mano. El workflow de n8n de arriba sigue
+  siendo válido para ventas cerradas por WhatsApp sin pasar por el checkout
+  web. Evaluar si conviene tener los dos disparadores o consolidar en uno.
 
 ### Por qué importa
 
@@ -69,85 +120,33 @@ optimiza las campañas hacia gente que escribe, no hacia gente que compra.
 
 ### Pendiente
 
-1. **Generar token CAPI** en Events Manager → dataset `2130673404542988` →
-   Configuración → Conversions API → *Generar token de acceso*. **No pegarlo
-   en ningún chat.** El mismo token sirve en los dos sitios, y hace falta en
-   los dos:
-   - Netlify → Site configuration → Environment variables, como
-     `META_CAPI_TOKEN` — es lo único que falta para que el `Purchase` de las
-     compras web empiece a salir.
-   - n8n, como credential Bearer Auth `Meta CAPI Zephora`, para el workflow
-     de las ventas por WhatsApp.
-2. **Probar los dos flujos con `test_event_code`** (Events Manager → Probar
-   eventos) antes de dejarlos contando conversiones reales. Para el flujo web
-   el procedimiento paso a paso está en
-   `automatizaciones/contratos/purchase-capi.md` § Cómo probarlo. **Acordarse
-   de quitar `META_TEST_EVENT_CODE` después**: mientras esté puesto, ninguna
-   compra real llega a la pauta.
-3. **Conectar Meta Ads MCP** para lectura y escritura completa de campañas.
-   No hay URL fija pública para pegar directo — el camino confirmado en la
-   documentación de Meta: developers.facebook.com → app **`1910139459666391`**
-   ("AGENTE CLAUDE"; la otra app listada, `28046634668340224`, no es
-   accesible) → Casos de uso → Añadir → "Ads and monetization" → **"Create &
-   manage ads with ads MCP server"** → Guardar. Cuenta propia, no gestión de
-   terceros → no requiere App Review. El panel debería mostrar después la
-   URL de conexión específica para pegar como conector personalizado en
-   claude.ai. **A la fecha de este archivo, sigue sin completarse** — ni en
-   claude.ai ni vía `claude mcp add` en ninguna terminal verificada.
-4. **Revisar el access token que se pegó en un chat hace tiempo.** Si sigue
+Por orden de impacto sobre el dinero:
+
+1. **Reponer inventario.** Es el cuello de botella real, no el presupuesto.
+   Faltan **14 letras que nunca se compraron** (F G H I P Q R T U W X Y Z Ñ —
+   el 52% del abecedario): ~$73.000 de costo para ~$1.064.000 de utilidad
+   potencial, el mejor retorno del negocio y además arregla que media
+   Colombia no encuentre su inicial. Después, **83 referencias en 1-2
+   unidades** ($2,64M para habilitar ~$11,7M de utilidad), priorizando
+   charms (88% de margen) sobre pulseras (71%).
+2. **Pausar "Retargeting · Recuperación de checkout"** hasta tener público.
+   Con ~55 personas no entrega; el presupuesto rinde más en la campaña
+   principal.
+3. **Probar el `Purchase` de servidor** con `META_TEST_EVENT_CODE` y
+   confirmar en Events Manager que aparece **una sola vez** por compra (no
+   dos) en el píxel nuevo. **Quitar la variable de prueba al terminar.**
+4. **Registrar ventas en la hoja *Movimientos*** del Excel. Hoy las
+   recomendaciones de reposición salen de "subir todo a 4 unidades", que es
+   una regla pareja, no rotación real. Con unas semanas de movimientos se
+   vuelve reposición informada.
+5. **Cuando el portafolio cumpla antigüedad**: compartir `1029982529813994`
+   con la cuenta `1583713932705268` (o reclamar la cuenta hacia el
+   portafolio), migrar la optimización de `InitiateCheckout` a `Purchase`, y
+   sacar el segundo `fbq('init', …)` de los tres HTML.
+6. **Revisar el access token que se pegó en un chat hace tiempo.** Si sigue
    activo, revocarlo en Configuración del negocio → Usuarios del sistema y
    usar en su lugar un usuario del sistema con permisos acotados.
-5. **Probar el embudo completo** en Events Manager → Probar eventos:
-   `AddToCart`, `InitiateCheckout` y `Lead` — solo `PageView` está
-   confirmado en vivo.
-6. **Marcar `Lead` como conversión personalizada** en Meta.
-
-## Automatizaciones — dónde vive cada cosa
-
-Las automatizaciones (asesor de WhatsApp con Gemini, CAPI, carritos
-abandonados) viven **en este repo**, no en uno aparte. Se decidió así porque
-las tres leen datos que solo existen aquí —`assets/catalogo.json`,
-`assets/stock.json`, el inventario apartado en Blobs, los eventos del
-checkout—: separarlas obligaría a duplicar el catálogo, y un asesor que
-cotiza con precios viejos hace más daño que no tener asesor.
-
-| Dónde | Qué |
-|---|---|
-| `netlify/functions/` | **Todo el código que corre en producción**, incluidos los handlers de automatización. No crear otra carpeta de handlers: las llaves de Wompi y el acceso a Blobs ya están aquí |
-| `automatizaciones/contratos/` | Qué manda cada pieza y qué espera. Lo primero que se lee y lo primero que se actualiza |
-| `automatizaciones/n8n/` | Workflows exportados en JSON |
-| `automatizaciones/prompts/` | Prompts de sistema, versionados como código |
-
-**Canal de WhatsApp decidido: API Cloud oficial de WhatsApp Business.** No
-puentes no oficiales. Con eso desbloqueado, lo que falta del asesor es el
-número verificado, el flujo en n8n y guardar los borradores con sus
-correcciones. Ojo con la ventana de 24 h de Meta: fuera de ella solo se puede
-escribir con plantilla aprobada, lo que afecta también a los carritos
-abandonados por WhatsApp.
-
-Empezar por [`automatizaciones/README.md`](automatizaciones/README.md), que
-lleva el estado de las tres.
-
-**Asesor de Gemini — dos decisiones tomadas:**
-
-- **Sin base vectorial.** El catálogo son 10 KB (132 piezas, 18 pulseras) y cabe
-  entero en el contexto. Montar embeddings añade un componente que puede
-  recuperar el fragmento equivocado a cambio de nada.
-- **El stock sale de `/.netlify/functions/disponibilidad`, no de `stock.json`.**
-  Ese archivo dice cuántas se contaron, no cuántas están apartadas por un pago
-  en curso — eso vive en Blobs. La función hace la resta y devuelve un número;
-  la aritmética de inventario no se le delega a un modelo. Contrato en
-  `automatizaciones/contratos/disponibilidad.md`.
-
-El prompt está escrito en `automatizaciones/prompts/asesor-whatsapp.md`, en modo
-borrador (redacta, una persona envía). **Lo que lo bloquea es la conexión a
-WhatsApp**: hace falta la API Cloud de WhatsApp Business; los puentes no
-oficiales funcionan hasta que Meta banea el número del negocio.
-
-**Ojo con la rama `claude/sephora-whatsapp-response-system-682wvv`:** tiene 28
-macros auditadas y material útil, pero precede al checkout y trae cifras falsas
-hoy (Addi como medio de pago, precios viejos, envío gratis mal aplicado). No
-copiar de ahí sin contrastar contra `_precios.js`.
+7. **Marcar `Lead` como conversión personalizada** en Meta.
 
 ### Modo de operación acordado
 
@@ -157,6 +156,47 @@ payload/estructura exacto para aprobación antes de ejecutar. Lecturas,
 diagnósticos y consultas de datos van directo. Esto sigue vigente aunque el
 conector de Ads MCP termine con permisos de escritura completos — el
 permiso técnico no cambia el acuerdo.
+
+## Cómo se reparte el trabajo entre sesiones — leer antes de construir
+
+**El riesgo de este repo no son los conflictos de git: es construir dos veces
+la misma pieza.** Ya pasó. Dos sesiones hicieron cada una su sistema de rescate
+de carritos abandonados y su registro de pedidos, en archivos con nombres
+distintos (`rescate.mjs` / `_pedidos.mjs` contra `recuperar-carritos.mjs` /
+`_pendientes.mjs`). Git no ve nada raro ahí — archivos distintos, merge limpio,
+cero conflictos — y el resultado en producción serían **dos cosas persiguiendo
+el mismo pedido y dos correos a la misma clienta**. El detalle de las ramas
+implicadas está en `ESTADO.md` § *Ramas abiertas de otras sesiones*.
+
+Por eso la regla va **antes** de empezar a escribir código, no en el momento de
+mezclar:
+
+1. **Una sola sesión toca la tienda.** El paralelo solo vale con alcance
+   genuinamente disjunto — documentación, macros de WhatsApp, cosas que no
+   entran en `netlify/functions/`. Dos tareas que *suenan* distintas
+   («medición» y «checkout», «inventario» y «rescate») acaban en los mismos
+   archivos.
+2. **Antes de construir, comprobar si ya existe.** `ls netlify/functions/` y la
+   sección de pendientes de `ESTADO.md`, en ese orden. Las sesiones que
+   duplicaron trabajo no fueron descuidadas: partieron de un punto viejo del
+   repo donde de verdad no existía.
+3. **Arrancar con `git fetch` y desde la rama publicada**
+   (`claude/install-frontend-design-skill-8t655e`). El contenedor clona fresco,
+   pero clona *un* punto; si es viejo, la sesión trabaja sobre una realidad que
+   ya no existe. Es exactamente lo que les pasó a las ramas duplicadas.
+4. **Reclamar el trabajo en `ESTADO.md` al empezar**, si va a haber paralelo.
+   Es el único canal que las sesiones comparten, porque se lee al abrir el
+   repo. Una línea —«sesión X está en el rescate de abandonados»— habría
+   evitado el caso entero. Se borra al terminar.
+5. **Ramas cortas: mezclar a la rama publicada el mismo día.** El tiempo que
+   una rama vive separada es justo lo que le da para reconstruir lo que ya
+   existe. Y no cuesta despliegues extra: varios commits juntos salen en un
+   solo deploy de ~15 créditos (ver `ESTADO.md` § *Al desplegar*).
+
+Al mezclar una rama vieja, mirar **de dónde salió** (`git merge-base`) antes
+que el diff: una rama anterior al doble píxel trae un `<head>` con un solo
+`fbq('init', …)`, y un merge descuidado borra el píxel nuevo —y con él el
+`Purchase` de servidor— sin que nada dé error.
 
 ## Trabajar con Claude Code en varias sesiones/terminales — trampas ya pisadas
 
@@ -170,14 +210,27 @@ permiso técnico no cambia el acuerdo.
   claude.ai (Netlify, Meta Developer Tools, n8n) tienen un interruptor por
   conversación además del estado de cuenta. Verificar ambos antes de
   asumir que algo "no sirve".
-- **Meta Developer Tools MCP ≠ Meta Ads MCP.** El primero es para apps,
-  webhooks, App Review y documentación de desarrollador — no lee campañas,
-  gasto ni métricas de anuncios. Fácil confundirlos por el nombre.
-- **Este repo se ha trabajado en paralelo desde varias sesiones** (esta
-  conversación y al menos una sesión de terminal en la rama
-  `claude/ecommerce-landing-page-elivwb`, empujada también aquí). Antes de
+- **Meta Developer Tools MCP ≠ Meta Ads MCP, y los nombres se prestan a
+  confusión de verdad.** El de developer tools (UUID
+  `ae1781cf-f2bf-4f2a-902a-0573c66798dc`, herramientas `devtools_*`) sirve
+  para apps, webhooks, App Review y documentación — **no lee campañas ni
+  métricas**. En algún momento apareció renombrado como "Meta ads" y
+  "Meta_ads", que es casi idéntico al bueno, y eso costó varias rondas de
+  "reconecté y sigue sin funcionar". El que sí lee campañas ha aparecido como
+  "Meta Ads" (`11f49046-c27c-4c2a-a932-46daee29c03b`) y "Meta Ads MCP", con
+  herramientas `ads_*` (`ads_get_ad_entities`, `ads_update_entity`, …).
+  **Diagnóstico rápido:** si `ToolSearch` de "ads campaign insights" no
+  devuelve nada, el conector activo es el equivocado, por más que el nombre
+  diga "ads". Conviene renombrar el de devtools a su nombre real para que
+  deje de disfrazarse.
+- **El interruptor por chat se apaga solo en cada reconexión.** En una
+  conversación larga esto pasa muchas veces y parece que el conector "se
+  cayó". Trabajar desde terminal con `claude mcp add` evita el ciclo.
+- **Este repo se ha trabajado en paralelo desde varias sesiones.** Antes de
   hacer push, `git fetch` y revisar si hay commits nuevos — ya pasó un
-  push rechazado por historial divergente en este proyecto.
+  push rechazado por historial divergente en este proyecto. Pero el push
+  rechazado es la versión benigna del problema; la cara cara está arriba, en
+  *Cómo se reparte el trabajo entre sesiones*.
 - Algunas verificaciones contra APIs externas (`graph.facebook.com`,
   `netlify.com`, etc.) están bloqueadas por política de red en entornos de
   ejecución remota — hay que correrlas desde una terminal con acceso real,

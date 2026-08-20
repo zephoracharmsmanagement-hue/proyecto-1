@@ -18,10 +18,11 @@ import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
   PedidoInvalido, SinInventario } from './_precios.js';
 import { reservar, confirmar, liberar } from './_inventario.mjs';
+import { anotarVenta } from './_hoja.mjs';
+import { guardar, marcar } from './_pedidos.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
 import { purchase, hashearCliente } from './_meta.js';
 import { guardar as guardarSenales } from './_atribucion.mjs';
-import { anotar as anotarPendiente } from './_pendientes.mjs';
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -73,6 +74,14 @@ function leerCliente(c) {
     barrio: txt(c.barrio, 80),
     notas: txt(c.notas, 400),
     dedicatoria: txt(c.dedicatoria, 200),
+    /* Autorización de comunicaciones comerciales, separada de la compra.
+     *
+     * Se guarda con el pedido porque es la prueba de la autorización: la Ley
+     * 1581 pide poder demostrar cuándo y para qué se dio, y el registro del
+     * pedido ya lleva fecha. Booleano estricto —no `Boolean(c.optin)` sobre
+     * cualquier cosa— para que un `"false"` o un `1` colados en el cuerpo no
+     * se conviertan en un permiso que nadie dio: esta llamada es pública. */
+    optin: c.optin === true,
   };
 
   if (cliente.nombre.length < 2) throw new PedidoInvalido('Falta el nombre');
@@ -159,9 +168,25 @@ const cookiePixel = v => (COOKIE_PIXEL.test(String(v == null ? '' : v)) ? String
    x-forwarded-for solo sirve la primera entrada, que las siguientes son los
    proxies por los que pasó. */
 function ipCliente(headers) {
-  const directa = headers.get('x-nf-client-connection-ip');
-  if (directa) return directa;
-  return (headers.get('x-forwarded-for') || '').split(',')[0].trim() || null;
+  /* Defensivo a propósito: en producción esto siempre es un Request con
+     cabeceras, pero esta función vive dentro del camino del cobro y un ayudante
+     de atribución que lance por una cabecera ausente tumbaría la venta entera.
+     Vale la misma regla que para todo lo de Meta aquí: si no se puede saber, no
+     se sabe, y no pasa nada más. */
+  const leer = k => {
+    try { return (headers && typeof headers.get === 'function' && headers.get(k)) || ''; }
+    catch (_) { return ''; }
+  };
+  return leer('x-nf-client-connection-ip')
+    || leer('x-forwarded-for').split(',')[0].trim()
+    || null;
+}
+
+/* Por lo mismo que ipCliente: nunca lanza si no hay cabeceras. */
+function agenteCliente(headers) {
+  try {
+    return (headers && typeof headers.get === 'function' && headers.get('user-agent')) || null;
+  } catch (_) { return null; }
 }
 
 /* Lo que llevó el pedido, en la forma que Meta espera para `contents`. La talla
@@ -229,6 +254,8 @@ export default async (req) => {
   /* Queda en el log de la función: es el registro de que el pedido se creó, y
      con qué total, antes de que la clienta llegue a la pasarela. Al conciliar,
      esto es lo que se compara contra lo que Wompi diga que cobró. */
+  const lineas = detallar(pedido);
+
   console.log(JSON.stringify({
     evento: 'pedido_creado',
     referencia: ref,
@@ -240,9 +267,25 @@ export default async (req) => {
        saltó por lo que fuera. Al conciliar un sobreventa, esto es lo primero
        que hay que mirar. */
     reserva: reserva.modo,
+    /* Qué se pidió, en el propio log. Sin esto, la primera venta real obligó a
+       reconstruir el pedido desde el total porque el detalle solo existía en un
+       correo. Van las piezas y la talla —lo que hace falta para alistar— y no
+       la dirección ni el contacto: eso vive en el registro de pedidos, no en
+       un log que se consulta desde cualquier parte. */
+    lineas: lineas.map(l => ({ id: l.id, nombre: l.nombre, talla: l.talla, unidades: l.unidades })),
   }));
 
-  const lineas = detallar(pedido);
+  /* El pedido entero, guardado aparte del correo. Si Resend falla o el correo
+     se pierde, esto sigue diciendo qué despachar y a dónde. */
+  const registro = await guardar(ref, {
+    estado: pedido.pago === 'contraentrega' ? 'confirmado' : 'esperando-pago',
+    pago: pedido.pago, lineas, cuentas, cliente,
+  });
+  if (!registro.ok) {
+    console.error(JSON.stringify({
+      evento: 'pedido_sin_registrar', referencia: ref, motivo: registro.motivo,
+    }));
+  }
 
   await avisar({
     evento: 'pedido_creado',
@@ -287,7 +330,7 @@ export default async (req) => {
     fbp: cookiePixel(cuerpo.fbp),
     fbc: cookiePixel(cuerpo.fbc),
     ip: ipCliente(req.headers),
-    ua: req.headers.get('user-agent') || null,
+    ua: agenteCliente(req.headers),
     contenidos: contenidosDe(pedido),
     total: cuentas.total,
   };
@@ -297,7 +340,18 @@ export default async (req) => {
        confirmación de existencias sigue haciéndose por WhatsApp, como hoy.
        La reserva se confirma ya: no hay pasarela de la que esperar un aviso, y
        dejarla caducando media hora liberaría unidades de un pedido en firme. */
-    await confirmar(ref);
+    const cierre = await confirmar(ref);
+
+    /* A la hoja de inventario. Contraentrega es la única venta que se cierra
+       aquí: el pago en línea la anota `wompi-webhook` al aprobarse, porque hasta
+       ese momento no ha salido nada del inventario. `quedan` sale del propio CAS
+       que acaba de confirmar, así que es el número cierto y no una resta de la
+       hoja. Nunca se espera a que esto salga bien para responder. */
+    await anotarVenta({
+      referencia: ref, pago: 'contraentrega', cuando: new Date().toISOString(),
+      ciudad: `${cliente.ciudad}, ${cliente.depto}`,
+      total: cuentas.total, lineas, restante: cierre.restante,
+    });
 
     /* El Purchase de contraentrega sale de aquí y no del webhook, porque para
        este pedido no hay webhook: nunca pasa por Wompi. Es el único momento en
@@ -312,10 +366,7 @@ export default async (req) => {
        * Aquí las señales no se guardan: se usan de una vez y se acaban. Guardar
        * lo que nadie va a recoger solo deja datos de clientas dando vueltas. */
     const aMeta = await purchase({
-      referencia: ref,
-      total: cuentas.total,
-      cuando: Date.now(),
-      senales,
+      referencia: ref, total: cuentas.total, cuando: Date.now(), senales,
     });
     console.log(JSON.stringify({
       evento: 'meta_purchase', referencia: ref, pago: 'contraentrega',
@@ -334,6 +385,7 @@ export default async (req) => {
        mostrador ahora, en vez de tenerlas congeladas media hora por un pago
        que nunca se va a intentar. */
     await liberar(ref);
+    await marcar(ref, { estado: 'no-llego-a-la-pasarela', motivo: 'faltan las llaves de Wompi' });
     return responder(503, {
       error: 'El pago en línea no está configurado todavía. Puedes pedirlo '
         + 'contraentrega o escribirnos por WhatsApp.',
@@ -342,6 +394,7 @@ export default async (req) => {
 
   if (!(await comercioActivo(llave))) {
     await liberar(ref);
+    await marcar(ref, { estado: 'no-llego-a-la-pasarela', motivo: 'Wompi no reconoce el comercio' });
     return responder(503, {
       error: 'El pago en línea no está disponible en este momento. Puedes elegir '
         + 'pago contraentrega aquí mismo, o escribirnos y lo cerramos por WhatsApp.',
@@ -352,17 +405,6 @@ export default async (req) => {
      confirme. Va aquí, ya pasadas todas las salidas de emergencia, para no
      dejar en el almacén pedidos que nunca van a llegar a la pasarela.
      No bloquea la venta: guardar() nunca lanza. */
-  /* Y anota el pedido como pendiente de pago.
-   *
-   * Si la clienta no vuelve con un pago aprobado, esto es lo que permite
-   * escribirle: aquí ya dio nombre, correo, celular y piezas. Ver
-   * _pendientes.mjs — es un carrito abandonado con contacto completo, sin
-   * tener que rastrear nada.
-   *
-   * Nunca lanza, por lo mismo que todo lo de este bloque: una herramienta de
-   * recuperación no puede costar la venta que iba a recuperar. */
-  await anotarPendiente(ref, { cliente, lineas, cuentas, pago: pedido.pago });
-
   const guardado = await guardarSenales(ref, senales);
   if (guardado.modo !== 'guardado') {
     console.log(JSON.stringify({
@@ -381,4 +423,4 @@ export default async (req) => {
 
 /* Se exportan para que las pruebas comprueben la firma y la referencia sin
    tener que levantar Netlify. */
-export const _interno = { referencia, firmar, leerCliente, cookiePixel, ipCliente, contenidosDe };
+export const _interno = { referencia, firmar, leerCliente, cookiePixel, ipCliente, agenteCliente, contenidosDe };
