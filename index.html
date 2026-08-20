@@ -416,6 +416,37 @@ section{scroll-margin-top:64px}
   aspect-ratio:1;padding:14px;border-radius:5px 5px 0 0}
 .fx-ph img{width:100%;height:100%;object-fit:contain}
 .fx-ph .nofoto-m{font-size:64px}
+
+/* Galería de la ficha.
+ *
+ * Varias piezas tienen detalle por delante, por detrás o de lado, y con una
+ * sola foto ese detalle no se compra: no se ve. La tira rueda con el dedo
+ * —scroll-snap, sin librería— y las miniaturas dan el salto directo en
+ * escritorio, donde arrastrar es menos natural.
+ *
+ * Con una sola foto no se pinta nada de esto: ni tira, ni puntos, ni
+ * miniaturas. Una galería de un elemento es ruido que promete algo que no hay. */
+.fx-ph{position:relative;overflow:hidden}
+.fx-gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  width:100%;height:100%;gap:0;scrollbar-width:none;-ms-overflow-style:none}
+.fx-gal::-webkit-scrollbar{display:none}
+.fx-gal>figure{flex:0 0 100%;scroll-snap-align:center;margin:0;display:flex;
+  align-items:center;justify-content:center;min-width:0}
+.fx-gal img{width:100%;height:100%;object-fit:contain}
+.fx-pts{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;
+  gap:6px;pointer-events:none}
+.fx-pts i{width:6px;height:6px;border-radius:50%;background:rgba(42,31,46,.22);transition:.2s}
+.fx-pts i.is-on{background:var(--plum);width:16px;border-radius:3px}
+.fx-mini{display:flex;gap:6px;padding:8px 10px 0;justify-content:center;flex-wrap:wrap}
+/* Tercera vez que muerde lo mismo: display propio contra [hidden], y gana el
+   display. Aquí dejaba las miniaturas del charm anterior puestas sobre una
+   pieza que solo tiene una foto. La caza pruebas/regresion.js § 7. */
+.fx-mini[hidden]{display:none}
+.fx-mini button{width:46px;height:46px;padding:2px;border:1px solid var(--line);border-radius:3px;
+  background:#fff;cursor:pointer;flex:0 0 auto}
+.fx-mini button.is-on{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
+.fx-mini img{width:100%;height:100%;object-fit:contain}
+@media(prefers-reduced-motion:reduce){.fx-gal{scroll-behavior:auto}}
 .fx-tx{padding:20px 22px 24px}
 .fx-tx h3{font-size:clamp(24px,6vw,31px);line-height:1.15;margin:6px 0 6px}
 .fx-p{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;margin:0 0 4px}
@@ -719,7 +750,12 @@ body.sheet-open{overflow:hidden}
   .talla-sec,.pe{padding:60px 0}
   .calc{grid-template-columns:300px 1fr;gap:26px;align-items:start;max-width:none}
   .fx-box{grid-template-columns:1fr 1fr;max-height:82dvh}
-  .fx-ph{aspect-ratio:auto;border-radius:5px 0 0 5px;min-height:340px}
+  /* En dos columnas, la foto y sus miniaturas van juntas a la izquierda y el
+     texto ocupa la derecha entero. Sin esto, el bloque de miniaturas se cuela
+     en la segunda columna y empuja la descripción a la fila de abajo. */
+  .fx-ph{aspect-ratio:auto;border-radius:5px 0 0 5px;min-height:340px;grid-column:1;grid-row:1}
+  .fx-mini{grid-column:1;grid-row:2;padding-bottom:12px}
+  .fx-tx{grid-column:2;grid-row:1/span 2}
   .fx-tx{padding:26px 28px 28px}
   .fx-cta{grid-template-columns:1fr 1fr}
   .pe-grid{grid-template-columns:1fr 1fr;gap:20px}
@@ -1575,6 +1611,7 @@ body.sheet-open{overflow:hidden}
   <div class="fx-box">
     <button class="fx-x" type="button" id="fx-x" aria-label="Cerrar">✕</button>
     <div class="fx-ph" id="fx-ph"></div>
+    <div class="fx-mini" id="fx-mini" hidden></div>
     <div class="fx-tx">
       <p class="eyebrow" id="fx-tipo"></p>
       <h3 id="fx-n"></h3>
@@ -1655,6 +1692,21 @@ const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 const ESC=[0,0,.08,.15,.20];
 const escala=n=>n<=0?0:ESC[Math.min(n,4)];
 const $=s=>document.querySelector(s);
+
+/* Vistas adicionales por pieza, en orden: la principal es la de la tarjeta y
+ * estas van detrás. Se declara a mano y no por convención de nombres porque el
+ * navegador no puede preguntar si un archivo existe sin pedirlo: una convención
+ * «prueba -2, -3, -4» dispara 404 en cada ficha que se abre.
+ *
+ * `pruebas/regresion.js` comprueba que cada archivo listado aquí exista de
+ * verdad. Sin eso, un nombre mal escrito da un hueco en la galería y no un
+ * error: la ficha abre, la foto no carga, y nadie se entera. */
+const FOTOS = {
+  'hulk': ['hulk-2.webp'],
+  'mjolnir-martillo-de-thor': ['mjolnir-martillo-de-thor-2.webp', 'mjolnir-martillo-de-thor-3.webp'],
+  'spider-man': ['spider-man-2.webp'],
+  'dalmata': ['dalmata-2.webp'],
+};
 
 let base=null, sel=[];
 /* Si la clienta cierra el aviso de charms, no vuelve a salir en esa visita.
@@ -1842,6 +1894,49 @@ function pintarLetras(){
 
 /* ——— ficha de producto ——— */
 let fichaId=null;
+/* La galería de la ficha. Recibe la <img> de la tarjeta —que es la foto
+   principal, la misma que ya se está viendo— y le añade las vistas extra. */
+function pintarGaleria(id, img, nombre){
+  const ph=$('#fx-ph'), mini=$('#fx-mini');
+  const alt=nombre.replace(/"/g,'&quot;');
+  if(!img){
+    ph.innerHTML='<span class="nofoto-m" aria-hidden="true">'+nombre.trim().charAt(0).toUpperCase()+'</span>';
+    mini.innerHTML=''; mini.hidden=true;
+    return;
+  }
+  const extra=FOTOS[id]||[];
+  if(!extra.length){
+    ph.innerHTML='<img src="'+img.src+'" alt="'+alt+'">';
+    mini.innerHTML=''; mini.hidden=true;
+    return;
+  }
+  const fuentes=[img.getAttribute('src')].concat(extra.map(f=>'assets/'+f));
+  ph.innerHTML='<div class="fx-gal" id="fx-gal">'
+    + fuentes.map((src,i)=>'<figure><img src="'+src+'" alt="'+alt
+        +(i?' — vista '+(i+1):'')+'" loading="'+(i?'lazy':'eager')+'" decoding="async"></figure>').join('')
+    + '</div><div class="fx-pts" id="fx-pts" aria-hidden="true">'
+    + fuentes.map((_,i)=>'<i'+(i?'':' class="is-on"')+'></i>').join('')+'</div>';
+  mini.innerHTML=fuentes.map((src,i)=>
+    '<button type="button" data-i="'+i+'"'+(i?'':' class="is-on"')
+    +' aria-label="Ver foto '+(i+1)+' de '+fuentes.length+'">'
+    +'<img src="'+src+'" alt="" loading="lazy"></button>').join('');
+  mini.hidden=false;
+
+  const gal=$('#fx-gal'), pts=[...$('#fx-pts').children], btns=[...mini.children];
+  const marcar=i=>{
+    pts.forEach((x,j)=>x.classList.toggle('is-on',j===i));
+    btns.forEach((x,j)=>x.classList.toggle('is-on',j===i));
+  };
+  /* La posición se lee del scroll y no de un contador propio: el dedo puede
+     dejar la tira a medio camino, y un contador se desincroniza en cuanto eso
+     pasa. El ancho de la caja es el paso. */
+  gal.addEventListener('scroll',()=>marcar(Math.round(gal.scrollLeft/gal.clientWidth)),{passive:true});
+  mini.onclick=e=>{
+    const b=e.target.closest('[data-i]'); if(!b) return;
+    gal.scrollTo({left:gal.clientWidth*(+b.dataset.i), behavior:'smooth'});
+  };
+}
+
 function abrirFicha(id){
   const esB=!!PU[id], p=esB?PU[id]:CH[id];
   if(!p) return;
@@ -1851,9 +1946,7 @@ function abrirFicha(id){
   const inv=STOCK?STOCK[id]:null;
   const fam=inv&&inv.familia?FAMILIAS[inv.familia]:null;
 
-  $('#fx-ph').innerHTML = img
-    ? '<img src="'+img.src+'" alt="'+p.n.replace(/"/g,'&quot;')+'">'
-    : '<span class="nofoto-m" aria-hidden="true">'+p.n.trim().charAt(0).toUpperCase()+'</span>';
+  pintarGaleria(id, img, p.n);
   $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
   $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
   $('#fx-p').textContent = cop(p.p);

@@ -128,7 +128,70 @@ const U = BASE + '/index.html';
   // Se deja el carrito como estaba para no arrastrar estado a lo que sigue.
   await p.evaluate(() => { try { localStorage.removeItem('zephora.sel'); } catch (e) {} });
 
-  // ---- 7. Desbordamiento horizontal ----
+  // ---- 7. Galería de la ficha ----
+  //
+  // Dos cosas distintas, y la segunda es la que más calla al romperse:
+  //
+  //   a) que la galería aparezca solo donde hay varias fotos. Una tira de un
+  //      solo elemento promete un detalle que no existe.
+  //   b) que cada archivo listado en FOTOS exista. Un nombre mal escrito no da
+  //      error: la ficha abre, el hueco queda en blanco, y solo se ve mirando.
+  //      Es el mismo patrón que dejó una foto sin cargar por un carácter
+  //      invisible en el nombre.
+  const declaradas = await p.evaluate(() => {
+    const F = window.__FOTOS || null;
+    if (F) return F;
+    // FOTOS vive dentro de la IIFE del armador; se lee del propio fuente.
+    const m = document.documentElement.innerHTML.match(/const FOTOS = (\{[\s\S]*?\n\};)/);
+    return m ? JSON.parse(m[1].replace(/'/g, '"').replace(/,(\s*[}\]])/g, '$1').replace(/;$/, '')) : null;
+  });
+  let rotas = [];
+  if (declaradas) {
+    for (const [pid, lista] of Object.entries(declaradas)) {
+      for (const f of lista) {
+        const r = await p.evaluate(u => fetch(u, { method: 'HEAD' }).then(r => r.status).catch(() => 0),
+          BASE + '/assets/' + f);
+        if (r !== 200) rotas.push(`${pid}: ${f} (HTTP ${r})`);
+      }
+    }
+  }
+  out.push('\nGalería de la ficha'
+    + `\n  se leyó el mapa FOTOS: ${declaradas ? 'sí ✓ (' + Object.keys(declaradas).length + ' piezas)' : 'NO ✗'}`
+    + `\n  todas las fotos declaradas existen: ${rotas.length === 0 ? 'sí ✓' : 'NO ✗ — ' + rotas.join(', ')}`);
+
+  // Una pieza con varias fotos abre con tira y miniaturas; una con una sola, no.
+  const conVarias = declaradas ? Object.keys(declaradas)[0] : null;
+  if (conVarias) {
+    await p.evaluate(id => {
+      const t = document.querySelector(`.pc[data-id="${id}"] .pc-img`);
+      if (t) t.click();
+    }, conVarias);
+    await p.waitForTimeout(300);
+    const n = await p.locator('#fx-gal figure').count();
+    const minis = await p.locator('#fx-mini button').count();
+    out.push(`  «${conVarias}» abre con ${n} fotos y ${minis} miniaturas: `
+      + `${n === declaradas[conVarias].length + 1 && minis === n ? 'sí ✓' : 'NO ✗'}`);
+    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
+    await p.waitForTimeout(200);
+  }
+  const sinExtra = await p.evaluate(decl => {
+    const c = [...document.querySelectorAll('#charms .pc[data-id]')]
+      .map(e => e.dataset.id).find(i => !(i in decl) && i !== 'letras');
+    if (!c) return null;
+    document.querySelector(`.pc[data-id="${c}"] .pc-img`).click();
+    return c;
+  }, declaradas || {});
+  if (sinExtra) {
+    await p.waitForTimeout(300);
+    const galería = await p.locator('#fx-gal').count();
+    const miniVisible = await p.locator('#fx-mini').isVisible();
+    out.push(`  «${sinExtra}», con una sola foto, no pinta tira ni miniaturas: `
+      + `${galería === 0 && !miniVisible ? 'sí ✓' : 'NO ✗'}`);
+    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
+    await p.waitForTimeout(200);
+  }
+
+  // ---- 8. Desbordamiento horizontal ----
   for (const w of [360, 390, 430, 768, 1280]) {
     await p.setViewportSize({ width: w, height: 900 });
     await p.waitForTimeout(120);
