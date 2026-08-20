@@ -21,7 +21,49 @@ queda en el historial de git para siempre.
 
 | Archivo | Workflow | Estado |
 |---|---|---|
+| — | **Zephora · Hoja de Inventario** (`K1J4pHYfvd6QuAq8`) | **Activo en producción.** Sin exportar todavía |
 | — | **Zephora · Purchase a Meta (CAPI)** (`h5U0fGHrW4hekjtp`) | Construido, **sin publicar** y sin exportar todavía |
+
+### Zephora · Hoja de Inventario
+
+Recibe de `netlify/functions/_hoja.mjs` un aviso por venta cobrada y escribe en
+la hoja **Zephora · Inventario** (`1P-iZeFJDkPGSws_imPS_k_TaUYZrQMJGSPhBNWbNE-Y`):
+una fila por pieza en *Movimientos* y un upsert por `id`+`talla` en
+*Existencias*.
+
+Webhook: `POST /webhook/hoja-inventario`, con cabecera `X-Zephora-Token`
+(`HOJA_TOKEN` en Netlify).
+
+**La hoja es un espejo, no un mando.** `quedan` llega calculado por el CAS de
+`_inventario.mjs`; el workflow solo lo muestra y nunca resta. Reponer reescribe
+`stock.json`, no se hace editando celdas.
+
+#### Bug corregido el 2026-08-20 — filas en blanco
+
+`Buscar en Movimientos` tiene `alwaysOutputData`, así que cuando no encuentra la
+venta —o sea, **siempre que es nueva**— emite un item vacío. `Agregar Fila`
+mapeaba desde `{{ $json.referencia }}`, que a esa altura ya no era el movimiento
+sino ese objeto vacío: **cada venta escribía una fila en blanco**, y de paso la
+deduplicación no podía funcionar, porque buscaba filas anteriores que estaban
+todas vacías.
+
+Confirmado leyendo la ejecución real del 19 de agosto, no deducido.
+
+El arreglo es leer el item de origen: `{{ $('Separar Movimientos').item.json.X }}`.
+**`$('Nodo').item` y no `$node["Nodo"].json`** — la forma vieja no resuelve el
+emparejamiento de items dentro de un Split Out y, con varios movimientos en un
+pedido, devuelve el de otra pieza. En un flujo de inventario eso es restarle
+unidades a la pieza equivocada.
+
+#### Control de errores
+
+Los tres nodos de Sheets reintentan **3 veces con 2 s** y continúan en vez de
+parar. El razonamiento: la API de Sheets devuelve 429 con facilidad, y una fila
+perdida deja la hoja mostrando **más existencias de las reales** — la dirección
+peligrosa del error. Una fila duplicada se ve y se borra; una que falta, no.
+
+**Pendiente:** no hay `errorWorkflow`. Si esto falla del todo, no se entera
+nadie.
 
 ### Zephora · Purchase a Meta (CAPI)
 
