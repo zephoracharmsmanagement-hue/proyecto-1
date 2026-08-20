@@ -45,8 +45,14 @@ fbq('init','2130673404542988');
    Quitar este segundo init cuando se pueda compartir el nuevo y migrar del
    todo — ver ESTADO.md. */
 fbq('init','1029982529813994');
-fbq('track','PageView');
-fbq('track','ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',currency:'COP'});
+/* Cada evento viaja con un event_id único. Es lo que permite deduplicar cuando
+   la Conversions API manda el mismo evento desde el servidor: sin esto, cada
+   conversión se contaría dos veces. `Purchase` no usa este generador — usa la
+   referencia del pedido, que las dos puntas conocen; ver _meta.js. */
+window.zcEvId=function(){return 'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10)};
+fbq('track','PageView',{},{eventID:window.zcEvId()});
+/* ViewContent se dispara desde el script del armador, donde ya existe el
+   catálogo y puede viajar con content_ids. */
 </script>
 <noscript><img height="1" width="1" style="display:none" alt=""
 src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></noscript>
@@ -1713,7 +1719,9 @@ let base=null, sel=[];
    En sessionStorage y no en localStorage: cerrarlo hoy no es decir que no
    quiere verlo nunca más. */
 let xsFuera=(()=>{ try{ return sessionStorage.getItem('zephora.xs')==='1'; }catch(e){ return false; } })();
-const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
+const evId=()=>(window.zcEvId?window.zcEvId():'zc-'+Math.random().toString(36).slice(2,10));
+const track=(ev,d)=>{ if(typeof fbq==='function')
+  fbq('track',ev,Object.assign({currency:'COP'},d||{}),{eventID:evId()}); };
 
 function imgDe(id){
   /* las 27 iniciales comparten la foto del bloque de letras */
@@ -2530,6 +2538,12 @@ fetch('assets/stock.json',{cache:'no-cache'})
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
   })
   .catch(()=>{});
+
+/* ViewContent con los ids de los charms destacados. Son los mismos slugs de las
+   tarjetas, así que cuando se suba el catálogo a Meta usando esos slugs como id
+   de producto, el retargeting dinámico empata sin tocar nada. */
+track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',
+  content_ids:[...document.querySelectorAll('.pc--top')].map(p=>p.dataset.id)});
 })();
 </script>
 
