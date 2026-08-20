@@ -85,8 +85,43 @@ nueva escribía una fila en blanco** — y de paso la deduplicación no podía
 funcionar, porque buscaba filas anteriores que estaban todas vacías. Ahora lee
 `$('Separar Movimientos').item.json.…`.
 
-**Falta el paso de reponer**: hoy la tienda vende, la hoja lo refleja, se
-reponen piezas y ahí se corta, porque `stock.json` sigue con el conteo viejo.
+#### Reponer — `herramientas/reponer.mjs`
+
+Cierra el círculo por el otro lado. Se descarga la hoja *Existencias* como CSV
+y se pasa al script:
+
+```sh
+node herramientas/reponer.mjs conteo.csv              # solo enseña el diff
+node herramientas/reponer.mjs conteo.csv --escribir   # lo aplica
+```
+
+**Por defecto no escribe.** Este archivo decide qué puede vender la tienda, y un
+número mal puesto no da error: deja piezas fuera de la venta, o promete unidades
+que no existen y hay que devolver dinero.
+
+Valida todo antes de tocar nada —ids contra el catálogo, tallas, duplicados,
+cantidades— y si algo no cuadra no escribe **nada**: media reposición dejaría el
+inventario en un estado que no es ni el viejo ni el nuevo.
+
+Lo que no viene en el CSV se queda como estaba. Con `--faltantes=cero` se vacía,
+para cuando el CSV sea un conteo completo.
+
+Se traga el CSV **tal como lo exporta Google**: cabeceras con espacio al final,
+BOM y comas dentro de comillas. Si obligara a editarlo a mano, ahí se colarían
+justo los errores que todo lo demás intenta evitar.
+
+##### Un defecto que se corrigió de paso
+
+`_inventario.mjs` reinicia lo vendido cuando cambia el campo `generado` de
+`stock.json`. Ese campo era **una fecha sin hora**, así que reponer dos veces el
+mismo día lo dejaba idéntico: `rebasar()` devolvía false y el contador seguía
+restando contra el conteo nuevo. La tienda ofrecería menos de lo que tiene y el
+desfase se acumularía con cada venta, en silencio — no hay error, solo menos
+existencias de las reales.
+
+Ahora `generado` se escribe con marca de tiempo completa. Nadie más lo lee ni lo
+interpreta como fecha (se comprobó); la que muestra la página es
+`conteo_inventario`, que sigue siendo un día.
 
 ## Reglas de trabajo
 
