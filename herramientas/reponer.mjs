@@ -151,8 +151,13 @@ Opciones:
     abortar(`--faltantes=${faltantes} no existe. Usa "ignorar" o "cero".`);
   }
 
-  const stock = JSON.parse(readFileSync(RUTA, 'utf8'));
+  const crudo = readFileSync(RUTA, 'utf8');
+  const stock = JSON.parse(crudo);
   const items = stock.items || {};
+  /* Se reescribe con la sangría que ya tenía el archivo. Con una distinta, cada
+     reposición sale como un diff de todo el archivo y la revisión que este mismo
+     guión pide al final —«revisa el diff»— deja de poder hacerse. */
+  const sangria = (crudo.match(/\n([ \t]+)"/) || [null, '  '])[1];
   let filas;
   try {
     filas = leerCSV(readFileSync(ruta, 'utf8'));
@@ -316,7 +321,7 @@ Opciones:
   stock.conteo_inventario = conteoArg || new Date().toISOString().slice(0, 10);
   stock.items = salida;
 
-  writeFileSync(RUTA, JSON.stringify(stock, null, 2) + '\n', 'utf8');
+  writeFileSync(RUTA, JSON.stringify(stock, null, sangria) + '\n', 'utf8');
 
   console.log(`\n✓ Escrito ${RUTA}`);
   console.log(`  generado: ${stock.generado}`);

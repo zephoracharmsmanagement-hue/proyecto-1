@@ -218,7 +218,28 @@ function main() {
       'y acepta otros nombres razonables para la columna de cantidad');
   }
 
-  console.log('\n9 · El diff se puede revisar');
+  console.log('\n9 · Se respeta la sangría del archivo');
+  {
+    /* `stock.json` está sangrado con un espacio. Reescribirlo con otra sangría
+       no cambia ni un dato, pero convierte cada reposición en un diff de las
+       810 líneas del archivo — y entonces la revisión que el propio guión pide
+       al terminar («revisa el diff») ya no se puede hacer, que es justo cuando
+       se atrapa un CSV equivocado. */
+    const s = path.join(tmp, 'sangria.json');
+    fs.writeFileSync(s, JSON.stringify(stockOriginal, null, 1));
+    correr(csv(`id,quedan\n${idCharm},4\n`), s, '--escribir');
+    const lineas = fs.readFileSync(s, 'utf8').split('\n');
+    comprobar(/^ "/.test(lineas[1]),
+      'un archivo sangrado con un espacio se reescribe con un espacio', JSON.stringify(lineas[1]));
+
+    const dos = path.join(tmp, 'sangria2.json');
+    fs.writeFileSync(dos, JSON.stringify(stockOriginal, null, 2));
+    correr(csv(`id,quedan\n${idCharm},4\n`), dos, '--escribir');
+    comprobar(/^  "/.test(fs.readFileSync(dos, 'utf8').split('\n')[1]),
+      'y uno de dos espacios, con dos: se copia la que había, no una fija');
+  }
+
+  console.log('\n10 · El diff se puede revisar');
   {
     const s = copia();
     const r = correr(csv(`id,quedan\n${idCharm},${items[idCharm].stock + 5}\n`), s);

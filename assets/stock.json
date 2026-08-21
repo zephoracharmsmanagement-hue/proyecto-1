@@ -1,6 +1,6 @@
 {
- "generado": "2026-08-16",
- "conteo_inventario": "2026-08-01",
+ "generado": "2026-08-21T00:42:19.352Z",
+ "conteo_inventario": "2026-08-21",
  "items": {
   "letra-a": {
    "tipo": "charm",
@@ -269,7 +269,7 @@
   "iron-man": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 3,
+   "stock": 2,
    "familia": "pasador"
   },
   "mjolnir-martillo-de-thor": {
@@ -401,7 +401,7 @@
   "gatito-con-corazon-azul": {
    "tipo": "charm",
    "precio": 72000,
-   "stock": 3,
+   "stock": 2,
    "familia": "pasador"
   },
   "sol-y-luna-con-cristales": {

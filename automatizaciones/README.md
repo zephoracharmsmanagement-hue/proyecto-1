@@ -106,6 +106,12 @@ inventario en un estado que no es ni el viejo ni el nuevo.
 Lo que no viene en el CSV se queda como estaba. Con `--faltantes=cero` se vacía,
 para cuando el CSV sea un conteo completo.
 
+Reescribe el archivo con **la sangría que ya tenía**. Suena cosmético y no lo
+es: `stock.json` está sangrado con un espacio, y salir con otra sangría convertía
+cada reposición en un diff de las 810 líneas del archivo. La revisión que el
+propio guión pide al terminar —«revisa el diff antes de commitear»— es donde se
+atrapa un CSV equivocado, y con 810 líneas nadie la hace.
+
 Se traga el CSV **tal como lo exporta Google**: cabeceras con espacio al final,
 BOM y comas dentro de comillas. Si obligara a editarlo a mano, ahí se colarían
 justo los errores que todo lo demás intenta evitar.
