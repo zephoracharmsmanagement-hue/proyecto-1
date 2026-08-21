@@ -74,7 +74,10 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ---- 3 · buscador ----
   console.log('3 · Buscador');
-  await p.click('#more-btn');
+  /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
+     llamada que garantiza el estado abierto sin depender de cómo empiece. */
+  await p.evaluate(() => { const f = document.querySelector('#full-cat');
+    if (f && f.hidden) document.querySelector('#more-btn').click(); });
   await p.waitForTimeout(200);
   /* Cuántas tarjetas hay sin buscar nada. Se mide en vez de clavarla: el
      catálogo cambia —el día que se retiraron tres duplicados esta prueba se

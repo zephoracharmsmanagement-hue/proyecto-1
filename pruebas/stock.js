@@ -13,7 +13,10 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   p.on('console', m => { if (m.type() === 'error') errs.push('console: ' + m.text()); });
   await p.goto(U, { waitUntil: 'networkidle' });
   await p.waitForFunction(() => document.body.classList.contains('con-stock'), null, { timeout: 5000 });
-  await p.click('#more-btn');
+  /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
+     llamada que garantiza el estado abierto sin depender de cómo empiece. */
+  await p.evaluate(() => { const f = document.querySelector('#full-cat');
+    if (f && f.hidden) document.querySelector('#more-btn').click(); });
   await p.waitForTimeout(200);
 
   const tallasDe = async id => {
@@ -70,7 +73,10 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   await p.evaluate(() => { location.hash = ''; localStorage.removeItem('zephora.carrito.v1'); });
   await p.reload({ waitUntil: 'networkidle' });
   await p.waitForFunction(() => document.body.classList.contains('con-stock'));
-  await p.click('#more-btn');
+  /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
+     llamada que garantiza el estado abierto sin depender de cómo empiece. */
+  await p.evaluate(() => { const f = document.querySelector('#full-cat');
+    if (f && f.hidden) document.querySelector('#more-btn').click(); });
   await p.click('.pc[data-id="pulsera-corazon-liso"] .pc-add');
   await p.click('.tbtn[data-para="pulsera-corazon-liso"][data-talla="18"]');
   for (const id of ['mickey-mouse', 'ariel', 'hulk']) await p.click(`.pc[data-id="${id}"] .pc-add`);
@@ -104,7 +110,10 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   await p.waitForFunction(() => document.body.classList.contains('con-stock'));
   /* Volver recarga la tienda desde cero, así que el catálogo completo queda
      plegado otra vez y los pasos que siguen viven dentro de él. */
-  await p.click('#more-btn');
+  /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
+     llamada que garantiza el estado abierto sin depender de cómo empiece. */
+  await p.evaluate(() => { const f = document.querySelector('#full-cat');
+    if (f && f.hidden) document.querySelector('#more-btn').click(); });
   await p.waitForTimeout(300);
 
   console.log('7 · tope por unidades');

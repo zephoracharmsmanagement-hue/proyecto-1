@@ -35,7 +35,21 @@ const U = BASE + '/index.html';
   p.on('pageerror', e => errores.push(e.message));
   await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
 
+  /* El catálogo completo ya nace abierto: antes esta prueba lo abría con
+     #more-btn y ahora ese botón lo cerraría, dejando los filtros fuera de
+     pantalla y el resto de comprobaciones midiendo una página plegada. */
+  const abiertoAlCargar = await p.locator('#full-cat').isVisible();
+  const rotuloInicial = (await p.locator('#more-btn').textContent()).trim();
   await p.click('#more-btn');
+  await p.waitForTimeout(150);
+  const cerradoTrasClic = !(await p.locator('#full-cat').isVisible());
+  await p.click('#more-btn');
+  await p.waitForTimeout(150);
+  out.push('\nCatálogo abierto de entrada'
+    + `\n  visible al cargar: ${abiertoAlCargar ? 'sí ✓' : 'NO ✗'}`
+    + `\n  el botón ofrece cerrarlo: ${/ocultar/i.test(rotuloInicial) ? 'sí ✓' : 'NO ✗'} — "${rotuloInicial}"`
+    + `\n  y al tocarlo se pliega: ${cerradoTrasClic ? 'sí ✓' : 'NO ✗'}`);
+
   await p.click('#filters .fbtn[data-f="Disney"]');
   await p.waitForTimeout(200);
   const bActivos = await p.locator('#b-filters .fbtn.is-on').count();
@@ -52,7 +66,7 @@ const U = BASE + '/index.html';
   const destacados = await p.locator('#rail-top .pc').count();
   const rotulo = await p.locator('#more-btn').textContent();
   out.push(`\nCatálogo\n  destacados en carrusel: ${destacados}\n  revelados por el botón: ${revelados}` +
-    `\n  total: ${destacados + revelados}\n  rótulo del botón cerrado: "Ver el catálogo completo · 86 charms"`);
+    `\n  total: ${destacados + revelados}\n  rótulo actual del botón: "${rotulo.trim()}"`);
 
   // ---- 4. Categorías ----
   await p.click('.cat[data-cat="Marvel"]');

@@ -1060,9 +1060,9 @@ body.sheet-open{overflow:hidden}
     </div>
     <p class="rail-hint">Desliza para ver más →</p>
     <div class="more-wrap">
-      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver el catálogo completo · 86 charms</button>
+      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="true">Ocultar catálogo completo</button>
     </div>
-    <div id="full-cat" hidden>
+    <div id="full-cat">
       <div class="buscar">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
         <input type="search" id="q" placeholder="Buscar un charm por nombre…" aria-label="Buscar un charm por nombre" autocomplete="off">
@@ -2361,6 +2361,16 @@ document.getElementById('b-filters').addEventListener('click',e=>{
 });
 
 /* catalogo completo */
+/* El catálogo completo nace abierto.
+ *
+ * Estaba detrás de un botón, y eso deja 86 charms —el grueso de lo que se
+ * vende— a un clic que mucha gente no da: quien llega de un anuncio no sabe que
+ * hay más que el carrusel de destacados. Abrirlo no cuesta carga porque cada
+ * tarjeta lleva loading="lazy" y el navegador solo pide las que se acercan a la
+ * pantalla.
+ *
+ * El botón se queda, ahora para cerrarlo: quien ya sabe lo que quiere agradece
+ * poder plegar 86 tarjetas y volver a la parte de arriba. */
 const full=$('#full-cat'), moreBtn=$('#more-btn');
 const CERRADO='Ver el catálogo completo · 86 charms';
 function abrirCat(v){
