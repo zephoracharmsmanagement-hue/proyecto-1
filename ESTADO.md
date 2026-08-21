@@ -49,6 +49,14 @@ automatizaciones **la última y decidiendo pieza por pieza qué se queda** — n
 merge directo. De esa rama lo que no está duplicado es `disponibilidad.mjs` y
 `_atribucion.mjs`; el rescate y el registro de pedidos ya están resueltos aquí.
 
+> **`disponibilidad.mjs` ya se trajo** (2026-08-21, rama
+> `claude/zephora-charms-automation-rzbthc`): la función, el `disponibles()` de
+> `_inventario.mjs` y `pruebas/disponibilidad.js`, con `git checkout` de esos
+> tres archivos y nada más. Salió gratis porque `_precios.js` es idéntico en las
+> dos ramas y `_inventario.mjs` allí es este mismo más 33 líneas — se comprobó
+> con `git diff` antes de tocar nada. **No hay que volver a traerlo**, y lo que
+> queda de esa rama sigue siendo `_atribucion.mjs` y nada más.
+
 ---
 
 ## Lo primero: el bloqueo de despliegues, y qué lo causó
@@ -754,14 +762,15 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **9 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **10 functions**
 (`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`, `_hoja`, `rescate`);
+`_pedidos`, `_hoja`, `rescate`, `disponibilidad`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 
 > **Este número sube cada vez que se añade un módulo a `netlify/functions/`, y
-> hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`.
+> hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`,
+> y 9 hasta que entró `disponibilidad.mjs`.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
 > persona ve «9» donde el documento pide «8», da por bueno el desajuste, y la
 > comprobación deja de servir justo para lo que existe — detectar que las
