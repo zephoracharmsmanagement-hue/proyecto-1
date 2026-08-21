@@ -224,6 +224,57 @@ perder el dorso habría sido perder información que el catálogo ya daba.
 > como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
 > existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
 
+#### Qué mandar para que la foto quede bien — medido, no supuesto
+
+Los tamaños salen de medir la página en el navegador a los anchos y densidades
+reales, no del CSS:
+
+| Dónde se pinta | CSS px | En un móvil (DPR 3) pide | Archivo hoy |
+|---|---|---|---|
+| Tarjeta de la rejilla | 152–227 | 456–681 px | 440 ✓ |
+| Ficha de producto | 330–352 | 990 px | 440 — **la estira 2,3×** |
+| Miniatura de la galería | 40 | 120 px | de sobra |
+
+Los **440×440 están bien elegidos para la rejilla** —456 pedidos contra 440
+servidos, prácticamente exacto— y **cortos para la ficha**, que llegó después.
+En escritorio la ficha estira 1,6×; en móvil, 2,3×.
+
+**Manda siempre el original más grande que tengas, mínimo 1200 px de lado.**
+No es para guardarlo así: es que reducir se puede y ampliar no. De los 27
+archivos de la tanda del 2026-08-21, 20 venían entre 192 y 225 px y por eso no
+entró ninguno — estirarlos a 440 los deja peor que lo que ya había.
+
+Lo que hace que una foto sirva, por orden de veces que lo ha roto:
+
+1. **Una pieza por foto.** El defecto más común no es el desenfoque sino el
+   collage: la captura de la ficha del proveedor trae tres paneles, y la pieza
+   acaba ocupando un tercio del cuadro. En `bola-rosa-con-flores` el charm
+   medía 96×127 px reales de los 440 que se pintaban.
+2. **Nada quemado encima.** Sellos «S925 / Real Sterling Silver», logos de
+   marca, contadores de galería («8/8», «10/10»), textos tipo «4pc/set» o
+   «REAL SHOT». No se pueden quitar después sin repintar la foto.
+3. **Fondo liso, claro.** Blanco a ser posible. Los fondos rosa o lila rompen
+   la rejilla aunque la pieza esté bien.
+4. **La pieza llenando el cuadro.** El catálogo tiene una mediana del 90%. Si
+   viene con mucho margen, `entrar_fotos.py` recorta y reencuadra sola, así que
+   esto es lo menos crítico de los cuatro.
+
+Lo que **no** importa, para no perder tiempo ahí: el formato (webp, jpg, png y
+jfif entran igual, se convierten), el peso del original (se recomprime a ~14 KB)
+y el nombre del archivo — el emparejamiento con la pieza se hace mirando la
+imagen, no leyendo el nombre. Nombrarla con el id ayuda, pero `download (7).webp`
+también sirve.
+
+> Para la foto que se ve **al compartir el sitio** (`og:image`) la regla es otra:
+> horizontal **1200×630**, no cuadrada, y con la pieza centrada porque WhatsApp
+> y Facebook recortan los bordes.
+
+**Si algún día se decide arreglar la ficha**, los originales de 1200×1200 de esta
+tanda siguen en el historial, en `assets/webp2/` del commit `cb5c39c` de `main`.
+Subir el catálogo entero de 440 a 880 lo llevaría de 1,8 MB a ~3,6 MB; como la
+rejilla carga en diferido y la ficha abre de una en una, lo sensato sería una
+copia grande solo para la ficha, no subir las 108.
+
 ### 2 · Domicilio
 
 No se publica, por decisión del propietario. Queda anotado que el **artículo 50 de
