@@ -25,6 +25,7 @@
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
     "render": "remotion render Anuncio-9x16 out/anuncio-9x16.mp4",
-    "render:todos": "remotion render Anuncio-9x16 out/anuncio-9x16.mp4 && remotion render Anuncio-4x5 out/anuncio-4x5.mp4 && remotion render Anuncio-1x1 out/anuncio-1x1.mp4"
+    "render:todos": "remotion render Anuncio-9x16 out/anuncio-9x16.mp4 && remotion render Anuncio-4x5 out/anuncio-4x5.mp4 && remotion render Anuncio-1x1 out/anuncio-1x1.mp4 && remotion render Armada-9x16 out/armada-9x16.mp4",
+    "render:armada": "remotion render Armada-9x16 out/armada-9x16.mp4"
   }
 }

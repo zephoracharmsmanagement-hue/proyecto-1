@@ -23,8 +23,9 @@ y se ve el resultado sin renderizar nada.
 ## Renderizar
 
 ```sh
-npm run render         # solo 9x16, a out/anuncio-9x16.mp4
-npm run render:todos   # los tres formatos
+npm run render         # solo Anuncio-9x16, a out/anuncio-9x16.mp4
+npm run render:armada  # la pulsera armada
+npm run render:todos   # las cuatro piezas
 ```
 
 Los archivos salen en `out/`, que está en `.gitignore`: son binarios que se
@@ -47,6 +48,7 @@ Sirve el que trae Playwright, que las pruebas del repo ya instalan.
 | `Anuncio-9x16` | 1080×1920 | Reels, Stories                 |
 | `Anuncio-4x5`  | 1080×1350 | Feed de Instagram y de Facebook|
 | `Anuncio-1x1`  | 1080×1080 | Feed cuadrado, Marketplace     |
+| `Armada-9x16`  | 1080×1920 | Reels, Stories — ver más abajo |
 
 Se renderizan los tres a propósito. Subir solo el cuadrado y dejar que Meta lo
 recorte para Reels es lo que corta el precio por la mitad —el recorte no sabe
@@ -54,6 +56,41 @@ qué parte del cuadro importa—. `src/AnuncioProducto.tsx` no consulta el id de
 composición: mide la proporción del lienzo y decide si apila la foto sobre el
 texto o los pone lado a lado, así que agregar un formato nuevo es una línea en
 `src/marca.ts`.
+
+## `Armada-9x16` — la pulsera armada, y por qué es la excepción
+
+`src/Armada.tsx` anuncia la pulsera armada con charms sobre
+`assets/pulsera-zephora-armada-con-charms-en-plata-925.webp`, la foto del hero
+de `index.html`.
+
+Esa foto **ya es un creativo terminado**: trae su propio titular quemado —«La
+pulsera que todas quieren / Personalízala con tus charms favoritos»— y el logo
+abajo a la derecha. De ahí salen sus dos diferencias con el resto:
+
+- **No pone titular ni firma.** Sería un segundo titular encima del primero. Lo
+  que aporta es lo que a la foto le falta para ser un anuncio: movimiento, el
+  precio y un botón, sobre un velo que aparece a los 1,3 s para que la foto se
+  lea primero.
+- **Solo se registra en 9x16.** La foto es 502×900, o sea prácticamente 9:16
+  ya: el lienzo alargado la deja intacta y el acercamiento llega hasta 1,06,
+  que es donde el recorte empieza a comerse la primera línea del titular.
+  Cualquier recorte a 1x1 o a 4x5 le parte el titular a media frase. Para feed
+  hace falta una **toma limpia** de la pulsera armada, sin texto encima; con
+  ella sirve `AnuncioProducto` y salen los tres formatos.
+
+**El precio no está escrito a mano ni es aproximado.** `src/oferta.ts` importa
+`netlify/functions/_precios.js` —el módulo que cobra en producción— y le pide
+el total de la combinación más barata que el inventario permita hoy: el
+brazalete más barato con talla disponible más los 3 charms más baratos con
+stock. Sale un «desde» de verdad, con el ahorro y el envío gratis calculados
+por las mismas cuatro reglas que aplica el checkout (escala por número de
+charms, 30% del brazalete a partir de 3, empaque, umbral de envío). Reimplantar
+esas reglas aquí sería la cuarta copia, y la primera que nadie compara con las
+demás.
+
+Consecuencia: **la cifra se mueve sola con el inventario.** Si se agota el
+brazalete más barato, el siguiente render dice otro número —el verdadero—. Vale
+la pena mirarlo antes de subir el video a Meta.
 
 ## De dónde salen los datos
 

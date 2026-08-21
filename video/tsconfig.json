@@ -11,7 +11,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    // _precios.js, el módulo de cobro del sitio, es JavaScript sin tipos.
+    "allowJs": true
   },
   "exclude": ["remotion.config.ts"]
 }

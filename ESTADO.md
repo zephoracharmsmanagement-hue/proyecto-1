@@ -642,8 +642,28 @@ Lo que hay que saber antes de tocarlo (el resto está en `video/README.md`):
   letras y tres personajes— no pueden salir en un anuncio; es el mismo hueco
   que el pendiente de reponer las 14 letras que nunca se compraron.
 
-Pendiente de decidir por el propietario: qué joyas anunciar y con qué gancho.
-Lo montado renderiza `pulsera-corazon-pave` como ejemplo.
+Hay dos anuncios montados:
+
+- **`Anuncio-*`**, para tomas limpias de producto. Renderiza
+  `pulsera-corazon-pave` como ejemplo y sale en los tres formatos.
+- **`Armada-9x16`**, sobre la foto del hero
+  (`pulsera-zephora-armada-con-charms-en-plata-925.webp`). Solo 9x16, y esa
+  restricción no es pereza: **esa foto ya es un creativo terminado**, con su
+  titular y su logo quemados. El lienzo alargado la deja intacta; un recorte a
+  1x1 o a 4x5 le parte el titular a media frase. **Para tener la pulsera armada
+  en feed hace falta una toma limpia, sin texto encima** — con ella sirve
+  `AnuncioProducto` tal cual y salen los tres formatos. Es el mismo pendiente
+  de fotos, en otra forma.
+
+  Su precio lo calcula `netlify/functions/_precios.js`, el módulo que cobra en
+  producción, sobre la combinación más barata que el inventario permita hoy:
+  hoy da **desde $206.350, ahorras $46.650, envío gratis**. La cifra se mueve
+  sola cuando cambia el stock, así que **conviene mirarla antes de subir el
+  video a Meta**: si se agota el brazalete más barato, el siguiente render dice
+  otro número.
+
+Pendiente de decidir por el propietario: qué otras joyas anunciar y con qué
+gancho.
 
 ### 6 · «A veces se borran las joyas» — cerrado
 

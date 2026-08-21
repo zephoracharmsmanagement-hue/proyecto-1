@@ -6,6 +6,7 @@ import {
   propsPorDefecto,
   type PropsAnuncio,
 } from "./AnuncioProducto";
+import { Armada, propsArmada, type PropsArmada } from "./Armada";
 import { DURACION, FPS, formatos } from "./marca";
 
 /**
@@ -28,6 +29,23 @@ export const RemotionRoot: React.FC = () => {
           defaultProps={propsPorDefecto satisfies PropsAnuncio}
         />
       ))}
+
+      {/*
+        La pulsera armada solo va en 9x16, y es la excepción a la regla de
+        arriba. Su foto ya es un creativo terminado de 502×900 —titular y logo
+        quemados— así que el lienzo alargado la deja intacta y cualquier
+        recorte a cuadrado o a 4x5 le parte el titular a media frase. Para
+        feed, el camino es una toma limpia de producto por `AnuncioProducto`.
+      */}
+      <Composition
+        id="Armada-9x16"
+        component={Armada}
+        durationInFrames={DURACION}
+        fps={FPS}
+        width={formatos["9x16"].width}
+        height={formatos["9x16"].height}
+        defaultProps={propsArmada satisfies PropsArmada}
+      />
     </>
   );
 };
