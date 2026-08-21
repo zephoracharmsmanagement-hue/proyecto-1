@@ -13,3 +13,6 @@ node_modules/
 # Dependencias de las pruebas
 pruebas/node_modules/
 pruebas/capturas/
+
+# Comparaciones generadas por herramientas/entrar_fotos.py
+herramientas/salida/
