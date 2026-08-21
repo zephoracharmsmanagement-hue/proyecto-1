@@ -157,6 +157,51 @@ diagnósticos y consultas de datos van directo. Esto sigue vigente aunque el
 conector de Ads MCP termine con permisos de escritura completos — el
 permiso técnico no cambia el acuerdo.
 
+## Contenido orgánico — el motor de paquetes de rodaje
+
+Frente nuevo, hermano de la pauta y con las mismas reglas de dinero. El brief
+completo está en
+[`automatizaciones/contenido/BRIEF.md`](automatizaciones/contenido/BRIEF.md) —
+cuatro fases, orden de construcción y, sobre todo, **qué se decidió no
+construir**. Aquí solo lo que hay que saber para no deshacerlo sin leerlo.
+
+- **El motor no produce videos: produce paquetes de rodaje.** Elige la pieza
+  según inventario real, escribe gancho, guion y lista de tomas, genera portada
+  y b-roll, cronometra subtítulos y deja el texto por red. El propietario graba
+  y monta. Baja el trabajo por video de ~40 a ~5 minutos.
+- **CapCut no se automatiza, y es decisión, no pendiente.** No hay API pública;
+  los envoltorios no oficiales son ingeniería inversa y **CapCut y TikTok son
+  ambos de ByteDance con la misma cuenta**, así que arriesgan justo el activo
+  que se quiere construir. La razón de fondo es otra: el **audio en tendencia**
+  solo se consigue dentro de TikTok y CapCut, y en video corto el audio es la
+  mitad de la viralidad. Armar el video por fuera entrega algo mudo.
+- **Imagen generada nunca puede parecer producto a la venta que no existe.**
+  Con producto de por medio, la foto es la real y la IA solo pone el fondo. Una
+  imagen totalmente generada solo vale para **sondeo**, nunca como oferta.
+- **La medición cierra en checkouts, no en vistas.** Misma lección que Copia 4:
+  mejor CTR de la cuenta y de los peores en conversión.
+- **Los videos no se comitean.** ~15 créditos por despliegue y el historial de
+  git se los queda para siempre. Las 10 imágenes de `assets/ads/` son la
+  excepción correcta —pesan poco y la CAPI necesita URL pública—; video no.
+- **Elegibilidad: 3 unidades o más.** Hoy son 46 referencias de 129 (24 en cero,
+  59 en 1–2). Trampa ya cazada: `stock.json` guarda las unidades en dos formas
+  —charm `stock`, pulsera `tallas`— y un `item.stock || 0` da **cero para las 18
+  pulseras sin dar ningún error**. Y `stock.json` no sabe lo apartado desde el
+  último conteo: eso lo resuelve `disponibilidad.mjs`, que **ya existe sin
+  mezclar** en `claude/zephora-charms-automation-hub-5aihdu`. Traerla pieza por
+  pieza, nunca merge directo — esa rama trae también un rescate duplicado.
+- **Fase 4 (publicación automática) existe:** Instagram está como cuenta
+  Business ligada a la Página **«Zephora Charms» (`1096237716904526`)**,
+  confirmada por API como promovida bajo la cuenta `1583713932705268`. IG Reels
+  y FB Reels son **dos integraciones distintas**, no una. TikTok se queda
+  manual: una app sin auditar no publica con difusión, y el audio se elige
+  dentro de la app de todos modos.
+
+Lo de mayor retorno de todo el frente **no necesita el motor**: una historia con
+las iniciales preguntando *«¿cuál te falta?»* resuelve en 24 horas y gratis si
+comprar las 14 letras que faltan (~$73.000 de costo, ~$1.064.000 de utilidad
+potencial) es apuesta o dato. Hoy se está decidiendo a ciegas.
+
 ## Cómo se reparte el trabajo entre sesiones — leer antes de construir
 
 **El riesgo de este repo no son los conflictos de git: es construir dos veces
