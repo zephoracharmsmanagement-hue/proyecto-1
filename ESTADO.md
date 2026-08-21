@@ -173,6 +173,57 @@ se dejó de vender nada.
 > cosa que un duplicado esconde — dos precios para la misma pieza, y la clienta
 > comprando por el que encuentre primero.
 
+#### Calidad de las fotos, no ausencia de fotos
+
+Cerrado que no falte ninguna, lo que queda es de qué son. Casi ninguna está
+borrosa: **están sucias**. Son capturas de fichas de proveedor, con lo que
+traía la ficha dentro —collages de tres paneles donde la pieza ocupa un tercio
+del cuadro, contadores de galería quemados en el píxel («8/8», «10/10»,
+«8/9»), textos sobrepuestos («4pc/set», «REAL SHOT», logos de marca) y el
+sello rojo «S925 / Real Sterling Silver»—.
+
+De la revisión de las 108 salieron 18 con alguno de esos defectos. La tanda
+del 2026-08-20 arregló 13. En esta entraron **7 reemplazos y una segunda
+vista**, todos desde originales de 1200×1200 o más:
+
+| Pieza | Qué tenía |
+|---|---|
+| `guantelete-del-infinito` | Collage de 3 piezas + logo Disney + sello + una línea negra suelta |
+| `bola-rosa-con-flores` | Collage de 3 paneles; el charm medía **96×127 px reales** de los 440 |
+| `mickey-mouse`, `stitch` | Sello S925 |
+| `pulsera-avengers`, `pulsera-corona-pave`, `pulsera-corona-con-cristales` | Sello «Real Sterling Silver» |
+
+El guantelete además gana segunda vista (`guantelete-del-infinito-2.webp`,
+registrada en `FOTOS`): el collage que se retiró mostraba frente y dorso, y
+perder el dorso habría sido perder información que el catálogo ya daba.
+
+**Lo que sigue sin reemplazo**, porque no llegó o porque el que llegó era peor:
+
+- `escudo-capitan-america` y `corazon-arbol-de-la-vida` — nadie mandó una.
+- `atrapasuenos-azul` — la que llegó viene a 158×318 y la actual tiene la pieza
+  a 386×329. Quitarle el «8/9» costaría nitidez, que es exactamente el cambio
+  que se revirtió con el osito. Se queda hasta que aparezca una grande.
+- El **sello S925 sigue en ~30 fotos**. Una no se nota; treinta en la misma
+  rejilla dicen bastante fuerte que las fotos no son de la tienda. Es la
+  decisión grande que queda abierta.
+- La foto que se ve **al compartir el sitio** por WhatsApp o Facebook
+  (`og:image`) es `pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg`:
+  800×600, luz de casa, fondo de sala. Es la primera impresión en cada enlace
+  compartido y en cada anuncio, y cambiarla rinde más que cualquiera de las de
+  arriba.
+
+> Meter fotos dejó de ser un `cp` a mano: `herramientas/entrar_fotos.py` limpia
+> el nombre, lo empareja contra una pieza real, reescala a 440×440 al 90% de
+> llenado —la mediana del catálogo; conservar el margen del original deja la
+> tarjeta encogida al lado de sus vecinas— y compara los píxeles de producto
+> del original contra los del actual. No escribe nada sin `--aplicar`.
+>
+> Dos cosas que ese script **no** puede decidir, y por eso enseña la hoja de
+> antes/después en vez de bloquear: no ve el desenfoque, solo cuenta píxeles; y
+> cuando los paneles de un collage traen fondo propio, el panel entero cuenta
+> como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
+> existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
+
 ### 2 · Domicilio
 
 No se publica, por decisión del propietario. Queda anotado que el **artículo 50 de

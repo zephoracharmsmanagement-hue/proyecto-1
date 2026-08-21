@@ -16,3 +16,8 @@ pruebas/capturas/
 
 # Comparaciones generadas por herramientas/entrar_fotos.py
 herramientas/salida/
+
+# Carpeta de subida de fotos: material en bruto, no se publica.
+assets/webp2/
+
+__pycache__/
