@@ -50,6 +50,15 @@
   to = "/404.html"
   status = 404
 
+# video/ es el proyecto de Remotion con el que se arman los anuncios: código
+# fuente, tipografías y su package.json. Los MP4 no se versionan, así que aquí
+# no hay nada servible, pero la raíz se publica entera y sin esta línea
+# quedaría en zephoracharms.com/video/.
+[[redirects]]
+  from = "/video/*"
+  to = "/404.html"
+  status = 404
+
 # Los documentos internos viven en la raíz, que es justo lo que se publica, así
 # que no los cubría el bloqueo de las carpetas de arriba: quedaban servidos en
 # zephoracharms.com/ESTADO.md. No hay llaves en ellos —esas viven solo en

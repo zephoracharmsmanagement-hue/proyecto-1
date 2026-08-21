@@ -613,6 +613,38 @@ que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` �
 > era del sitio. Las tres ahora apuntan a la regla: *el CTA principal cae sobre
 > el pliegue*, *el salto a WhatsApp mide*, *la talla libre confirma*.
 
+### 5d · `video/` — anuncios en video, montado
+
+Proyecto de Remotion en `video/`, con su propio `package.json`. **No toca el
+sitio**: `netlify.toml` manda `/video/*` a 404, no hay comando de build nuevo y
+Netlify sigue instalando solo la dependencia de la raíz. Renderiza el anuncio de
+una joya en los tres lienzos de Meta —9x16 para Reels y Stories, 4x5 y 1x1 para
+feed— a partir de un slug del catálogo.
+
+Por qué existe: los diez creativos de `assets/ads/` son fotos fijas, y la
+entrega de video en Reels sale más barata por mil impresiones que la de imagen.
+
+Lo que hay que saber antes de tocarlo (el resto está en `video/README.md`):
+
+- **Nombre y precio salen de `assets/catalogo.json`**, no escritos a mano. Es el
+  mismo archivo que leen el checkout y `_precios.js`, así que un cambio de
+  precio llega solo al anuncio en vez de quedarse viejo sin avisar.
+- **Las fotos salen de `assets/` directamente.** El directorio público de
+  Remotion apunta a `../assets`; no hay copia que se desincronice cuando se
+  cambie una toma —que ya pasó dos veces con las tomas limpias—.
+- **Las tipografías están versionadas en `video/src/fuentes/`** (48 KB, licencia
+  OFL) en vez de pedirse a Google Fonts como hace el sitio. Un render que
+  depende de la red da fotogramas distintos según si la descarga llegó a
+  tiempo, y falla entero detrás de un proxy.
+- **Los MP4 no se versionan**: `video/out/` está ignorado. Se regeneran con
+  `npm run render:todos` en un minuto.
+- Solo 99 de las 129 referencias del catálogo tienen foto. Las 30 sin foto —las
+  letras y tres personajes— no pueden salir en un anuncio; es el mismo hueco
+  que el pendiente de reponer las 14 letras que nunca se compraron.
+
+Pendiente de decidir por el propietario: qué joyas anunciar y con qué gancho.
+Lo montado renderiza `pulsera-corazon-pave` como ejemplo.
+
 ### 6 · «A veces se borran las joyas» — cerrado
 
 Ya no es un misterio, y **la causa no era la que se estaba persiguiendo**. La

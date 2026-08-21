@@ -1,0 +1,30 @@
+{
+  "name": "zephora-video",
+  "version": "1.0.0",
+  "description": "Piezas de video para los anuncios de Zephora Charms (Remotion).",
+  "repository": {},
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.514",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.514"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.514",
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "eslint": "9.19.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "upgrade": "remotion upgrade",
+    "lint": "eslint src && tsc",
+    "render": "remotion render Anuncio-9x16 out/anuncio-9x16.mp4",
+    "render:todos": "remotion render Anuncio-9x16 out/anuncio-9x16.mp4 && remotion render Anuncio-4x5 out/anuncio-4x5.mp4 && remotion render Anuncio-1x1 out/anuncio-1x1.mp4"
+  }
+}
