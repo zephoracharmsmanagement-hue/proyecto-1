@@ -1,0 +1,56 @@
+{
+  "_nota": "Paquete de ejemplo con datos reales de assets/stock.json (generado 2026-08-16). Sirve para renderizar en Remotion antes de que el motor exista. Ver CONTRATO-REMOTION.md.",
+  "id": "pkg-2026-08-21-atrapasuenos-azul",
+  "estado": "aprobado",
+  "pieza": {
+    "id": "atrapasuenos-azul",
+    "nombre": "Atrapasueños azul",
+    "tipo": "charm",
+    "familia": "pasador",
+    "material": "Plata Esterlina 925",
+    "precio": 72000,
+    "foto": "assets/atrapasuenos-azul.webp",
+    "unidades_al_decidir": 7,
+    "fuente_disponibilidad": "conteo-menos-apartado"
+  },
+  "gancho": "Tres cosas que nadie te dice antes de comprar plata 925.",
+  "guion": [
+    { "desde": 0, "hasta": 3, "texto": "Tres cosas que nadie te dice antes de comprar plata 925.", "toma": "A" },
+    { "desde": 3, "hasta": 7, "texto": "La primera: si no dice 925, no es plata esterlina. Y eso va marcado en la pieza.", "toma": "B" },
+    { "desde": 7, "hasta": 12, "texto": "La segunda: se oscurece. Eso es normal, es plata de verdad. La que nunca cambia casi nunca lo es.", "toma": "C" },
+    { "desde": 12, "hasta": 18, "texto": "Y la tercera: el pasador tiene que abrir sin forzar. Si toca hacer fuerza, ahí se rompe la pulsera.", "toma": "B" },
+    { "desde": 18, "hasta": 22, "texto": "Este es el atrapasueños azul. Setenta y dos mil.", "toma": "D" }
+  ],
+  "tomas": [
+    { "id": "A", "que": "Pieza en la mano, girándola despacio contra luz de ventana", "duracion_util": 4 },
+    { "id": "B", "que": "Primer plano del pasador abriendo y cerrando. Se usa dos veces en el montaje: grabar una sola", "duracion_util": 8 },
+    { "id": "C", "que": "La pieza junto a otra ya usada, para que se note la diferencia de tono", "duracion_util": 5 },
+    { "id": "D", "que": "Pieza puesta en la pulsera, ya montada, plano cerrado", "duracion_util": 5 }
+  ],
+  "subtitulos": [
+    { "desde": 0.0, "hasta": 1.4, "texto": "Tres cosas que nadie te dice" },
+    { "desde": 1.4, "hasta": 3.0, "texto": "antes de comprar plata 925" },
+    { "desde": 3.0, "hasta": 5.0, "texto": "Si no dice 925," },
+    { "desde": 5.0, "hasta": 7.0, "texto": "no es plata esterlina" },
+    { "desde": 7.0, "hasta": 9.5, "texto": "Se oscurece. Eso es normal." },
+    { "desde": 9.5, "hasta": 12.0, "texto": "La que nunca cambia casi nunca lo es" },
+    { "desde": 12.0, "hasta": 15.0, "texto": "El pasador tiene que abrir sin forzar" },
+    { "desde": 15.0, "hasta": 18.0, "texto": "Si toca hacer fuerza, ahí se rompe" },
+    { "desde": 18.0, "hasta": 22.0, "texto": "Atrapasueños azul · $72.000" }
+  ],
+  "portada": {
+    "titulo": "3 cosas que nadie te dice",
+    "subtitulo": "sobre la plata 925",
+    "foto": "assets/atrapasuenos-azul.webp"
+  },
+  "broll": [
+    { "foto": "assets/atrapasuenos-azul.webp", "movimiento": "zoom-lento", "duracion": 3 },
+    { "foto": "assets/atrapasuenos-corazon-multicolor.webp", "movimiento": "paneo-derecha", "duracion": 3 }
+  ],
+  "textos": {
+    "tiktok": "La tercera me la aprendí rompiendo una 🙃 #plata925 #joyeria #charms #colombia",
+    "instagram": "Tres cosas que nadie te dice antes de comprar plata 925 — y la tercera es la que más caro sale.\n\nAtrapasueños azul, Plata Esterlina 925. Link en bio.\n\n#plata925 #charms #joyeriaplata #regalosoriginales #colombia",
+    "facebook": "Tres cosas que nadie te dice antes de comprar plata 925. La tercera es la que más caro sale.\n\nAtrapasueños azul — Plata Esterlina 925 — $72.000"
+  },
+  "enlace": "https://zephoracharms.com/?utm_source=organico&utm_medium=reel&utm_campaign=pkg-2026-08-21-atrapasuenos-azul"
+}

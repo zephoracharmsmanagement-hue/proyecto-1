@@ -190,6 +190,15 @@ construir**. Aquí solo lo que hay que saber para no deshacerlo sin leerlo.
   último conteo: eso lo resuelve `disponibilidad.mjs`, que **ya existe sin
   mezclar** en `claude/zephora-charms-automation-hub-5aihdu`. Traerla pieza por
   pieza, nunca merge directo — esa rama trae también un rescate duplicado.
+- **Remotion no reabre lo de CapCut, lo confirma.** Se está explorando en otra
+  sesión y encaja de verdad, pero **renderiza mudo**: sirve para portadas,
+  b-roll, carruseles, creativos de pauta (que se ven en silencio) y piezas de
+  pura tipografía — no para el Reel principal. Gratis hasta 3 personas, licencia
+  a partir de 4. Necesita host propio para renderizar (Chromium + FFmpeg):
+  **Netlify no sirve**, empezar en local. Y le da la vuelta a lo de no comitear
+  video: lo que se versiona es el componente React, y el MP4 es salida de build.
+  Frontera entre las dos sesiones y contrato del JSON en
+  [`automatizaciones/contenido/CONTRATO-REMOTION.md`](automatizaciones/contenido/CONTRATO-REMOTION.md).
 - **Fase 4 (publicación automática) existe:** Instagram está como cuenta
   Business ligada a la Página **«Zephora Charms» (`1096237716904526`)**,
   confirmada por API como promovida bajo la cuenta `1583713932705268`. IG Reels

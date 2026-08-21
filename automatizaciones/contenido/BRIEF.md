@@ -62,9 +62,19 @@ tendencia, y son un botón que aprieta una persona.
 | Escribe subtítulos ya cronometrados | Publica |
 | Deja el texto y los hashtags por red | |
 
-Si algún día se quiere armado automático de verdad, **la vía sana es FFmpeg**
-—gratis, n8n lo llama directo— y solo para lo mecánico: pegar clips, quemar
-subtítulos, exportar vertical. Es fase tardía y probablemente no haga falta.
+Si algún día se quiere armado automático de verdad, **la vía sana es
+Remotion** —React que se renderiza a video, gratis en este tamaño de equipo— y
+no FFmpeg a pelo, que era la respuesta anterior. Ya se está explorando en otra
+sesión; el reparto y el contrato están en
+[`CONTRATO-REMOTION.md`](CONTRATO-REMOTION.md).
+
+**Pero eso no reabre esta decisión, la confirma.** Remotion renderiza video
+perfecto y **mudo**. Sirve justo donde el audio no decide —portadas, b-roll,
+carruseles, creativos de pauta que se ven en silencio, piezas de pura
+tipografía— y sigue sin servir para el Reel principal, que es donde el audio en
+tendencia es la mitad del resultado. Si alguna composición de Remotion empieza a
+llevar pista de audio, esta decisión se está deshaciendo sin que nadie la haya
+tomado.
 
 ### 2 · Imagen generada nunca puede parecer producto a la venta que no existe
 
@@ -232,16 +242,28 @@ Cuando alguien llega al perfil desde un video, ve una **cuadrícula**. Esa
 cuadrícula decide si sigue o se va. La portada de un Reel es una imagen fija, y
 por defecto es un fotograma cualquiera del video, que se ve mal.
 
-Con portadas generadas consistentes —mismo estilo, misma tipografía, la pieza
-real recortada— el perfil pasa de verse improvisado a verse marca. Era
-literalmente lo que el propietario pidió: *que la gente se interese al entrar al
-perfil*. **Y es imagen, no video.**
+Con portadas consistentes —mismo estilo, misma tipografía, la pieza real
+recortada— el perfil pasa de verse improvisado a verse marca. Era literalmente
+lo que el propietario pidió: *que la gente se interese al entrar al perfil*.
+**Y es imagen, no video.**
+
+**Aquí Remotion es la herramienta, no la IA de imagen.** Una portada es
+tipografía fija más la foto real compuesta: eso es un componente React
+renderizado a PNG, determinista y repetible. Dos portadas hechas con un mes de
+diferencia salen idénticas en estilo, que es el punto entero de que la
+cuadrícula parezca marca. Y **compone en vez de inventar**, así que la regla 2
+se cumple sola. Ver [`CONTRATO-REMOTION.md`](CONTRATO-REMOTION.md).
 
 ### 2.2 · B-roll
 
 Un Reel necesita cortes cada 2–3 segundos o la gente se va. Sin b-roll hay que
-grabar el triple. Una imagen con zoom lento en CapCut da 3 segundos de aire, y
-se pueden tener veinte sin volver a grabar.
+grabar el triple. Una imagen con zoom lento da 3 segundos de aire, y se pueden
+tener veinte sin volver a grabar.
+
+Dos formas, y conviene tener las dos: el zoom hecho a mano en CapCut sobre una
+imagen, o un **MP4 mudo de 3 segundos renderizado con Remotion** que se arrastra
+al proyecto ya hecho. El segundo cuesta cero tiempo por video una vez está el
+componente, y al ser mudo no toca la elección de audio.
 
 ### 2.3 · Las 117 fotos vuelven a nacer
 
@@ -343,10 +365,10 @@ envío de algo que todavía no vale la pena enviar.
 
 | # | Qué | Por qué en ese sitio |
 |---|---|---|
-| 1 | Traer `disponibilidad.mjs` de la rama `hub`, pieza por pieza | Sin lectura de inventario real todo lo demás propone piezas que no existen |
+| 1 | ~~Traer `disponibilidad.mjs` de la rama `hub`~~ · **hecho 2026-08-21** | Sin lectura de inventario real todo lo demás propone piezas que no existen. Entró con `disponibles()` y su batería de pruebas; nada del rescate duplicado |
 | 2 | Data Table «Paquetes Zephora» | El sitio donde caen los paquetes antes de que exista quien los llene |
 | 3 | Workflow del motor: elegir pieza → escribir guion → guardar `propuesto` | Ya sirve: el propietario aprueba, graba y publica a mano |
-| 4 | Portadas y b-roll dentro del paquete | El paquete pasa de guion a rodaje sin trabajo intermedio |
+| 4 | Portadas y b-roll dentro del paquete, renderizados con Remotion | El paquete pasa de guion a rodaje sin trabajo intermedio. Va en paralelo desde otra sesión: la frontera está en [`CONTRATO-REMOTION.md`](CONTRATO-REMOTION.md) |
 | 5 | Sondeo de las 14 letras | **Se puede hacer hoy, a mano, sin esperar al motor.** Es la de mayor retorno de toda la lista |
 | 6 | Enlace medido y atribución a checkouts | Cuando haya suficientes paquetes publicados para comparar |
 | 7 | Publicación a IG y FB Reels | Al final, y solo si publicar a mano se vuelve la molestia |
@@ -368,4 +390,6 @@ Para que no se le pida lo que no puede dar:
   `InitiateCheckout` sobre el píxel viejo hasta que el portafolio cumpla
   antigüedad. Es restricción de cuenta, no de contenido.
 - **No graba.** Si nadie graba, el motor produce paquetes que nadie usa. Es la
-  única dependencia que no tiene solución técnica.
+  única dependencia que no tiene solución técnica — aunque Remotion le quita la
+  exclusiva: las piezas de pura tipografía y las guías se publican los días que
+  no hubo cámara. Sostienen el perfil; no lo construyen.
