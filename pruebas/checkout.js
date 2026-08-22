@@ -246,6 +246,15 @@ async function llenarPaso1(p, d) {
     ok(orden && orden.bumpAntesDeTerminos, 'y va antes de aceptar los términos, no entre el sí y el pago');
     ok(orden && orden.terminosAntesDePagar, 'con los términos como última puerta antes del botón');
 
+    /* El texto del bump tiene que decir la caja que de verdad va a llegar: la
+       del brazalete y la del charm no son la misma pieza, y prometer la que no
+       es se descubre al abrir el paquete. Este carrito lleva brazalete. */
+    const dice = (await p.locator('#bump-d').textContent()).trim();
+    ok(/caja grande de dos piezas/i.test(dice) && /guardapolvo/i.test(dice),
+      'el bump enumera la caja del brazalete, que es la que lleva este pedido');
+    ok(/sin costo/i.test(dice), 'y sigue diciendo que el empaque normal ya va incluido');
+    ok(!/caja peque/i.test(dice), 'sin prometer de paso la caja del charm');
+
     const sinBump = (await p.locator('#res-total').textContent()).trim();
     await p.click('#bump-chk');
     await p.waitForTimeout(300);
@@ -253,6 +262,26 @@ async function llenarPaso1(p, d) {
     ok(sinBump !== conBump, 'marcarlo mueve el total del resumen', `${sinBump} → ${conBump}`);
     ok(!(await p.locator('#bump').isVisible()) && await p.locator('#bump-ya').isVisible(),
       'y una vez puesto deja de ofrecerse: la casilla no puede quitarlo sin querer al pagar');
+    await p.close();
+  }
+
+  // ——— 2bb · el mismo bump, con un carrito sin brazalete ———
+  out.push('\n2bb · El Empaque Premium de un pedido de solo charms');
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    await ponerCarrito(p, { base: null, charms: ['mickey-mouse', 'stitch'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(500);
+    await llenarPaso1(p, DATOS);
+    await p.click('#ir-2');
+    await p.click('#ir-3');
+    await p.waitForTimeout(300);
+
+    const dice = (await p.locator('#bump-d').textContent()).trim();
+    ok(/caja peque/i.test(dice), 'sin brazalete, el bump ofrece la caja del charm', dice.slice(0, 70) + '…');
+    ok(!/brazalete/i.test(dice), 'y no nombra una caja de brazalete que este pedido no lleva');
+    ok(/dedicatoria/i.test(dice), 'la tarjeta con la dedicatoria va en las dos');
     await p.close();
   }
 

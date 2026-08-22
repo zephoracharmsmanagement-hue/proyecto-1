@@ -552,7 +552,7 @@ button{font-family:inherit}
             <img class="bump-img" src="assets/empaque.webp" alt="Empaque Premium: bolsa, caja, saquito y tarjeta" width="56" height="56" loading="lazy" decoding="async">
             <span class="bump-tx">
               <span class="bump-t"><b>Añade el Empaque Premium de Regalo</b><span class="precio">+$40.000</span></span>
-              <span class="bump-d">Tu pedido ya lleva empaque de regalo sin costo. El Premium suma la <b>tarjeta con tu dedicatoria escrita a mano</b>, para que llegue listo para entregar.</span>
+              <span class="bump-d" id="bump-d"></span>
             </span>
           </label>
           <p class="bump-ya" id="bump-ya" hidden>✓ Tu pedido lleva Empaque Premium de Regalo. La dedicatoria para la tarjeta se escribe en el paso anterior.</p>
@@ -857,12 +857,30 @@ function pintarSugeridos(){
  * armador— y en ese caso se dice que lo lleva, en vez de dejar una casilla que
  * no hace nada o, peor, que al tocarla se lo quite sin querer en la pantalla
  * de pago. */
+/* Lo que trae el Premium depende de lo que va dentro: la caja del brazalete y
+   la del charm no son la misma pieza, y prometer la que no es se descubre al
+   abrir el paquete —el peor sitio para descubrirlo—. Por eso el texto se
+   escribe desde el carrito y no está fijo en el HTML. */
+const EMPAQUE={
+  base:'Tu pedido ya lleva empaque de regalo sin costo. El Premium suma la '
+    +'<b>caja grande de dos piezas hecha a la medida del brazalete</b>, la '
+    +'bolsita de tela guardapolvo, la bolsa de regalo con cinta, el folleto y '
+    +'la <b>tarjeta con tu dedicatoria escrita a mano</b>.',
+  charms:'Tu pedido ya lleva empaque de regalo sin costo. El Premium suma la '
+    +'<b>caja pequeña con su bolsa de regalo</b> y la <b>tarjeta con tu '
+    +'dedicatoria escrita a mano</b>, para que el charm llegue protegido y '
+    +'listo para entregar.'
+};
+
 function pintarBump(){
   const caja=$('#bump'), ya=$('#bump-ya');
   if(!carrito){ caja.hidden=true; ya.hidden=true; return; }
   caja.hidden=carrito.empaque===true;
   ya.hidden=carrito.empaque!==true;
   $('#bump-chk').checked=carrito.empaque===true;
+  /* innerHTML sobre una constante escrita aquí al lado, sin nada de la
+     clienta en medio: lo único que entra es el <b> del texto de arriba. */
+  $('#bump-d').innerHTML=carrito.base?EMPAQUE.base:EMPAQUE.charms;
 }
 
 $('#bump-chk').addEventListener('change',e=>{

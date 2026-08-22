@@ -897,12 +897,29 @@ que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` �
   añade un artículo al pedido después de que la clienta ya aceptó.
   `pruebas/checkout.js` § 2b comprueba el orden, no solo que el bump exista.
   Va **sin foto a propósito** (§ 5) y diciendo lo que la página nunca decía:
-  que el **empaque de regalo normal ya va incluido y sin costo**, y que el
-  Premium suma la tarjeta con la dedicatoria escrita a mano. Ver «+$40.000»
-  sin saber qué se compra que no se tenga ya gratis explica su conversión
-  mejor que la falta de foto. **Falta que el propietario diga qué más
-  incluye** (bolsa, caja, moño): cuanto más concreto, más se sostiene el
-  precio.
+  que el **empaque de regalo normal ya va incluido y sin costo**, y qué suma
+  el Premium encima. Ver «+$40.000» sin saber qué se compra que no se tenga ya
+  gratis explica su conversión mejor que la falta de foto.
+
+  **El contenido lo dio el propietario el 2026-08-22, y son dos cajas
+  distintas**, así que el texto se escribe desde el carrito y no está fijo en
+  el HTML: prometer la caja que no es se descubre al abrir el paquete.
+
+  | Lo que lleva el pedido | Lo que anuncia el bump |
+  |---|---|
+  | Brazalete o pulsera | Caja grande de dos piezas a la medida del brazalete, bolsita de tela guardapolvo, bolsa de regalo con cinta, folleto y la tarjeta con la dedicatoria |
+  | Solo charms | Caja pequeña, bolsa de regalo y la tarjeta con la dedicatoria |
+
+  > **De la lista del propietario se dejó fuera la «tarjeta de postventa»**, que
+  > el empaque de brazalete sí trae. Las fotos de ese empaque enseñan que la
+  > tarjeta es **de Pandora**: anunciarla aquí afirma que el pedido llega con
+  > respaldo de posventa de otra marca, que es exactamente lo que se decidió no
+  > decir con la foto (§ 1). No es un olvido; si algún día el empaque lleva
+  > tarjeta propia, entra sola.
+
+  Un precio y dos cajas: hoy los $40.000 cubren la que corresponda al pedido.
+  Si el costo de las dos no es parecido, eso es una decisión de precio que no
+  se toma desde el repo.
 - **Validación en vivo en el paso 1.** Antes el error solo salía al pulsar
   «Continuar»: se podía escribir mal el correo arriba del todo y enterarse
   nueve campos más abajo. Ahora cada campo habla cuando la clienta termina con
@@ -920,6 +937,30 @@ que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` �
   distintas del mismo campo. De paso, el campo mal llenado ahora lleva
   `aria-invalid` y su mensaje colgado con `aria-describedby`: el borde rojo
   solo existe para quien lo ve.
+
+**Reseñas reales (22 de agosto).** El propietario pasó cinco capturas de
+historias con conversaciones de WhatsApp y DM de clientas, **todas autorizadas
+por ellas y con nombre**. De ahí salieron tres reseñas nuevas (Andrea/Bogotá,
+Alejandra/Medellín, Jimena/Mompox) con su foto recortada fuera del chat.
+
+- **La captura no se publica, se recorta.** El pantallazo trae la interfaz de
+  WhatsApp, la foto de perfil de la clienta y, en una, la línea del `+57`. Lo
+  autorizado es que salga su foto, no su conversación. Las cinco capturas se
+  quitaron de `assets/` —donde estaban públicas— y viven solo en el historial.
+- **Melissa no tiene reseña porque no escribió ninguna**: publicó la pulsera
+  puesta y etiquetó a la tienda. Su foto va bajo la línea que ya prometía eso
+  («Etiquétanos y aparece aquí»), acreditada con su `@`. Ponerle una cita
+  habría sido inventarle palabras a una clienta.
+- Las fotos son de chat, comprimidas dos veces: salen entre 379 y 646 px de
+  ancho y se guardan a ese tamaño. **No ampliarlas**; en la tarjeta de reseña
+  (4:3) se ven bien.
+
+> **El empaque de Pandora en las fotos de reseña sí va, y es decisión del
+> propietario (2026-08-22): es el empaque que la tienda vende, con permiso.**
+> Queda escrito para que otra sesión no lo lea como un descuido y lo quite. Lo
+> que sigue en pie es la frontera del § 5c: el permiso es sobre el **empaque**,
+> no sobre prometer **posventa** de otra marca — por eso la «tarjeta de
+> postventa» sigue fuera del texto del bump.
 
 ### 6 · «A veces se borran las joyas» — cerrado
 
