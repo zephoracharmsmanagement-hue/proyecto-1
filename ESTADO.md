@@ -664,12 +664,29 @@ que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` �
   añade un artículo al pedido después de que la clienta ya aceptó.
   `pruebas/checkout.js` § 2b comprueba el orden, no solo que el bump exista.
   Va **sin foto a propósito** (§ 5) y diciendo lo que la página nunca decía:
-  que el **empaque de regalo normal ya va incluido y sin costo**, y que el
-  Premium suma la tarjeta con la dedicatoria escrita a mano. Ver «+$40.000»
-  sin saber qué se compra que no se tenga ya gratis explica su conversión
-  mejor que la falta de foto. **Falta que el propietario diga qué más
-  incluye** (bolsa, caja, moño): cuanto más concreto, más se sostiene el
-  precio.
+  que el **empaque de regalo normal ya va incluido y sin costo**, y qué suma
+  el Premium encima. Ver «+$40.000» sin saber qué se compra que no se tenga ya
+  gratis explica su conversión mejor que la falta de foto.
+
+  **El contenido lo dio el propietario el 2026-08-22, y son dos cajas
+  distintas**, así que el texto se escribe desde el carrito y no está fijo en
+  el HTML: prometer la caja que no es se descubre al abrir el paquete.
+
+  | Lo que lleva el pedido | Lo que anuncia el bump |
+  |---|---|
+  | Brazalete o pulsera | Caja grande de dos piezas a la medida del brazalete, bolsita de tela guardapolvo, bolsa de regalo con cinta, folleto y la tarjeta con la dedicatoria |
+  | Solo charms | Caja pequeña, bolsa de regalo y la tarjeta con la dedicatoria |
+
+  > **De la lista del propietario se dejó fuera la «tarjeta de postventa»**, que
+  > el empaque de brazalete sí trae. Las fotos de ese empaque enseñan que la
+  > tarjeta es **de Pandora**: anunciarla aquí afirma que el pedido llega con
+  > respaldo de posventa de otra marca, que es exactamente lo que se decidió no
+  > decir con la foto (§ 1). No es un olvido; si algún día el empaque lleva
+  > tarjeta propia, entra sola.
+
+  Un precio y dos cajas: hoy los $40.000 cubren la que corresponda al pedido.
+  Si el costo de las dos no es parecido, eso es una decisión de precio que no
+  se toma desde el repo.
 - **Validación en vivo en el paso 1.** Antes el error solo salía al pulsar
   «Continuar»: se podía escribir mal el correo arriba del todo y enterarse
   nueve campos más abajo. Ahora cada campo habla cuando la clienta termina con
