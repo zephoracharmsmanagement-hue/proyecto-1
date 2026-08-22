@@ -125,16 +125,56 @@ def busca_sello(ruta):
     ids = max(candidatas, key=len)
     xs = [i % ESCALA for i in ids]
     ys = [i // ESCALA for i in ids]
-    caja = (int(min(xs) / ESCALA * W), int(min(ys) / ESCALA * H),
-            int(max(xs) / ESCALA * W) + 1, int(max(ys) / ESCALA * H) + 1)
 
-    # ¿la caja se come parte de la pieza? Se mide en la escala de trabajo.
+    # La isla detectada suele ser el anillo interior del sello; su tinta más
+    # clara queda fuera y sobrevive al relleno como un fantasma —al osito le
+    # quedaba media leyenda «Real Ste» pegada al borde—. Así que la caja crece
+    # mientras su contorno siga tocando tinta, y para cuando lo rodea el fondo.
+    x0, x1 = min(xs), max(xs)
+    y0, y1 = min(ys), max(ys)
+    def hay_tinta(x, y):
+        if not (0 <= x < ESCALA and 0 <= y < ESCALA):
+            return False
+        i = x + y * ESCALA
+        r, g, b = d[i * 3], d[i * 3 + 1], d[i * 3 + 2]
+        return r - g > 6 and r - b > 6 and min(r, g, b) < 248
+    for _ in range(ESCALA // 6):
+        borde = ([(x, y0 - 1) for x in range(x0, x1 + 1)]
+                 + [(x, y1 + 1) for x in range(x0, x1 + 1)]
+                 + [(x0 - 1, y) for y in range(y0, y1 + 1)]
+                 + [(x1 + 1, y) for y in range(y0, y1 + 1)])
+        if not any(hay_tinta(x, y) for x, y in borde):
+            break
+        x0, y0 = max(0, x0 - 1), max(0, y0 - 1)
+        x1, y1 = min(ESCALA - 1, x1 + 1), min(ESCALA - 1, y1 + 1)
+    xs, ys = [x0, x1], [y0, y1]
+
+    caja = (int(x0 / ESCALA * W), int(y0 / ESCALA * H),
+            int(x1 / ESCALA * W) + 1, int(y1 / ESCALA * H) + 1)
+
+    # Se rellena la **caja** del sello, no sus píxeles: la isla que se detecta es
+    # el aro exterior, no el disco, y rellenar solo el aro deja el interior con
+    # el texto puesto y franjas donde el relleno tomó referencias de dentro.
+    #
+    # Lo que sí cambió es la guarda. Antes contaba cualquier píxel del componente
+    # de la pieza que cayera en la caja, y eso rechazaba fotos limpiables: en el
+    # osito eran 65 píxeles de color (228,228,226) y (235,216,220) —el halo claro
+    # del propio sello, que la búsqueda de componentes había pegado al cuerpo—.
+    # Una plata o un esmalte son oscuros; un halo no. Así que solo cuenta lo
+    # oscuro.
     sx0, sy0 = min(xs) - 2, min(ys) - 2
     sx1, sy1 = max(xs) + 2, max(ys) + 2
-    dentro = sum(1 for i in pieza
-                 if sx0 <= i % ESCALA <= sx1 and sy0 <= i // ESCALA <= sy1)
-    if dentro > 6:
-        return None, f"el sello pisa la pieza ({dentro} px) — hace falta foto nueva"
+    # …y tampoco cuenta lo rojizo. La tinta del sello ES oscura, y parte de su
+    # aro acaba asignada al componente de la pieza; contarla daba 144 píxeles de
+    # «producto» en el osito que eran el propio sello. El producto que rodea a
+    # estos sellos es plata: oscura y neutra. Rojo oscuro = sello; gris oscuro =
+    # pieza.
+    pisados = sum(1 for i in pieza
+                  if sx0 <= i % ESCALA <= sx1 and sy0 <= i // ESCALA <= sy1
+                  and min(d[i * 3], d[i * 3 + 1], d[i * 3 + 2]) < 190
+                  and not (d[i * 3] - d[i * 3 + 1] > 10 and d[i * 3] - d[i * 3 + 2] > 10))
+    if pisados > 25:
+        return None, f"el sello se superpone a la pieza ({pisados} px) — hace falta foto nueva"
     return caja, "limpiable"
 
 
@@ -168,7 +208,7 @@ def main():
         caja, motivo = busca_sello(p)
         if caja:
             limpiables.append((p, caja))
-        elif "pisa" in motivo:
+        elif "superpone" in motivo:
             pisan.append((p, motivo))
         else:
             limpias += 1

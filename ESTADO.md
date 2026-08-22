@@ -269,15 +269,16 @@ destroza; necesita foto nueva.
 - `atrapasuenos-azul` — la que llegó viene a 158×318 y la actual tiene la pieza
   a 386×329. Quitarle el «8/9» costaría nitidez, que es exactamente el cambio
   que se revirtió con el osito. Se queda hasta que aparezca una grande.
-- El **sello del proveedor: resuelto en 9 de 11**. `herramientas/quitar_sello.py`
+- El **sello del proveedor: resuelto en 11 de 11**. `herramientas/quitar_sello.py`
   hizo el barrido: quedaban 11 fotos con sello (no ~30 — la tanda del 20 se
   llevó el resto al cambiar 39 fotos). Ocho se limpiaron sin tocar la pieza,
-  más `pulsera-copo-de-nieve` que se hizo antes a mano. **Quedan dos**, y
-  necesitan foto nueva porque el sello se superpone a la pieza y no hay nada
-  que rellenar: `osito-con-rosa-y-corazon` (215 px de solape) y
-  `pulsera-sol-con-cadena-seguridad` (36 px). Una tercera,
-  `escudo-capitan-america`, tiene el sello pegado al segundo charm, pero esa ya
-  estaba en la lista por el logo de Disney.
+  más `pulsera-copo-de-nieve` que se hizo antes a mano. **Las dos que había
+  dado por imposibles no lo eran**: en `osito-con-rosa-y-corazon` y
+  `pulsera-sol-con-cadena-seguridad` el sello está sobre blanco y lo que
+  entraba en su caja era el halo del propio sello, no la pieza. Ya están
+  limpias. La única que de verdad no se puede es `escudo-capitan-america`,
+  donde el sello está pegado al segundo charm — y esa ya estaba en la lista
+  por el logo de Disney.
 - La foto que se ve **al compartir el sitio** por WhatsApp o Facebook
   (`og:image`) es `pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg`:
   800×600, luz de casa, fondo de sala. Es la primera impresión en cada enlace
@@ -295,6 +296,26 @@ destroza; necesita foto nueva.
 > cuando los paneles de un collage traen fondo propio, el panel entero cuenta
 > como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
 > existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
+
+#### Fotos generadas con IA: no
+
+Llegaron cinco `Gemini_Generated_Image_*.webp` para las cinco piezas que no se
+podían retocar. Venían limpias, sobre blanco, del tamaño correcto — y **no se
+publicaron**, porque al compararlas contra la foto real cada una había cambiado
+la pieza:
+
+| Pieza | Qué inventó |
+|---|---|
+| Osito con rosa | Las orejas, lisas con una espiral grabada, salen texturadas con brillo tipo pavé |
+| Pulsera Sol | El cierre pasa de sol de rayos triangulares a **sol con luna creciente**, con las circonitas repartidas de otro modo |
+| Escudo Capitán América | El aro pasa de calado a liso |
+
+No es cuestión de estilo. Una clienta que compra el osito esperando orejas con
+brillo recibe otra cosa, y eso vuelve como devolución. La regla es la misma que
+con el grabado de la pieza: **retocar la foto sí, cambiar el producto no.**
+
+Lo que sí resolvió el caso fue volver sobre el retoque: dos de esas cinco se
+pudieron limpiar de verdad.
 
 #### Qué mandar para que la foto quede bien — medido, no supuesto
 
