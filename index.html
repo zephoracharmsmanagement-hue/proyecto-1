@@ -710,10 +710,21 @@ body.sheet-open{overflow:hidden}
   font-size:11.5px;color:#8d7f92;margin:10px 0 0}
 .sheet-seguro svg{flex:0 0 auto;opacity:.8}
 .sheet-seguro + .sheet-note{margin-top:5px}
-.pack{display:flex;gap:9px;align-items:center;font-size:13px;color:#c3b4c6;
+/* El empaque se enseña con la misma gramática que una pieza —foto de 46 px a
+   la izquierda, igual que .srow— porque es lo que es: algo más que va en la
+   caja. Como casilla de texto suelta no se entendía qué se estaba comprando.
+   La foto es del empaque real; poner una de catálogo sería vender otra cosa. */
+.pack{display:flex;gap:11px;align-items:center;font-size:13px;color:#c3b4c6;
   padding:9px 0 11px;cursor:pointer}
 .pack input{width:17px;height:17px;accent-color:var(--rose);flex:0 0 auto}
+.pack img{width:46px;height:46px;border-radius:2px;background:#fff;object-fit:cover;
+  flex:0 0 auto}
+.pack-t{min-width:0;line-height:1.35}
 .pack b{color:var(--bone);font-weight:400}
+.pack small{display:block;font-size:11.5px;color:#a495a8;margin-top:1px}
+.pack-tag{display:inline-block;font-size:10.5px;letter-spacing:.04em;color:#e8bfcd;
+  border:1px solid rgba(232,191,205,.42);border-radius:2px;padding:1px 5px;margin-left:6px;
+  vertical-align:1px}
 .pago{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
 .pbtn{font:400 12.5px/1.3 Jost;text-align:left;padding:10px 12px;cursor:pointer;
   border:1px solid rgba(255,255,255,.22);background:transparent;color:#c3b4c6;
@@ -1561,7 +1572,9 @@ body.sheet-open{overflow:hidden}
   <div class="sheet-scroll" id="sheet-scroll">
   <div class="sheet-body" id="sheet-body"></div>
   <div class="sheet-extras">
-    <label class="pack"><input type="checkbox" id="pack"> <span>Empaque Premium de Regalo <b>+$40.000</b></span></label>
+    <label class="pack"><input type="checkbox" id="pack">
+      <img src="assets/empaque.webp" alt="Empaque Premium: bolsa, caja y tarjeta" width="46" height="46" loading="lazy" decoding="async">
+      <span class="pack-t">Empaque Premium de Regalo <b>+$40.000</b><span class="pack-tag">Recomendado para regalo</span><small>Caja, bolsa y tarjeta con tu dedicatoria</small></span></label>
     <div class="pago" id="pago" role="radiogroup" aria-label="Forma de pago">
       <!-- El costo de envío de cada opción lo escribe render(): con el carrito
            por encima del umbral, el anticipado dice «Gratis» y la contraentrega
@@ -1708,6 +1721,7 @@ const $=s=>document.querySelector(s);
  * verdad. Sin eso, un nombre mal escrito da un hueco en la galería y no un
  * error: la ficha abre, la foto no carga, y nadie se entera. */
 const FOTOS = {
+  'guantelete-del-infinito': ['guantelete-del-infinito-2.webp'],
   'hulk': ['hulk-2.webp'],
   'mjolnir-martillo-de-thor': ['mjolnir-martillo-de-thor-2.webp', 'mjolnir-martillo-de-thor-3.webp'],
   'spider-man': ['spider-man-2.webp'],

@@ -182,6 +182,258 @@ se dejó de vender nada.
 > cosa que un duplicado esconde — dos precios para la misma pieza, y la clienta
 > comprando por el que encuentre primero.
 
+#### Calidad de las fotos, no ausencia de fotos
+
+Cerrado que no falte ninguna, lo que queda es de qué son. Casi ninguna está
+borrosa: **están sucias**. Son capturas de fichas de proveedor, con lo que
+traía la ficha dentro —collages de tres paneles donde la pieza ocupa un tercio
+del cuadro, contadores de galería quemados en el píxel («8/8», «10/10»,
+«8/9»), textos sobrepuestos («4pc/set», «REAL SHOT», logos de marca) y el
+sello rojo «S925 / Real Sterling Silver»—.
+
+De la revisión de las 108 salieron 18 con alguno de esos defectos. La tanda
+del 2026-08-20 arregló 13. En esta entraron **7 reemplazos y una segunda
+vista**, todos desde originales de 1200×1200 o más:
+
+| Pieza | Qué tenía |
+|---|---|
+| `guantelete-del-infinito` | Collage de 3 piezas + logo Disney + sello + una línea negra suelta |
+| `bola-rosa-con-flores` | Collage de 3 paneles; el charm medía **96×127 px reales** de los 440 |
+| `mickey-mouse`, `stitch` | Sello S925 |
+| `pulsera-avengers`, `pulsera-corona-pave`, `pulsera-corona-con-cristales` | Sello «Real Sterling Silver» |
+
+El guantelete además gana segunda vista (`guantelete-del-infinito-2.webp`,
+registrada en `FOTOS`): el collage que se retiró mostraba frente y dorso, y
+perder el dorso habría sido perder información que el catálogo ya daba.
+
+> **Cómo distingue el sello de una pieza roja**, que es donde estaba el riesgo:
+> no por el color. Deadpool, Iron Man, el moño de Minnie y la manzana de
+> Blancanieves son rojos de verdad, y pintarlos encima habría sido mucho peor
+> que el sello. Lo que separa al sello es que es una **isla**: un trozo suelto
+> rodeado de fondo, sin contacto con el cuerpo de la pieza. El rojo del producto
+> siempre cuelga del cuerpo plateado.
+>
+> Hizo falta una segunda guarda. En el creativo de marketing con la mano de la
+> modelo —`pulsera-zephora-armada-con-charms-en-plata-925`, que no es
+> producto-sobre-blanco— se coló como «sello» una franja de piel de 21×127 px, y
+> borrarla habría destrozado la foto. Se descarta por forma: el sello es una
+> insignia redonda, y un rojo seis veces más alto que ancho no lo es.
+>
+> Y una advertencia de lectura: en el informe, **«sin isla de sello» no
+> significa «limpia»**. Si el sello toca la pieza no forma isla y cae en ese
+> montón. Por eso el recuento de los que sí lo tocan va aparte.
+
+> **El sello se puede borrar sin cambiar la foto, cuando no toca la pieza.** Se
+> hizo con `pulsera-copo-de-nieve`: el reemplazo que llegó venía a 225×225 —183
+> px de pulsera contra los 349 de la que había—, así que en vez de cambiarla se
+> le quitó el sello a la buena. El sello vivía sobre fondo liso en la esquina
+> opuesta a la pulsera (10 px de plata dentro de la caja, y son antialias), y se
+> rellenó tomando el color de fondo de cada fila. Conserva los 349 px.
+>
+> Sirve solo cuando el sello no se superpone a la pieza; hay que comprobarlo
+> antes, no darlo por hecho. Donde valga, es mejor que cualquier reemplazo,
+> porque no cuesta resolución.
+
+#### El sello no era el único defecto: el fondo con panel
+
+El propietario señaló piezas que el barrido del sello no tocaba —Sulley, Buzz,
+Iron Man—, y tenía razón: **ese barrido buscaba una sola cosa.** El resto lo
+había revisado a ojo y sobre miniaturas, que es donde no se ve ni el panel de
+Sulley ni el texto grabado de Buzz.
+
+De revisar las 111 **a resolución real** salió un defecto nuevo: varias
+capturas no vienen sobre blanco sino sobre un **panel gris recortado dentro del
+cuadro** (246 sobre 255). En la rejilla la tarjeta aparece con un recuadro más
+oscuro que sus vecinas. Corregidas con `herramientas/blanquear_fondo.py`:
+`sulley`, `gato-cheshire`, `bola-azul-con-flor-rosa`, `esfera-azul-con-cristales`.
+
+> **Truco para verlo**: montar las fotos sobre un lienzo blanco puro. El panel
+> se delata solo, y ninguna medición automática hizo falta. Al revés: dos de
+> mis candidatos eran falsos. `torre-eiffel-y-camara` mide (254,254,252) contra
+> 255 —uno a tres niveles, invisibles— y en `stitch-azul` lo que se tomaba por
+> panel era la sombra de la pieza. Las dos guardas están en el script y cortan
+> antes de escribir, no después.
+
+**`pulsera-mickey-mouse-pave` queda fuera**: no tiene un panel plano sino un
+degradado lila de foto de estudio con una tela al fondo. Blanquearlo la
+destroza; necesita foto nueva.
+
+#### Lo que NO se toca, y por qué
+
+- **«PANDORA» grabado en la pieza** — se lee en `buzz-lightyear`, `spider-man`,
+  `jack-y-sally`, `jasmine`, `wall-e`, `princesa-bella`, `dalmata-2`, `hulk` y
+  `hulk-2`. Borrar el sello de un proveedor es quitar algo que se le añadió *a
+  la foto*; borrar un grabado es cambiar *el producto que la clienta recibe*.
+  Lo segundo falsea la ficha, así que es decisión del propietario y no un
+  retoque. Encaja con el criterio que ya se aplicó al dejar fuera el creativo
+  de pauta que nombraba a Pandora.
+- **La insignia «Luminous»** de `pulsera-corazon-luminoso` y **las flechas** de
+  `trebol-verde-giratorio`. Parecen añadidos sobrantes y no lo son: enseñan que
+  el corazón brilla y que el trébol gira —lo que literalmente lo nombra—.
+  Quitarlas borra la razón de comprarlos. Mismo criterio que el camaleón.
+
+**Lo que sigue sin reemplazo**, porque no llegó o porque el que llegó era peor:
+
+- `escudo-capitan-america` y `corazon-arbol-de-la-vida` — nadie mandó una.
+- `atrapasuenos-azul` — la que llegó viene a 158×318 y la actual tiene la pieza
+  a 386×329. Quitarle el «8/9» costaría nitidez, que es exactamente el cambio
+  que se revirtió con el osito. Se queda hasta que aparezca una grande.
+- El **sello del proveedor: resuelto en 11 de 11**. `herramientas/quitar_sello.py`
+  hizo el barrido: quedaban 11 fotos con sello (no ~30 — la tanda del 20 se
+  llevó el resto al cambiar 39 fotos). Ocho se limpiaron sin tocar la pieza,
+  más `pulsera-copo-de-nieve` que se hizo antes a mano. **Las dos que había
+  dado por imposibles no lo eran**: en `osito-con-rosa-y-corazon` y
+  `pulsera-sol-con-cadena-seguridad` el sello está sobre blanco y lo que
+  entraba en su caja era el halo del propio sello, no la pieza. Ya están
+  limpias. La única que de verdad no se puede es `escudo-capitan-america`,
+  donde el sello está pegado al segundo charm — y esa ya estaba en la lista
+  por el logo de Disney.
+- La foto que se ve **al compartir el sitio** por WhatsApp o Facebook
+  (`og:image`) es `pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg`:
+  800×600, luz de casa, fondo de sala. Es la primera impresión en cada enlace
+  compartido y en cada anuncio, y cambiarla rinde más que cualquiera de las de
+  arriba.
+
+> Meter fotos dejó de ser un `cp` a mano: `herramientas/entrar_fotos.py` limpia
+> el nombre, lo empareja contra una pieza real, reescala a 440×440 al 90% de
+> llenado —la mediana del catálogo; conservar el margen del original deja la
+> tarjeta encogida al lado de sus vecinas— y compara los píxeles de producto
+> del original contra los del actual. No escribe nada sin `--aplicar`.
+>
+> Dos cosas que ese script **no** puede decidir, y por eso enseña la hoja de
+> antes/después en vez de bloquear: no ve el desenfoque, solo cuenta píxeles; y
+> cuando los paneles de un collage traen fondo propio, el panel entero cuenta
+> como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
+> existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
+
+#### La foto del empaque también depende de lo que va dentro
+
+Otra sesión estableció que el Premium son **dos kits distintos** —brazalete y
+charm— y escribió el texto desde el carrito para no prometer la caja que no es.
+El mismo razonamiento vale para la imagen, y ahí quedaba el hueco: un pedido de
+solo charms veía la foto con la bolsita guardapolvo y el brazalete dentro de la
+caja.
+
+Las dos fotos que mandó el propietario resultaron ser justo los dos kits, y se
+distinguen por lo que el propio texto nombra: la del lazo rosa trae **bolsita
+guardapolvo y folleto** —los dos del kit de brazalete—; la otra no tiene ninguna
+de las dos y su caja es pequeña. Así que `empaque.webp` va con brazalete y
+`empaque-charm.webp` con charms, y tanto el bump como la línea del resumen las
+eligen desde el carrito.
+
+> Si la correspondencia estuviera al revés, se cambia en dos sitios de
+> `checkout.html` (`pintarBump` y `lineas`). Sale de mirar las fotos, no de que
+> nadie lo confirmara.
+
+#### Cuidado con lo que se sube a `assets/`: esa carpeta se publica
+
+Al mezclar para desplegar aparecieron en `assets/` cinco
+`WhatsApp Image 2026-08-22….jpeg` que **no son fotos de producto**: son capturas
+de conversaciones con clientas —nombres de pila, un usuario de Instagram, fotos
+suyas y sus mensajes—. Nada las enlazaba, pero **cada push a `main` publica**, y
+habrían quedado accesibles en `zephoracharms.com/assets/…` para cualquiera que
+probara la URL. No se desplegaron: están en `material-sin-publicar/`, fuera del
+repo y recuperables del commit `bc826a3`.
+
+Son buen material de prueba social —hay clientas contando que la pieza les
+encantó—, pero eso se publica como testimonio recortado y con permiso, no como
+captura de un chat con el nombre a la vista. Las reseñas de la portada ya siguen
+ese formato.
+
+**La regla para la próxima vez: `assets/` es carpeta pública.** El material en
+bruto va a `material-sin-publicar/`, que está en `.gitignore`. Allí se movieron
+también los dos originales del empaque (4 MB que se desplegaban sin usarse).
+
+#### Fondo de estudio: recorte, no blanqueo
+
+`pulsera-mickey-mouse-pave` era la última con fondo raro, y no se arreglaba
+como las otras: no tiene un panel plano sino un **degradado lila con tela
+blanca de atrezo**. Blanquear el lila dejaba la tela y sus sombras.
+
+Lo que funcionó fue separar por componentes: la tela toca el borde de la foto y
+la pulsera no, así que se distinguen sin mirar el color. Se borra el atrezo con
+su halo, se lleva a blanco el lila y sus sombras, y se respeta todo lo que cae
+dentro de la pieza dilatada.
+
+> El intento anterior —recortar la pulsera con máscara y pegarla sobre blanco—
+> salió pálida y fina: la máscara se comía los bordes oscuros que le dan cuerpo,
+> y en la rejilla se notaba al lado de sus vecinas. Conviene recordarlo: en
+> plata sobre fondo claro, recortar por umbral quita justo lo que define la
+> pieza.
+
+#### Fotos retocadas con IA — decisión del propietario
+
+Las cinco piezas que no se podían limpiar por retoque se resolvieron con
+imágenes pasadas por Gemini (`Gemini_Generated_Image_*.webp`):
+`escudo-capitan-america`, `corazon-arbol-de-la-vida`, `atrapasuenos-azul`,
+`osito-con-rosa-y-corazon` y `pulsera-sol-con-cadena-seguridad`.
+
+Al compararlas contra la foto anterior aparecen diferencias de detalle —las
+orejas del osito salen texturadas y no lisas, el cierre de la pulsera del sol
+pasa de sol a sol con luna, el aro del escudo de calado a liso—. **Se planteó
+al propietario y decidió publicarlas**: son sus piezas y sus fotos, considera
+que son retoques de estudio que no se apartan del producto real, y asume el
+riesgo. Queda anotado aquí para que la próxima sesión no lo replantee.
+
+La línea que sí conviene mantener, y que no está en discusión, es la del
+grabado: retocar la foto es una cosa y cambiar el producto que la clienta
+recibe es otra. Donde una diferencia sea grande, se pregunta.
+
+> De paso, el intento de comparar destapó que dos de esas cinco nunca fueron
+> imposibles de limpiar. Si alguna vez se quiere volver a la foto original
+> retocada en vez de la de Gemini, están en el commit `682ed97`.
+
+#### Qué mandar para que la foto quede bien — medido, no supuesto
+
+Los tamaños salen de medir la página en el navegador a los anchos y densidades
+reales, no del CSS:
+
+| Dónde se pinta | CSS px | En un móvil (DPR 3) pide | Archivo hoy |
+|---|---|---|---|
+| Tarjeta de la rejilla | 152–227 | 456–681 px | 440 ✓ |
+| Ficha de producto | 330–352 | 990 px | 440 — **la estira 2,3×** |
+| Miniatura de la galería | 40 | 120 px | de sobra |
+
+Los **440×440 están bien elegidos para la rejilla** —456 pedidos contra 440
+servidos, prácticamente exacto— y **cortos para la ficha**, que llegó después.
+En escritorio la ficha estira 1,6×; en móvil, 2,3×.
+
+**Manda siempre el original más grande que tengas, mínimo 1200 px de lado.**
+No es para guardarlo así: es que reducir se puede y ampliar no. De los 27
+archivos de la tanda del 2026-08-21, 20 venían entre 192 y 225 px y por eso no
+entró ninguno — estirarlos a 440 los deja peor que lo que ya había.
+
+Lo que hace que una foto sirva, por orden de veces que lo ha roto:
+
+1. **Una pieza por foto.** El defecto más común no es el desenfoque sino el
+   collage: la captura de la ficha del proveedor trae tres paneles, y la pieza
+   acaba ocupando un tercio del cuadro. En `bola-rosa-con-flores` el charm
+   medía 96×127 px reales de los 440 que se pintaban.
+2. **Nada quemado encima.** Sellos «S925 / Real Sterling Silver», logos de
+   marca, contadores de galería («8/8», «10/10»), textos tipo «4pc/set» o
+   «REAL SHOT». No se pueden quitar después sin repintar la foto.
+3. **Fondo liso, claro.** Blanco a ser posible. Los fondos rosa o lila rompen
+   la rejilla aunque la pieza esté bien.
+4. **La pieza llenando el cuadro.** El catálogo tiene una mediana del 90%. Si
+   viene con mucho margen, `entrar_fotos.py` recorta y reencuadra sola, así que
+   esto es lo menos crítico de los cuatro.
+
+Lo que **no** importa, para no perder tiempo ahí: el formato (webp, jpg, png y
+jfif entran igual, se convierten), el peso del original (se recomprime a ~14 KB)
+y el nombre del archivo — el emparejamiento con la pieza se hace mirando la
+imagen, no leyendo el nombre. Nombrarla con el id ayuda, pero `download (7).webp`
+también sirve.
+
+> Para la foto que se ve **al compartir el sitio** (`og:image`) la regla es otra:
+> horizontal **1200×630**, no cuadrada, y con la pieza centrada porque WhatsApp
+> y Facebook recortan los bordes.
+
+**Si algún día se decide arreglar la ficha**, los originales de 1200×1200 de esta
+tanda siguen en el historial, en `assets/webp2/` del commit `cb5c39c` de `main`.
+Subir el catálogo entero de 440 a 880 lo llevaría de 1,8 MB a ~3,6 MB; como la
+rejilla carga en diferido y la ficha abre de una en una, lo sensato sería una
+copia grande solo para la ficha, no subir las 108.
+
 ### 2 · Domicilio
 
 No se publica, por decisión del propietario. Queda anotado que el **artículo 50 de
@@ -558,7 +810,7 @@ se entera hasta que alguien va a leer un log por otro motivo.
 
 | Qué | Qué falta |
 |---|---|
-| **Empaque Premium destacado** en el carrito (marco, badge «Recomendado para regalo», miniatura) | La **foto real del empaque**. Sin ella no hay miniatura, y poner una imagen de catálogo sería vender algo que no es lo que se manda. Nota aparte: el problema del bump probablemente no es el diseño sino el precio — $40.000 sobre un brazalete de $58.000 es un 69% adicional; antes de rediseñarlo conviene probar bajarlo |
+| **Empaque Premium destacado** en el carrito | **Hecho.** Llegó la foto real del empaque (`assets/empaque.webp`) y el bump dejó de ser una casilla de texto: lleva miniatura de 46 px, badge «Recomendado para regalo» y la línea «Bolsa, caja, saquito y tarjeta», con la misma gramática que una pieza del carrito. La descripción decía «Caja, bolsa y tarjeta» y se quedaba corta: el propietario confirmó que todo lo que sale en la foto es lo que recibe la clienta por los $40.000, y ahí va también el saquito. De las dos fotos de empaque se eligió la del lazo rosa: a 46 px la otra es una mancha blanca, y esta además enseña el saquito y la pieza dentro de la caja. En el resumen del checkout el empaque deja de ser la excepción sin foto —se le quitó el `l.id==='empaque'?null:`— y entra por el camino normal. Sigue en pie la nota del precio: el problema del bump probablemente no es el diseño sino que $40.000 sobre un brazalete de $58.000 es un 69% adicional; antes de rediseñarlo otra vez, probar bajarlo |
 | **Logos de medios de pago** al pie del carrito | Los **archivos oficiales** de cada marca. Visa, Mastercard, Nequi, Bancolombia y Daviplata son marcas registradas con guías de uso; no se dibujan aproximaciones |
 | Micro-leyenda de confianza | **Hecha y cerrada.** Bajo el botón de pagar del carrito sale *«Pago procesado por Wompi (Bancolombia)»*, la misma frase que el pie del checkout. **Lo del retracto se descartó por decisión del propietario**, que lo resolvió por otra vía: no va en la leyenda ni en la página, y no hay nada más que hacer ahí. (Había además un motivo para no ponerlo: la política de devoluciones recoge la excepción del artículo 47 para bienes claramente personalizados, y el titular de la tienda es «Personalización total») |
 
