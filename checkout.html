@@ -594,9 +594,10 @@ function pintarResumen(){
   $('#res-total').textContent=cop(t.total);
 
   $('#res-lineas').innerHTML=lineas(c).map(l=>{
-    /* Los charms sin foto y el empaque no tienen imagen: va la inicial, igual
-       que en el catálogo, en vez de un <img> roto. */
-    const foto=l.id==='empaque'?null:'assets/'+l.id+'.webp';
+    /* Los charms sin foto van con la inicial, igual que en el catálogo, en vez
+       de un <img> roto. El empaque era la otra excepción —no tenía foto— y ya
+       la tiene, así que entra por el camino normal. */
+    const foto='assets/'+l.id+'.webp';
     const ini=esc(l.n.trim().charAt(0).toUpperCase());
     const img=foto
       ? '<img src="'+esc(foto)+'" alt="" loading="lazy" onerror="this.outerHTML='

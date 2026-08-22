@@ -297,6 +297,23 @@ destroza; necesita foto nueva.
 > como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
 > existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
 
+#### Fondo de estudio: recorte, no blanqueo
+
+`pulsera-mickey-mouse-pave` era la última con fondo raro, y no se arreglaba
+como las otras: no tiene un panel plano sino un **degradado lila con tela
+blanca de atrezo**. Blanquear el lila dejaba la tela y sus sombras.
+
+Lo que funcionó fue separar por componentes: la tela toca el borde de la foto y
+la pulsera no, así que se distinguen sin mirar el color. Se borra el atrezo con
+su halo, se lleva a blanco el lila y sus sombras, y se respeta todo lo que cae
+dentro de la pieza dilatada.
+
+> El intento anterior —recortar la pulsera con máscara y pegarla sobre blanco—
+> salió pálida y fina: la máscara se comía los bordes oscuros que le dan cuerpo,
+> y en la rejilla se notaba al lado de sus vecinas. Conviene recordarlo: en
+> plata sobre fondo claro, recortar por umbral quita justo lo que define la
+> pieza.
+
 #### Fotos retocadas con IA — decisión del propietario
 
 Las cinco piezas que no se podían limpiar por retoque se resolvieron con
@@ -746,7 +763,7 @@ se entera hasta que alguien va a leer un log por otro motivo.
 
 | Qué | Qué falta |
 |---|---|
-| **Empaque Premium destacado** en el carrito (marco, badge «Recomendado para regalo», miniatura) | La **foto real del empaque**. Sin ella no hay miniatura, y poner una imagen de catálogo sería vender algo que no es lo que se manda. Nota aparte: el problema del bump probablemente no es el diseño sino el precio — $40.000 sobre un brazalete de $58.000 es un 69% adicional; antes de rediseñarlo conviene probar bajarlo |
+| **Empaque Premium destacado** en el carrito | **Hecho.** Llegó la foto real del empaque (`assets/empaque.webp`) y el bump dejó de ser una casilla de texto: lleva miniatura de 46 px, badge «Recomendado para regalo» y la línea «Caja, bolsa y tarjeta», con la misma gramática que una pieza del carrito. En el resumen del checkout el empaque deja de ser la excepción sin foto —se le quitó el `l.id==='empaque'?null:`— y entra por el camino normal. Sigue en pie la nota del precio: el problema del bump probablemente no es el diseño sino que $40.000 sobre un brazalete de $58.000 es un 69% adicional; antes de rediseñarlo otra vez, probar bajarlo |
 | **Logos de medios de pago** al pie del carrito | Los **archivos oficiales** de cada marca. Visa, Mastercard, Nequi, Bancolombia y Daviplata son marcas registradas con guías de uso; no se dibujan aproximaciones |
 | Micro-leyenda de confianza | **Hecha y cerrada.** Bajo el botón de pagar del carrito sale *«Pago procesado por Wompi (Bancolombia)»*, la misma frase que el pie del checkout. **Lo del retracto se descartó por decisión del propietario**, que lo resolvió por otra vía: no va en la leyenda ni en la página, y no hay nada más que hacer ahí. (Había además un motivo para no ponerlo: la política de devoluciones recoge la excepción del artículo 47 para bienes claramente personalizados, y el titular de la tienda es «Personalización total») |
 
