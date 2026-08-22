@@ -225,6 +225,44 @@ perder el dorso habría sido perder información que el catálogo ya daba.
 > antes, no darlo por hecho. Donde valga, es mejor que cualquier reemplazo,
 > porque no cuesta resolución.
 
+#### El sello no era el único defecto: el fondo con panel
+
+El propietario señaló piezas que el barrido del sello no tocaba —Sulley, Buzz,
+Iron Man—, y tenía razón: **ese barrido buscaba una sola cosa.** El resto lo
+había revisado a ojo y sobre miniaturas, que es donde no se ve ni el panel de
+Sulley ni el texto grabado de Buzz.
+
+De revisar las 111 **a resolución real** salió un defecto nuevo: varias
+capturas no vienen sobre blanco sino sobre un **panel gris recortado dentro del
+cuadro** (246 sobre 255). En la rejilla la tarjeta aparece con un recuadro más
+oscuro que sus vecinas. Corregidas con `herramientas/blanquear_fondo.py`:
+`sulley`, `gato-cheshire`, `bola-azul-con-flor-rosa`, `esfera-azul-con-cristales`.
+
+> **Truco para verlo**: montar las fotos sobre un lienzo blanco puro. El panel
+> se delata solo, y ninguna medición automática hizo falta. Al revés: dos de
+> mis candidatos eran falsos. `torre-eiffel-y-camara` mide (254,254,252) contra
+> 255 —uno a tres niveles, invisibles— y en `stitch-azul` lo que se tomaba por
+> panel era la sombra de la pieza. Las dos guardas están en el script y cortan
+> antes de escribir, no después.
+
+**`pulsera-mickey-mouse-pave` queda fuera**: no tiene un panel plano sino un
+degradado lila de foto de estudio con una tela al fondo. Blanquearlo la
+destroza; necesita foto nueva.
+
+#### Lo que NO se toca, y por qué
+
+- **«PANDORA» grabado en la pieza** — se lee en `buzz-lightyear`, `spider-man`,
+  `jack-y-sally`, `jasmine`, `wall-e`, `princesa-bella`, `dalmata-2`, `hulk` y
+  `hulk-2`. Borrar el sello de un proveedor es quitar algo que se le añadió *a
+  la foto*; borrar un grabado es cambiar *el producto que la clienta recibe*.
+  Lo segundo falsea la ficha, así que es decisión del propietario y no un
+  retoque. Encaja con el criterio que ya se aplicó al dejar fuera el creativo
+  de pauta que nombraba a Pandora.
+- **La insignia «Luminous»** de `pulsera-corazon-luminoso` y **las flechas** de
+  `trebol-verde-giratorio`. Parecen añadidos sobrantes y no lo son: enseñan que
+  el corazón brilla y que el trébol gira —lo que literalmente lo nombra—.
+  Quitarlas borra la razón de comprarlos. Mismo criterio que el camaleón.
+
 **Lo que sigue sin reemplazo**, porque no llegó o porque el que llegó era peor:
 
 - `escudo-capitan-america` y `corazon-arbol-de-la-vida` — nadie mandó una.
