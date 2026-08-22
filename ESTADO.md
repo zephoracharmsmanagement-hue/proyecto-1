@@ -197,6 +197,23 @@ El guantelete además gana segunda vista (`guantelete-del-infinito-2.webp`,
 registrada en `FOTOS`): el collage que se retiró mostraba frente y dorso, y
 perder el dorso habría sido perder información que el catálogo ya daba.
 
+> **Cómo distingue el sello de una pieza roja**, que es donde estaba el riesgo:
+> no por el color. Deadpool, Iron Man, el moño de Minnie y la manzana de
+> Blancanieves son rojos de verdad, y pintarlos encima habría sido mucho peor
+> que el sello. Lo que separa al sello es que es una **isla**: un trozo suelto
+> rodeado de fondo, sin contacto con el cuerpo de la pieza. El rojo del producto
+> siempre cuelga del cuerpo plateado.
+>
+> Hizo falta una segunda guarda. En el creativo de marketing con la mano de la
+> modelo —`pulsera-zephora-armada-con-charms-en-plata-925`, que no es
+> producto-sobre-blanco— se coló como «sello» una franja de piel de 21×127 px, y
+> borrarla habría destrozado la foto. Se descarta por forma: el sello es una
+> insignia redonda, y un rojo seis veces más alto que ancho no lo es.
+>
+> Y una advertencia de lectura: en el informe, **«sin isla de sello» no
+> significa «limpia»**. Si el sello toca la pieza no forma isla y cae en ese
+> montón. Por eso el recuento de los que sí lo tocan va aparte.
+
 > **El sello se puede borrar sin cambiar la foto, cuando no toca la pieza.** Se
 > hizo con `pulsera-copo-de-nieve`: el reemplazo que llegó venía a 225×225 —183
 > px de pulsera contra los 349 de la que había—, así que en vez de cambiarla se
@@ -214,9 +231,15 @@ perder el dorso habría sido perder información que el catálogo ya daba.
 - `atrapasuenos-azul` — la que llegó viene a 158×318 y la actual tiene la pieza
   a 386×329. Quitarle el «8/9» costaría nitidez, que es exactamente el cambio
   que se revirtió con el osito. Se queda hasta que aparezca una grande.
-- El **sello S925 sigue en ~30 fotos**. Una no se nota; treinta en la misma
-  rejilla dicen bastante fuerte que las fotos no son de la tienda. Es la
-  decisión grande que queda abierta.
+- El **sello del proveedor: resuelto en 9 de 11**. `herramientas/quitar_sello.py`
+  hizo el barrido: quedaban 11 fotos con sello (no ~30 — la tanda del 20 se
+  llevó el resto al cambiar 39 fotos). Ocho se limpiaron sin tocar la pieza,
+  más `pulsera-copo-de-nieve` que se hizo antes a mano. **Quedan dos**, y
+  necesitan foto nueva porque el sello se superpone a la pieza y no hay nada
+  que rellenar: `osito-con-rosa-y-corazon` (215 px de solape) y
+  `pulsera-sol-con-cadena-seguridad` (36 px). Una tercera,
+  `escudo-capitan-america`, tiene el sello pegado al segundo charm, pero esa ya
+  estaba en la lista por el logo de Disney.
 - La foto que se ve **al compartir el sitio** por WhatsApp o Facebook
   (`og:image`) es `pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg`:
   800×600, luz de casa, fondo de sala. Es la primera impresión en cada enlace
