@@ -21,3 +21,6 @@ herramientas/salida/
 assets/webp2/
 
 __pycache__/
+
+# Material en bruto y capturas con datos de clientas: NO se publica.
+material-sin-publicar/

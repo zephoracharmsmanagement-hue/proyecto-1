@@ -20,14 +20,24 @@ hacer que Meta contara el doble de compras.
 `main` contiene todo lo de las ocho ramas fusionables. Queda fuera
 `claude/sephora-whatsapp-response-system-682wvv` — ver abajo.
 
-### Lo que falta y solo se puede hacer desde los paneles
+### Los paneles ya están cambiados — 2026-08-22
 
-1. **GitHub → Settings → Branches → Default branch → `main`.**
-2. **Netlify → Site configuration → Build & deploy → Branch to deploy → `main`.**
-   Hasta que esto se cambie, **el sitio se sigue publicando desde
-   `claude/install-frontend-design-skill-8t655e`** y lo que se empuje a `main`
-   no sale al aire.
-3. Cuando las dos estén hechas, borrar las ramas `claude/*` ya fusionadas.
+1. **GitHub → default branch → `main`. Hecho**: `git ls-remote --symref origin
+   HEAD` devuelve `refs/heads/main`.
+2. **Netlify → Branch to deploy → `main`. Hecho**: el despliegue de producción
+   `6a88fa3a` (2026-08-22 01:24 UTC) sale de `main`, commit `c05b86c`, y es el
+   que sirve `zephoracharms.com`.
+3. Falta borrar las ramas `claude/*` ya fusionadas.
+
+> **Y esto invierte la regla anterior: empujar a
+> `claude/install-frontend-design-skill-8t655e` ya no publica nada.** Es lo
+> primero que hay que saber al retomar, porque el documento decía lo contrario
+> y una sesión dio por desplegado (`f903e06`) un trabajo que se quedó en esa
+> rama sin llegar al aire. **Lo que sale a producción es lo que se empuja a
+> `main`.** Antes de anunciar un despliegue, comprobarlo: el conector de
+> Netlify da la rama y el commit del despliegue vivo, y desde una terminal con
+> red vale `curl -s https://zephoracharms.com/checkout.html | grep …` buscando
+> algo que solo exista en el cambio.
 
 ### La rama que no se fusionó
 
@@ -57,9 +67,8 @@ razonamiento, no solo el cambio.
 
 ## Ramas abiertas de otras sesiones
 
-Al cierre de esta sesión, la rama publicada
-(`claude/install-frontend-design-skill-8t655e`) está al día y todo lo que
-describe este documento vive ahí. **Pero hay tres ramas de otras sesiones sin
+Al cierre de esta sesión, `main` —la rama que publica— está al día y todo lo
+que describe este documento vive ahí. **Pero hay tres ramas de otras sesiones sin
 mezclar**, y no son "unos commits pendientes": dos de ellas salieron de un punto
 anterior al trabajo de esta jornada y **reconstruyeron por su cuenta piezas que
 ya existen**. Mezclarlas a ciegas no da un conflicto de git — da dos sistemas
@@ -296,6 +305,25 @@ destroza; necesita foto nueva.
 > cuando los paneles de un collage traen fondo propio, el panel entero cuenta
 > como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
 > existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
+
+#### Cuidado con lo que se sube a `assets/`: esa carpeta se publica
+
+Al mezclar para desplegar aparecieron en `assets/` cinco
+`WhatsApp Image 2026-08-22….jpeg` que **no son fotos de producto**: son capturas
+de conversaciones con clientas —nombres de pila, un usuario de Instagram, fotos
+suyas y sus mensajes—. Nada las enlazaba, pero **cada push a `main` publica**, y
+habrían quedado accesibles en `zephoracharms.com/assets/…` para cualquiera que
+probara la URL. No se desplegaron: están en `material-sin-publicar/`, fuera del
+repo y recuperables del commit `bc826a3`.
+
+Son buen material de prueba social —hay clientas contando que la pieza les
+encantó—, pero eso se publica como testimonio recortado y con permiso, no como
+captura de un chat con el nombre a la vista. Las reseñas de la portada ya siguen
+ese formato.
+
+**La regla para la próxima vez: `assets/` es carpeta pública.** El material en
+bruto va a `material-sin-publicar/`, que está en `.gitignore`. Allí se movieron
+también los dos originales del empaque (4 MB que se desplegaban sin usarse).
 
 #### Fondo de estudio: recorte, no blanqueo
 
@@ -856,6 +884,43 @@ que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` �
 > era del sitio. Las tres ahora apuntan a la regla: *el CTA principal cae sobre
 > el pliegue*, *el salto a WhatsApp mide*, *la talla libre confirma*.
 
+**Segundo tramo (22 de agosto).** Tres cosas más, todas dentro del checkout:
+
+- **El catálogo completo ya no vive detrás de un botón**, y el paso de entrega
+  sugiere piezas de las mismas categorías que las que ya lleva («Te puede
+  interesar»). Nunca ofrece lo agotado —mandarla a un 409 en la pantalla de
+  pago es el peor sitio para descubrirlo— ni las iniciales, que se eligen a
+  propósito y no se sugieren.
+- **El bump del Empaque Premium, en el paso de pago y antes de la casilla de
+  términos.** Ese orden no es estético: aceptar los términos es la última
+  puerta antes de pagar, y meter una oferta entre el consentimiento y el botón
+  añade un artículo al pedido después de que la clienta ya aceptó.
+  `pruebas/checkout.js` § 2b comprueba el orden, no solo que el bump exista.
+  Va **sin foto a propósito** (§ 5) y diciendo lo que la página nunca decía:
+  que el **empaque de regalo normal ya va incluido y sin costo**, y que el
+  Premium suma la tarjeta con la dedicatoria escrita a mano. Ver «+$40.000»
+  sin saber qué se compra que no se tenga ya gratis explica su conversión
+  mejor que la falta de foto. **Falta que el propietario diga qué más
+  incluye** (bolsa, caja, moño): cuanto más concreto, más se sostiene el
+  precio.
+- **Validación en vivo en el paso 1.** Antes el error solo salía al pulsar
+  «Continuar»: se podía escribir mal el correo arriba del todo y enterarse
+  nueve campos más abajo. Ahora cada campo habla cuando la clienta termina con
+  él, con tres reglas que separan el aviso útil del regaño:
+
+  | Cuándo | Qué hace | Por qué |
+  |---|---|---|
+  | Al salir del campo (`blur`) | Marca si lo escrito está mal | Marcar «correo inválido» en la primera letra es regañar a quien va por la mitad |
+  | Al salir de un campo **vacío** | No marca nada | Dejarlo para después es legítimo; de lo que falta ya avisa «Continuar» |
+  | Mientras escribe, **ya marcado** | Quita el rojo en cuanto queda bien | Corregir y seguir viendo rojo es la otra forma de mentirle |
+
+  Las reglas viven en un solo sitio (`REGLAS` en `checkout.html`): las usa el
+  aviso en vivo y las usa el «Continuar», que sigue siendo la red de seguridad
+  de lo que quedó vacío. Dos listas separadas acabarían diciendo cosas
+  distintas del mismo campo. De paso, el campo mal llenado ahora lleva
+  `aria-invalid` y su mensaje colgado con `aria-describedby`: el borde rojo
+  solo existe para quien lo ve.
+
 ### 6 · «A veces se borran las joyas» — cerrado
 
 Ya no es un misterio, y **la causa no era la que se estaba persiguiendo**. La
@@ -981,8 +1046,9 @@ mecanismo puede estar certificando nada.
 
 ## Al desplegar
 
-**Ya no se arrastra nada.** El repo está conectado a Netlify y cada push a
-`claude/install-frontend-design-skill-8t655e` publica. `netlify.toml` trae
+**Ya no se arrastra nada.** El repo está conectado a Netlify y **cada push a
+`main` publica** (antes era `claude/install-frontend-design-skill-8t655e`; ver
+*Consolidación*, arriba: empujar ahí ya no saca nada al aire). `netlify.toml` trae
 publicación, funciones, redirecciones y cabeceras.
 
 Recordar que **cada publicación cuesta ~15 créditos**, así que conviene juntar
@@ -997,14 +1063,16 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **9 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **11 functions**
 (`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`, `_hoja`, `rescate`);
+`_pedidos`, `_hoja`, `rescate`, `_atribucion`, `disponibilidad`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 
 > **Este número sube cada vez que se añade un módulo a `netlify/functions/`, y
-> hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`.
+> hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`,
+> y 9 hasta que la consolidación trajo `_atribucion.mjs` y `disponibilidad.mjs`
+> —el despliegue `6a88fa3a` ya reporta 11—.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
 > persona ve «9» donde el documento pide «8», da por bueno el desajuste, y la
 > comprobación deja de servir justo para lo que existe — detectar que las

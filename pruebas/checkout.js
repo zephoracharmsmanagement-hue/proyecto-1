@@ -167,6 +167,174 @@ async function llenarPaso1(p, d) {
     await p.close();
   }
 
+  // ——— 2b · sugerencias y envío gratis ———
+  out.push('\n2b · Te puede interesar, y lo que falta para el envío gratis');
+  {
+    /* Lo que sostiene la tira: que sugiera lo parecido a lo que ya lleva, que
+       nunca ofrezca lo agotado —el servidor lo rechazaría en la pantalla de
+       pago, que es el peor sitio para descubrirlo— y que añadir desde aquí
+       mueva el total del resumen, que está pegado arriba y siempre visible. */
+    const p = await b.newPage({ viewport: { width: 390, height: 900 } });
+    p.on('pageerror', e => errores.push(e.message));
+    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['iron-man'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+
+    const falta = (await p.locator('#env-nota').textContent()).trim();
+    ok(/faltan|envío gratis/i.test(falta), 'el resumen dice cuánto falta para el envío gratis', falta);
+
+    await llenarPaso1(p, { nombre: 'Ana', apellido: 'Pérez', documento: '1007401199',
+      celular: '3012345678', correo: 'ana@ejemplo.com', direccion: 'Calle 16f #99 - 72',
+      adicional: '', barrio: '' });
+    await p.click('#ir-2');
+    await p.waitForTimeout(400);
+
+    ok(await p.locator('#sug').isVisible(), 'la tira de sugerencias aparece en el paso de entrega');
+    const porQue = (await p.locator('#sug-por').textContent()).trim();
+    ok(/marvel/i.test(porQue), 'y explica por qué son esas: van por la categoría de lo que ya lleva', porQue);
+
+    const ids = await p.evaluate(() => [...document.querySelectorAll('[data-sug]')].map(x => x.dataset.sug));
+    ok(ids.length >= 3, `sugiere ${ids.length} piezas (menos de 3 no se pinta)`);
+    ok(!ids.includes('iron-man'), 'nunca sugiere lo que la clienta ya lleva');
+    ok(!ids.some(i => /^letra-/.test(i)), 'ni las iniciales, que se eligen a propósito y no se sugieren');
+
+    /* Ninguna sugerida puede estar agotada según el mismo stock.json que usa
+       el catálogo. Es la comprobación que evita mandar a la clienta a un 409. */
+    const agotadas = await p.evaluate(async lista => {
+      const inv = await fetch('assets/stock.json').then(r => r.json());
+      return lista.filter(id => {
+        const it = inv.items[id];
+        return it && typeof it.stock === 'number' && it.stock <= 0;
+      });
+    }, ids);
+    ok(agotadas.length === 0, 'y ninguna está agotada',
+      agotadas.length ? 'ofrecidas sin stock: ' + agotadas.join(', ') : `${ids.length} comprobadas`);
+
+    const antes = (await p.locator('#res-total').textContent()).trim();
+    await p.locator('#sug-tira .sug-b').first().click();
+    await p.waitForTimeout(400);
+    const despues = (await p.locator('#res-total').textContent()).trim();
+    ok(antes !== despues, 'añadir desde la tira mueve el total del resumen', `${antes} → ${despues}`);
+    ok(/añadido/i.test(await p.locator('#sug-tira .sug-b').first().textContent()),
+      'y el botón confirma en el sitio, sin que la pieza desaparezca de golpe');
+
+    /* La prueba social va donde se decide pagar, no antes: es el último momento
+       de duda y el único punto de la página sin nada que respalde la compra. */
+    ok(!(await p.locator('.aval').isVisible()), 'el aval no distrae en el paso de entrega');
+    await p.click('#ir-3');
+    await p.waitForTimeout(300);
+    const aval = (await p.locator('.aval-n').textContent()).trim();
+    ok(await p.locator('.aval').isVisible(), 'y sí aparece junto al botón de pagar');
+    ok(/2\.400/.test(aval) && /verificad/i.test(aval),
+      'con el dato real de la tienda, no una frase de relleno', aval.slice(0, 60) + '…');
+
+    /* El order bump del Empaque Premium.
+     *
+     * Lo que se vigila no es que exista, sino dónde: va ANTES de la casilla de
+     * términos. Una oferta metida entre el consentimiento y el botón de pagar
+     * añade un artículo al pedido después de que la clienta ya aceptó, y eso no
+     * es un detalle de diseño. */
+    ok(await p.locator('#bump').isVisible(), 'el bump del Empaque Premium se ofrece en el paso de pago');
+    const orden = await p.evaluate(() => {
+      const b = document.querySelector('#bump');
+      const t = document.querySelector('[data-c="acepta"]');
+      const pagar = document.querySelector('#confirmar');
+      if (!b || !t || !pagar) return null;
+      return { bumpAntesDeTerminos: !!(b.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING),
+               terminosAntesDePagar: !!(t.compareDocumentPosition(pagar) & Node.DOCUMENT_POSITION_FOLLOWING) };
+    });
+    ok(orden && orden.bumpAntesDeTerminos, 'y va antes de aceptar los términos, no entre el sí y el pago');
+    ok(orden && orden.terminosAntesDePagar, 'con los términos como última puerta antes del botón');
+
+    const sinBump = (await p.locator('#res-total').textContent()).trim();
+    await p.click('#bump-chk');
+    await p.waitForTimeout(300);
+    const conBump = (await p.locator('#res-total').textContent()).trim();
+    ok(sinBump !== conBump, 'marcarlo mueve el total del resumen', `${sinBump} → ${conBump}`);
+    ok(!(await p.locator('#bump').isVisible()) && await p.locator('#bump-ya').isVisible(),
+      'y una vez puesto deja de ofrecerse: la casilla no puede quitarlo sin querer al pagar');
+    await p.close();
+  }
+
+  // ——— 2c · el aviso sale al terminar el campo, no al final ———
+  out.push('\n2c · Aviso en vivo');
+  {
+    /* Antes el error solo salía al pulsar «Continuar»: se podía escribir mal el
+       correo arriba del todo y enterarse nueve campos más abajo. Lo que se
+       vigila aquí no es que valide —eso ya se probó en la sección 2— sino
+       *cuándo* habla y cuándo se calla, que es lo que separa un aviso útil de
+       uno que regaña mientras la clienta escribe. */
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(500);
+
+    const mal = n => p.locator('[data-c="' + n + '"]').evaluate(e => e.classList.contains('mal'));
+
+    /* Nadie ha tocado «Continuar» en toda esta sección. */
+    await p.fill('#correo', 'maria@ejemplo');
+    await p.locator('#correo').blur();
+    await p.waitForTimeout(150);
+    ok(await mal('correo'), 'el correo a medias se marca al salir del campo, sin pulsar «Continuar»');
+    ok(await p.locator('[data-c="correo"] .error').isVisible(),
+      'y se ve el motivo escrito debajo, no solo un borde rojo');
+    ok(await p.locator('#correo').getAttribute('aria-invalid') === 'true',
+      'marcado también para quien no ve el borde: lector de pantalla');
+    const describe = await p.locator('#correo').getAttribute('aria-describedby');
+    ok(!!describe && (await p.locator('#' + describe.split(' ').pop()).textContent()).includes('@'),
+      'con el mensaje colgado del campo, no suelto en la página', describe);
+
+    await p.fill('#correo', 'maria@ejemplo.c');
+    await p.waitForTimeout(100);
+    ok(await mal('correo'), 'teclear no borra el aviso: sigue rojo mientras el dato siga mal');
+
+    await p.fill('#correo', 'maria@ejemplo.com');
+    await p.waitForTimeout(100);
+    ok(!(await mal('correo')), 'y se va solo en cuanto queda bien, sin volver a enviar');
+    ok(await p.locator('#correo').getAttribute('aria-invalid') === 'false',
+      'y deja de anunciarse como erróneo');
+
+    /* Dejar un campo para después es legítimo mientras se llena el formulario;
+       de lo que falta ya avisa «Continuar». Marcar en rojo al pasar de largo
+       convertiría el paso 1 en una pantalla llena de errores sin haber hecho
+       nada mal. */
+    await p.locator('#nombre').click();
+    await p.locator('#apellido').click();
+    await p.waitForTimeout(100);
+    ok(!(await mal('nombre')), 'pasar de largo por un campo vacío no lo marca');
+
+    /* El documento se vigila aparte porque comparte contenedor con el selector
+       de C.C./NIT: es el caso donde «el primer campo del bloque» y «el campo
+       que está mal» no son el mismo, y colgarle el aviso al selector dejaría
+       el número sin marcar. */
+    await p.fill('#documento', '123');
+    await p.locator('#documento').blur();
+    await p.waitForTimeout(150);
+    ok(await mal('documento'), 'el documento corto también avisa al salir del campo');
+    ok(await p.locator('#documento').getAttribute('aria-invalid') === 'true',
+      'y el marcado va en el número, no en el selector de C.C. que tiene al lado');
+    ok(await p.locator('#tipodoc').getAttribute('aria-invalid') === null,
+      'que no está mal y no se marca');
+    await p.fill('#documento', '1020304050');
+    await p.waitForTimeout(100);
+    ok(!(await mal('documento')), 'y se limpia al completarlo');
+
+    await p.fill('#celular', '6012345678');
+    await p.locator('#celular').blur();
+    await p.waitForTimeout(150);
+    ok(await mal('celular'), 'el fijo se rechaza al salir del campo, no tres pasos después');
+    await p.fill('#celular', '301 234 5678');
+    await p.waitForTimeout(100);
+    ok(!(await mal('celular')), 'y el celular con espacios se da por bueno sin reescribirlo');
+
+    /* «Continuar» sigue siendo la red de seguridad de lo que quedó vacío. */
+    await p.click('#ir-2');
+    ok(await p.locator('#panel-1').isVisible(), 'con campos vacíos «Continuar» sigue sin dejar pasar');
+    ok(await mal('nombre'), 'y ahí sí marca lo que la clienta nunca llegó a llenar');
+    await p.close();
+  }
+
   // ——— 3 · compra con Wompi ———
   out.push('\n3 · Pago con Wompi');
   {

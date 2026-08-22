@@ -72,6 +72,13 @@ def main():
     min_charms = int(desc_b)
     pct_b = float('.' + re.search(r'brutoB\*\.(\d+)', html).group(1))
 
+    # data-g en cada tarjeta lleva la categoría; .pc--top marca los destacados.
+    grupos = {
+        m.group(1): m.group(2)
+        for m in re.finditer(r'<article class="pc[^"]*" data-id="([^"]+)" data-g="([^"]+)"', html)
+    }
+    destacados = re.findall(r'<article class="pc pc--top[^"]*" data-id="([^"]+)"', html)
+
     catalogo = {
         '_': ('Generado por herramientas/extraer_catalogo.py desde index.html. '
               'No editar a mano: el próximo extractor lo pisa. Lo leen '
@@ -86,6 +93,14 @@ def main():
             **{p['id']: p['n'] for p in data['pulseras']},
         },
         'pulseras': [p['id'] for p in data['pulseras']],
+        # La categoría de cada charm —Disney, Marvel, Zodiaco…— y cuáles son
+        # destacados. Vivían solo en los atributos de las tarjetas del catálogo,
+        # así que el checkout no tenía forma de saber qué se parece a qué. Se
+        # extraen igual que los precios: de index.html, que es la única fuente,
+        # para que sugerir "algo parecido" no acabe siendo una segunda lista
+        # que se desincroniza del catálogo real.
+        'grupos': grupos,
+        'destacados': destacados,
         'reglas': {
             'escalaCharms': esc,
             'descuentoBrazalete': pct_b,
