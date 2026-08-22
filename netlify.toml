@@ -105,8 +105,14 @@
   [headers.values]
     Cache-Control = "no-cache"
 
-# Las fotos sí son inmutables en la práctica: cuando cambia una, cambia su
-# contenido y el nombre se mantiene, así que una semana es un término medio
+# OJO: las fotos conservan el nombre al cambiar, así que con esta cabecera una
+# clienta que ya visitó la tienda sigue viendo la foto vieja hasta una semana
+# después de desplegarla. Pasó: se limpiaron 20 fotos y en producción seguían
+# saliendo las sucias. Por eso las URL llevan `?v=AAAAMMDD` en index.html y
+# checkout.html. **Al cambiar una foto hay que subir esa versión**, o el cambio
+# no lo ve quien ya tenía la anterior en caché.
+#
+# Con el nombre versionado, una semana es un término medio
 # entre no repetir descargas y no dejar una foto vieja pegada un mes.
 [[headers]]
   for = "/assets/*.webp"

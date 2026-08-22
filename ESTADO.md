@@ -306,6 +306,25 @@ destroza; necesita foto nueva.
 > como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
 > existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
 
+#### Cambiar una foto no basta: hay que subir la versión de la URL
+
+El despliegue del 22-08 salió correcto —las fotos limpias estaban en `main` y
+Netlify las subió— y aun así el propietario abrió la tienda y **seguía viendo
+los sellos**. No era su navegador: `netlify.toml` sirve `assets/*.webp` con
+`max-age=604800`, y como el archivo conserva el nombre, quien haya entrado en la
+última semana se queda con la copia vieja hasta siete días. Recargar del lado de
+uno no lo arregla del lado de la clienta.
+
+Lo único que salta una caché ya escrita es **cambiar la URL**, así que las 119
+referencias de `index.html` y los cuatro constructores de `checkout.html` llevan
+`?v=AAAAMMDD`. Comprobado en el navegador: 119 de 119 con versión, ninguna rota,
+ningún 404, y ninguna petición sale ya sin versión.
+
+> **Al cambiar una foto hay que subir esa versión.** Está escrito también en
+> `netlify.toml`, junto a la cabecera que lo causa, porque es ahí donde se mira
+> cuando algo no aparece. Si no se sube, el cambio no lo ve quien ya tenía la
+> foto anterior — y esa es justo la gente que ya conoce la tienda.
+
 #### La foto del empaque también depende de lo que va dentro
 
 Otra sesión estableció que el Premium son **dos kits distintos** —brazalete y

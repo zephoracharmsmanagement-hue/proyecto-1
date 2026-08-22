@@ -549,7 +549,7 @@ button{font-family:inherit}
 
           <label class="bump" id="bump" hidden>
             <input type="checkbox" id="bump-chk">
-            <img class="bump-img" id="bump-img" src="assets/empaque.webp" alt="Empaque Premium de Regalo" width="56" height="56" loading="lazy" decoding="async">
+            <img class="bump-img" id="bump-img" src="assets/empaque.webp?v=20260822" alt="Empaque Premium de Regalo" width="56" height="56" loading="lazy" decoding="async">
             <span class="bump-tx">
               <span class="bump-t"><b>Añade el Empaque Premium de Regalo</b><span class="precio">+$40.000</span></span>
               <span class="bump-d" id="bump-d"></span>
@@ -701,7 +701,7 @@ function pintarResumen(){
     /* Los charms sin foto van con la inicial, igual que en el catálogo, en vez
        de un <img> roto. El empaque era la otra excepción —no tenía foto— y ya
        la tiene, así que entra por el camino normal. */
-    const foto=l.foto||('assets/'+l.id+'.webp');
+    const foto=(l.foto||('assets/'+l.id+'.webp'))+'?v=20260822';
     const ini=esc(l.n.trim().charAt(0).toUpperCase());
     const img=foto
       ? '<img src="'+esc(foto)+'" alt="" loading="lazy" onerror="this.outerHTML='
@@ -849,7 +849,7 @@ function pintarSugeridos(){
   $('#sug-tira').innerHTML = ids.map(id=>{
     const n=esc(CAT.nombres[id]||id);
     return '<div class="sug-c">'
-      + '<img src="assets/'+esc(id)+'.webp" alt="'+n+'" loading="lazy" decoding="async">'
+      + '<img src="assets/'+esc(id)+'.webp?v=20260822" alt="'+n+'" loading="lazy" decoding="async">'
       + '<span class="sug-n">'+n+'</span>'
       + '<span class="sug-pr">'+cop(CAT.precios[id])+'</span>'
       + '<button class="sug-b" type="button" data-sug="'+esc(id)+'">Añadir</button>'
@@ -888,7 +888,7 @@ function pintarBump(){
   /* innerHTML sobre una constante escrita aquí al lado, sin nada de la
      clienta en medio: lo único que entra es el <b> del texto de arriba. */
   $('#bump-d').innerHTML=carrito.base?EMPAQUE.base:EMPAQUE.charms;
-  $('#bump-img').src=carrito.base?'assets/empaque.webp':'assets/empaque-charm.webp';
+  $('#bump-img').src=(carrito.base?'assets/empaque.webp':'assets/empaque-charm.webp')+'?v=20260822';
 }
 
 $('#bump-chk').addEventListener('change',e=>{
