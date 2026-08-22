@@ -113,6 +113,47 @@ button{font-family:inherit}
 .aval-n{font-size:12.5px;line-height:1.5;color:#4a3a50}
 .aval-n b{font-weight:400;color:var(--ink)}
 .aval-e{display:flex;gap:1px;flex:0 0 auto}
+
+/* «Te puede interesar» — la tira de sugerencias.
+   Rueda con el dedo en móvil; en escritorio caben las seis. */
+.sug{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+.sug-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 0 3px}
+.sug-h h3{font-size:19px}
+.sug-h span{font-size:12px;color:var(--silver)}
+.sug-p{margin:0 0 12px;font-size:13px;color:#6d6070;line-height:1.5}
+.sug-tira{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;
+  scroll-snap-type:x proximity}
+.sug-c{flex:0 0 132px;scroll-snap-align:start;border:1px solid var(--line);border-radius:3px;
+  background:var(--white);padding:8px;display:flex;flex-direction:column;gap:6px}
+.sug-c img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff}
+.sug-n{font-size:12px;line-height:1.35;min-height:2.7em}
+.sug-pr{font-size:13px;color:var(--ink)}
+.sug-b{width:100%;border:1px solid var(--pagar);background:var(--white);color:var(--pagar);
+  border-radius:2px;padding:8px 6px;font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer;transition:.15s}
+.sug-b:hover{background:var(--pagar);color:#fff}
+.sug-b.is-puesto{background:var(--bien);border-color:var(--bien);color:#fff;cursor:default}
+
+/* Order bump del Empaque Premium.
+ *
+ * Va en el paso de pago, justo antes del botón: la decisión de comprar ya está
+ * tomada y esto es un sí o un no de un toque. La tira de sugerencias no puede
+ * ir aquí —eso es navegar, y navegar al pagar distrae— pero una casilla con su
+ * precio sí.
+ *
+ * Borde discontinuo para separarlo de las formas de pago: no es una y no puede
+ * parecerlo. */
+.bump{margin:0 0 14px;padding:13px 14px;border:1px dashed var(--pagar);border-radius:3px;
+  background:#fdf7f9;display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+.bump input{margin:2px 0 0;width:19px;height:19px;accent-color:var(--pagar);flex:0 0 auto;cursor:pointer}
+.bump-tx{min-width:0}
+.bump-t{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14.5px}
+.bump-t b{font-weight:400}
+.bump-t .precio{color:var(--pagar)}
+.bump-d{margin:4px 0 0;font-size:12.5px;line-height:1.5;color:#6d6070}
+.bump:has(input:checked){border-style:solid;background:var(--rose-soft)}
+.bump-ya{margin:0 0 14px;padding:11px 13px;border-radius:3px;background:#E8F4EF;
+  font-size:13px;line-height:1.5;color:#1a6650}
 .res-editar{display:inline-block;margin-top:12px;font-size:12.5px}
 
 /* ——— pasos ——— */
@@ -497,6 +538,19 @@ button{font-family:inherit}
             <span id="nota-pago">Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.</span>
           </div>
 
+          <!-- Antes de la casilla de términos a propósito: aceptar es la última
+               puerta antes de pagar, y una oferta entre el consentimiento y el
+               botón añade un artículo al pedido después de haberlo aceptado. -->
+
+          <label class="bump" id="bump" hidden>
+            <input type="checkbox" id="bump-chk">
+            <span class="bump-tx">
+              <span class="bump-t"><b>Añade el Empaque Premium de Regalo</b><span class="precio">+$40.000</span></span>
+              <span class="bump-d">Tu pedido ya lleva empaque de regalo sin costo. El Premium suma la <b>tarjeta con tu dedicatoria escrita a mano</b>, para que llegue listo para entregar.</span>
+            </span>
+          </label>
+          <p class="bump-ya" id="bump-ya" hidden>✓ Tu pedido lleva Empaque Premium de Regalo. La dedicatoria para la tarjeta se escribe en el paso anterior.</p>
+
           <div class="campo" style="margin-top:18px" data-c="acepta">
             <label style="display:flex;gap:10px;align-items:flex-start;text-transform:none;
                           letter-spacing:0;font-size:13.5px;color:#4a3d4e;cursor:pointer">
@@ -778,6 +832,32 @@ function pintarSugeridos(){
   caja.hidden=false;
 }
 
+/* El bump del Empaque Premium.
+ *
+ * Solo se ofrece si no lo lleva ya —el carrito puede traerlo puesto desde el
+ * armador— y en ese caso se dice que lo lleva, en vez de dejar una casilla que
+ * no hace nada o, peor, que al tocarla se lo quite sin querer en la pantalla
+ * de pago. */
+function pintarBump(){
+  const caja=$('#bump'), ya=$('#bump-ya');
+  if(!carrito){ caja.hidden=true; ya.hidden=true; return; }
+  caja.hidden=carrito.empaque===true;
+  ya.hidden=carrito.empaque!==true;
+  $('#bump-chk').checked=carrito.empaque===true;
+}
+
+$('#bump-chk').addEventListener('change',e=>{
+  carrito.empaque=e.target.checked;
+  guardarCarrito();
+  pintarResumen();     /* mueve el total del resumen, que está a la vista */
+  pintarBump();
+  if(e.target.checked && typeof fbq==='function'){
+    fbq('track','AddToCart',{currency:'COP',content_type:'product',
+      content_ids:['empaque'],content_name:'Empaque Premium de Regalo',
+      value:CAT.reglas.empaque});
+  }
+});
+
 $('#sug-tira').addEventListener('click',e=>{
   const b=e.target.closest('[data-sug]'); if(!b) return;
   const id=b.dataset.sug;
@@ -1057,6 +1137,7 @@ Promise.all([
   pintarDeptos();
   pintarResumen();
   pintarSugeridos();
+  pintarBump();
 
   /* El resumen es una barra plegable arriba en móvil y una columna fija al lado
      en escritorio. Es el mismo nodo movido, no dos copias que se desincronizan. */

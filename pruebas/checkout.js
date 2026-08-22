@@ -227,6 +227,32 @@ async function llenarPaso1(p, d) {
     ok(await p.locator('.aval').isVisible(), 'y sí aparece junto al botón de pagar');
     ok(/2\.400/.test(aval) && /verificad/i.test(aval),
       'con el dato real de la tienda, no una frase de relleno', aval.slice(0, 60) + '…');
+
+    /* El order bump del Empaque Premium.
+     *
+     * Lo que se vigila no es que exista, sino dónde: va ANTES de la casilla de
+     * términos. Una oferta metida entre el consentimiento y el botón de pagar
+     * añade un artículo al pedido después de que la clienta ya aceptó, y eso no
+     * es un detalle de diseño. */
+    ok(await p.locator('#bump').isVisible(), 'el bump del Empaque Premium se ofrece en el paso de pago');
+    const orden = await p.evaluate(() => {
+      const b = document.querySelector('#bump');
+      const t = document.querySelector('[data-c="acepta"]');
+      const pagar = document.querySelector('#confirmar');
+      if (!b || !t || !pagar) return null;
+      return { bumpAntesDeTerminos: !!(b.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING),
+               terminosAntesDePagar: !!(t.compareDocumentPosition(pagar) & Node.DOCUMENT_POSITION_FOLLOWING) };
+    });
+    ok(orden && orden.bumpAntesDeTerminos, 'y va antes de aceptar los términos, no entre el sí y el pago');
+    ok(orden && orden.terminosAntesDePagar, 'con los términos como última puerta antes del botón');
+
+    const sinBump = (await p.locator('#res-total').textContent()).trim();
+    await p.click('#bump-chk');
+    await p.waitForTimeout(300);
+    const conBump = (await p.locator('#res-total').textContent()).trim();
+    ok(sinBump !== conBump, 'marcarlo mueve el total del resumen', `${sinBump} → ${conBump}`);
+    ok(!(await p.locator('#bump').isVisible()) && await p.locator('#bump-ya').isVisible(),
+      'y una vez puesto deja de ofrecerse: la casilla no puede quitarlo sin querer al pagar');
     await p.close();
   }
 
