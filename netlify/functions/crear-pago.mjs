@@ -21,6 +21,8 @@ import { reservar, confirmar, liberar } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
+import { purchase, hashearCliente } from './_meta.js';
+import { guardar as guardarSenales } from './_atribucion.mjs';
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -149,6 +151,54 @@ async function avisar(carga) {
   }
 }
 
+/* Las cookies que planta el pixel de Meta.
+ *
+ * `_fbc` guarda el clic en el anuncio y `_fbp` identifica el navegador: son las
+ * dos señales con las que Meta ata una compra a la pauta que la produjo. Llegan
+ * en el cuerpo porque el webhook de Wompi es servidor a servidor y no las ve
+ * nunca — ver la cabecera de _atribucion.mjs.
+ *
+ * Se validan como todo lo que entra por aquí: esta es una URL pública y esto
+ * viaja a Meta en claro. El formato lo fija Meta, `fb.1.<ms>.<identificador>`;
+ * lo que no encaje se descarta entero en vez de ensuciar el emparejamiento. */
+const COOKIE_PIXEL = /^fb\.\d\.\d{1,20}\.[\w-]{1,200}$/;
+const cookiePixel = v => (COOKIE_PIXEL.test(String(v == null ? '' : v)) ? String(v) : null);
+
+/* La IP real de la clienta. Netlify la pone en su propia cabecera; del
+   x-forwarded-for solo sirve la primera entrada, que las siguientes son los
+   proxies por los que pasó. */
+function ipCliente(headers) {
+  /* Defensivo a propósito: en producción esto siempre es un Request con
+     cabeceras, pero esta función vive dentro del camino del cobro y un ayudante
+     de atribución que lance por una cabecera ausente tumbaría la venta entera.
+     Vale la misma regla que para todo lo de Meta aquí: si no se puede saber, no
+     se sabe, y no pasa nada más. */
+  const leer = k => {
+    try { return (headers && typeof headers.get === 'function' && headers.get(k)) || ''; }
+    catch (_) { return ''; }
+  };
+  return leer('x-nf-client-connection-ip')
+    || leer('x-forwarded-for').split(',')[0].trim()
+    || null;
+}
+
+/* Por lo mismo que ipCliente: nunca lanza si no hay cabeceras. */
+function agenteCliente(headers) {
+  try {
+    return (headers && typeof headers.get === 'function' && headers.get('user-agent')) || null;
+  } catch (_) { return null; }
+}
+
+/* Lo que llevó el pedido, en la forma que Meta espera para `contents`. La talla
+   no entra: un brazalete es el mismo producto en cualquiera de ellas, y Meta
+   cuenta productos, no unidades de inventario. */
+function contenidosDe(pedido) {
+  const cuenta = {};
+  if (pedido.base) cuenta[pedido.base.id] = (cuenta[pedido.base.id] || 0) + 1;
+  pedido.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
+  return Object.entries(cuenta).map(([id, quantity]) => ({ id, quantity }));
+}
+
 export default async (req) => {
   if (req.method !== 'POST') {
     return responder(405, { error: 'Solo POST' });
@@ -270,12 +320,28 @@ export default async (req) => {
     lineas: detallar(pedido),
   };
 
+  /* Las señales de atribución del navegador.
+   *
+   * Solo existen en esta petición: viene del navegador de la clienta, con sus
+   * cookies del pixel, su IP y su user-agent. Los datos personales se hashean
+   * aquí, así que de aquí en adelante no vuelve a viajar un correo en claro. */
+  const senales = {
+    usuario: hashearCliente(cliente),
+    fbp: cookiePixel(cuerpo.fbp),
+    fbc: cookiePixel(cuerpo.fbc),
+    ip: ipCliente(req.headers),
+    ua: agenteCliente(req.headers),
+    contenidos: contenidosDe(pedido),
+    total: cuentas.total,
+  };
+
   if (pedido.pago === 'contraentrega') {
     /* Nada que firmar: se paga al mensajero. El pedido queda registrado y la
        confirmación de existencias sigue haciéndose por WhatsApp, como hoy.
        La reserva se confirma ya: no hay pasarela de la que esperar un aviso, y
        dejarla caducando media hora liberaría unidades de un pedido en firme. */
     const cierre = await confirmar(ref);
+
     /* A la hoja de inventario. Contraentrega es la única venta que se cierra
        aquí: el pago en línea la anota `wompi-webhook` al aprobarse, porque hasta
        ese momento no ha salido nada del inventario. `quedan` sale del propio CAS
@@ -286,6 +352,28 @@ export default async (req) => {
       ciudad: `${cliente.ciudad}, ${cliente.depto}`,
       total: cuentas.total, lineas, restante: cierre.restante,
     });
+
+    /* El Purchase de contraentrega sale de aquí y no del webhook, porque para
+       este pedido no hay webhook: nunca pasa por Wompi. Es el único momento en
+       que consta que el pedido existe.
+       *
+       * Sí se cuenta como compra, con el mismo criterio que ya usaba el pixel
+       * desde checkout.html: todavía no hay plata cobrada, pero hay un pedido
+       * en firme que se despacha, y contarlo es lo que hace comparable el
+       * embudo contra el de pago anticipado. Los dos mandan la referencia como
+       * event_id, así que Meta cuenta una compra y no dos.
+       *
+       * Aquí las señales no se guardan: se usan de una vez y se acaban. Guardar
+       * lo que nadie va a recoger solo deja datos de clientas dando vueltas. */
+    const aMeta = await purchase({
+      referencia: ref, total: cuentas.total, cuando: Date.now(), senales,
+    });
+    console.log(JSON.stringify({
+      evento: 'meta_purchase', referencia: ref, pago: 'contraentrega',
+      enviado: aMeta.enviado, motivo: aMeta.motivo || null,
+      atribuido: aMeta.atribuido || false,
+    }));
+
     return responder(200, Object.assign({ modo: 'contraentrega' }, base));
   }
 
@@ -313,6 +401,17 @@ export default async (req) => {
     });
   }
 
+  /* Guarda las señales para el Purchase que mandará el webhook cuando Wompi
+     confirme. Va aquí, ya pasadas todas las salidas de emergencia, para no
+     dejar en el almacén pedidos que nunca van a llegar a la pasarela.
+     No bloquea la venta: guardar() nunca lanza. */
+  const guardado = await guardarSenales(ref, senales);
+  if (guardado.modo !== 'guardado') {
+    console.log(JSON.stringify({
+      evento: 'atribucion_no_guardada', referencia: ref, modo: guardado.modo,
+    }));
+  }
+
   return responder(200, Object.assign({
     modo: 'wompi',
     checkout: CHECKOUT_WOMPI,
@@ -324,4 +423,4 @@ export default async (req) => {
 
 /* Se exportan para que las pruebas comprueben la firma y la referencia sin
    tener que levantar Netlify. */
-export const _interno = { referencia, firmar, leerCliente };
+export const _interno = { referencia, firmar, leerCliente, cookiePixel, ipCliente, agenteCliente, contenidosDe };

@@ -22,6 +22,7 @@ import { confirmar, liberar } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { marcar, leer } from './_pedidos.mjs';
 import { purchase } from './_meta.js';
+import { tomar as tomarSenales } from './_atribucion.mjs';
 import { enviar, pagoTienda } from './_correo.js';
 
 const ok = (cuerpo) => new Response(JSON.stringify(cuerpo || { recibido: true }),
@@ -144,6 +145,16 @@ export default async (req) => {
     });
   }
 
+  /* Las señales de atribución que guardó crear-pago: las cookies del pixel, la
+   * IP y el user-agent de la clienta, que esta petición no puede conocer porque
+   * la hace Wompi y no un navegador. Ver _atribucion.mjs.
+   *
+   * Se recogen con cualquier estado, no solo con el aprobado, porque tomar()
+   * borra al leer: si solo se recogieran en el camino bueno, cada pago
+   * rechazado dejaría datos de una clienta guardados sin que nadie los limpie. */
+  const senales = registro.referencia ? await tomarSenales(registro.referencia) : null;
+
+
   if (tx.status === 'APPROVED') {
     /* Purchase a Meta desde el servidor.
      *
@@ -163,10 +174,14 @@ export default async (req) => {
       telefono: cd.phone_number || cd.phone || null,
       nombre: cd.full_name || cd.fullName || null,
       cuando: evento.timestamp ? evento.timestamp * 1000 : null,
+      senales,
     });
     console.log(JSON.stringify({
       evento: 'meta_purchase', referencia: registro.referencia,
       enviado: aMeta.enviado, motivo: aMeta.motivo || null, campos: aMeta.campos || null,
+      /* Si salió sin fbc ni fbp, Meta no puede atarlo al anuncio que lo
+         produjo. Cuenta como conversión, pero empareja mucho peor. */
+      atribuido: aMeta.atribuido || false,
     }));
 
     await reenviar(Object.assign({

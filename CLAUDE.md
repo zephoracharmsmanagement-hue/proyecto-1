@@ -226,11 +226,22 @@ que el diff: una rama anterior al doble píxel trae un `<head>` con un solo
 - **El interruptor por chat se apaga solo en cada reconexión.** En una
   conversación larga esto pasa muchas veces y parece que el conector "se
   cayó". Trabajar desde terminal con `claude mcp add` evita el ciclo.
-- **Este repo se ha trabajado en paralelo desde varias sesiones.** Antes de
-  hacer push, `git fetch` y revisar si hay commits nuevos — ya pasó un
-  push rechazado por historial divergente en este proyecto. Pero el push
-  rechazado es la versión benigna del problema; la cara cara está arriba, en
-  *Cómo se reparte el trabajo entre sesiones*.
+- **El tronco es `main`, desde la consolidación del 2026-08-20.** Antes no
+  había ninguno: nueve ramas `claude/*`, y la que publicaba Netlify se
+  llamaba `claude/install-frontend-design-skill-8t655e`, por el nombre de la
+  tarea que la abrió. Eso hizo que tres sesiones construyeran **lo mismo dos
+  veces** —el `Purchase` server-side, el rescate de carritos y el registro de
+  pedidos— y una de esas duplicaciones estuvo a punto de hacer que Meta
+  contara el doble de compras.
+
+  **`git fetch --all`, no `git fetch` de la rama propia.** Ese fue el error
+  concreto que costó las tres reconciliaciones: se miraba la rama de uno y se
+  daba por hecho que el resto estaba quieto. El push rechazado por historial
+  divergente es la versión benigna; la cara es construir dos días algo que ya
+  existía.
+
+  Lo que falta cambiar en los paneles de GitHub y Netlify —y que no se puede
+  hacer desde aquí— está en `ESTADO.md` § Consolidación.
 - Algunas verificaciones contra APIs externas (`graph.facebook.com`,
   `netlify.com`, etc.) están bloqueadas por política de red en entornos de
   ejecución remota — hay que correrlas desde una terminal con acceso real,

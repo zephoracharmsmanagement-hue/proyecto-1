@@ -26,7 +26,7 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 | `assets/stock.json` | El inventario que lee la página: unidades por charm y tallas por brazalete. |
 | `assets/` | Las imágenes del sitio. |
 | `pruebas/` | Baterías Playwright que comprueban lo acordado. `./pruebas/correr.sh` |
-| `herramientas/` | `gen_paginas.py` (páginas de información) y `extraer_catalogo.py` (precios). |
+| `herramientas/` | `gen_paginas.py` (páginas de información), `extraer_catalogo.py` (precios) y `reponer.mjs` (inventario desde la hoja). |
 | `skills-lock.json` | Skills instaladas en el proyecto (fuente + hash). |
 | `.claude/skills/` | Agent Skills disponibles al trabajar en este repo. |
 
@@ -370,7 +370,44 @@ embudo entre entrar a pagar y pagar.
   para poder separarlo. Todavía no hay plata cobrada, pero sí un pedido real que
   se despacha; contarlo como venta es lo que hace comparable el embudo.
 
+  **Y también desde el servidor**, pero desde `crear-pago.mjs` y no desde el
+  webhook: contraentrega no pasa por Wompi, así que no hay webhook que lo
+  dispare. El momento en que consta que el pedido existe es el de registrarlo.
+  Se deduplica igual, por la referencia.
+
 `Lead` queda para el pedido que se cierra por WhatsApp, que sigue existiendo.
+
+### Atribución: por qué el evento de servidor necesita las cookies
+
+Meta ata una compra al anuncio que la produjo sobre todo por dos cookies del
+navegador: `_fbc` (el clic en el anuncio) y `_fbp`. El webhook de Wompi es una
+llamada servidor a servidor y **no ve ninguna de las dos**, ni la IP ni el
+user-agent.
+
+Y eso importa por el orden en que llegan las cosas: el webhook entra segundos
+después del pago, la clienta vuelve a `gracias.html` cuando vuelve. El evento de
+servidor suele llegar **primero**, y al deduplicar Meta se queda con el primero.
+Mandarlo pelado no solo no añadiría atribución — **se la quitaría al del
+navegador, que sí la traía**.
+
+Por eso `checkout.html` manda `_fbp` y `_fbc` con el pedido, y `crear-pago.mjs`
+los guarda junto a los datos de la clienta —ya hasheados, ver
+`netlify/functions/_atribucion.mjs`— en el almacén `atribucion` de Netlify
+Blobs. El webhook los recoge y los borra. Contraentrega no guarda nada: usa las
+señales en el momento y se acaban.
+
+Cada evento deja en el log si salió atribuido:
+
+```json
+{"evento":"meta_purchase","referencia":"ZC-…","enviado":true,"atribuido":true}
+```
+
+`"atribuido": false` cuenta como conversión igual, pero empareja mucho peor. **Al
+revisar por qué una campaña no aprende, esto es lo primero que hay que mirar.**
+
+El documento de identidad **no se manda, ni hasheado**: Meta no lo usa para
+emparejar y el SHA-256 de una cédula colombiana se revierte por fuerza bruta en
+segundos.
 
 Cada enlace a WhatsApp lleva un `data-wa` con su origen (`hero`, `asesoria-regalo`,
 `pie`), que viaja en `content_name` para poder separar en Events Manager qué botón
