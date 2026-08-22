@@ -549,7 +549,7 @@ button{font-family:inherit}
 
           <label class="bump" id="bump" hidden>
             <input type="checkbox" id="bump-chk">
-            <img class="bump-img" src="assets/empaque.webp" alt="Empaque Premium: bolsa, caja, saquito y tarjeta" width="56" height="56" loading="lazy" decoding="async">
+            <img class="bump-img" id="bump-img" src="assets/empaque.webp" alt="Empaque Premium de Regalo" width="56" height="56" loading="lazy" decoding="async">
             <span class="bump-tx">
               <span class="bump-t"><b>Añade el Empaque Premium de Regalo</b><span class="precio">+$40.000</span></span>
               <span class="bump-d" id="bump-d"></span>
@@ -679,8 +679,15 @@ function lineas(c){
     out.push({id:id,n:CAT.nombres[id]+(n>1?' ×'+n:''),m:'Charm · Plata 925',
       p:CAT.precios[id]*n});
   });
+  /* Igual que el texto del bump: la caja del brazalete y la del charm no son la
+     misma pieza, así que ni el resumen ni su miniatura pueden ser fijos. Un
+     pedido de solo charms enseñaba aquí la bolsita guardapolvo y el brazalete
+     dentro de la caja, que es prometer lo que no llega. */
   if(c.empaque) out.push({id:'empaque',n:'Empaque Premium de Regalo',
-    m:'Bolsa, caja, saquito y tarjeta',p:CAT.reglas.empaque});
+    m:c.base?'Caja a la medida, bolsita, bolsa y tarjeta'
+            :'Caja pequeña, bolsa de regalo y tarjeta',
+    foto:c.base?'assets/empaque.webp':'assets/empaque-charm.webp',
+    p:CAT.reglas.empaque});
   return out;
 }
 
@@ -694,7 +701,7 @@ function pintarResumen(){
     /* Los charms sin foto van con la inicial, igual que en el catálogo, en vez
        de un <img> roto. El empaque era la otra excepción —no tenía foto— y ya
        la tiene, así que entra por el camino normal. */
-    const foto='assets/'+l.id+'.webp';
+    const foto=l.foto||('assets/'+l.id+'.webp');
     const ini=esc(l.n.trim().charAt(0).toUpperCase());
     const img=foto
       ? '<img src="'+esc(foto)+'" alt="" loading="lazy" onerror="this.outerHTML='
@@ -881,6 +888,7 @@ function pintarBump(){
   /* innerHTML sobre una constante escrita aquí al lado, sin nada de la
      clienta en medio: lo único que entra es el <b> del texto de arriba. */
   $('#bump-d').innerHTML=carrito.base?EMPAQUE.base:EMPAQUE.charms;
+  $('#bump-img').src=carrito.base?'assets/empaque.webp':'assets/empaque-charm.webp';
 }
 
 $('#bump-chk').addEventListener('change',e=>{

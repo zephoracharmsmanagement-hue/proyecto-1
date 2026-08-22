@@ -306,6 +306,25 @@ destroza; necesita foto nueva.
 > como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
 > existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
 
+#### La foto del empaque también depende de lo que va dentro
+
+Otra sesión estableció que el Premium son **dos kits distintos** —brazalete y
+charm— y escribió el texto desde el carrito para no prometer la caja que no es.
+El mismo razonamiento vale para la imagen, y ahí quedaba el hueco: un pedido de
+solo charms veía la foto con la bolsita guardapolvo y el brazalete dentro de la
+caja.
+
+Las dos fotos que mandó el propietario resultaron ser justo los dos kits, y se
+distinguen por lo que el propio texto nombra: la del lazo rosa trae **bolsita
+guardapolvo y folleto** —los dos del kit de brazalete—; la otra no tiene ninguna
+de las dos y su caja es pequeña. Así que `empaque.webp` va con brazalete y
+`empaque-charm.webp` con charms, y tanto el bump como la línea del resumen las
+eligen desde el carrito.
+
+> Si la correspondencia estuviera al revés, se cambia en dos sitios de
+> `checkout.html` (`pintarBump` y `lineas`). Sale de mirar las fotos, no de que
+> nadie lo confirmara.
+
 #### Cuidado con lo que se sube a `assets/`: esa carpeta se publica
 
 Al mezclar para desplegar aparecieron en `assets/` cinco
