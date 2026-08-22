@@ -56,15 +56,55 @@ def color_del_panel(im):
     return tuple(sorted(v[i] for v in panel)[len(panel) // 2] for i in range(3))
 
 
+def tiene_borde_recto(im, panel, minimo=0.30):
+    """¿El panel es un rectángulo recortado, o solo un degradado de estudio?
+
+    Es la distinción que importa y la que cuesta ver midiendo niveles. Un panel
+    de proveedor es un recorte con **borde recto**: en la Torre Eiffel son dos
+    niveles de diferencia y el recuadro se ve igual, porque el ojo detecta
+    bordes mucho mejor que niveles absolutos. El degradado de una foto de
+    estudio —la sombra bajo la bola roja, el fondo de Cenicienta— se aparta del
+    blanco lo mismo o más, y no hay nada que corregir: es la propia foto.
+
+    Se busca una transición que se repita en la misma x (o la misma y) a lo
+    largo de al menos `minimo` del alto (o del ancho). Eso es una recta.
+    """
+    W, H = im.size
+    d = im.load()
+    def es_panel(c):
+        return max(abs(c[i] - panel[i]) for i in range(3)) <= 4
+    for eje in range(2):
+        largo, cruce = (H, W) if eje == 0 else (W, H)
+        cuenta = [0] * cruce
+        for a in range(0, largo, 2):
+            ant = None
+            for b in range(cruce):
+                c = d[b, a] if eje == 0 else d[a, b]
+                if min(c) < 200:      # la pieza corta la línea; no cuenta
+                    ant = None
+                    continue
+                aqui = es_panel(c)
+                if ant is not None and aqui != ant:
+                    cuenta[b] += 1
+                ant = aqui
+        if max(cuenta) >= (largo / 2) * minimo:
+            return True
+    return False
+
+
 def blanquea(ruta, destino):
     """(panel, píxeles tocados). No escribe si el panel no da la talla."""
     im = Image.open(ruta).convert("RGB")
     panel = color_del_panel(im)
-    # Dos guardas, las dos por falsos positivos reales:
-    #  · La Torre Eiffel mide (254,254,252) contra 255. Uno a tres niveles no se
-    #    ven, y «corregirlos» es tocar una foto que está bien.
-    if panel is None or min(panel) >= 250:
+    # Lo que decide NO es cuánto se aparta el panel del blanco, sino que ocupe
+    # media foto: un panel es un rectángulo con borde recto, y el ojo detecta
+    # bordes mucho mejor que niveles. La Torre Eiffel mide (254,254,252) —dos
+    # niveles— y el recuadro se ve perfectamente; darla por buena por «pequeña»
+    # fue el error. Solo se salta lo que ya es blanco.
+    if panel is None or min(panel) >= 254:
         return panel, 0
+    if not tiene_borde_recto(im, panel):
+        return panel, None
 
     W, H = im.size
     d = im.load()
@@ -104,7 +144,10 @@ def main():
             continue
         destino = p if aplicar else SALIDA / p.name
         panel, tocados = blanquea(p, destino)
-        if tocados < 0:
+        if tocados is None:
+            print(f"  {i:<34} panel {panel} — sin borde recto: es degradado de "
+                  f"estudio, no recorte. NO se escribe")
+        elif tocados < 0:
             print(f"  {i:<34} panel {panel} — solo {-tocados * 100 // (440 * 440)}% "
                   f"del cuadro: es sombra, no panel. NO se escribe")
         elif not tocados:
