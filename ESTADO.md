@@ -297,25 +297,27 @@ destroza; necesita foto nueva.
 > como pieza y la foto vieja sale inflada. Ahí avisa de una pérdida que no
 > existe —pasó con `bola-rosa-con-flores`, que se comprobó a mano—.
 
-#### Fotos generadas con IA: no
+#### Fotos retocadas con IA — decisión del propietario
 
-Llegaron cinco `Gemini_Generated_Image_*.webp` para las cinco piezas que no se
-podían retocar. Venían limpias, sobre blanco, del tamaño correcto — y **no se
-publicaron**, porque al compararlas contra la foto real cada una había cambiado
-la pieza:
+Las cinco piezas que no se podían limpiar por retoque se resolvieron con
+imágenes pasadas por Gemini (`Gemini_Generated_Image_*.webp`):
+`escudo-capitan-america`, `corazon-arbol-de-la-vida`, `atrapasuenos-azul`,
+`osito-con-rosa-y-corazon` y `pulsera-sol-con-cadena-seguridad`.
 
-| Pieza | Qué inventó |
-|---|---|
-| Osito con rosa | Las orejas, lisas con una espiral grabada, salen texturadas con brillo tipo pavé |
-| Pulsera Sol | El cierre pasa de sol de rayos triangulares a **sol con luna creciente**, con las circonitas repartidas de otro modo |
-| Escudo Capitán América | El aro pasa de calado a liso |
+Al compararlas contra la foto anterior aparecen diferencias de detalle —las
+orejas del osito salen texturadas y no lisas, el cierre de la pulsera del sol
+pasa de sol a sol con luna, el aro del escudo de calado a liso—. **Se planteó
+al propietario y decidió publicarlas**: son sus piezas y sus fotos, considera
+que son retoques de estudio que no se apartan del producto real, y asume el
+riesgo. Queda anotado aquí para que la próxima sesión no lo replantee.
 
-No es cuestión de estilo. Una clienta que compra el osito esperando orejas con
-brillo recibe otra cosa, y eso vuelve como devolución. La regla es la misma que
-con el grabado de la pieza: **retocar la foto sí, cambiar el producto no.**
+La línea que sí conviene mantener, y que no está en discusión, es la del
+grabado: retocar la foto es una cosa y cambiar el producto que la clienta
+recibe es otra. Donde una diferencia sea grande, se pregunta.
 
-Lo que sí resolvió el caso fue volver sobre el retoque: dos de esas cinco se
-pudieron limpiar de verdad.
+> De paso, el intento de comparar destapó que dos de esas cinco nunca fueron
+> imposibles de limpiar. Si alguna vez se quiere volver a la foto original
+> retocada en vez de la de Gemini, están en el commit `682ed97`.
 
 #### Qué mandar para que la foto quede bien — medido, no supuesto
 
