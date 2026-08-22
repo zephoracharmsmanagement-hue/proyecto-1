@@ -705,22 +705,35 @@ que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` �
   `aria-invalid` y su mensaje colgado con `aria-describedby`: el borde rojo
   solo existe para quien lo ve.
 
-**Reseñas reales (22 de agosto).** El propietario pasó cinco capturas de
-historias con conversaciones de WhatsApp y DM de clientas, **todas autorizadas
-por ellas y con nombre**. De ahí salieron tres reseñas nuevas (Andrea/Bogotá,
-Alejandra/Medellín, Jimena/Mompox) con su foto recortada fuera del chat.
+**Reseñas con foto de clienta — intentado y retirado (22 de agosto).** El
+propietario pasó cinco capturas de historias con conversaciones de WhatsApp y
+DM, todas autorizadas por las clientas y con nombre. De ahí salieron tres
+reseñas nuevas más una cuarta, y la foto de una clienta que etiquetó a la
+tienda. **Se publicaron y se quitaron el mismo día: la calidad no daba.**
+
+Las fotos venían de chat, o sea comprimidas dos veces, y salían entre 379 y 646
+px de ancho. En la captura de revisión pasaban; en la página, al lado de las
+fotos de catálogo, se veían blandas. **Y eso se podía saber antes de
+publicar:** estaban a la vista y se dieron por buenas igual. Para la próxima
+tanda, el listón es el que ya tienen las reseñas viejas — foto que aguante los
+~380 px de la tarjeta sin verse lavada—, y se compara contra una de esas antes
+de montarla, no después.
+
+Lo que sí quedó aprendido, y vale para las fotos que vengan:
 
 - **La captura no se publica, se recorta.** El pantallazo trae la interfaz de
   WhatsApp, la foto de perfil de la clienta y, en una, la línea del `+57`. Lo
   autorizado es que salga su foto, no su conversación. Las cinco capturas se
   quitaron de `assets/` —donde estaban públicas— y viven solo en el historial.
-- **Melissa no tiene reseña porque no escribió ninguna**: publicó la pulsera
-  puesta y etiquetó a la tienda. Su foto va bajo la línea que ya prometía eso
-  («Etiquétanos y aparece aquí»), acreditada con su `@`. Ponerle una cita
-  habría sido inventarle palabras a una clienta.
-- Las fotos son de chat, comprimidas dos veces: salen entre 379 y 646 px de
-  ancho y se guardan a ese tamaño. **No ampliarlas**; en la tarjeta de reseña
-  (4:3) se ven bien.
+- **Sin cita inventada.** Una de las clientas no escribió reseña: publicó la
+  pulsera puesta y etiquetó a la tienda. Su foto fue bajo la línea que ya
+  prometía eso («Etiquétanos y aparece aquí»), acreditada con su `@`, y no como
+  una reseña con palabras que nadie dijo.
+- **Dos clientas con el mismo nombre de pila no se distinguen inventándoles
+  apellido.** Había ya una «Adriana M.» de Bogotá y llegó otra Adriana de
+  Bogotá; la nueva entró sin inicial.
+- La marcación de una tarjeta de reseña se saca de las que ya existen
+  (estrellas, etiqueta «Foto de la clienta»), no se reescribe a mano.
 
 > **El empaque de Pandora en las fotos de reseña sí va, y es decisión del
 > propietario (2026-08-22): es el empaque que la tienda vende, con permiso.**
