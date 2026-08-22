@@ -197,6 +197,17 @@ El guantelete además gana segunda vista (`guantelete-del-infinito-2.webp`,
 registrada en `FOTOS`): el collage que se retiró mostraba frente y dorso, y
 perder el dorso habría sido perder información que el catálogo ya daba.
 
+> **El sello se puede borrar sin cambiar la foto, cuando no toca la pieza.** Se
+> hizo con `pulsera-copo-de-nieve`: el reemplazo que llegó venía a 225×225 —183
+> px de pulsera contra los 349 de la que había—, así que en vez de cambiarla se
+> le quitó el sello a la buena. El sello vivía sobre fondo liso en la esquina
+> opuesta a la pulsera (10 px de plata dentro de la caja, y son antialias), y se
+> rellenó tomando el color de fondo de cada fila. Conserva los 349 px.
+>
+> Sirve solo cuando el sello no se superpone a la pieza; hay que comprobarlo
+> antes, no darlo por hecho. Donde valga, es mejor que cualquier reemplazo,
+> porque no cuesta resolución.
+
 **Lo que sigue sin reemplazo**, porque no llegó o porque el que llegó era peor:
 
 - `escudo-capitan-america` y `corazon-arbol-de-la-vida` — nadie mandó una.
