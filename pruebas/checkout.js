@@ -14,6 +14,12 @@ const crypto = require('crypto');
 const path = require('path');
 
 const BASE = process.env.URL || 'http://localhost:8899';
+
+/* El brazalete de las pruebas sale del inventario, no de un id escrito aquí
+   —ver pruebas/_pieza.js—. Vender la última unidad de una pieza es lo normal
+   en una tienda; que eso ponga roja media suite, no. */
+const { brazalete } = require('./_pieza');
+const BRZ = brazalete();
 const RAIZ = path.join(__dirname, '..');
 
 /* Entorno de mentira, con secretos de mentira, para que la función crea que
@@ -134,7 +140,7 @@ async function llenarPaso1(p, d) {
   {
     const p = await b.newPage({ viewport: { width: 390, height: 844 } });
     p.on('pageerror', e => errores.push(e.message));
-    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
+    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(500);
 
@@ -176,7 +182,7 @@ async function llenarPaso1(p, d) {
        mueva el total del resumen, que está pegado arriba y siempre visible. */
     const p = await b.newPage({ viewport: { width: 390, height: 900 } });
     p.on('pageerror', e => errores.push(e.message));
-    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['iron-man'], empaque: false, pago: 'anticipado' });
+    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['iron-man'], empaque: false, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(400);
 
@@ -295,7 +301,7 @@ async function llenarPaso1(p, d) {
        uno que regaña mientras la clienta escribe. */
     const p = await b.newPage({ viewport: { width: 390, height: 844 } });
     p.on('pageerror', e => errores.push(e.message));
-    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
+    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(500);
 
@@ -384,7 +390,7 @@ async function llenarPaso1(p, d) {
       await route.fulfill({ status: 200, contentType: 'text/html', body: '<p>pasarela</p>' });
     });
 
-    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse', 'stitch'], empaque: true, pago: 'anticipado' });
+    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse', 'stitch'], empaque: true, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(500);
 
@@ -453,7 +459,7 @@ async function llenarPaso1(p, d) {
     p.on('pageerror', e => errores.push(e.message));
     const cap = [];
     await interceptar(p, cap);
-    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
+    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(500);
 
@@ -501,7 +507,7 @@ async function llenarPaso1(p, d) {
       return { codigo: r.statusCode, cuerpo: JSON.parse(r.body) };
     };
     const bueno = {
-      base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
+      base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'],
       empaque: false, pago: 'anticipado',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
     };
@@ -613,7 +619,7 @@ async function llenarPaso1(p, d) {
   {
     correos.length = 0;
     const r = await invocar(crearPago.default, { httpMethod: 'POST', body: JSON.stringify({
-      base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
+      base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
     }) });
@@ -628,9 +634,14 @@ async function llenarPaso1(p, d) {
     if (aClienta) {
       ok(aClienta.subject.includes(ref), 'el asunto lleva la referencia', aClienta.subject);
       ok(aClienta.html.includes(ref) && aClienta.text.includes(ref), 'y el cuerpo también');
-      ok(aClienta.html.includes('Avengers') && aClienta.html.includes('Mickey Mouse'),
-        'con el detalle de las piezas');
-      ok(aClienta.html.includes('Talla 20'), 'y la talla del brazalete');
+      /* El correo dice «Brazalete Copo de Nieve» donde el catálogo dice
+         «Pulsera Copo de Nieve»: `_precios.js` reescribe ese prefijo a
+         propósito. Se comprueba la parte que identifica la pieza y no el
+         prefijo, para no repetir aquí una regla que vive allí. */
+      const pieza = BRZ.nombre.replace(/^Pulsera /, '');
+      ok(aClienta.html.includes(pieza) && aClienta.html.includes('Mickey Mouse'),
+        'con el detalle de las piezas', pieza);
+      ok(aClienta.html.includes(`Talla ${BRZ.talla}`), 'y la talla del brazalete');
       ok(/Pedido confirmado/.test(aClienta.subject),
         'contraentrega se anuncia como pedido confirmado, no como pago pendiente');
       /* Sin esto varios filtros lo mandan a spam, y un comprobante en spam es
@@ -656,7 +667,7 @@ async function llenarPaso1(p, d) {
       return { ok: true, status: 200, text: async () => '' };
     };
     const conCorreoCaido = await invocar(crearPago.default, { httpMethod: 'POST', body: JSON.stringify({
-      base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
+      base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
     }) });
@@ -669,7 +680,7 @@ async function llenarPaso1(p, d) {
     delete process.env.RESEND_API_KEY;
     correos.length = 0;
     const sinLlave = await invocar(crearPago.default, { httpMethod: 'POST', body: JSON.stringify({
-      base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
+      base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'],
       empaque: false, pago: 'contraentrega',
       cliente: Object.assign({ tipodoc: 'CC', depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.' }, DATOS),
     }) });

@@ -39,6 +39,10 @@ function almacenFalso() {
   };
 }
 
+/* Ver pruebas/_pieza.js: el brazalete se elige del inventario. Este pedido sí
+   pasa por crear-pago, así que tiene que ser uno que de verdad se pueda vender. */
+const BRZ = require('./_pieza').brazalete();
+
 const LINEAS = [
   { id: 'pulsera-avengers', nombre: 'Brazalete Avengers', talla: '20', unidades: 1, precio: 58000 },
   { id: 'guantelete-del-infinito', nombre: 'Guantelete del Infinito', talla: null, unidades: 2, precio: 156400 },
@@ -75,18 +79,22 @@ const LINEAS = [
        mismo CAS que confirma la venta: leerlo después sería otra lectura, con
        otras ventas de por medio. */
     inventario._interno.usarAlmacen(almacenFalso());
-    const pedido = { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['guantelete-del-infinito'] };
+    /* Una talla con exactamente una unidad, elegida del inventario: venderla
+       tiene que dejar el resto en cero. Ver _pieza.js. */
+    const ULT = require('./_pieza').ultimaUnidad();
+    const pedido = { base: { id: ULT.id, talla: ULT.talla }, charms: ['guantelete-del-infinito'] };
     await inventario.reservar('ZC-1', pedido);
     const cierre = await inventario.confirmar('ZC-1');
 
     comprobar(cierre.modo === 'confirmado' && cierre.restante,
       'confirmar() devuelve lo que queda de cada pieza vendida',
       JSON.stringify(cierre.restante));
-    /* stock.json: pulsera-avengers talla 20 tiene 1 unidad. Vendida esa, quedan 0.
-       No se clava el número del guantelete: lo que se comprueba es la regla
+    /* La talla elegida tenía 1 unidad. Vendida esa, quedan 0. Ni el brazalete
+       ni el número del guantelete se clavan: lo que se comprueba es la regla
        —queda uno menos de lo que había— y no una cifra del catálogo. */
-    comprobar(cierre.restante['pulsera-avengers|20'] === 0,
-      'la última unidad de una talla deja el resto en cero');
+    comprobar(cierre.restante[`${ULT.id}|${ULT.talla}`] === 0,
+      'la última unidad de una talla deja el resto en cero',
+      `${ULT.id} talla ${ULT.talla}`);
     const hay = inventario._interno.existencias('guantelete-del-infinito');
     comprobar(cierre.restante['guantelete-del-infinito'] === hay - 1,
       'y de un charm queda exactamente uno menos que antes',
@@ -155,7 +163,7 @@ const LINEAS = [
     const req = {
       method: 'POST',
       text: async () => JSON.stringify({
-        base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'],
+        base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'],
         empaque: false, pago: 'contraentrega',
         cliente: {
           nombre: 'Marialejandra', apellido: 'Quintanilla', tipodoc: 'CC',

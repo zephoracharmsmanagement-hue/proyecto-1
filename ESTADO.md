@@ -660,14 +660,34 @@ vendido y esconde existencias que sí están—. Vigilado por `pruebas/hoja.js`.
   dirección peligrosa del error. Por eso la referencia va en el cuerpo — mejor
   reintentar y que n8n deduplique, que callarse.
 
-**Bloqueado en:** n8n no tiene **ninguna credencial** (`list_credentials`
-devuelve 0). Hay que conectar Google Sheets ahí —es un OAuth que solo puede
-autorizar el propietario— y crear la hoja. Hasta entonces el workflow no se puede
-construir: el nodo necesita una credencial para poder siquiera elegir la hoja.
+**Ya no está bloqueado — el circuito está vivo (comprobado 2026-08-22).** Otra
+sesión conectó una cuenta de servicio de Google y publicó el workflow
+**«Zephora · Hoja de Inventario»** (`K1J4pHYfvd6QuAq8`, activo). `HOJA_WEBHOOK` y
+`HOJA_TOKEN` están puestos en Netlify: el webhook recibe de verdad. Ha entrado
+por ahí la venta del **19 de agosto** (`ZC-260819-DDCEF41D`, Letra E) y la del
+**21** (`ZC-260821-A4C64EC2`, tres charms, $223.050).
 
-**Lo que falta, en orden:** conectar Google en n8n → crear la hoja con las dos
-pestañas → construir el workflow → poner `HOJA_WEBHOOK` y `HOJA_TOKEN` en Netlify
-→ el paso de recuento físico → `stock.json`.
+> **Pero la pestaña *Movimientos* no se está escribiendo.** En las dos
+> ejecuciones, el nodo «Agregar Fila a Movimientos» falla con
+> `Multiple matches found` —un `paired_item_multiple_matches` de n8n: el nodo
+> resuelve `$('Separar Movimientos').item` después de que «¿Ya está anotada?»
+> haya colapsado varios ítems en uno—. *Existencias* sí se actualiza, así que
+> **hay saldo pero no histórico**, que es justo lo que hacía falta para reponer
+> por rotación en vez de «subir todo a 4».
+>
+> Y **la ejecución queda marcada como `success`**, porque el error se captura
+> como dato y el flujo sigue. Otro fallo mudo de la colección: el sitio donde
+> hay que mirarlo es el nodo, no el estado de la ejecución.
+
+**Lo que falta, en orden:** arreglar el nodo de *Movimientos* → el paso de
+recuento físico → `stock.json` con `herramientas/reponer.mjs`.
+
+> **El agujero que no cubre nada de esto: la venta cerrada por WhatsApp.** Solo
+> se apunta lo cobrado por la web. Una venta por chat no llega a la hoja, no
+> toca el contador de reservas y no cambia `stock.json` — o sea que **la página
+> sigue ofreciendo una pieza que ya no está, y la vendería**. Pasó el
+> 2026-08-22 con el último brazalete Avengers. Mientras exista venta por
+> WhatsApp, hay que bajar la pieza a mano en `stock.json` el mismo día.
 
 ### 4c · Dónde queda el registro de cada pedido
 
@@ -1084,7 +1104,7 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 | La comprobación de inventario **falla hacia adelante** | Solo bloquea con un dato claro de que no hay. Si `stock.json` no se puede leer, la venta pasa: una lectura fallida no puede costar una compra buena |
 | `crear-pago` y `wompi-webhook` son **funciones v2** (`export default`, en `.mjs`) | No es estilo: Netlify solo inyecta `NETLIFY_BLOBS_CONTEXT` en v2, y sin esa variable `getStore()` lanza y la reserva de inventario se cae al camino de emergencia — la tienda vende, nada se rompe, y no se aparta nada. Ya pasó: estuvo así en producción una jornada entera y se detectó leyendo el log, no porque algo fallara. `pruebas/inventario.js` § 6 lo vigila. Los módulos auxiliares siguen en CommonJS porque no hacía falta tocarlos |
 | Ahora **sí hay `package.json` en la raíz** | `pruebas/package.json` explica que no lo había a propósito, para que Netlify no instalara dependencias. Esa decisión se tomó con cero dependencias; la reserva necesita `@netlify/blobs` **dentro de las funciones**, y sin declararla el bundler no la incluye, las funciones se caen al arrancar y el sitio deja de cobrar. Sigue sin haber comando de build (`command = ""`): lo único que cambia es que Netlify instala esa dependencia antes de empaquetar |
-| Las pruebas **no clavan datos del catálogo**: los leen de `stock.json` o los miden en pantalla | Al retirar tres piezas duplicadas, dos baterías se pusieron rojas con la página en lo cierto: una esperaba «77 tarjetas» y otra nombraba `elsa` entre los agotados. Un número o un id escrito a mano convierte cada cambio de catálogo en una falla falsa, y las fallas falsas enseñan a ignorar el rojo. Lo que hay que comprobar es la regla —que al limpiar la búsqueda vuelvan **todas**, que un agotado salga en gris y bloqueado—, no una cifra concreta |
+| Las pruebas **no clavan datos del catálogo**: los leen de `stock.json` o los miden en pantalla | Al retirar tres piezas duplicadas, dos baterías se pusieron rojas con la página en lo cierto: una esperaba «77 tarjetas» y otra nombraba `elsa` entre los agotados. Un número o un id escrito a mano convierte cada cambio de catálogo en una falla falsa, y las fallas falsas enseñan a ignorar el rojo. Lo que hay que comprobar es la regla —que al limpiar la búsqueda vuelvan **todas**, que un agotado salga en gris y bloqueado—, no una cifra concreta. **Y vale para las piezas, no solo para las cifras:** seis baterías tenían clavado `pulsera-avengers` como brazalete de prueba, y al venderse su última unidad (2026-08-22) media suite se puso roja con el servidor haciendo lo correcto —rechazar un agotado—. Ahora la pieza se elige del inventario en `pruebas/_pieza.js` |
 | La reserva de inventario **se prueba con latencia** | `pruebas/inventario.js` mete demora en el almacén falso para que las dos lecturas ocurran antes de cualquier escritura. Sin eso, las dos operaciones corren una tras otra, la prueba pasa, y no ha probado nada — el mismo error que dio verde a un pago que no cobraba |
 | La **verificación del comercio en Wompi** también falla hacia adelante | Solo bloquea con un 404 explícito. Existe porque una llave mal transcrita mandaba a todas las clientas a una pantalla de error sin retorno |
 

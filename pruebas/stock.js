@@ -32,9 +32,14 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   ok(['17', '18', '19', '20'].every(x => t.find(v => v.t === x && !v.off)), '17/18/19/20 disponibles');
   ok(t.find(v => v.t === '21').off, '21 aparece deshabilitada');
 
-  console.log('2 · pulsera-avengers: solo 20');
-  t = await tallasDe('pulsera-avengers');
-  ok(t.filter(v => !v.off).map(v => v.t).join() === '20', 'solo la 20 disponible');
+  /* Un brazalete con una sola talla con existencias. Se elige del inventario
+     —ver _pieza.js—: el que estaba escrito aquí se vendió y esta comprobación
+     pasó a fallar con el sitio en lo cierto. */
+  const UNA = require('./_pieza').unaSolaTalla();
+  console.log(`2 · ${UNA.id}: solo ${UNA.talla}`);
+  t = await tallasDe(UNA.id);
+  ok(t.filter(v => !v.off).map(v => v.t).join() === UNA.talla,
+    `solo la ${UNA.talla} disponible`);
 
   /* Los agotados salen de stock.json, no de una lista escrita a mano: el día
      que se retiraron tres duplicados del catálogo esta batería reventó porque

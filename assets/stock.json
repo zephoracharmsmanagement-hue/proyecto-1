@@ -637,9 +637,7 @@
   "pulsera-avengers": {
    "tipo": "pulsera",
    "precio": 58000,
-   "tallas": {
-    "20": 1
-   }
+   "tallas": {}
   },
   "pulsera-mono-rosa-con-cadena": {
    "tipo": "pulsera",
