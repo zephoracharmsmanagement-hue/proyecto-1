@@ -705,6 +705,30 @@ que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` �
   `aria-invalid` y su mensaje colgado con `aria-describedby`: el borde rojo
   solo existe para quien lo ve.
 
+**Reseñas reales (22 de agosto).** El propietario pasó cinco capturas de
+historias con conversaciones de WhatsApp y DM de clientas, **todas autorizadas
+por ellas y con nombre**. De ahí salieron tres reseñas nuevas (Andrea/Bogotá,
+Alejandra/Medellín, Jimena/Mompox) con su foto recortada fuera del chat.
+
+- **La captura no se publica, se recorta.** El pantallazo trae la interfaz de
+  WhatsApp, la foto de perfil de la clienta y, en una, la línea del `+57`. Lo
+  autorizado es que salga su foto, no su conversación. Las cinco capturas se
+  quitaron de `assets/` —donde estaban públicas— y viven solo en el historial.
+- **Melissa no tiene reseña porque no escribió ninguna**: publicó la pulsera
+  puesta y etiquetó a la tienda. Su foto va bajo la línea que ya prometía eso
+  («Etiquétanos y aparece aquí»), acreditada con su `@`. Ponerle una cita
+  habría sido inventarle palabras a una clienta.
+- Las fotos son de chat, comprimidas dos veces: salen entre 379 y 646 px de
+  ancho y se guardan a ese tamaño. **No ampliarlas**; en la tarjeta de reseña
+  (4:3) se ven bien.
+
+> **El empaque de Pandora en las fotos de reseña sí va, y es decisión del
+> propietario (2026-08-22): es el empaque que la tienda vende, con permiso.**
+> Queda escrito para que otra sesión no lo lea como un descuido y lo quite. Lo
+> que sigue en pie es la frontera del § 5c: el permiso es sobre el **empaque**,
+> no sobre prometer **posventa** de otra marca — por eso la «tarjeta de
+> postventa» sigue fuera del texto del bump.
+
 ### 6 · «A veces se borran las joyas» — cerrado
 
 Ya no es un misterio, y **la causa no era la que se estaba persiguiendo**. La
