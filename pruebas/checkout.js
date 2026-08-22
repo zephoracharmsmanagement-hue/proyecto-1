@@ -256,6 +256,85 @@ async function llenarPaso1(p, d) {
     await p.close();
   }
 
+  // ——— 2c · el aviso sale al terminar el campo, no al final ———
+  out.push('\n2c · Aviso en vivo');
+  {
+    /* Antes el error solo salía al pulsar «Continuar»: se podía escribir mal el
+       correo arriba del todo y enterarse nueve campos más abajo. Lo que se
+       vigila aquí no es que valide —eso ya se probó en la sección 2— sino
+       *cuándo* habla y cuándo se calla, que es lo que separa un aviso útil de
+       uno que regaña mientras la clienta escribe. */
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['mickey-mouse'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(500);
+
+    const mal = n => p.locator('[data-c="' + n + '"]').evaluate(e => e.classList.contains('mal'));
+
+    /* Nadie ha tocado «Continuar» en toda esta sección. */
+    await p.fill('#correo', 'maria@ejemplo');
+    await p.locator('#correo').blur();
+    await p.waitForTimeout(150);
+    ok(await mal('correo'), 'el correo a medias se marca al salir del campo, sin pulsar «Continuar»');
+    ok(await p.locator('[data-c="correo"] .error').isVisible(),
+      'y se ve el motivo escrito debajo, no solo un borde rojo');
+    ok(await p.locator('#correo').getAttribute('aria-invalid') === 'true',
+      'marcado también para quien no ve el borde: lector de pantalla');
+    const describe = await p.locator('#correo').getAttribute('aria-describedby');
+    ok(!!describe && (await p.locator('#' + describe.split(' ').pop()).textContent()).includes('@'),
+      'con el mensaje colgado del campo, no suelto en la página', describe);
+
+    await p.fill('#correo', 'maria@ejemplo.c');
+    await p.waitForTimeout(100);
+    ok(await mal('correo'), 'teclear no borra el aviso: sigue rojo mientras el dato siga mal');
+
+    await p.fill('#correo', 'maria@ejemplo.com');
+    await p.waitForTimeout(100);
+    ok(!(await mal('correo')), 'y se va solo en cuanto queda bien, sin volver a enviar');
+    ok(await p.locator('#correo').getAttribute('aria-invalid') === 'false',
+      'y deja de anunciarse como erróneo');
+
+    /* Dejar un campo para después es legítimo mientras se llena el formulario;
+       de lo que falta ya avisa «Continuar». Marcar en rojo al pasar de largo
+       convertiría el paso 1 en una pantalla llena de errores sin haber hecho
+       nada mal. */
+    await p.locator('#nombre').click();
+    await p.locator('#apellido').click();
+    await p.waitForTimeout(100);
+    ok(!(await mal('nombre')), 'pasar de largo por un campo vacío no lo marca');
+
+    /* El documento se vigila aparte porque comparte contenedor con el selector
+       de C.C./NIT: es el caso donde «el primer campo del bloque» y «el campo
+       que está mal» no son el mismo, y colgarle el aviso al selector dejaría
+       el número sin marcar. */
+    await p.fill('#documento', '123');
+    await p.locator('#documento').blur();
+    await p.waitForTimeout(150);
+    ok(await mal('documento'), 'el documento corto también avisa al salir del campo');
+    ok(await p.locator('#documento').getAttribute('aria-invalid') === 'true',
+      'y el marcado va en el número, no en el selector de C.C. que tiene al lado');
+    ok(await p.locator('#tipodoc').getAttribute('aria-invalid') === null,
+      'que no está mal y no se marca');
+    await p.fill('#documento', '1020304050');
+    await p.waitForTimeout(100);
+    ok(!(await mal('documento')), 'y se limpia al completarlo');
+
+    await p.fill('#celular', '6012345678');
+    await p.locator('#celular').blur();
+    await p.waitForTimeout(150);
+    ok(await mal('celular'), 'el fijo se rechaza al salir del campo, no tres pasos después');
+    await p.fill('#celular', '301 234 5678');
+    await p.waitForTimeout(100);
+    ok(!(await mal('celular')), 'y el celular con espacios se da por bueno sin reescribirlo');
+
+    /* «Continuar» sigue siendo la red de seguridad de lo que quedó vacío. */
+    await p.click('#ir-2');
+    ok(await p.locator('#panel-1').isVisible(), 'con campos vacíos «Continuar» sigue sin dejar pasar');
+    ok(await mal('nombre'), 'y ahí sí marca lo que la clienta nunca llegó a llenar');
+    await p.close();
+  }
+
   // ——— 3 · compra con Wompi ———
   out.push('\n3 · Pago con Wompi');
   {

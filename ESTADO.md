@@ -613,6 +613,43 @@ que `.pc[hidden]` y `.tallas[hidden]`— y cubierto por `pruebas/regresion.js` �
 > era del sitio. Las tres ahora apuntan a la regla: *el CTA principal cae sobre
 > el pliegue*, *el salto a WhatsApp mide*, *la talla libre confirma*.
 
+**Segundo tramo (22 de agosto).** Tres cosas más, todas dentro del checkout:
+
+- **El catálogo completo ya no vive detrás de un botón**, y el paso de entrega
+  sugiere piezas de las mismas categorías que las que ya lleva («Te puede
+  interesar»). Nunca ofrece lo agotado —mandarla a un 409 en la pantalla de
+  pago es el peor sitio para descubrirlo— ni las iniciales, que se eligen a
+  propósito y no se sugieren.
+- **El bump del Empaque Premium, en el paso de pago y antes de la casilla de
+  términos.** Ese orden no es estético: aceptar los términos es la última
+  puerta antes de pagar, y meter una oferta entre el consentimiento y el botón
+  añade un artículo al pedido después de que la clienta ya aceptó.
+  `pruebas/checkout.js` § 2b comprueba el orden, no solo que el bump exista.
+  Va **sin foto a propósito** (§ 5) y diciendo lo que la página nunca decía:
+  que el **empaque de regalo normal ya va incluido y sin costo**, y que el
+  Premium suma la tarjeta con la dedicatoria escrita a mano. Ver «+$40.000»
+  sin saber qué se compra que no se tenga ya gratis explica su conversión
+  mejor que la falta de foto. **Falta que el propietario diga qué más
+  incluye** (bolsa, caja, moño): cuanto más concreto, más se sostiene el
+  precio.
+- **Validación en vivo en el paso 1.** Antes el error solo salía al pulsar
+  «Continuar»: se podía escribir mal el correo arriba del todo y enterarse
+  nueve campos más abajo. Ahora cada campo habla cuando la clienta termina con
+  él, con tres reglas que separan el aviso útil del regaño:
+
+  | Cuándo | Qué hace | Por qué |
+  |---|---|---|
+  | Al salir del campo (`blur`) | Marca si lo escrito está mal | Marcar «correo inválido» en la primera letra es regañar a quien va por la mitad |
+  | Al salir de un campo **vacío** | No marca nada | Dejarlo para después es legítimo; de lo que falta ya avisa «Continuar» |
+  | Mientras escribe, **ya marcado** | Quita el rojo en cuanto queda bien | Corregir y seguir viendo rojo es la otra forma de mentirle |
+
+  Las reglas viven en un solo sitio (`REGLAS` en `checkout.html`): las usa el
+  aviso en vivo y las usa el «Continuar», que sigue siendo la red de seguridad
+  de lo que quedó vacío. Dos listas separadas acabarían diciendo cosas
+  distintas del mismo campo. De paso, el campo mal llenado ahora lleva
+  `aria-invalid` y su mensaje colgado con `aria-describedby`: el borde rojo
+  solo existe para quien lo ve.
+
 ### 6 · «A veces se borran las joyas» — cerrado
 
 Ya no es un misterio, y **la causa no era la que se estaba persiguiendo**. La

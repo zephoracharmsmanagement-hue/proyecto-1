@@ -907,28 +907,86 @@ function verOtra(){
 }
 
 /* ——— validación ——— */
+/* El campo se busca por id, no por «el primer input del contenedor»: en
+   documento ese primero es el selector de C.C./NIT, y colgarle ahí el aviso
+   dejaría el número —que es lo que está mal— sin marcar y sin vigilar. */
+const campoDe=nombre=>document.getElementById(nombre);
 const marcar=(nombre,mal)=>{
   const c=document.querySelector('[data-c="'+nombre+'"]');
-  if(c) c.classList.toggle('mal',!!mal);
+  if(c){
+    c.classList.toggle('mal',!!mal);
+    /* La clase pinta el borde rojo, que solo existe para quien lo ve. El
+       atributo dice lo mismo para quien no: sin él, un lector de pantalla lee
+       un campo normal y corriente. */
+    const el=campoDe(nombre);
+    if(el) el.setAttribute('aria-invalid',mal?'true':'false');
+  }
   return !mal;
 };
 const val=id=>$('#'+id).value.trim();
 
-function validarPaso1(){
-  let ok=true;
-  ok=marcar('nombre',val('nombre').length<2)&&ok;
-  ok=marcar('apellido',val('apellido').length<2)&&ok;
-  ok=marcar('documento',val('documento').length<5)&&ok;
+/* Una regla por campo, en un solo sitio. La usan las dos cosas que validan:
+   el «Continuar», que mira el paso entero, y el aviso en vivo, que mira el
+   campo que la clienta acaba de dejar. Dos listas separadas acabarían
+   diciendo cosas distintas del mismo campo. */
+const REGLAS={
+  nombre:()=>val('nombre').length>=2,
+  apellido:()=>val('apellido').length>=2,
+  documento:()=>val('documento').length>=5,
   /* Celular colombiano: 10 dígitos empezando por 3. Se toleran espacios y
      guiones al escribir, pero lo que se valida y se guarda son los dígitos. */
-  const cel=val('celular').replace(/\D/g,'');
-  ok=marcar('celular',!/^3\d{9}$/.test(cel))&&ok;
-  ok=marcar('correo',!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val('correo')))&&ok;
-  ok=marcar('depto',!val('depto'))&&ok;
-  ok=marcar('ciudad',!val('ciudad'))&&ok;
-  if($('#ciudad').value===OTRO) ok=marcar('ciudadotra',val('ciudadotra').length<3)&&ok;
-  ok=marcar('direccion',val('direccion').length<5)&&ok;
+  celular:()=>/^3\d{9}$/.test(val('celular').replace(/\D/g,'')),
+  correo:()=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val('correo')),
+  depto:()=>!!val('depto'),
+  ciudad:()=>!!val('ciudad'),
+  /* Solo cuenta cuando el municipio no estaba en la lista; el resto del tiempo
+     el campo está oculto y vacío, y marcarlo sería marcar algo invisible. */
+  ciudadotra:()=>$('#ciudad').value!==OTRO||val('ciudadotra').length>=3,
+  direccion:()=>val('direccion').length>=5
+};
+
+function validarPaso1(){
+  let ok=true;
+  Object.keys(REGLAS).forEach(n=>{ ok=marcar(n,!REGLAS[n]())&&ok; });
   return ok;
+}
+
+/* ——— aviso en vivo ———
+   Hasta ahora el error solo salía al pulsar «Continuar»: se podía escribir mal
+   el correo arriba del todo y enterarse nueve campos más abajo. Ahora cada
+   campo se revisa cuando la clienta termina con él, con tres reglas que
+   deciden cuándo hablar y cuándo callarse:
+
+   - Al salir del campo (blur), no mientras escribe. Marcar «correo inválido»
+     en la primera letra es regañar a alguien que va por la mitad.
+   - Un campo vacío no se marca al pasar de largo: dejarlo para después es
+     legítimo, y de eso ya avisa el «Continuar». Solo se marca lo que tiene
+     algo escrito y está mal.
+   - Ya marcado, sí se revisa en cada tecla, y el rojo se va en cuanto el
+     campo queda bien —no al volver a enviar. Corregir y seguir viendo rojo
+     es la otra forma de mentirle a la clienta. */
+function vigilarCampos(){
+  Object.keys(REGLAS).forEach(n=>{
+    const c=document.querySelector('[data-c="'+n+'"]'), el=campoDe(n);
+    if(!c||!el) return;
+
+    /* El mensaje ya está escrito debajo del campo; aquí solo se le pone nombre
+       para poder colgárselo al campo y que se lea con él, en vez de quedar
+       como un texto suelto que solo existe para quien mira la pantalla. */
+    const msj=c.querySelector('.error'), pista=c.querySelector('.pista');
+    if(msj&&!msj.id) msj.id='e-'+n;
+    if(pista&&!pista.id) pista.id='p-'+n;
+    const dice=[pista&&pista.id,msj&&msj.id].filter(Boolean);
+    if(dice.length) el.setAttribute('aria-describedby',dice.join(' '));
+
+    el.addEventListener('blur',()=>{
+      if(!el.value.trim()) return;
+      marcar(n,!REGLAS[n]());
+    });
+    const revisar=()=>{ if(c.classList.contains('mal')) marcar(n,!REGLAS[n]()); };
+    el.addEventListener('input',revisar);
+    el.addEventListener('change',revisar);
+  });
 }
 
 function datos(){
@@ -1156,8 +1214,10 @@ Promise.all([
     $('#res-bar').querySelector('.res-ver').firstChild.textContent=on?'Ocultar ':'Ver pedido ';
   });
 
-  $('#depto').addEventListener('change',()=>{ pintarCiudades(); marcar('depto',false); });
-  $('#ciudad').addEventListener('change',()=>{ verOtra(); marcar('ciudad',false); });
+  /* Elegir departamento repuebla las ciudades y deja la ciudad en blanco otra
+     vez: se le quita el rojo porque es un campo nuevo, no uno mal llenado. */
+  $('#depto').addEventListener('change',()=>{ pintarCiudades(); marcar('ciudad',false); });
+  $('#ciudad').addEventListener('change',verOtra);
   $('#ir-2').addEventListener('click',()=>ir(2));
   $('#ir-3').addEventListener('click',()=>ir(3));
   document.querySelectorAll('[data-atras]').forEach(b=>
@@ -1165,12 +1225,7 @@ Promise.all([
   $('#confirmar').addEventListener('click',confirmar);
   $('#acepta').addEventListener('change',()=>marcar('acepta',false));
 
-  /* Quitar el rojo en cuanto la clienta corrige, no al volver a enviar. */
-  document.querySelectorAll('#form-1 input,#form-1 select').forEach(el=>{
-    el.addEventListener('input',()=>{
-      const c=el.closest('.campo'); if(c) c.classList.remove('mal');
-    });
-  });
+  vigilarCampos();
 
   $('#ops-pago').addEventListener('change',e=>{
     if(e.target.name!=='pago') return;
