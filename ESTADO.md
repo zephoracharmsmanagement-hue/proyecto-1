@@ -20,14 +20,24 @@ hacer que Meta contara el doble de compras.
 `main` contiene todo lo de las ocho ramas fusionables. Queda fuera
 `claude/sephora-whatsapp-response-system-682wvv` — ver abajo.
 
-### Lo que falta y solo se puede hacer desde los paneles
+### Los paneles ya están cambiados — 2026-08-22
 
-1. **GitHub → Settings → Branches → Default branch → `main`.**
-2. **Netlify → Site configuration → Build & deploy → Branch to deploy → `main`.**
-   Hasta que esto se cambie, **el sitio se sigue publicando desde
-   `claude/install-frontend-design-skill-8t655e`** y lo que se empuje a `main`
-   no sale al aire.
-3. Cuando las dos estén hechas, borrar las ramas `claude/*` ya fusionadas.
+1. **GitHub → default branch → `main`. Hecho**: `git ls-remote --symref origin
+   HEAD` devuelve `refs/heads/main`.
+2. **Netlify → Branch to deploy → `main`. Hecho**: el despliegue de producción
+   `6a88fa3a` (2026-08-22 01:24 UTC) sale de `main`, commit `c05b86c`, y es el
+   que sirve `zephoracharms.com`.
+3. Falta borrar las ramas `claude/*` ya fusionadas.
+
+> **Y esto invierte la regla anterior: empujar a
+> `claude/install-frontend-design-skill-8t655e` ya no publica nada.** Es lo
+> primero que hay que saber al retomar, porque el documento decía lo contrario
+> y una sesión dio por desplegado (`f903e06`) un trabajo que se quedó en esa
+> rama sin llegar al aire. **Lo que sale a producción es lo que se empuja a
+> `main`.** Antes de anunciar un despliegue, comprobarlo: el conector de
+> Netlify da la rama y el commit del despliegue vivo, y desde una terminal con
+> red vale `curl -s https://zephoracharms.com/checkout.html | grep …` buscando
+> algo que solo exista en el cambio.
 
 ### La rama que no se fusionó
 
@@ -57,9 +67,8 @@ razonamiento, no solo el cambio.
 
 ## Ramas abiertas de otras sesiones
 
-Al cierre de esta sesión, la rama publicada
-(`claude/install-frontend-design-skill-8t655e`) está al día y todo lo que
-describe este documento vive ahí. **Pero hay tres ramas de otras sesiones sin
+Al cierre de esta sesión, `main` —la rama que publica— está al día y todo lo
+que describe este documento vive ahí. **Pero hay tres ramas de otras sesiones sin
 mezclar**, y no son "unos commits pendientes": dos de ellas salieron de un punto
 anterior al trabajo de esta jornada y **reconstruyeron por su cuenta piezas que
 ya existen**. Mezclarlas a ciegas no da un conflicto de git — da dos sistemas
@@ -804,8 +813,9 @@ mecanismo puede estar certificando nada.
 
 ## Al desplegar
 
-**Ya no se arrastra nada.** El repo está conectado a Netlify y cada push a
-`claude/install-frontend-design-skill-8t655e` publica. `netlify.toml` trae
+**Ya no se arrastra nada.** El repo está conectado a Netlify y **cada push a
+`main` publica** (antes era `claude/install-frontend-design-skill-8t655e`; ver
+*Consolidación*, arriba: empujar ahí ya no saca nada al aire). `netlify.toml` trae
 publicación, funciones, redirecciones y cabeceras.
 
 Recordar que **cada publicación cuesta ~15 créditos**, así que conviene juntar
@@ -820,14 +830,16 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **9 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **11 functions**
 (`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`, `_hoja`, `rescate`);
+`_pedidos`, `_hoja`, `rescate`, `_atribucion`, `disponibilidad`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 
 > **Este número sube cada vez que se añade un módulo a `netlify/functions/`, y
-> hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`.
+> hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`,
+> y 9 hasta que la consolidación trajo `_atribucion.mjs` y `disponibilidad.mjs`
+> —el despliegue `6a88fa3a` ya reporta 11—.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
 > persona ve «9» donde el documento pide «8», da por bueno el desajuste, y la
 > comprobación deja de servir justo para lo que existe — detectar que las

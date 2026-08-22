@@ -180,8 +180,11 @@ mezclar:
    sección de pendientes de `ESTADO.md`, en ese orden. Las sesiones que
    duplicaron trabajo no fueron descuidadas: partieron de un punto viejo del
    repo donde de verdad no existía.
-3. **Arrancar con `git fetch` y desde la rama publicada**
-   (`claude/install-frontend-design-skill-8t655e`). El contenedor clona fresco,
+3. **Arrancar con `git fetch` y desde la rama publicada, que es `main`**
+   —desde el 2026-08-22 Netlify despliega `main`, no
+   `claude/install-frontend-design-skill-8t655e`; empujar ahí ya no publica
+   nada, y una sesión ya dio por desplegado algo que se quedó en esa rama—. El
+   contenedor clona fresco,
    pero clona *un* punto; si es viejo, la sesión trabaja sobre una realidad que
    ya no existe. Es exactamente lo que les pasó a las ramas duplicadas.
 4. **Reclamar el trabajo en `ESTADO.md` al empezar**, si va a haber paralelo.
