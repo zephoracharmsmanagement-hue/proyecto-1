@@ -157,6 +157,24 @@ diagnósticos y consultas de datos van directo. Esto sigue vigente aunque el
 conector de Ads MCP termine con permisos de escritura completos — el
 permiso técnico no cambia el acuerdo.
 
+## Mapa de automatizaciones — qué hay y qué se puede hacer
+
+[`automatizaciones/MAPA.md`](automatizaciones/MAPA.md) inventaría lo que ya
+funciona, lo que se puede construir hoy sin pedirle nada a nadie, lo que espera
+una autorización del propietario y lo que está bloqueado. Verificado contra las
+herramientas reales, no supuesto. Dos hallazgos que conviene tener a mano:
+
+- **n8n tiene dos credenciales** (Header Auth y cuenta de servicio de Google) y
+  **las credenciales gestionadas no están disponibles** en esa instancia
+  (`available: false`). Toda automatización con un servicio nuevo está bloqueada
+  por una autorización, no por programación.
+- **La cuenta sin portafolio bloquea también el catálogo**, no solo la CAPI:
+  `has no owning business, so its catalogs cannot be listed`, y no existe ningún
+  catálogo (`total_count: 0`). O sea que los anuncios dinámicos —los que enseñan
+  la pieza exacta que alguien miró— están detrás de la misma puerta. Eso sube la
+  prioridad de reclamar la cuenta hacia el portafolio: desbloquea tres cosas, no
+  una.
+
 ## Contenido orgánico — el motor de paquetes de rodaje
 
 Frente nuevo, hermano de la pauta y con las mismas reglas de dinero. El brief
