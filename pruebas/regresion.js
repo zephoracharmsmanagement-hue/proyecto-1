@@ -80,8 +80,10 @@ const U = BASE + '/index.html';
   await p.evaluate(() => {
     /* Por data-wa y no por la clase: lo que se prueba es que el salto a
        WhatsApp mida, no de qué color es el botón. Se cayó al pasar el CTA del
-       hero a secundario —perdió btn--wa— con la medición intacta. */
-    const a = document.querySelector('a[data-wa="hero"]');
+       hero a secundario —perdió btn--wa— con la medición intacta.
+       Ahora mide sobre el del pie: el del hero se retiró, y el pie es la
+       salida a WhatsApp que la página promete en todo momento. */
+    const a = document.querySelector('a[data-wa="pie"]');
     a.addEventListener('click', e => e.preventDefault(), true);
     a.click();
   });
