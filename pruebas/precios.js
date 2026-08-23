@@ -216,6 +216,34 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       'por debajo del umbral cada forma de pago paga su tarifa');
   }
 
+  /* La escalera de la portada es HTML escrito a mano: los porcentajes no salen
+     de ESC, se copiaron a mano al maquetarla. Si alguien mueve la escala y no
+     toca la sección, la página anuncia un descuento que la caja no aplica —y
+     bajo la Ley 1480 gana lo anunciado, así que se cobraría de menos o se
+     incumpliría lo prometido. Esto compara las dos cosas. */
+  console.log('\nLa escalera de la portada dice lo que se cobra');
+  {
+    const R = require(path.join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
+    const tramos = await p.$$eval('#esc .esc-t', ns => ns.map(n => ({
+      n: +n.dataset.n,
+      texto: (n.querySelector('.esc-p').textContent + ' ' +
+              n.querySelector('.esc-x').textContent).replace(/\s+/g, ' ').trim(),
+    })));
+    ok(tramos.length === R.escalaCharms.length - 1,
+      'hay un tramo por cada escalón de la regla', tramos.length + ' tramos');
+    for (const t of tramos) {
+      const pct = Math.round(R.escalaCharms[Math.min(t.n, R.escalaCharms.length - 1)] * 100);
+      ok(pct === 0 ? /precio normal/i.test(t.texto) : t.texto.includes(pct + '%'),
+        `el tramo de ${t.n} anuncia el ${pct}% que de verdad se cobra`, t.texto);
+    }
+    /* «Lleva 4, paga 3» es una promesa en unidades, no en porcentaje: solo es
+       cierta si el último tramo descuenta exactamente uno de cada cuatro. */
+    const top = tramos[tramos.length - 1];
+    const m = top.texto.match(/lleva (\d+), paga (\d+)/i);
+    ok(!m || Math.abs((1 - m[2] / m[1]) - R.escalaCharms[R.escalaCharms.length - 1]) < 1e-9,
+      'y si promete «lleva N, paga M», la escala lo cumple', m ? m[0] : 'no lo promete');
+  }
+
   /* Que el servidor rechace lo que no debería aceptar. Cada uno de estos es un
      intento real: cambiar el id por uno inventado, mandar un brazalete en la
      lista de charms, pedir una talla que no existe. */
