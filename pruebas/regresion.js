@@ -207,6 +207,46 @@ const U = BASE + '/index.html';
     await p.waitForTimeout(200);
   }
 
+  // ---- 7b. Lupa de la cabecera ----
+  //
+  // Lo que sostiene esta búsqueda es que cubra los DOS catálogos: el buscador
+  // que ya existía vive dentro de la sección de charms y solo filtra charms,
+  // así que una lupa que hiciera lo mismo prometería algo que no cumple.
+  // «corazon» sin tilde tiene que traer brazaletes y charms a la vez.
+  {
+    await p.setViewportSize({ width: 390, height: 844 });
+    await p.waitForTimeout(150);
+    const arranca = await p.evaluate(() => document.querySelector('#busq').hidden);
+    await p.click('#lupa');
+    await p.waitForTimeout(200);
+    const foco = await p.evaluate(() => document.activeElement.id);
+    await p.fill('#busq-q', 'corazon');
+    await p.waitForTimeout(250);
+    const tipos = await p.$$eval('.busq-r', ns => ns.map(n => n.querySelector('small').textContent));
+    const hayB = tipos.some(t => /Brazalete/i.test(t));
+    const hayC = tipos.some(t => /Charm/i.test(t));
+    out.push(`\nLupa de la cabecera`
+      + `\n  nace cerrada: ${arranca ? 'sí ✓' : 'NO ✗'}   abre y enfoca el campo: ${foco === 'busq-q' ? 'sí ✓' : 'NO ✗ (' + foco + ')'}`
+      + `\n  «corazon» sin tilde → ${tipos.length} resultados`
+      + `\n  trae brazaletes: ${hayB ? 'sí ✓' : 'NO ✗'}   y charms: ${hayC ? 'sí ✓' : 'NO ✗'}`);
+
+    /* Y que llevar a la pieza funcione: el resultado de buscar algo concreto
+       es esa pieza, no una parrilla filtrada. */
+    await p.fill('#busq-q', 'corazon liso');
+    await p.waitForTimeout(250);
+    await p.locator('.busq-r').first().click();
+    await p.waitForTimeout(350);
+    const abrio = await p.evaluate(() => ({
+      n: document.querySelector('#fx-n').textContent,
+      tipo: document.querySelector('#fx-tipo').textContent,
+      cerrado: document.querySelector('#busq').hidden,
+    }));
+    out.push(`  tocar un resultado abre su ficha: «${abrio.n}» (${abrio.tipo})`
+      + `   y cierra el panel: ${abrio.cerrado ? 'sí ✓' : 'NO ✗'}`);
+    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
+    await p.waitForTimeout(200);
+  }
+
   // ---- 8. Desbordamiento horizontal ----
   for (const w of [360, 390, 430, 768, 1280]) {
     await p.setViewportSize({ width: w, height: 900 });

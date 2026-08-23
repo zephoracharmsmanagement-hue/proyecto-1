@@ -110,6 +110,54 @@ button{font-family:inherit}
 .tnav a{text-decoration:none;color:var(--ink);opacity:.72;padding:4px 0;border-bottom:1px solid transparent}
 .tnav a:hover{opacity:1;border-color:var(--rose)}
 
+/* Lupa de la cabecera y su panel.
+ *
+ * El buscador que ya existía vive dentro del catálogo de charms y solo filtra
+ * charms: quien buscaba «corazón pavé» —un brazalete— no encontraba nada, y
+ * quien llegaba de un anuncio a media página no tenía dónde buscar sin volver
+ * a subir. Este busca en los dos catálogos y está siempre a mano.
+ *
+ * Solo el icono, sin la palabra «Buscar»: la lupa es de los pocos símbolos que
+ * no necesitan etiqueta, y la cabecera en móvil no tiene sitio para más. */
+.top-lupa{margin-left:auto;display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border:1px solid transparent;border-radius:50%;
+  background:none;color:var(--ink);cursor:pointer;flex:0 0 auto;transition:.16s}
+@media(hover:hover){.top-lupa:hover{border-color:var(--line);background:var(--white)}}
+.top-lupa[aria-expanded="true"]{border-color:var(--line);background:var(--white)}
+
+/* Cuelga de la cabecera, que es pegajosa, así que el panel viaja con ella. */
+.busq{position:absolute;left:0;right:0;top:100%;background:var(--bone);
+  border-bottom:1px solid var(--line);box-shadow:0 14px 34px rgba(42,31,46,.13);
+  max-height:min(70vh,520px);overflow-y:auto;overscroll-behavior:contain}
+.busq[hidden]{display:none}
+/* Más angosto que el resto de la página: a todo el ancho, el precio quedaba a
+   media pantalla del nombre y la lista se leía como dos columnas sueltas. */
+.busq-in{max-width:640px;margin:0 auto;padding:14px 16px 18px}
+.busq-campo{position:relative}
+.busq-campo input{width:100%;font:300 16px/1 Jost,sans-serif;padding:14px 40px 14px 40px;
+  border:1px solid var(--line);border-radius:3px;background:var(--white);color:var(--ink)}
+.busq-campo input::-webkit-search-cancel-button{-webkit-appearance:none}
+.busq-campo>svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:var(--silver);pointer-events:none}
+.busq-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;
+  border:0;background:none;color:var(--silver);font-size:15px;cursor:pointer;line-height:1}
+.busq-x[hidden]{display:none}
+.busq-nota{margin:11px 0 0;font-size:12.5px;color:var(--silver)}
+.busq-res{list-style:none;margin:10px 0 0;padding:0}
+.busq-r{display:flex;align-items:center;gap:12px;width:100%;padding:9px 8px;
+  border:0;border-radius:3px;background:none;font:inherit;color:var(--ink);
+  text-align:left;cursor:pointer}
+/* Sobre el <li>: los botones son hijos de uno cada uno y nunca son hermanos. */
+.busq-res li+li{border-top:1px solid var(--line)}
+@media(hover:hover){.busq-r:hover{background:var(--white)}}
+.busq-r.is-marcado{background:var(--white)}
+.busq-r img{width:44px;height:44px;border-radius:2px;background:#fff;object-fit:contain;flex:0 0 auto}
+.busq-n{min-width:0;line-height:1.3;font-size:14px}
+.busq-n small{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--silver);margin-top:2px}
+.busq-n small .out{color:var(--rose)}
+.busq-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
+
 /* botones */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;
   padding:15px 26px;border-radius:2px;border:1px solid var(--ink);background:var(--ink);
@@ -830,6 +878,10 @@ body.sheet-open{overflow:hidden}
   .wrap{padding:0 24px}
   .top-in{padding:0 24px;height:60px}
   .tnav{display:flex}
+  /* Con la navegación a la vista es ella la que empuja a la derecha; si la
+     lupa conservara su propio margen automático, el espacio libre se
+     repartiría entre las dos y el menú quedaría flotando en el medio. */
+  .top-lupa{margin-left:0}
   .grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:16px}
   .hero{padding:52px 0}
   .hero-in{grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
@@ -912,6 +964,23 @@ body.sheet-open{overflow:hidden}
       <a href="#talla">Tallas</a>
       <a href="#pagos">Pagos y envío</a>
     </nav>
+    <button class="top-lupa" type="button" id="lupa" aria-label="Buscar una pieza"
+            aria-expanded="false" aria-controls="busq"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
+  </div>
+
+  <!-- Dentro de la cabecera a propósito: es pegajosa, así que el panel viaja
+       con ella y no se queda flotando a media página al desplazarse. -->
+  <div class="busq" id="busq" hidden>
+    <div class="busq-in">
+      <div class="busq-campo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
+        <input type="search" id="busq-q" autocomplete="off" enterkeyhint="search"
+               placeholder="Busca un charm o un brazalete…" aria-label="Busca un charm o un brazalete">
+        <button class="busq-x" type="button" id="busq-x" aria-label="Borrar búsqueda" hidden>✕</button>
+      </div>
+      <p class="busq-nota" id="busq-nota">Escribe un nombre: «Stitch», «corazón», «Leo», «cadena de seguridad».</p>
+      <ul class="busq-res" id="busq-res" role="listbox" aria-label="Resultados"></ul>
+    </div>
   </div>
 </header>
 
@@ -2771,6 +2840,137 @@ document.querySelectorAll('.cat[data-cat]').forEach(a=>{
   addEventListener('resize',estado);
   estado();
 })();
+
+/* Búsqueda de la cabecera.
+ *
+ * El buscador del catálogo solo recorre charms, y vive dentro de su sección:
+ * quien buscaba un brazalete por nombre no encontraba nada, y quien llegaba de
+ * un anuncio a media página tenía que volver arriba para buscar. Este recorre
+ * los dos catálogos y está siempre a un toque.
+ *
+ * No filtra la página: lleva a la pieza. Filtrar dos parrillas que viven en
+ * secciones distintas dejaría media búsqueda fuera de pantalla, y el resultado
+ * de buscar algo concreto no es una parrilla, es esa pieza.
+ *
+ * Las 27 iniciales entran como una sola fila. Como piezas sueltas inundaban
+ * cualquier búsqueda con una letra dentro —«leo» traía Letra L, Letra E, Letra
+ * O— y ninguna tiene ficha propia: se eligen en su bloque. */
+const BUSQ_MAX = 8;
+const IDX = (() => {
+  const e = [];
+  DATA.pulseras.forEach(x => e.push({ id: x.id, n: x.n.replace(/^Pulsera /, ''), p: x.p, t: 'Brazalete' }));
+  DATA.charms.filter(x => !/^letra-/.test(x.id))
+    .forEach(x => e.push({ id: x.id, n: x.n, p: x.p, t: 'Charm · Plata 925' }));
+  e.push({ id: 'letras', n: 'Iniciales A – Z', p: CH['letra-a'].p, t: 'Charm · Plata 925', letras: true });
+  return e.map(x => Object.assign(x, { k: norm(x.n) }));
+})();
+
+function buscarPiezas(q) {
+  const t = norm(q.trim());
+  if (t.length < 2) return [];
+  /* Las que empiezan por lo escrito van primero: quien teclea «cor» busca
+     «Corazón…», no «Escudo Capitán…» aunque las dos contengan las tres letras. */
+  const empieza = [], dentro = [];
+  IDX.forEach(x => {
+    const i = x.k.indexOf(t);
+    if (i === 0) empieza.push(x);
+    else if (i > 0) dentro.push(x);
+    else if (x.letras && ('inicial letra abecedario').indexOf(t) >= 0) dentro.push(x);
+  });
+  return empieza.concat(dentro).slice(0, BUSQ_MAX);
+}
+
+const busq = $('#busq'), busqQ = $('#busq-q'), busqRes = $('#busq-res'),
+      busqNota = $('#busq-nota'), lupa = $('#lupa');
+let busqMarca = -1;
+
+function pintarBusqueda() {
+  const q = busqQ.value;
+  $('#busq-x').hidden = !q;
+  busqMarca = -1;
+  const r = buscarPiezas(q);
+  busqRes.textContent = '';
+
+  if (norm(q.trim()).length < 2) {
+    busqNota.textContent = 'Escribe un nombre: «Stitch», «corazón», «Leo», «cadena de seguridad».';
+    return;
+  }
+  if (!r.length) {
+    /* Sin salida al chat: quien no encuentra algo casi siempre escribió otra
+       palabra, y eso lo arregla escribir de nuevo. */
+    busqNota.textContent = 'No encontramos ninguna pieza con ese nombre. Prueba con otra palabra.';
+    return;
+  }
+  busqNota.textContent = r.length + (r.length === 1 ? ' pieza' : ' piezas') + ' · toca para ver el detalle';
+
+  r.forEach(x => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'busq-r'; b.dataset.ir = x.id; b.setAttribute('role', 'option');
+    const im = document.createElement('img');
+    im.src = imgDe(x.letras ? 'letras' : x.id); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+    const n = document.createElement('span'); n.className = 'busq-n';
+    n.textContent = x.n;
+    const meta = document.createElement('small');
+    meta.textContent = x.t;
+    /* El estado se dice aquí y no al abrir la ficha: enterarse de que está
+       agotado después de haber tocado es un clic perdido. */
+    if (!x.letras && agotado(x.id)) {
+      const o = document.createElement('span'); o.className = 'out'; o.textContent = ' · Agotado';
+      meta.appendChild(o);
+    }
+    n.appendChild(meta);
+    const pr = document.createElement('span'); pr.className = 'busq-p';
+    pr.textContent = (x.letras ? 'desde ' : '') + cop(x.p);
+    b.append(im, n, pr);
+    li.appendChild(b); busqRes.appendChild(li);
+  });
+}
+
+function abrirBusqueda(v) {
+  busq.hidden = !v;
+  lupa.setAttribute('aria-expanded', v ? 'true' : 'false');
+  if (v) { pintarBusqueda(); busqQ.focus(); busqQ.select(); }
+}
+
+function irAPieza(id) {
+  abrirBusqueda(false);
+  if (id === 'letras') {
+    /* Las iniciales no tienen ficha: se eligen en su propio bloque, así que
+       ahí es donde hay que dejar a la clienta. */
+    const c = document.querySelector('.pc[data-id="letras"]');
+    if (c) { c.hidden = false; c.scrollIntoView({ block: 'center' }); }
+    return;
+  }
+  abrirFicha(id);
+}
+
+lupa.addEventListener('click', () => abrirBusqueda(busq.hidden));
+$('#busq-x').addEventListener('click', () => { busqQ.value = ''; pintarBusqueda(); busqQ.focus(); });
+busqQ.addEventListener('input', pintarBusqueda);
+busqRes.addEventListener('click', e => {
+  const b = e.target.closest('.busq-r'); if (b) irAPieza(b.dataset.ir);
+});
+
+/* Teclado: se puede recorrer y abrir sin soltar el teclado, que es como se
+   usa un buscador en escritorio. */
+busqQ.addEventListener('keydown', e => {
+  const filas = [...busqRes.querySelectorAll('.busq-r')];
+  if (e.key === 'Escape') { if (busqQ.value) { busqQ.value = ''; pintarBusqueda(); } else abrirBusqueda(false); return; }
+  if (e.key === 'Enter') { e.preventDefault(); if (filas[busqMarca < 0 ? 0 : busqMarca]) irAPieza(filas[busqMarca < 0 ? 0 : busqMarca].dataset.ir); return; }
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault();
+  if (!filas.length) return;
+  busqMarca = (busqMarca + (e.key === 'ArrowDown' ? 1 : filas.length - 1) + (busqMarca < 0 && e.key === 'ArrowUp' ? 1 : 0)) % filas.length;
+  filas.forEach((f, i) => f.classList.toggle('is-marcado', i === busqMarca));
+  filas[busqMarca].scrollIntoView({ block: 'nearest' });
+});
+
+/* Tocar fuera cierra. El propio panel y la lupa quedan excluidos: si no, el
+   clic que lo abre lo cerraría en el mismo gesto. */
+document.addEventListener('click', e => {
+  if (!busq.hidden && !e.target.closest('#busq') && !e.target.closest('#lupa')) abrirBusqueda(false);
+});
 
 /* Todo clic que lleve a WhatsApp cuenta como inicio de compra:
    el checkout ocurre en el chat, fuera del sitio. */
