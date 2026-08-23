@@ -19,6 +19,9 @@ const BASE = process.env.URL || 'http://localhost:8899';
    —ver pruebas/_pieza.js—. Vender la última unidad de una pieza es lo normal
    en una tienda; que eso ponga roja media suite, no. */
 const { brazalete } = require('./_pieza');
+/* El mismo formateador de pesos que usa la página: comparar «$25.500» con
+   «$25500» daría un falso rojo por el punto de miles. */
+const { cop } = require(path.join(__dirname, '..', 'netlify', 'functions', '_precios.js'));
 const BRZ = brazalete();
 const RAIZ = path.join(__dirname, '..');
 
@@ -189,13 +192,17 @@ async function llenarPaso1(p, d) {
     const falta = (await p.locator('#env-nota').textContent()).trim();
     ok(/faltan|envío gratis/i.test(falta), 'el resumen dice cuánto falta para el envío gratis', falta);
 
-    await llenarPaso1(p, { nombre: 'Ana', apellido: 'Pérez', documento: '1007401199',
-      celular: '3012345678', correo: 'ana@ejemplo.com', direccion: 'Calle 16f #99 - 72',
-      adicional: '', barrio: '' });
-    await p.click('#ir-2');
-    await p.waitForTimeout(400);
-
-    ok(await p.locator('#sug').isVisible(), 'la tira de sugerencias aparece en el paso de entrega');
+    /* Sin tocar nada: la tira tiene que estar ya en la pantalla con la que se
+       entra al checkout, no dos pasos más adelante. */
+    ok(await p.locator('#sug').isVisible(), 'la tira de sugerencias aparece en el primer paso');
+    ok(await p.evaluate(() => document.querySelector('#panel-1').contains(document.querySelector('#sug'))),
+      'y vive dentro de ese paso, no en el de entrega');
+    ok(await p.evaluate(() => {
+      const nav = document.querySelector('#panel-1 .nav');
+      return document.querySelector('#sug').compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING;
+    }), 'va después del formulario y antes del botón de continuar');
+    ok(!(await p.locator('#bump').isVisible()),
+      'el bump del empaque sigue sin aparecer aquí: eso se decide al pagar');
     const porQue = (await p.locator('#sug-por').textContent()).trim();
     ok(/marvel/i.test(porQue), 'y explica por qué son esas: van por la categoría de lo que ya lleva', porQue);
 
@@ -216,6 +223,31 @@ async function llenarPaso1(p, d) {
     ok(agotadas.length === 0, 'y ninguna está agotada',
       agotadas.length ? 'ofrecidas sin stock: ' + agotadas.join(', ') : `${ids.length} comprobadas`);
 
+    /* El texto de la tira promete una cifra de ahorro. Una que no cuadre se
+       descubre en la pantalla de pago, con la clienta ya decidida, así que se
+       comprueba contra las mismas reglas con las que cobra el servidor. */
+    {
+      const dice = (await p.locator('#sug-p').textContent()).trim();
+      /* El script de la página va dentro de una IIFE, así que ni CAT ni carrito
+         se ven desde aquí: se releen de sus propias fuentes, que es además lo
+         que hace que esto compruebe algo y no se limite a repetir el cálculo. */
+      const esperado = await p.evaluate(async () => {
+        const CAT = await fetch('assets/catalogo.json').then(r => r.json());
+        const c = JSON.parse(localStorage.getItem('zephora.carrito.v1'));
+        const R = CAT.reglas, nC = c.charms.length;
+        const esc = n => (n <= 0 ? 0 : R.escalaCharms[Math.min(n, R.escalaCharms.length - 1)]);
+        const brutoC = c.charms.reduce((s, id) => s + CAT.precios[id], 0);
+        const brutoB = c.base ? CAT.precios[c.base.id] : 0;
+        const d = n => brutoC * esc(n) +
+          ((c.base && n >= R.minCharmsParaDescuento) ? brutoB * R.descuentoBrazalete : 0);
+        return { extra: Math.round(d(nC + 1) - d(nC)), pct: Math.round(esc(nC + 1) * 100) };
+      });
+      ok(dice.includes(esperado.pct + '%') || /pagando \d+/.test(dice),
+        'la tira dice qué desbloquea el siguiente charm', dice);
+      ok(dice.includes(cop(esperado.extra)),
+        'y la cifra que promete es la que aplican las mismas reglas', cop(esperado.extra));
+    }
+
     const antes = (await p.locator('#res-total').textContent()).trim();
     await p.locator('#sug-tira .sug-b').first().click();
     await p.waitForTimeout(400);
@@ -226,6 +258,12 @@ async function llenarPaso1(p, d) {
 
     /* La prueba social va donde se decide pagar, no antes: es el último momento
        de duda y el único punto de la página sin nada que respalde la compra. */
+    await llenarPaso1(p, { nombre: 'Ana', apellido: 'Pérez', documento: '1007401199',
+      celular: '3012345678', correo: 'ana@ejemplo.com', direccion: 'Calle 16f #99 - 72',
+      adicional: '', barrio: '' });
+    await p.click('#ir-2');
+    await p.waitForTimeout(400);
+    ok(!(await p.locator('#sug').isVisible()), 'y no se repite en el paso de entrega');
     ok(!(await p.locator('.aval').isVisible()), 'el aval no distrae en el paso de entrega');
     await p.click('#ir-3');
     await p.waitForTimeout(300);

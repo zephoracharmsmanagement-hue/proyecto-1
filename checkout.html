@@ -137,9 +137,9 @@ button{font-family:inherit}
 /* Order bump del Empaque Premium.
  *
  * Va en el paso de pago, justo antes del botón: la decisión de comprar ya está
- * tomada y esto es un sí o un no de un toque. La tira de sugerencias no puede
- * ir aquí —eso es navegar, y navegar al pagar distrae— pero una casilla con su
- * precio sí.
+ * tomada y esto es un sí o un no de un toque. La tira de sugerencias vive en el
+ * primer paso y no aquí —elegir pieza es navegar, y navegar al pagar distrae—
+ * pero una casilla con su precio sí cabe.
  *
  * Borde discontinuo para separarlo de las formas de pago: no es una y no puede
  * parecerlo. */
@@ -454,6 +454,24 @@ button{font-family:inherit}
             </div>
           </form>
 
+          <!-- Va en el primer paso, que es la pantalla con la que se entra al
+               checkout: antes estaba al final del de entrega y la veía solo
+               quien ya había pasado dos pantallas. Sigue lejos del momento de
+               pagar —quedan dos pasos por delante—, que era la razón de no
+               ponerla en el tercero: añadir una pieza cambia el total, y
+               cambiarlo mientras se decide el pago es meterle ruido.
+
+               Después del formulario y antes del botón, no entre los campos:
+               llenar los datos es la tarea de esta pantalla y una tira de
+               producto en medio la interrumpe. Aquí cae en la pausa natural,
+               con el formulario ya hecho. Añadir no navega: la pieza entra al
+               pedido y el total se mueve en el resumen, que está pegado. -->
+          <section class="sug" id="sug" hidden>
+            <div class="sug-h"><h3>Te puede interesar</h3><span id="sug-por"></span></div>
+            <p class="sug-p" id="sug-p"></p>
+            <div class="sug-tira" id="sug-tira"></div>
+          </section>
+
           <div class="nav">
             <a class="atras" href="index.html#brazaletes" style="text-decoration:none">← Seguir viendo el catálogo</a>
             <button class="btn btn--pagar" type="button" id="ir-2">Continuar a entrega</button>
@@ -491,15 +509,6 @@ button{font-family:inherit}
               <span class="pista">Elegiste Empaque Premium de Regalo: si escribes algo aquí, va en la tarjeta.</span>
             </div>
           </div>
-
-          <!-- Va al final del paso 2 y no en el de pago: añadir una pieza cambia
-               el total, y hacerlo en el instante de decidir el pago es meterle
-               ruido a la decisión. Aquí todavía queda un paso por delante. -->
-          <section class="sug" id="sug" hidden>
-            <div class="sug-h"><h3>Te puede interesar</h3><span id="sug-por"></span></div>
-            <p class="sug-p" id="sug-p"></p>
-            <div class="sug-tira" id="sug-tira"></div>
-          </section>
 
           <div class="nav">
             <button class="atras" type="button" data-atras="1">← Volver a tus datos</button>
@@ -832,6 +841,48 @@ function sugerencias(c){
   return { ids: salida, categorias: [...mios] };
 }
 
+/* Por qué añadir uno más, dicho con la cifra concreta.
+ *
+ * Antes decía siempre lo mismo —«cada charm que sumes baja el descuento»—, que
+ * es cierto y no mueve a nadie. Ahora nombra el tramo que se desbloquea y lo
+ * que baja sobre lo que YA lleva, con la misma disciplina que el aviso del
+ * armador: nunca se promete que el total baje, porque no baja —el charm que
+ * añada lo paga—. Prometer un ahorro que no existe se descubre en la pantalla
+ * de pago, con la clienta ya decidida.
+ *
+ * Los porcentajes salen de las reglas, no del texto: si la escala cambia, esta
+ * frase cambia con ella. */
+function motivoSug(){
+  const R=CAT.reglas, nC=carrito.charms.length;
+  const esc=n=>n<=0?0:R.escalaCharms[Math.min(n,R.escalaCharms.length-1)];
+  if(!nC) return 'Cada charm que sumes baja el descuento de todo lo que llevas.';
+
+  const tope=R.escalaCharms.length-1;
+  const brazalete=carrito.base&&nC+1>=R.minCharmsParaDescuento&&nC<R.minCharmsParaDescuento;
+  if(esc(nC+1)<=esc(nC)&&!brazalete){
+    return 'Ya tienes el descuento máximo por cantidad; estos suman a la misma pulsera.';
+  }
+
+  const brutoC=carrito.charms.reduce((s,id)=>s+CAT.precios[id],0);
+  const brutoB=carrito.base?CAT.precios[carrito.base.id]:0;
+  const dcto=n=>brutoC*esc(n)+((carrito.base&&n>=R.minCharmsParaDescuento)?brutoB*R.descuentoBrazalete:0);
+  const extra=Math.round(dcto(nC+1)-dcto(nC));
+
+  /* Al llegar al último tramo la promesa se dice en piezas —«llevas 4 y pagas
+     3»— y no en porcentaje, que es como está anunciada en la portada. Solo si
+     la escala de verdad descuenta uno de cada N; si alguien la mueve, se cae a
+     decir el porcentaje en vez de prometer algo que no se cumple. */
+  const nuevo=nC+1;
+  const paga=nuevo*(1-esc(nuevo));
+  const enPiezas=nuevo>=tope&&Math.abs(paga-Math.round(paga))<1e-9&&paga<nuevo;
+  const gana=enPiezas
+    ? 'Suma uno más y llevas '+nuevo+' pagando '+Math.round(paga)
+    : 'Con un charm más el descuento sube al '+Math.round(esc(nuevo)*100)+'%';
+
+  return gana+(brazalete?' y se activa el 30% del brazalete':'')
+    +(extra>0?': '+cop(extra)+' menos en lo que ya llevas.':'.');
+}
+
 function pintarSugeridos(){
   const caja=$('#sug');
   if(!carrito){ caja.hidden=true; return; }
@@ -842,9 +893,7 @@ function pintarSugeridos(){
   $('#sug-por').textContent = categorias.length
     ? '· parecidos a ' + categorias.slice(0,2).join(' y ')
     : '· los favoritos de las clientas';
-  $('#sug-p').textContent = carrito.charms.length>=4
-    ? 'Ya tienes el descuento máximo por cantidad; estos suman a la misma pulsera.'
-    : 'Cada charm que sumes baja el descuento de todo lo que llevas.';
+  $('#sug-p').textContent = motivoSug();
 
   $('#sug-tira').innerHTML = ids.map(id=>{
     const n=esc(CAT.nombres[id]||id);
