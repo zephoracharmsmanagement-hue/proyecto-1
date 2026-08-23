@@ -99,6 +99,76 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   ok(tot.total.replace(/\D/g, '') === '257350', 'total 257.350');
   ok(tot.lb.includes('18 cm'), 'el resumen muestra la talla');
 
+  console.log('5b · «Te puede interesar» dentro de la hoja');
+  /* La hoja tapa el catálogo entero, así que quien abría el resumen ya no
+     añadía nada más. La tira lo resuelve, pero solo si no reintroduce lo que
+     el catálogo ya bloquea: ofrecer una pieza agotada aquí mandaría a la
+     clienta a un 409 en la pantalla de pago. */
+  {
+    const tira = await p.evaluate(() => ({
+      visible: !document.querySelector('#sug').hidden,
+      por: document.querySelector('#sug-por').textContent.trim(),
+      ids: [...document.querySelectorAll('.sug-c')].map(b => b.dataset.sug),
+    }));
+    ok(tira.visible && tira.ids.length >= 3,
+      'la tira aparece en la hoja con lo que pega con el carrito', `${tira.ids.length} piezas`);
+    ok(/marvel/i.test(tira.por), 'y dice por qué son esas', tira.por);
+
+    const puestos = await p.evaluate(() =>
+      [...document.querySelectorAll('#sheet-body .srow-n')].map(e => e.textContent));
+    ok(!tira.ids.some(id => puestos.some(n => n.includes(id))),
+      'nunca repite lo que ya lleva');
+    ok(!tira.ids.some(id => /^letra-/.test(id)),
+      'ni las iniciales, que se eligen a propósito y no se sugieren');
+
+    const inv = await p.evaluate(() => fetch('assets/stock.json').then(r => r.json()));
+    const sinStock = tira.ids.filter(id => {
+      const it = inv.items[id];
+      return it && typeof it.stock === 'number' && it.stock <= 0;
+    });
+    ok(sinStock.length === 0, 'y ninguna está agotada',
+      sinStock.length ? sinStock.join(', ') : `${tira.ids.length} comprobadas`);
+
+    /* Añadir desde la tira tiene que mover el total y dejar señal en la propia
+       tarjeta: si se repinta de golpe, la pieza desaparece y no queda rastro de
+       que entró al pedido. */
+    const antes = await p.locator('#v-tot').textContent();
+    const puesto = tira.ids[0];
+    /* Hay que abrir la hoja para tocarla: fuera de ella la tira existe en el
+       DOM pero está desplazada fuera de pantalla, que es justo el motivo de
+       ponerla aquí dentro. */
+    await p.evaluate(() => {
+      if (!document.body.classList.contains('sheet-open')) document.querySelector('#dock-open').click();
+    });
+    await p.waitForTimeout(400);
+    await p.locator('.sug-c').first().click();
+    await p.waitForTimeout(250);
+    ok(await p.evaluate(() => document.querySelector('.sug-c').classList.contains('is-puesto')),
+      'la tarjeta confirma en el sitio en vez de desaparecer');
+    ok((await p.locator('#v-tot').textContent()) !== antes,
+      'y el total de la hoja se mueve', `${antes} → ${await p.locator('#v-tot').textContent()}`);
+    /* Pasada la confirmación, la tira se rehace: la pieza que entró sale de la
+       lista y llega otra por detrás, para que nunca quede a medias. */
+    await p.waitForTimeout(1100);
+    const luego = await p.evaluate(() => [...document.querySelectorAll('.sug-c')].map(c => c.dataset.sug));
+    ok(!luego.includes(puesto) && luego.length >= 3,
+      'y al repintarse deja de ofrecer la que ya entró, sin quedarse corta',
+      `${luego.length} piezas`);
+    /* Se deshace para que los pasos siguientes vean el mismo carrito de antes. */
+    await p.evaluate(() => {
+      const f = [...document.querySelectorAll('#sheet-body .srow')].pop();
+      f.querySelector('.srow-x').click();
+    });
+    await p.waitForTimeout(200);
+    ok((await p.locator('#v-tot').textContent()).replace(/\D/g, '') === '257350',
+      'y quitarla devuelve el total de antes', puesto);
+    /* Se cierra: los pasos siguientes trabajan con la tienda a la vista. */
+    await p.evaluate(() => {
+      if (document.body.classList.contains('sheet-open')) document.querySelector('#sheet-x').click();
+    });
+    await p.waitForTimeout(300);
+  }
+
   console.log('6 · la talla viaja hasta el checkout');
   /* Antes esto miraba el texto del pedido por WhatsApp. Ese botón se retiró del
      carrito —al lado del de pagar se comía checkouts terminados—, así que la

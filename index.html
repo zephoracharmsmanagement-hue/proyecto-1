@@ -708,6 +708,51 @@ body.sheet-open{overflow:hidden}
 .sheet-scroll::-webkit-scrollbar-track{background:transparent}
 .sheet-body{padding:4px 18px 0;min-height:96px}
 .sheet-extras{padding:0 18px 8px}
+/* «Te puede interesar», dentro de la hoja.
+ *
+ * Va entre las piezas y el empaque, que es donde encaja en la frase que la
+ * clienta está leyendo: esto llevas → esto le pega → así lo envuelves → así lo
+ * pagas. Más abajo no puede ir: pegado al botón de pagar, elegir pieza es
+ * navegar, y navegar al pagar se come checkouts terminados.
+ *
+ * La tarjeta entera es el botón. En una hoja que se usa con el pulgar, un
+ * botón de 11 px dentro de una tarjeta de 96 px es un blanco que se falla;
+ * así el blanco es la tarjeta. El «+» de la esquina es la señal de que se
+ * toca, y al tocarla se queda en verde en vez de desaparecer. */
+.sug{padding:14px 18px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,.09)}
+.sug-h{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;margin:0 0 8px}
+.sug-h b{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:300;letter-spacing:.03em}
+.sug-h span{font-size:11.5px;color:#8d7f92}
+/* Sin barra de desplazamiento visible: en una hoja pequeña roba altura y la
+   tarjeta cortada del borde ya dice que hay más a la derecha. */
+.sug-tira{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
+  scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sug-tira::-webkit-scrollbar{display:none}
+.sug-c{flex:0 0 96px;scroll-snap-align:start;border:1px solid rgba(255,255,255,.14);
+  border-radius:3px;background:rgba(255,255,255,.04);padding:7px;cursor:pointer;
+  display:flex;flex-direction:column;gap:5px;text-align:left;color:var(--bone);
+  font:inherit;transition:border-color .16s,background .16s}
+@media(hover:hover){.sug-c:hover{border-color:var(--rose);background:rgba(180,101,127,.16)}}
+.sug-ph{position:relative;display:block}
+/* La foto va con alto fijo en vez de cuadrada: dentro de la hoja cada píxel de
+   alto se lo quita al desglose y a la forma de pago, que quedan debajo. Con
+   object-fit:contain la pieza se sigue viendo entera, solo con algo más de
+   blanco a los lados. */
+.sug-c img{width:100%;height:64px;object-fit:contain;background:#fff;
+  border-radius:2px;display:block}
+.sug-mas{position:absolute;right:-3px;bottom:-3px;width:21px;height:21px;border-radius:50%;
+  background:var(--rose);color:#fff;font-size:14px;line-height:21px;text-align:center}
+/* Dos líneas como tope: hay nombres de tres —«Escudo Capitán América»— y una
+   sola tarjeta más alta estira las seis. */
+.sug-n{font-size:11px;line-height:1.3;height:2.6em;overflow:hidden;color:#d9cede;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* Empujado al fondo: los nombres van de una a tres líneas y sin esto cada
+   precio quedaba a una altura distinta, que es lo que hace que una tira de
+   tarjetas se lea como una lista desordenada. */
+.sug-p{font-size:12px;margin-top:auto}
+.sug-c.is-puesto{border-color:#7fc7ae;background:rgba(127,199,174,.14);cursor:default}
+.sug-c.is-puesto .sug-mas{background:#7fc7ae}
+.sug-c.is-puesto .sug-p{color:#7fc7ae}
 .srow{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.09)}
 .srow img{width:46px;height:46px;border-radius:2px;background:#fff;object-fit:contain;flex:0 0 auto}
 .srow-n{font-size:14px;line-height:1.3;min-width:0}
@@ -1662,6 +1707,10 @@ body.sheet-open{overflow:hidden}
        una. La clienta llegaba a pagar $200.000 sin poder ver qué llevaba. -->
   <div class="sheet-scroll" id="sheet-scroll">
   <div class="sheet-body" id="sheet-body"></div>
+  <section class="sug" id="sug" hidden aria-label="Te puede interesar">
+    <div class="sug-h"><b>Te puede interesar</b><span id="sug-por"></span></div>
+    <div class="sug-tira" id="sug-tira"></div>
+  </section>
   <div class="sheet-extras">
     <label class="pack"><input type="checkbox" id="pack">
       <img src="assets/empaque.webp?v=20260822" alt="Empaque Premium: bolsa, caja y tarjeta" width="46" height="46" loading="lazy" decoding="async">
@@ -2256,9 +2305,107 @@ function render(){
   dbar.firstElementChild.style.width=subtotal>0?Math.min(100,subtotal/LIBRE*100)+'%':'0';
 
   pintarEscalera(nC);
+  pintarSug();
   pintarCross(nC,brutoC,brutoB,descB);
   guardar();
 }
+
+/* «Te puede interesar», dentro de la hoja.
+ *
+ * Hasta ahora, sumar una pieza desde la hoja obligaba a cerrarla, buscar en el
+ * catálogo y volver. El catálogo está en la misma página, pero la hoja lo tapa
+ * entero: en la práctica, quien abría el resumen ya no añadía nada más.
+ *
+ * Tres reglas la hacen útil en vez de molesta, las mismas que gobiernan la
+ * tira del checkout: nunca ofrece lo agotado, nunca repite lo que ya lleva y
+ * se calla por debajo de tres piezas, porque una tira a medias ocupa sitio y
+ * no vende. Las iniciales quedan fuera: se eligen, no se sugieren.
+ *
+ * Y no repite el aviso del descuento. Eso ya lo dice #desc-nota unas líneas
+ * más abajo, en el desglose, con la cifra calculada; decirlo dos veces en la
+ * misma hoja es ruido. */
+const SUG_MAX=6;
+/* Categoría y destacados viven en los atributos de las tarjetas del catálogo,
+   que es de donde los saca también extraer_catalogo.py para el checkout. Se
+   leen una vez: el catálogo no cambia mientras la página está abierta. */
+const GRUPO=(()=>{const m={};
+  document.querySelectorAll('.pc[data-g]').forEach(a=>{ m[a.dataset.id]=a.dataset.g; });
+  return m;})();
+const DEST=[...document.querySelectorAll('.pc--top[data-id]')].map(a=>a.dataset.id);
+
+function sugeridos(){
+  const puestos=new Set(sel);
+  const mios=new Set(sel.map(id=>GRUPO[id]).filter(Boolean));
+  const vale=id=>CH[id] && !puestos.has(id) && !/^letra-/.test(id) && !agotado(id);
+  const orden=Object.keys(GRUPO);
+  const out=[];
+  const meter=id=>{ if(out.length<SUG_MAX && !out.includes(id) && vale(id)) out.push(id); };
+  /* Primero lo de las mismas categorías que ya lleva —quien puso uno de Marvel
+     probablemente quiera otro—, luego los destacados y, de último recurso,
+     cualquiera con categoría, para que no salga a medias en una hoja que solo
+     tiene brazalete. */
+  orden.filter(id=>mios.has(GRUPO[id])).forEach(meter);
+  DEST.forEach(meter);
+  orden.forEach(meter);
+  return { ids: out, categorias: [...mios] };
+}
+
+/* Mientras una tarjeta está confirmando «Añadido ✓» no se repinta: añadir la
+   saca de la lista, y repintar de golpe la haría desaparecer sin dejar señal
+   de que entró al pedido. */
+let sugPausa=false;
+
+function pintarSug(){
+  if(sugPausa) return;
+  const caja=$('#sug'), tira=$('#sug-tira');
+  const { ids, categorias } = sugeridos();
+  if(ids.length<3){ caja.hidden=true; return; }
+  caja.hidden=false;
+  /* render() corre en cada cambio —también al elegir forma de pago o marcar el
+     empaque—. Si la lista no cambió, no se toca: repintar reiniciaría el
+     desplazamiento de la tira justo mientras la clienta la recorre. */
+  if(tira.dataset.ids===ids.join(',')) return;
+
+  $('#sug-por').textContent = categorias.length
+    ? '· parecidos a '+categorias.slice(0,2).join(' y ')
+    : '· los favoritos de las clientas';
+
+  /* Se arma con nodos y no con innerHTML: hay nombres con comillas dentro
+     —«Luciérnaga "You Are My Light"»— y concatenarlos rompería el atributo. */
+  tira.textContent='';
+  ids.forEach(id=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='sug-c'; b.dataset.sug=id;
+    b.setAttribute('aria-label','Agregar '+CH[id].n);
+    const ph=document.createElement('span'); ph.className='sug-ph';
+    const im=document.createElement('img');
+    im.src=imgDe(id); im.alt=''; im.loading='lazy'; im.decoding='async';
+    const mas=document.createElement('span'); mas.className='sug-mas';
+    mas.setAttribute('aria-hidden','true'); mas.textContent='+';
+    ph.append(im,mas);
+    const n=document.createElement('span'); n.className='sug-n'; n.textContent=CH[id].n;
+    const pr=document.createElement('span'); pr.className='sug-p'; pr.textContent=cop(CH[id].p);
+    b.append(ph,n,pr);
+    tira.appendChild(b);
+  });
+  tira.dataset.ids=ids.join(',');
+  tira.scrollLeft=0;
+}
+
+$('#sug-tira').addEventListener('click',e=>{
+  const b=e.target.closest('.sug-c');
+  if(!b || b.classList.contains('is-puesto')) return;
+  const id=b.dataset.sug;
+  /* El tope por unidades es el mismo que bloquea el botón del catálogo: la
+     tira no puede ser la puerta de atrás para pedir tres de algo que tiene uno. */
+  if(agotado(id) || sel.filter(x=>x===id).length>=tope(id)) return;
+  b.classList.add('is-puesto');
+  b.querySelector('.sug-mas').textContent='✓';
+  b.querySelector('.sug-p').textContent='Añadido';
+  sugPausa=true;
+  sumarCharm(id);
+  setTimeout(()=>{ sugPausa=false; pintarSug(); },900);
+});
 
 /* El tramo de la escalera en el que va la clienta ahora mismo.
  *
