@@ -762,15 +762,15 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **10 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **11 functions**
 (`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`, `_hoja`, `rescate`, `disponibilidad`);
+`_pedidos`, `_hoja`, `rescate`, `disponibilidad`, `reanudar`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 
 > **Este número sube cada vez que se añade un módulo a `netlify/functions/`, y
 > hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`,
-> y 9 hasta que entró `disponibilidad.mjs`.
+> 9 hasta que entró `disponibilidad.mjs` y 10 hasta que entró `reanudar.mjs`.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
 > persona ve «9» donde el documento pide «8», da por bueno el desajuste, y la
 > comprobación deja de servir justo para lo que existe — detectar que las

@@ -346,6 +346,14 @@ button{font-family:inherit}
           <span id="aviso-error-tx"></span>
         </div>
 
+        <!-- Quien vuelve por el enlace de un pedido sin pagar. Se le dice si
+             está todo como lo dejó o si hubo que ajustar algo, porque callarlo
+             y que lo note en el total es peor que decirlo de entrada. -->
+        <div class="aviso" id="aviso-reanudar" hidden>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v5l3 2"/></svg>
+          <span id="aviso-reanudar-tx"></span>
+        </div>
+
         <!-- ——— 1 · datos ——— -->
         <section class="panel" id="panel-1" aria-labelledby="t1">
           <h2 id="t1">¿A dónde la enviamos?</h2>
@@ -667,7 +675,7 @@ function carritoDeUrl(){
 function limpiarUrl(){
   try{
     var u=new URL(location.href);
-    ['p','e','pago'].forEach(function(k){ u.searchParams.delete(k); });
+    ['p','e','pago','reanudar','ref'].forEach(function(k){ u.searchParams.delete(k); });
     history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
   }catch(_){}
 }
@@ -1186,11 +1194,27 @@ Promise.all([
      resto del checkout —y el releer() de más abajo— vean lo mismo que se
      pintó. */
   const delEnlace=carritoDeUrl();
+  /* Se lee antes de limpiar la URL, que se lleva los parámetros por delante. */
+  const motivo=(function(){
+    try{ return new URLSearchParams(location.search).get('reanudar')||''; }catch(_){ return ''; }
+  })();
   if(delEnlace){ carrito=delEnlace; guardarCarrito(); limpiarUrl(); }
   else carrito=leerCarrito();
   $('#cargando').hidden=true;
   if(!carrito){ $('#vacio').hidden=false; return; }
   $('#app').hidden=false;
+
+  /* El mensaje de quien vuelve por el enlace de recuperación. `ajustado` no es
+     un error: es el caso normal cuando pasaron horas, porque la reserva de
+     inventario caduca a los 30 minutos y las unidades vuelven al mostrador. */
+  if(motivo==='igual'||motivo==='ajustado'){
+    const caja=$('#aviso-reanudar'), tx=$('#aviso-reanudar-tx');
+    caja.classList.add(motivo==='ajustado'?'aviso--info':'aviso--ok');
+    tx.textContent = motivo==='ajustado'
+      ? 'Retomamos tu pedido, pero alguna pieza ya no estaba disponible y la quitamos. Revisa el resumen antes de pagar.'
+      : 'Retomamos tu pedido tal como lo dejaste. Revisa el resumen y termina cuando quieras.';
+    caja.hidden=false;
+  }
 
   pintarDeptos();
   pintarResumen();
