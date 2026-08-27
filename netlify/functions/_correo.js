@@ -222,6 +222,84 @@ async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente }) {
   });
 }
 
+/* ——— El correo que recupera un checkout abandonado ———
+ *
+ * Va SOLO a quien marcó la casilla de comunicaciones en el checkout. Esa
+ * casilla va sin marcar y no condiciona la compra a propósito: bajo la Ley 1581
+ * la finalidad que autoriza los datos del pedido es la compra, y escribirle
+ * después por otra cosa necesita permiso propio. Quien no la marcó sigue el
+ * camino de siempre —la tienda recibe el aviso y una persona decide si le
+ * escribe—, que responder por un pedido a medias sí entra en la finalidad de
+ * la compra.
+ *
+ * Lo que NO dice este correo es tan importante como lo que dice: **nunca
+ * promete que el pedido sigue igual.** La reserva de inventario caduca a los 30
+ * minutos y esto sale horas después, así que las unidades ya volvieron al
+ * mostrador. El enlace va a `reanudar`, que comprueba qué queda de verdad antes
+ * de enseñar nada.
+ *
+ * Y lleva cómo parar: la casilla prometía «puedes pedirnos que paremos cuando
+ * quieras», y una promesa de esas sin forma de cumplirla no vale.
+ */
+async function recuperarCarrito({ referencia, lineas, cuentas, cliente, sitio }) {
+  const piezas = (lineas || [])
+    .filter(l => l && l.id !== 'empaque')
+    .map(l => `${esc(l.nombre)}${l.talla ? ` · talla ${esc(l.talla)}` : ''}`
+      + `${l.unidades > 1 ? ` ×${l.unidades}` : ''}`);
+
+  const enlace = `${sitio}/reanudar?ref=${encodeURIComponent(referencia)}`;
+  const nombre = (cliente && cliente.nombre) || '';
+
+  const filas = piezas.map(t =>
+    `<tr><td style="padding:7px 0;border-top:1px solid #EFE7EA;font:400 14px/1.5 Arial,sans-serif;`
+    + `color:#2A1F2E">${t}</td></tr>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="es-CO"><head><meta charset="UTF-8">`
+    + `<meta name="viewport" content="width=device-width,initial-scale=1"></head>`
+    + `<body style="margin:0;background:#F6F3F4"><table role="presentation" width="100%" `
+    + `cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">`
+    + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" `
+    + `style="max-width:520px;background:#fff;border:1px solid #E4DDE0;border-radius:4px">`
+    + `<tr><td style="padding:26px 26px 8px">`
+    + `<h1 style="margin:0 0 10px;font:400 23px/1.25 Georgia,serif;color:#2A1F2E">`
+    + `${nombre ? esc(nombre) + ', t' : 'T'}u pulsera quedó a medio camino</h1>`
+    + `<p style="margin:0 0 4px;font:400 14.5px/1.65 Arial,sans-serif;color:#6d6070">`
+    + `Llegaste hasta el pago y algo lo interrumpió. Esto es lo que habías elegido:</p>`
+    + `</td></tr><tr><td style="padding:0 26px">`
+    + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${filas}</table>`
+    + `</td></tr><tr><td style="padding:18px 26px 4px">`
+    + `<a href="${enlace}" style="display:inline-block;background:#2A1F2E;color:#fff;`
+    + `text-decoration:none;font:400 15px/1 Arial,sans-serif;padding:14px 26px;border-radius:3px">`
+    + `Retomar mi pedido</a>`
+    /* La frase exacta importa: se comprueba qué queda al abrir el enlace, así
+       que aquí no se puede decir «te lo guardamos». */
+    + `<p style="margin:12px 0 0;font:400 12.5px/1.6 Arial,sans-serif;color:#8a8290">`
+    + `Al abrirlo comprobamos qué sigue disponible: si alguna pieza se agotó `
+    + `mientras tanto, te lo decimos ahí mismo antes de pagar.</p>`
+    + `</td></tr><tr><td style="padding:16px 26px 24px">`
+    + `<p style="margin:0;font:400 12px/1.6 Arial,sans-serif;color:#8a8290;`
+    + `border-top:1px solid #EFE7EA;padding-top:14px">`
+    + `Pedido ${esc(referencia)}. Te escribimos porque autorizaste recibir novedades `
+    + `al hacer el pedido — si prefieres que no lo hagamos, responde a este correo `
+    + `y paramos.</p>`
+    + `</td></tr></table></td></tr></table></body></html>`;
+
+  const txt = `${nombre ? nombre + ', t' : 'T'}u pulsera quedó a medio camino\n\n`
+    + `Llegaste hasta el pago y algo lo interrumpió. Habías elegido:\n`
+    + piezas.map(t => `  · ${t.replace(/&[a-z]+;/g, '')}`).join('\n')
+    + `\n\nRetomar tu pedido: ${enlace}\n\n`
+    + `Al abrirlo comprobamos qué sigue disponible: si alguna pieza se agotó `
+    + `mientras tanto, te lo decimos antes de pagar.\n\n`
+    + `Pedido ${referencia}. Te escribimos porque autorizaste recibir novedades al `
+    + `hacer el pedido — si prefieres que no lo hagamos, responde a este correo y paramos.\n`;
+
+  return enviar({
+    para: cliente.correo,
+    asunto: `Tu pedido ${referencia} sigue a un paso · Zephora Charms`,
+    html, txt,
+  });
+}
+
 /* ——— La hoja de despacho ———
  *
  * La copia interna era el recibo de la clienta con otro título, y eso costó un
@@ -405,5 +483,5 @@ async function pagoTienda({ referencia, total, pedido }) {
 
 module.exports = {
   enviar, plantilla, texto, pedidoRecibido, avisoTienda, pagoTienda,
-  plantillaTienda, textoTienda, correoTienda,
+  plantillaTienda, textoTienda, correoTienda, recuperarCarrito,
 };
