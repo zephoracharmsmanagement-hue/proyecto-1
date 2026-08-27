@@ -93,6 +93,67 @@ button{font-family:inherit}
   border-top:1px solid var(--line);margin-top:9px;padding-top:11px}
 .tot-fin span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver)}
 .tot-fin b{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:300}
+/* Cuánto falta para el envío gratis, dentro del resumen.
+   Vive aquí y no en un paso concreto porque el resumen está pegado arriba en
+   los tres: el dato sirve mientras se pueda hacer algo con él, y en el último
+   paso ya no. */
+.env-bar{height:4px;border-radius:2px;background:var(--line);margin:10px 0 6px;overflow:hidden}
+.env-bar i{display:block;height:100%;width:0;background:var(--rose);transition:width .35s ease}
+.env-bar.is-ok i{background:var(--bien)}
+.env-nota{margin:0;font-size:12.5px;line-height:1.5;color:#6d6070}
+.env-nota.is-ok{color:var(--bien)}
+@media(prefers-reduced-motion:reduce){.env-bar i{transition:none}}
+
+/* Prueba social pegada al botón de pagar.
+   Es el último momento de duda y el único sitio de la página donde no hay nada
+   que respalde la decisión. Los datos son reales: las reseñas del sitio son de
+   clientas verificadas y el conteo sale del histórico de la tienda. */
+.aval{display:flex;align-items:center;gap:10px;margin:0 0 14px;padding:11px 13px;
+  background:var(--rose-soft);border-radius:3px}
+.aval-n{font-size:12.5px;line-height:1.5;color:#4a3a50}
+.aval-n b{font-weight:400;color:var(--ink)}
+.aval-e{display:flex;gap:1px;flex:0 0 auto}
+
+/* «Te puede interesar» — la tira de sugerencias.
+   Rueda con el dedo en móvil; en escritorio caben las seis. */
+.sug{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
+.sug-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 0 3px}
+.sug-h h3{font-size:19px}
+.sug-h span{font-size:12px;color:var(--silver)}
+.sug-p{margin:0 0 12px;font-size:13px;color:#6d6070;line-height:1.5}
+.sug-tira{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;
+  scroll-snap-type:x proximity}
+.sug-c{flex:0 0 132px;scroll-snap-align:start;border:1px solid var(--line);border-radius:3px;
+  background:var(--white);padding:8px;display:flex;flex-direction:column;gap:6px}
+.sug-c img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff}
+.sug-n{font-size:12px;line-height:1.35;min-height:2.7em}
+.sug-pr{font-size:13px;color:var(--ink)}
+.sug-b{width:100%;border:1px solid var(--pagar);background:var(--white);color:var(--pagar);
+  border-radius:2px;padding:8px 6px;font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer;transition:.15s}
+.sug-b:hover{background:var(--pagar);color:#fff}
+.sug-b.is-puesto{background:var(--bien);border-color:var(--bien);color:#fff;cursor:default}
+
+/* Order bump del Empaque Premium.
+ *
+ * Va en el paso de pago, justo antes del botón: la decisión de comprar ya está
+ * tomada y esto es un sí o un no de un toque. La tira de sugerencias no puede
+ * ir aquí —eso es navegar, y navegar al pagar distrae— pero una casilla con su
+ * precio sí.
+ *
+ * Borde discontinuo para separarlo de las formas de pago: no es una y no puede
+ * parecerlo. */
+.bump{margin:0 0 14px;padding:13px 14px;border:1px dashed var(--pagar);border-radius:3px;
+  background:#fdf7f9;display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+.bump input{margin:2px 0 0;width:19px;height:19px;accent-color:var(--pagar);flex:0 0 auto;cursor:pointer}
+.bump-tx{min-width:0}
+.bump-t{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14.5px}
+.bump-t b{font-weight:400}
+.bump-t .precio{color:var(--pagar)}
+.bump-d{margin:4px 0 0;font-size:12.5px;line-height:1.5;color:#6d6070}
+.bump:has(input:checked){border-style:solid;background:var(--rose-soft)}
+.bump-ya{margin:0 0 14px;padding:11px 13px;border-radius:3px;background:#E8F4EF;
+  font-size:13px;line-height:1.5;color:#1a6650}
 .res-editar{display:inline-block;margin-top:12px;font-size:12.5px}
 
 /* ——— pasos ——— */
@@ -264,6 +325,8 @@ button{font-family:inherit}
       <div class="res-in">
         <div id="res-lineas"></div>
         <div id="res-totales"></div>
+          <div class="env-bar" id="env-bar" aria-hidden="true"><i></i></div>
+          <p class="env-nota" id="env-nota"></p>
         <a class="res-editar" href="index.html#brazaletes">← Modificar mi selección</a>
       </div>
     </div>
@@ -424,6 +487,15 @@ button{font-family:inherit}
             </div>
           </div>
 
+          <!-- Va al final del paso 2 y no en el de pago: añadir una pieza cambia
+               el total, y hacerlo en el instante de decidir el pago es meterle
+               ruido a la decisión. Aquí todavía queda un paso por delante. -->
+          <section class="sug" id="sug" hidden>
+            <div class="sug-h"><h3>Te puede interesar</h3><span id="sug-por"></span></div>
+            <p class="sug-p" id="sug-p"></p>
+            <div class="sug-tira" id="sug-tira"></div>
+          </section>
+
           <div class="nav">
             <button class="atras" type="button" data-atras="1">← Volver a tus datos</button>
             <button class="btn btn--pagar" type="button" id="ir-3">Continuar al pago</button>
@@ -466,6 +538,19 @@ button{font-family:inherit}
             <span id="nota-pago">Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.</span>
           </div>
 
+          <!-- Antes de la casilla de términos a propósito: aceptar es la última
+               puerta antes de pagar, y una oferta entre el consentimiento y el
+               botón añade un artículo al pedido después de haberlo aceptado. -->
+
+          <label class="bump" id="bump" hidden>
+            <input type="checkbox" id="bump-chk">
+            <span class="bump-tx">
+              <span class="bump-t"><b>Añade el Empaque Premium de Regalo</b><span class="precio">+$40.000</span></span>
+              <span class="bump-d">Tu pedido ya lleva empaque de regalo sin costo. El Premium suma la <b>tarjeta con tu dedicatoria escrita a mano</b>, para que llegue listo para entregar.</span>
+            </span>
+          </label>
+          <p class="bump-ya" id="bump-ya" hidden>✓ Tu pedido lleva Empaque Premium de Regalo. La dedicatoria para la tarjeta se escribe en el paso anterior.</p>
+
           <div class="campo" style="margin-top:18px" data-c="acepta">
             <label style="display:flex;gap:10px;align-items:flex-start;text-transform:none;
                           letter-spacing:0;font-size:13.5px;color:#4a3d4e;cursor:pointer">
@@ -474,6 +559,11 @@ button{font-family:inherit}
               <span>He leído y acepto los <a href="terminos-y-condiciones.html" target="_blank" rel="noopener">términos y condiciones</a>, la <a href="politica-de-privacidad.html" target="_blank" rel="noopener">política de privacidad</a> y la <a href="envios-y-devoluciones.html" target="_blank" rel="noopener">política de envíos y devoluciones</a>.</span>
             </label>
             <span class="error">Hay que aceptar los términos para poder cobrar</span>
+          </div>
+
+          <div class="aval">
+            <span class="aval-e" aria-label="5 de 5 estrellas"><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span>
+            <span class="aval-n"><b>+2.400 pulseras creadas</b> en Colombia · Todas las reseñas del sitio son de compras verificadas</span>
           </div>
 
           <div class="nav">
@@ -510,6 +600,7 @@ button{font-family:inherit}
 const $=s=>document.querySelector(s);
 const WA='573018990672';
 const LLAVE='zephora.carrito.v1';
+let STOCK=null;
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 const track=(ev,d)=>{ if(typeof fbq==='function') fbq('track',ev,Object.assign({currency:'COP'},d||{})); };
 
@@ -603,6 +694,42 @@ function pintarResumen(){
   h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
   $('#res-totales').innerHTML=h;
 
+  /* Cuánto falta para el envío gratis.
+   *
+   * El carrito ya lo dice, pero quien llega aquí desde un enlace guardado o
+   * recarga la página no pasó por él, y en el checkout el dato todavía sirve:
+   * se puede volver atrás y añadir una pieza. La cifra sale del mismo
+   * `calcular()` que pinta el total, así que no puede discrepar de lo que se
+   * cobra.
+   *
+   * Con carrito vacío no se dice nada: «te faltan $180.000» a quien no lleva
+   * nada no es un empujón, es una cifra intimidante. */
+  const bar=$('#env-bar'), nota=$('#env-nota');
+  const falta=Math.max(0, CAT.reglas.envioGratisDesde - t.subtotal);
+  if(t.subtotal<=0){
+    bar.hidden=true; nota.textContent=''; nota.className='env-nota';
+    bar.firstElementChild.style.width='0';
+  }else{
+    bar.hidden=false;
+    bar.classList.toggle('is-ok', t.gratis);
+    bar.firstElementChild.style.width=
+      Math.min(100, t.subtotal/CAT.reglas.envioGratisDesde*100)+'%';
+    if(t.gratis){
+      nota.textContent='✓ Tu pedido lleva envío gratis';
+      nota.className='env-nota is-ok';
+    }else if(t.alcanza){
+      /* Alcanzó el monto pero eligió contraentrega. Se le dice aquí, con el
+         ahorro en pesos, en vez de dejar que lo descubra en el total. */
+      nota.textContent='Ya pasas de '+cop(CAT.reglas.envioGratisDesde)
+        +'. Pagando por adelantado el envío te sale gratis: '+cop(t.envio)+' menos.';
+      nota.className='env-nota';
+    }else{
+      nota.textContent='Te faltan '+cop(falta)+' para el envío gratis'
+        +(CAT.reglas.envioGratisSoloAnticipado?' con pago anticipado':'')+'.';
+      nota.className='env-nota';
+    }
+  }
+
   $('#p-envio').textContent=t.gratis?'Gratis':cop(t.envio);
   $('#d-envio').textContent=t.gratis
     ? 'Inter Rapidísimo con número de guía. Tu pedido pasó de '+cop(CAT.reglas.envioGratisDesde)+', así que el envío va gratis.'
@@ -629,6 +756,125 @@ function pintarResumen(){
 
   $('#campo-dedicatoria').hidden=!c.empaque;
 }
+
+/* ——— «Te puede interesar» ———
+ *
+ * Sugiere charms parecidos a los que ya lleva: primero de las mismas
+ * categorías que eligió —quien puso un charm de Marvel probablemente quiera
+ * otro—, y si con eso no se llenan seis, se completa con los destacados del
+ * catálogo.
+ *
+ * Tres reglas que la hacen útil en vez de molesta:
+ *
+ *   1. Nunca sugiere lo agotado. Ofrecer algo que el servidor va a rechazar en
+ *      la pantalla de pago es peor que no ofrecer nada.
+ *   2. Nunca sugiere lo que ya lleva.
+ *   3. Se calla si no hay nada que decir. Una tira vacía o con dos piezas
+ *      sueltas ocupa sitio y no vende.
+ *
+ * Añadir desde aquí recalcula el total en el resumen de arriba, que está
+ * pegado y siempre visible: el precio nunca cambia sin que se vea cambiar.
+ */
+const SUG_MAX = 6;
+
+function agotadoSug(id){
+  if(!STOCK || !STOCK.items) return false;      // sin inventario, no se filtra
+  const it=STOCK.items[id];
+  if(!it) return false;
+  return typeof it.stock==='number' ? it.stock<=0 : false;
+}
+
+function sugerencias(c){
+  const grupos=(CAT.grupos)||{}, dest=(CAT.destacados)||[];
+  const puestos=new Set(c.charms);
+  const mios=new Set(c.charms.map(id=>grupos[id]).filter(Boolean));
+  const vale=id=> CAT.precios[id]!=null
+    && !puestos.has(id)
+    && !(CAT.pulseras||[]).includes(id)
+    && !/^letra-/.test(id)        /* las iniciales se eligen, no se sugieren */
+    && !agotadoSug(id);
+
+  /* Mismas categorías que lo que ya lleva, en el orden del catálogo. */
+  const mismos=Object.keys(grupos).filter(id=>mios.has(grupos[id]) && vale(id));
+  const salida=[];
+  const meter=id=>{ if(salida.length<SUG_MAX && !salida.includes(id)) salida.push(id); };
+  mismos.forEach(meter);
+  dest.forEach(meter);
+  /* Último recurso: cualquier charm con categoría, para que la tira no salga a
+     medias en un carrito de solo brazalete. */
+  Object.keys(grupos).filter(vale).forEach(meter);
+  return { ids: salida, categorias: [...mios] };
+}
+
+function pintarSugeridos(){
+  const caja=$('#sug');
+  if(!carrito){ caja.hidden=true; return; }
+  const { ids, categorias } = sugerencias(carrito);
+  /* Menos de tres queda pobre: mejor no pintar la sección. */
+  if(ids.length<3){ caja.hidden=true; return; }
+
+  $('#sug-por').textContent = categorias.length
+    ? '· parecidos a ' + categorias.slice(0,2).join(' y ')
+    : '· los favoritos de las clientas';
+  $('#sug-p').textContent = carrito.charms.length>=4
+    ? 'Ya tienes el descuento máximo por cantidad; estos suman a la misma pulsera.'
+    : 'Cada charm que sumes baja el descuento de todo lo que llevas.';
+
+  $('#sug-tira').innerHTML = ids.map(id=>{
+    const n=esc(CAT.nombres[id]||id);
+    return '<div class="sug-c">'
+      + '<img src="assets/'+esc(id)+'.webp" alt="'+n+'" loading="lazy" decoding="async">'
+      + '<span class="sug-n">'+n+'</span>'
+      + '<span class="sug-pr">'+cop(CAT.precios[id])+'</span>'
+      + '<button class="sug-b" type="button" data-sug="'+esc(id)+'">Añadir</button>'
+      + '</div>';
+  }).join('');
+  caja.hidden=false;
+}
+
+/* El bump del Empaque Premium.
+ *
+ * Solo se ofrece si no lo lleva ya —el carrito puede traerlo puesto desde el
+ * armador— y en ese caso se dice que lo lleva, en vez de dejar una casilla que
+ * no hace nada o, peor, que al tocarla se lo quite sin querer en la pantalla
+ * de pago. */
+function pintarBump(){
+  const caja=$('#bump'), ya=$('#bump-ya');
+  if(!carrito){ caja.hidden=true; ya.hidden=true; return; }
+  caja.hidden=carrito.empaque===true;
+  ya.hidden=carrito.empaque!==true;
+  $('#bump-chk').checked=carrito.empaque===true;
+}
+
+$('#bump-chk').addEventListener('change',e=>{
+  carrito.empaque=e.target.checked;
+  guardarCarrito();
+  pintarResumen();     /* mueve el total del resumen, que está a la vista */
+  pintarBump();
+  if(e.target.checked && typeof fbq==='function'){
+    fbq('track','AddToCart',{currency:'COP',content_type:'product',
+      content_ids:['empaque'],content_name:'Empaque Premium de Regalo',
+      value:CAT.reglas.empaque});
+  }
+});
+
+$('#sug-tira').addEventListener('click',e=>{
+  const b=e.target.closest('[data-sug]'); if(!b) return;
+  const id=b.dataset.sug;
+  carrito.charms.push(id);
+  guardarCarrito();
+  pintarResumen();
+  /* Confirmación en el propio botón antes de repintar la tira: si se repinta de
+     golpe, la pieza desaparece de la lista y no queda señal de que se añadió. */
+  b.textContent='Añadido ✓';
+  b.classList.add('is-puesto');
+  b.disabled=true;
+  if(typeof fbq==='function'){
+    fbq('track','AddToCart',{currency:'COP',content_type:'product',
+      content_ids:[id],content_name:CAT.nombres[id]||id,value:CAT.precios[id]});
+  }
+  setTimeout(()=>pintarSugeridos(),900);
+});
 
 /* ——— geografía ——— */
 const OTRO='__otro__';
@@ -875,9 +1121,14 @@ function waPedido(){
 /* ——— arranque ——— */
 Promise.all([
   fetch('assets/catalogo.json',{cache:'no-cache'}).then(r=>r.json()),
-  fetch('assets/colombia.json',{cache:'no-cache'}).then(r=>r.json())
-]).then(([cat,geo])=>{
-  CAT=cat; GEO=geo;
+  fetch('assets/colombia.json',{cache:'no-cache'}).then(r=>r.json()),
+  /* El inventario solo sirve para no sugerir piezas agotadas. Si no llega, las
+     sugerencias salen igual sin filtrar por stock: el servidor rechaza lo
+     agotado de todas formas, y quedarse sin checkout por un archivo de
+     sugerencias sería absurdo. */
+  fetch('assets/stock.json',{cache:'no-cache'}).then(r=>r.json()).catch(()=>null)
+]).then(([cat,geo,inv])=>{
+  CAT=cat; GEO=geo; STOCK=inv;
   carrito=leerCarrito();
   $('#cargando').hidden=true;
   if(!carrito){ $('#vacio').hidden=false; return; }
@@ -885,6 +1136,8 @@ Promise.all([
 
   pintarDeptos();
   pintarResumen();
+  pintarSugeridos();
+  pintarBump();
 
   /* El resumen es una barra plegable arriba en móvil y una columna fija al lado
      en escritorio. Es el mismo nodo movido, no dos copias que se desincronizan. */

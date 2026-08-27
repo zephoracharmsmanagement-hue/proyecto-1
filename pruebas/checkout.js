@@ -167,6 +167,95 @@ async function llenarPaso1(p, d) {
     await p.close();
   }
 
+  // ——— 2b · sugerencias y envío gratis ———
+  out.push('\n2b · Te puede interesar, y lo que falta para el envío gratis');
+  {
+    /* Lo que sostiene la tira: que sugiera lo parecido a lo que ya lleva, que
+       nunca ofrezca lo agotado —el servidor lo rechazaría en la pantalla de
+       pago, que es el peor sitio para descubrirlo— y que añadir desde aquí
+       mueva el total del resumen, que está pegado arriba y siempre visible. */
+    const p = await b.newPage({ viewport: { width: 390, height: 900 } });
+    p.on('pageerror', e => errores.push(e.message));
+    await ponerCarrito(p, { base: { id: 'pulsera-avengers', talla: '20' }, charms: ['iron-man'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+
+    const falta = (await p.locator('#env-nota').textContent()).trim();
+    ok(/faltan|envío gratis/i.test(falta), 'el resumen dice cuánto falta para el envío gratis', falta);
+
+    await llenarPaso1(p, { nombre: 'Ana', apellido: 'Pérez', documento: '1007401199',
+      celular: '3012345678', correo: 'ana@ejemplo.com', direccion: 'Calle 16f #99 - 72',
+      adicional: '', barrio: '' });
+    await p.click('#ir-2');
+    await p.waitForTimeout(400);
+
+    ok(await p.locator('#sug').isVisible(), 'la tira de sugerencias aparece en el paso de entrega');
+    const porQue = (await p.locator('#sug-por').textContent()).trim();
+    ok(/marvel/i.test(porQue), 'y explica por qué son esas: van por la categoría de lo que ya lleva', porQue);
+
+    const ids = await p.evaluate(() => [...document.querySelectorAll('[data-sug]')].map(x => x.dataset.sug));
+    ok(ids.length >= 3, `sugiere ${ids.length} piezas (menos de 3 no se pinta)`);
+    ok(!ids.includes('iron-man'), 'nunca sugiere lo que la clienta ya lleva');
+    ok(!ids.some(i => /^letra-/.test(i)), 'ni las iniciales, que se eligen a propósito y no se sugieren');
+
+    /* Ninguna sugerida puede estar agotada según el mismo stock.json que usa
+       el catálogo. Es la comprobación que evita mandar a la clienta a un 409. */
+    const agotadas = await p.evaluate(async lista => {
+      const inv = await fetch('assets/stock.json').then(r => r.json());
+      return lista.filter(id => {
+        const it = inv.items[id];
+        return it && typeof it.stock === 'number' && it.stock <= 0;
+      });
+    }, ids);
+    ok(agotadas.length === 0, 'y ninguna está agotada',
+      agotadas.length ? 'ofrecidas sin stock: ' + agotadas.join(', ') : `${ids.length} comprobadas`);
+
+    const antes = (await p.locator('#res-total').textContent()).trim();
+    await p.locator('#sug-tira .sug-b').first().click();
+    await p.waitForTimeout(400);
+    const despues = (await p.locator('#res-total').textContent()).trim();
+    ok(antes !== despues, 'añadir desde la tira mueve el total del resumen', `${antes} → ${despues}`);
+    ok(/añadido/i.test(await p.locator('#sug-tira .sug-b').first().textContent()),
+      'y el botón confirma en el sitio, sin que la pieza desaparezca de golpe');
+
+    /* La prueba social va donde se decide pagar, no antes: es el último momento
+       de duda y el único punto de la página sin nada que respalde la compra. */
+    ok(!(await p.locator('.aval').isVisible()), 'el aval no distrae en el paso de entrega');
+    await p.click('#ir-3');
+    await p.waitForTimeout(300);
+    const aval = (await p.locator('.aval-n').textContent()).trim();
+    ok(await p.locator('.aval').isVisible(), 'y sí aparece junto al botón de pagar');
+    ok(/2\.400/.test(aval) && /verificad/i.test(aval),
+      'con el dato real de la tienda, no una frase de relleno', aval.slice(0, 60) + '…');
+
+    /* El order bump del Empaque Premium.
+     *
+     * Lo que se vigila no es que exista, sino dónde: va ANTES de la casilla de
+     * términos. Una oferta metida entre el consentimiento y el botón de pagar
+     * añade un artículo al pedido después de que la clienta ya aceptó, y eso no
+     * es un detalle de diseño. */
+    ok(await p.locator('#bump').isVisible(), 'el bump del Empaque Premium se ofrece en el paso de pago');
+    const orden = await p.evaluate(() => {
+      const b = document.querySelector('#bump');
+      const t = document.querySelector('[data-c="acepta"]');
+      const pagar = document.querySelector('#confirmar');
+      if (!b || !t || !pagar) return null;
+      return { bumpAntesDeTerminos: !!(b.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING),
+               terminosAntesDePagar: !!(t.compareDocumentPosition(pagar) & Node.DOCUMENT_POSITION_FOLLOWING) };
+    });
+    ok(orden && orden.bumpAntesDeTerminos, 'y va antes de aceptar los términos, no entre el sí y el pago');
+    ok(orden && orden.terminosAntesDePagar, 'con los términos como última puerta antes del botón');
+
+    const sinBump = (await p.locator('#res-total').textContent()).trim();
+    await p.click('#bump-chk');
+    await p.waitForTimeout(300);
+    const conBump = (await p.locator('#res-total').textContent()).trim();
+    ok(sinBump !== conBump, 'marcarlo mueve el total del resumen', `${sinBump} → ${conBump}`);
+    ok(!(await p.locator('#bump').isVisible()) && await p.locator('#bump-ya').isVisible(),
+      'y una vez puesto deja de ofrecerse: la casilla no puede quitarlo sin querer al pagar');
+    await p.close();
+  }
+
   // ——— 3 · compra con Wompi ———
   out.push('\n3 · Pago con Wompi');
   {
