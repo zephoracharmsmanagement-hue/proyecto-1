@@ -232,9 +232,9 @@ importan porque le pasaron a otras piezas de esta tienda:
 
 | # | Qué | Para quién | Depende de |
 |---|---|---|---|
-| 1 | Filtrar `rescatables()` por `optin` y mandar correo automático (Fase A) | Automatización 1 | Nada nuevo — Resend ya conectado |
-| 2 | Endpoint «reanudar pedido»: releer registro, revalidar stock, re-reservar, refirmar | Las dos | Nada nuevo — compone `_pedidos.mjs` + `_inventario.mjs` + `crear-pago.mjs` |
-| 3 | Carrito prellenado por URL en `index.html` | Automatización 2 (y mejora el `#2` de arriba) | Nada nuevo — solo lectura de `location.search` |
+| 1 | ~~Filtrar `rescatables()` por `optin` y mandar correo automático (Fase A)~~ · **hecho 2026-08-27** | Automatización 1 | Nada nuevo — Resend ya conectado |
+| 2 | ~~Endpoint «reanudar pedido»~~ · **hecho 2026-08-27** (`reanudar.mjs`) | Las dos | Nada nuevo — compone `_pedidos.mjs` + `_inventario.mjs` |
+| 3 | ~~Carrito prellenado por URL~~ · **hecho 2026-08-27**, en `index.html` **y** `checkout.html` | Automatización 2 (y el `#2` de arriba lo necesita) | Nada nuevo — solo lectura de `location.search` |
 | 4 | App de WhatsApp Business + plantilla de marketing aprobada | Las dos | **El propietario**: cuenta verificada, trámite con Meta |
 | 5 | Credencial del modelo en n8n | Automatización 2 | **El propietario** |
 | 6 | WhatsApp automático para quien autorizó (Fase B) | Automatización 1 | `#2` + `#4` |
@@ -242,8 +242,26 @@ importan porque le pasaron a otras piezas de esta tienda:
 | 8 | Banco de conversaciones de prueba, en verde, antes de tocar el número real | Automatización 2 | `#7` |
 
 **Los pasos 1, 2 y 3 no dependen de nada que el propietario tenga que tramitar.**
-Son los que se pueden construir esta semana. Del 4 en adelante, el ritmo lo
-marca Meta, no el código.
+Del 4 en adelante, el ritmo lo marca Meta, no el código.
+
+> **Los tres primeros están hechos y en verde** (2026-08-27, 13 baterías, 450
+> comprobaciones). Tres cosas se decidieron construyendo que no estaban en este
+> plan y conviene no deshacer:
+>
+> - **`reanudar` no firma ni habla con Wompi.** El plan decía «re-reservar,
+>   refirmar»; hacerlo habría puesto una segunda pieza generando cobros junto a
+>   `crear-pago`. Devuelve al checkout de siempre con el carrito puesto: un clic
+>   más, y un solo sitio donde se decide cuánto se cobra.
+> - **El carrito por URL va también en `checkout.html`**, no solo en la tienda.
+>   Es el destino de los dos caminos —el correo de recuperación y, mañana, el
+>   bot—, así que sin eso el paso 2 no tenía a dónde llegar.
+> - **El filtro del automático mira `rescateCliente`, no solo `rescateAvisado`.**
+>   Los dos canales se marcan por separado, y sin esa condición un fallo del
+>   aviso a la tienda le habría mandado a la clienta un segundo correo idéntico
+>   al día siguiente.
+>
+> Falta desplegar: nada de esto está en producción todavía. Al desplegar, la
+> cuenta de functions sube a **11**.
 
 ---
 
