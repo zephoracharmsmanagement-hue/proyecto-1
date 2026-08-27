@@ -110,7 +110,7 @@ Ninguna de estas es trabajo de programación pendiente: es una autorización.
 |---|---|---|
 | **`Purchase` de ventas por WhatsApp** | El workflow `h5U0fGHrW4hekjtp` **ya está construido**. Falta la credencial del token CAPI en n8n y una prueba con `test_event_code` | Minutos |
 | **Marcar `Lead` como conversión personalizada** | **Verificado: la cuenta tiene cero conversiones personalizadas.** Se crea en Events Manager | Minutos |
-| **Asesor de WhatsApp con IA** | `disponibilidad.mjs` existía justo para esto y ya está. Faltan: canal de WhatsApp y credencial de modelo en n8n. Los guiones y macros están en la rama `sephora-whatsapp-response-system-682wvv` | Días |
+| **Recuperar carritos con permiso + bot de WhatsApp que cierra la venta** | Las dos automatizaciones que el propietario eligió para ahora. Plan completo y verificado en [`conversion/BRIEF.md`](conversion/BRIEF.md). `rescate.mjs` ya distingue quién autorizó; falta el envío automático, el endpoint de reanudar pago, y para el bot: app de WhatsApp Business, plantilla aprobada y credencial de modelo en n8n. Los guiones y macros de la rama `sephora-whatsapp-response-system-682wvv` sirven como referencia de tono, no como código — es de antes del checkout con Wompi | Los 3 primeros pasos de la fundación compartida: ya. El resto, días una vez el propietario tramite lo de Meta |
 | **Publicación automática a IG y FB Reels** | App de Meta y App Review. Son **dos integraciones distintas**, no una | Semanas (revisión de Meta) |
 | **Reposición por rotación real** | Que se acumulen semanas de la hoja *Movimientos*. Hoy la recomendación es «subir todo a 4», que es regla pareja, no rotación | Tiempo, no trabajo |
 

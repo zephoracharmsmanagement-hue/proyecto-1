@@ -157,6 +157,40 @@ diagnósticos y consultas de datos van directo. Esto sigue vigente aunque el
 conector de Ads MCP termine con permisos de escritura completos — el
 permiso técnico no cambia el acuerdo.
 
+## Conversión — recuperar carritos con permiso y cerrar por WhatsApp
+
+Las dos automatizaciones que el propietario marcó como viables ahora
+(2026-08-23). Plan completo, verificado contra el código real, en
+[`automatizaciones/conversion/BRIEF.md`](automatizaciones/conversion/BRIEF.md).
+Lo que hay que saber sin abrir el documento:
+
+- **`rescate.mjs` ya distingue quién autorizó** (`cliente.optin`, del checkbox
+  de checkout.html) — falta que a esos se les mande el mensaje automático en
+  vez de solo avisar a la tienda. A quien no autorizó, nunca un automático.
+- **Las dos automatizaciones comparten fundación**: la misma app de WhatsApp
+  Business, la misma plantilla aprobada por Meta, y un endpoint nuevo para
+  reanudar un pago —la reserva de inventario original caduca a los 30 minutos,
+  así que un enlace de recuperación tiene que revalidar stock, nunca prometer
+  que el carrito «sigue igual» sin comprobarlo—.
+- **El bot de WhatsApp no genera el cobro directo desde el día uno.** Manda un
+  enlace al checkout existente con la selección ya cargada, y el checkout de
+  siempre —con su recálculo de precio en el servidor— hace el resto. Es la
+  decisión que baja más el riesgo de un frente marcado como «no admite
+  errores».
+- **El modelo nunca calcula precio ni inventa existencia.** Misma regla que ya
+  usa `disponibilidad.mjs` para el asesor: el modelo conversa y decide qué
+  función llamar; los números siempre salen de `_precios.js` y
+  `disponibilidad.mjs`.
+- **La rama `sephora-whatsapp-response-system-682wvv` no se fusiona**: es de
+  antes del checkout con Wompi, con su propio `index.html` y sin
+  `netlify.toml`. Vale por las 28 macros y el system prompt como referencia de
+  tono, nunca como código.
+- **WhatsApp cambió de facturación este mismo año**: desde el 1 de agosto de
+  2026 se cobran las respuestas de un agente de IA por token, y desde el 1 de
+  octubre —semanas después de escribir esto— también los mensajes de servicio
+  dentro de la ventana de 24 horas. El bot no es gratis por estar dentro de una
+  conversación activa.
+
 ## Mapa de automatizaciones — qué hay y qué se puede hacer
 
 [`automatizaciones/MAPA.md`](automatizaciones/MAPA.md) inventaría lo que ya
