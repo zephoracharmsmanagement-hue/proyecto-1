@@ -762,9 +762,10 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **11 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **13 functions**
 (`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`, `_hoja`, `rescate`, `disponibilidad`, `reanudar`);
+`_pedidos`, `_hoja`, `rescate`, `disponibilidad`, `reanudar`, `armar-carrito`,
+`_carrito`);
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 

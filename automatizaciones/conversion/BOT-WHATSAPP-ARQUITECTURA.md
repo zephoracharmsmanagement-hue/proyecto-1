@@ -112,41 +112,56 @@ Tres herramientas HTTP que el Agent puede invocar automáticamente.
 
 #### 2.3.1 · Herramienta: Disponibilidad
 
-**Llama:** `https://zephora-charms.netlify.app/.netlify/functions/disponibilidad`
+**Llama:** `https://zephoracharms.com/.netlify/functions/disponibilidad`
 
-**Método:** POST
+**Método:** GET, sin parámetros. Devuelve el catálogo **entero** con la
+disponibilidad ya restada — no se le pregunta por piezas sueltas.
 
-**Body:**
+Es deliberado: son 129 referencias, caben de sobra en una respuesta, y así el
+Agent tiene el catálogo completo en contexto en vez de ir preguntando pieza por
+pieza y gastar un turno en cada una.
 
-```json
-{
-  "skus": ["pulsera-corazon-liso", "pulsera-corazon-liso|19", "charm-inicial-a"]
-}
-```
-
-**Respuesta esperada:**
+**Respuesta:**
 
 ```json
 {
+  "generado": "2026-08-28T14:02:11.004Z",
   "fuente": "conteo-menos-apartado",
-  "piezas": {
-    "charm-inicial-a": 5,
-    "pulsera-corazon-liso": 0,
-    "pulsera-corazon-liso|19": 2,
-    "pulsera-corazon-liso|20": 1
-  }
+  "reglas": { "escalaCharms": [0, 0, 0.08, 0.15, 0.2], "envioGratisDesde": 180000, "…": "…" },
+  "aviso": "Disponibilidad referencial: conteo manual menos lo apartado por pagos en curso.",
+  "piezas": [
+    { "id": "letra-a", "nombre": "Letra A", "tipo": "charm", "precio": 76000,
+      "familia": "letras", "material": "Plata Esterlina 925",
+      "disponible": 3, "agotado": false }
+  ],
+  "brazaletes": [
+    { "id": "pulsera-copo-de-nieve", "nombre": "Pulsera Copo de Nieve", "tipo": "brazalete",
+      "precio": 114000, "material": "baño de plata sobre base de alta resistencia",
+      "tallas": { "17": 0, "18": 2, "19": 1 }, "agotado": false }
+  ]
 }
 ```
 
-**Cuándo el Agent la llama:**
-- "¿Tienes letra E?" → Agent llama con `["charm-inicial-e"]`
-- "¿Y en talla 19?" → Agent llama con `["pulsera-...|19"]`
-- Antes de armar carrito → valida que lo que va a ofrecer existe
+**Dos campos que el prompt tiene que mirar sí o sí:**
+
+- **`fuente`** — con `'solo-conteo'` no se pudo leer lo apartado por pagos en
+  curso. Entonces **`disponible` viene en `null`**, no con el conteo en bruto: es
+  a propósito, un número inventado por un fallo de red es peor que no tener
+  número. El bot dice «déjame confirmarlo», no adivina.
+- **`material`** — los charms son Plata Esterlina 925 y los brazaletes son **baño
+  de plata**. Confundirlos es publicidad engañosa, y hay una prueba que lo vigila
+  (`pruebas/disponibilidad.js` § 4).
+
+**Cuándo el Agent la llama:** al empezar la conversación, y de nuevo si pasa
+rato — la disponibilidad cambia con cada venta. La respuesta se cachea un minuto
+del lado del servidor, así que preguntar seguido no golpea Blobs.
 
 **Instrucción en el prompt:**
 ```
-Si alguien pregunta por existencia, llama a la herramienta disponibilidad().
-Siempre dile lo que la herramienta devuelve, nunca adivines.
+Si alguien pregunta por existencia, llama a disponibilidad() y responde con lo 
+que devuelve. Si `fuente` es "solo-conteo", NO des números: di que lo confirmas 
+y sigue la conversación. Los charms son Plata Esterlina 925; los brazaletes son 
+baño de plata — nunca los llames plata a secas.
 ```
 
 ---
@@ -511,7 +526,7 @@ Test 3: Cambio de opinión
 - [x] `pruebas/armar-carrito.js` · 40 comprobaciones, en verde
 - [x] Ruta `/armar-carrito` en `netlify.toml`
 - [ ] Banco de conversaciones de prueba (`BOT-TESTS.md`) — necesita el bot
-- [ ] Desplegar · la cuenta de functions sube a **12**
+- [ ] Desplegar · la cuenta de functions sube a **13**
 
 ### n8n (cuando lleguen credenciales)
 

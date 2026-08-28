@@ -283,7 +283,7 @@ Del 4 en adelante, el ritmo lo marca Meta, no el código.
 >   reales cubriría una y la otra podría separarse en silencio.
 >
 > Falta desplegar: nada de esto está en producción todavía. Al desplegar, la
-> cuenta de functions sube a **12**.
+> cuenta de functions sube a **13** — `armar-carrito.mjs` y `_carrito.mjs`.
 
 ---
 
