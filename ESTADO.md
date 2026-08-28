@@ -483,8 +483,11 @@ El repo está conectado a Netlify, las funciones desplegadas y las llaves
 puestas. Lo que queda de esta línea de trabajo:
 
 - **Correo.** **Configurado.** La cuenta de Resend existe, `zephoracharms.com`
-  quedó verificado por DNS y las tres variables están puestas: `RESEND_API_KEY`
-  (marcada como secreta), `CORREO_DESDE` y `CORREO_TIENDA`. Falta la
+  quedó verificado por DNS. En Netlify están puestas **dos** de las tres:
+  `RESEND_API_KEY` (marcada como secreta) y `CORREO_TIENDA`. **`CORREO_DESDE`
+  no está**, y no hace falta: `_correo.js` cae a
+  `Zephora Charms <pedidos@zephoracharms.com>`, que es el valor que se
+  documentaba. Comprobado contra el panel el 2026-08-28. Falta la
   comprobación de punta a punta —ver abajo—.
 
   > `CORREO_TIENDA` faltaba y arreglaba **dos** cosas. La evidente: sin ella
@@ -1165,6 +1168,22 @@ mecanismo puede estar certificando nada.
 ---
 
 ## Al desplegar
+
+> **Último despliegue: `4e89afe` (2026-08-28, 12:18 UTC) — 14 functions, 12
+> redirecciones, escaneo de secretos limpio.** Trajo la fundación de conversión:
+> `reanudar`, `armar-carrito`, `_carrito`, el rescate que le escribe sola a quien
+> autorizó, y el carrito por URL en las dos páginas. Comprobado en vivo:
+> `/armar-carrito` responde `{"error":"Solo POST"}` y `/reanudar` sin `ref`
+> redirige a la tienda.
+>
+> **Y una trampa que costó una ronda:** esa sesión clonó
+> `claude/zephora-charms-automation-rzbthc`, cuyo `CLAUDE.md` era de cinco días
+> antes y todavía decía que la rama publicada era
+> `claude/install-frontend-design-skill-8t655e`. Se mezcló ahí, se anunció como
+> desplegado, y no había salido nada al aire: `main` iba 70 commits por delante.
+> **El contenedor clona un punto, no la verdad**: `git fetch --all` y mirar
+> `origin/main` antes de dar por buena cualquier instrucción sobre ramas, aunque
+> venga del propio `CLAUDE.md`.
 
 **Ya no se arrastra nada.** El repo está conectado a Netlify y **cada push a
 `main` publica** (antes era `claude/install-frontend-design-skill-8t655e`; ver
