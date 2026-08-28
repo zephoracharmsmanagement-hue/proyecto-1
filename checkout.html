@@ -351,6 +351,14 @@ button{font-family:inherit}
           <span id="aviso-error-tx"></span>
         </div>
 
+        <!-- Quien vuelve por el enlace de un pedido sin pagar. Se le dice si
+             está todo como lo dejó o si hubo que ajustar algo, porque callarlo
+             y que lo note en el total es peor que decirlo de entrada. -->
+        <div class="aviso" id="aviso-reanudar" hidden>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 7v5l3 2"/></svg>
+          <span id="aviso-reanudar-tx"></span>
+        </div>
+
         <!-- ——— 1 · datos ——— -->
         <section class="panel" id="panel-1" aria-labelledby="t1">
           <h2 id="t1">¿A dónde la enviamos?</h2>
@@ -646,6 +654,59 @@ function leerCarrito(){
   return {base:base,charms:charms,empaque:d.empaque===true,
     pago:d.pago==='contraentrega'?'contraentrega':'anticipado'};
 }
+/* ——— el carrito puede llegar en el enlace ———
+ *
+ * Misma forma que en index.html:  ?p=letra-e*2,pulsera-corazon-liso@19&e=1&pago=…
+ * (`*N` unidades de un charm, `@T` talla de un brazalete).
+ *
+ * Aquí importa más que en la tienda, porque este es el destino de los dos
+ * caminos que lo necesitan: el correo que recupera un checkout abandonado
+ * cuando algo cambió y hay que revisar, y el asesor de WhatsApp mandando la
+ * selección ya armada para que se pague donde siempre.
+ *
+ * Manda sobre lo guardado: quien llega por un enlace quiere ver eso. Y lo que
+ * se cobra lo sigue recalculando el servidor — esto solo decide qué se pinta.
+ */
+function carritoDeUrl(){
+  var q;
+  try{ q=new URLSearchParams(location.search); }catch(_){ return null; }
+  var p=q.get('p');
+  if(!p) return null;
+  var pulseras=Array.isArray(CAT.pulseras)?CAT.pulseras:[];
+  var base=null, charms=[];
+  p.split(',').forEach(function(trozo){
+    var t=trozo.trim(); if(!t) return;
+    var m=t.match(/^([a-z0-9-]+)(?:([*@])([0-9]{1,2}))?$/);
+    if(!m) return;
+    var id=m[1], op=m[2], valor=m[3];
+    /* Un id que no está en el catálogo se ignora: un enlace viejo puede nombrar
+       una pieza retirada, y eso no debe dejar a nadie sin checkout. */
+    if(!CAT.precios[id]) return;
+    if(pulseras.indexOf(id)!==-1){
+      if(base) return;               /* un solo brazalete por pedido; gana el primero */
+      base={id:id,talla:(op==='@'&&/^(17|18|19|20|21)$/.test(valor))?valor:null};
+      return;
+    }
+    if(op==='@') return;             /* una talla en un charm es un enlace mal armado */
+    var n=op==='*'?(parseInt(valor,10)||1):1;
+    for(var i=0;i<n&&charms.length<60;i++) charms.push(id);
+  });
+  if(!base&&!charms.length) return null;
+  return {base:base,charms:charms,empaque:q.get('e')==='1',
+    pago:q.get('pago')==='contraentrega'?'contraentrega':'anticipado'};
+}
+
+/* Quita de la URL lo que ya se aplicó. Si no, recargar vuelve a imponer el
+   enlace encima de lo que la clienta acabe de cambiar aquí. Los parámetros que
+   no son nuestros —una utm— se quedan. */
+function limpiarUrl(){
+  try{
+    var u=new URL(location.href);
+    ['p','e','pago','reanudar','ref'].forEach(function(k){ u.searchParams.delete(k); });
+    history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
+  }catch(_){}
+}
+
 function guardarCarrito(){
   try{
     localStorage.setItem(LLAVE,JSON.stringify({v:1,base:carrito.base,charms:carrito.charms,
@@ -1285,10 +1346,31 @@ Promise.all([
   fetch('assets/stock.json',{cache:'no-cache'}).then(r=>r.json()).catch(()=>null)
 ]).then(([cat,geo,inv])=>{
   CAT=cat; GEO=geo; STOCK=inv;
-  carrito=leerCarrito();
+  /* El enlace manda sobre lo guardado, y se persiste enseguida para que el
+     resto del checkout —y el releer() de más abajo— vean lo mismo que se
+     pintó. */
+  const delEnlace=carritoDeUrl();
+  /* Se lee antes de limpiar la URL, que se lleva los parámetros por delante. */
+  const motivo=(function(){
+    try{ return new URLSearchParams(location.search).get('reanudar')||''; }catch(_){ return ''; }
+  })();
+  if(delEnlace){ carrito=delEnlace; guardarCarrito(); limpiarUrl(); }
+  else carrito=leerCarrito();
   $('#cargando').hidden=true;
   if(!carrito){ $('#vacio').hidden=false; return; }
   $('#app').hidden=false;
+
+  /* El mensaje de quien vuelve por el enlace de recuperación. `ajustado` no es
+     un error: es el caso normal cuando pasaron horas, porque la reserva de
+     inventario caduca a los 30 minutos y las unidades vuelven al mostrador. */
+  if(motivo==='igual'||motivo==='ajustado'){
+    const caja=$('#aviso-reanudar'), tx=$('#aviso-reanudar-tx');
+    caja.classList.add(motivo==='ajustado'?'aviso--info':'aviso--ok');
+    tx.textContent = motivo==='ajustado'
+      ? 'Retomamos tu pedido, pero alguna pieza ya no estaba disponible y la quitamos. Revisa el resumen antes de pagar.'
+      : 'Retomamos tu pedido tal como lo dejaste. Revisa el resumen y termina cuando quieras.';
+    caja.hidden=false;
+  }
 
   pintarDeptos();
   pintarResumen();

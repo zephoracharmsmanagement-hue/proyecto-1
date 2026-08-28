@@ -35,7 +35,8 @@ const pedido = (extra = {}) => Object.assign({
 
 async function main() {
   const r = await cargar('rescate.mjs');
-  const { rescatables, enlaceWa, cuerpo, HORAS_MIN, DIAS_MAX } = r._interno;
+  const { rescatables, enlaceWa, cuerpo, autorizo, alcanzable,
+    HORAS_MIN, DIAS_MAX } = r._interno;
   const sel = ps => rescatables(ps, AHORA).map(p => p.referencia);
 
   console.log('1 · A quién SÍ se le escribe');
@@ -103,6 +104,109 @@ async function main() {
       cliente: Object.assign({}, pedido().cliente, { nombre: '<script>x</script>"' }),
     })], AHORA));
     comprobar(!html.includes('<script>x'), 'los datos de la clienta se escapan antes de pintarlos');
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     El correo automático a la clienta. Es lo único de esta pieza que sale sin
+     que una persona lo apruebe, así que es donde puede hacer daño de verdad:
+     escribirle a quien no autorizó no es un fallo de producto, es un problema
+     bajo la Ley 1581. */
+  console.log('\n4 · El automático solo va a quien lo autorizó');
+  {
+    const con = p => Object.assign({}, pedido().cliente, p);
+
+    comprobar(autorizo(pedido({ cliente: con({ optin: true }) })) === true,
+      'quien marcó la casilla, sí');
+    comprobar(autorizo(pedido({ cliente: con({ optin: false }) })) === false,
+      'quien la dejó sin marcar, no');
+
+    /* El caso que de verdad importa: un pedido de antes de que la casilla
+       existiera no trae el campo. `undefined` tiene que caer del lado de «no
+       autorizó» — un permiso que se da solo por faltar un dato no es permiso. */
+    comprobar(autorizo(pedido()) === false,
+      'y un pedido viejo sin el campo tampoco: la ausencia de dato no es permiso');
+    comprobar(autorizo(pedido({ cliente: con({ optin: 'true' }) })) === false,
+      'ni un "true" de texto que se colara: se compara contra true de verdad');
+    comprobar(autorizo(pedido({ cliente: con({ optin: 1 }) })) === false,
+      'ni un 1');
+
+    comprobar(alcanzable(pedido({ cliente: con({ optin: true, correo: '' }) })) === false,
+      'sin correo no hay a dónde mandarlo, por más que autorizara');
+
+    /* Los dos canales se marcan por separado: si el aviso a la tienda falla, la
+       lista vuelve a salir mañana entera —eso se quiere— pero la clienta que ya
+       recibió el suyo no puede recibirlo dos veces por ese fallo. */
+    comprobar(alcanzable(pedido({
+      cliente: con({ optin: true }),
+      rescateCliente: '2026-08-14T12:00:00Z',
+    })) === false,
+      'a quien ya se le mandó no se le repite aunque el aviso a la tienda fallara');
+    comprobar(alcanzable(pedido({ cliente: con({ optin: true }) })) === true,
+      'y quien autorizó, tiene correo y no ha recibido nada, sí entra');
+  }
+
+  console.log('\n5 · El correo de recuperación, tal como sale');
+  {
+    /* Se mira el correo REAL, no el archivo que lo genera.
+       Leer el código fuente engaña: este módulo explica en un comentario por
+       qué NO dice «te lo guardamos», así que buscar esa frase en el texto
+       encuentra justo la explicación de que no se dice. Lo que le llega a la
+       clienta es lo único que cuenta, así que se intercepta el envío. */
+    const { recuperarCarrito } = require(path.join(RAIZ, 'netlify', 'functions', '_correo.js'));
+    const llaveAntes = process.env.RESEND_API_KEY;
+    const fetchAntes = global.fetch;
+    let salida = null;
+    process.env.RESEND_API_KEY = 'llave-de-prueba';
+    global.fetch = async (_url, opciones) => {
+      salida = JSON.parse(opciones.body);
+      return { ok: true, status: 200, text: async () => '{}' };
+    };
+    try {
+      await recuperarCarrito({
+        referencia: 'ZC-260815-AAAA0001',
+        lineas: pedido().lineas,
+        cuentas: { total: 100000 },
+        cliente: pedido().cliente,
+        sitio: 'https://zephoracharms.com',
+      });
+    } finally {
+      global.fetch = fetchAntes;
+      if (llaveAntes === undefined) delete process.env.RESEND_API_KEY;
+      else process.env.RESEND_API_KEY = llaveAntes;
+    }
+
+    comprobar(!!salida, 'el correo se arma y sale');
+    if (salida) {
+      const html = salida.html, txt = salida.text;
+      comprobar(salida.to[0] === 'maria@ejemplo.com', 'va a la clienta, no a la tienda');
+      comprobar(/\/reanudar\?ref=ZC-260815-AAAA0001/.test(html),
+        'el botón lleva a reanudar, que comprueba qué queda antes de enseñar nada');
+      comprobar(!/sigue igual|te lo guardamos|sigue guardado|lo tengo guardado|intacto/i.test(html),
+        'y NO promete que el pedido siga igual: la reserva caducó hace horas');
+      comprobar(/se agotó/i.test(html),
+        'al contrario: avisa de que alguna pieza puede haberse agotado');
+      comprobar(/responde a este correo/i.test(html),
+        'lleva cómo parar de recibirlos, que es lo que prometía la casilla');
+      comprobar(/autorizaste/i.test(html), 'y dice por qué se le está escribiendo');
+      comprobar(html.includes('Mickey Mouse'), 'dice qué había en el carrito');
+      comprobar(!!txt && txt.includes('ZC-260815-AAAA0001'),
+        'y lleva versión en texto plano con la referencia');
+      comprobar(!/<script/i.test(html), 'sin scripts');
+    }
+  }
+
+  console.log('\n6 · Lo que el propietario lee');
+  {
+    const con = p => Object.assign({}, pedido().cliente, p);
+    const yaEscrito = pedido({ cliente: con({ optin: true }) });
+    yaEscrito.correoEnviado = true;
+    const { html } = cuerpo([yaEscrito]);
+    comprobar(/[Yy]a le llegó el correo/.test(html),
+      'a quien ya recibió el automático se le marca, para no escribirle encima');
+
+    const { html: h2 } = cuerpo([pedido()]);
+    comprobar(/[Ss]in autorización/.test(h2),
+      'y de quien no autorizó se dice que solo él puede escribirle');
   }
 
   console.log(fallos ? `\nRescate: ${fallos} en rojo` : '\nRescate de checkouts en verde ✓');

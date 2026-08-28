@@ -2552,6 +2552,9 @@ function marcarVerDetalle(){
    Si el navegador no deja escribir (modo privado en algunos iOS, cuota llena),
    no pasa nada: el checkout recibe el mismo pedido por la URL. */
 const LLAVE='zephora.carrito.v1';
+/* El mismo tope que _precios.js: un enlace no puede meter más de lo que el
+   servidor va a aceptar. */
+const MAX_CHARMS=60;
 /* Se pone en true en cuanto la clienta toca algo. Hasta entonces, un render()
    con el carrito vacío no puede pisar lo que hubiera guardado: si recuperar()
    falla por lo que sea —JSON corrupto, localStorage que no deja leer— el
@@ -2569,7 +2572,68 @@ function guardar(){
     }));
   }catch(_){}
 }
+/* ——— el carrito puede llegar en el enlace ———
+ *
+ * Un enlace que ya trae la selección puesta. Lo usa el correo de recuperación
+ * de un checkout abandonado, y más adelante el asesor de WhatsApp: en vez de
+ * describir por chat lo que la clienta eligió, se le manda armado.
+ *
+ * La forma es  ?p=letra-e*2,virgen-maria,pulsera-corazon-liso@19&e=1&pago=…
+ * donde `*N` son unidades de un charm y `@T` la talla de un brazalete.
+ *
+ * Manda sobre lo guardado a propósito: quien llega por un enlace quiere ver
+ * eso, no lo que dejó en este navegador hace tres días.
+ *
+ * Un id que no existe se ignora en vez de romper la página — un enlace viejo
+ * puede nombrar una pieza que ya se retiró del catálogo. Y esto no decide
+ * ningún precio: como todo lo del navegador, lo que se cobra lo vuelve a
+ * calcular el servidor.
+ */
+function delEnlace(){
+  var q;
+  try{ q=new URLSearchParams(location.search); }catch(_){ return false; }
+  var p=q.get('p');
+  if(!p) return false;
+  var b=null, s=[];
+  p.split(',').forEach(function(trozo){
+    var t=trozo.trim(); if(!t) return;
+    var m=t.match(/^([a-z0-9-]+)(?:([*@])([0-9]{1,2}))?$/);
+    if(!m) return;
+    var id=m[1], op=m[2], valor=m[3];
+    if(PU[id]){
+      /* Un solo brazalete por pedido, igual que armando a mano. Gana el primero. */
+      if(b) return;
+      b={id:id,talla:(op==='@'&&/^(17|18|19|20|21)$/.test(valor))?valor:null};
+      return;
+    }
+    /* Una talla en un charm es un enlace mal armado: no se adivina. */
+    if(!CH[id]||op==='@') return;
+    var n=op==='*'?(parseInt(valor,10)||1):1;
+    for(var i=0;i<n&&s.length<MAX_CHARMS;i++) s.push(id);
+  });
+  if(!b&&!s.length) return false;
+  base=b; sel=s; tocado=true;
+  if(q.get('e')==='1'){ var pk=document.getElementById('pack'); if(pk) pk.checked=true; }
+  if(q.get('pago')==='contraentrega'){
+    var btn=document.querySelector('.pbtn[data-pago="contraentrega"]');
+    if(btn) btn.click();
+  }
+  guardar();
+  /* Se quitan de la URL los parámetros ya aplicados: si no, recargar la página
+     vuelve a imponer el enlace encima de lo que la clienta acabe de cambiar
+     aquí, y parecería que la tienda le deshace los cambios. Se dejan intactos
+     los demás parámetros —una utm, por ejemplo— porque no son nuestros. */
+  try{
+    var u=new URL(location.href);
+    ['p','e','pago'].forEach(function(k){ u.searchParams.delete(k); });
+    history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
+  }catch(_){}
+  return true;
+}
+
 function recuperar(){
+  /* El enlace primero: si trae selección, no se mira lo guardado. */
+  if(delEnlace()) return;
   let d=null;
   try{ d=JSON.parse(localStorage.getItem(LLAVE)||'null'); }catch(_){ return; }
   if(!d||d.v!==1) return;
@@ -2997,8 +3061,19 @@ fetch('assets/stock.json',{cache:'no-cache'})
     if(!d||!d.items) return;
     STOCK=d.items;
     document.body.classList.add('con-stock');
-    /* Lo que ya estuviera elegido se depura contra el inventario real. */
-    sel=sel.filter(id=>!agotado(id));
+    /* Lo que ya estuviera elegido se depura contra el inventario real: se cae
+       lo agotado y se recorta lo que pida más unidades de las que hay.
+       El recorte importa desde que el carrito puede llegar en un enlace —nadie
+       teclea 5 unidades a mano, pero un enlace sí las puede traer—, y también
+       arregla el caso de siempre: un carrito guardado hace días contra un
+       inventario que bajó. Sin esto la página promete unidades que el servidor
+       va a rechazar después con un 409, ya con la clienta decidida. */
+    const puestos={};
+    sel=sel.filter(id=>{
+      if(agotado(id)) return false;
+      puestos[id]=(puestos[id]||0)+1;
+      return puestos[id]<=tope(id);
+    });
     if(base&&agotado(base.id)) base=null;
     render();
     aplicarFiltro(filtroActual);

@@ -10,18 +10,29 @@
  * Esto corre una vez al día, los busca, y le manda a la tienda un correo con la
  * lista y un enlace de WhatsApp listo para tocar.
  *
- * ── Por qué avisa a la tienda y no le escribe a la clienta ──
+ * ── A quién le escribe la tienda y a quién le escribimos nosotros ──
  *
  * Es la decisión importante de esta pieza y conviene no deshacerla sin pensarlo.
+ * Los pedidos se parten en dos grupos, y la línea la traza la propia clienta:
  *
- * Escribirle automáticamente a alguien que dejó sus datos **para comprar** y no
- * para recibir mensajes es terreno resbaladizo bajo la Ley 1581: la finalidad
- * autorizada era la compra. Y en esta tienda la venta se cierra hablando —el
- * proyecto entero está montado sobre eso—, así que un mensaje escrito por el
- * propietario, con su tono y respondiendo dudas, recupera más que un automático.
+ *   · **Marcó la casilla de comunicaciones** en el checkout → se le manda un
+ *     correo automático con el enlace para retomar su pedido. Ella autorizó que
+ *     le escribiéramos por algo que no fuera este pedido, así que se puede.
+ *   · **No la marcó** → no se le escribe nada automático, nunca. La tienda
+ *     recibe el aviso con un enlace de WhatsApp y una persona decide. Responder
+ *     por un pedido a medias entra en la finalidad de la compra; un automático
+ *     de recuperación ya no está tan claro, y la casilla existe precisamente
+ *     para no tener que adivinarlo.
  *
- * Así que el trabajo que se automatiza es el de *encontrarlos*, que es el que
- * no se hace nunca. Escribir sigue siendo de la tienda.
+ * Bajo la Ley 1581 la finalidad que autoriza los datos de un pedido es la
+ * compra. Por eso la casilla va sin marcar y sin condicionar la venta: una
+ * premarcada no es consentimiento. Y por eso este archivo la respeta al pie de
+ * la letra en vez de tratarla como un detalle de formulario.
+ *
+ * Lo que no cambia: en esta tienda la venta se cierra hablando, así que para
+ * quien no autorizó, un mensaje del propietario con su tono recupera más que
+ * cualquier automático. El trabajo que se automatiza ahí sigue siendo el de
+ * *encontrarlos*, que es el que no se hace nunca.
  *
  * ── Falla hacia adelante ──
  *
@@ -29,7 +40,7 @@
  * ayuda, no parte del cobro: nunca puede tumbar nada.
  */
 import { listar, marcar } from './_pedidos.mjs';
-import { enviar, correoTienda } from './_correo.js';
+import { enviar, correoTienda, recuperarCarrito } from './_correo.js';
 import { cop } from './_precios.js';
 
 /* Una vez al día, 9:00 en Colombia (14:00 UTC). Por la mañana, que es cuando
@@ -64,6 +75,25 @@ function rescatables(pedidos, ahora = Date.now()) {
   }).sort((a, b) => Date.parse(b.creado) - Date.parse(a.creado));
 }
 
+/* Quién autorizó que le escribiéramos. Se mira `=== true` y no un valor
+   blandito: un pedido viejo, de antes de que existiera la casilla, no trae el
+   campo — y `undefined` tiene que caer del lado de «no autorizó», nunca al
+   revés. Un permiso que se da solo por ausencia de dato no es un permiso. */
+const autorizo = p => !!(p && p.cliente && p.cliente.optin === true);
+
+/* Y a quién se le puede mandar de verdad.
+ *
+ * Sin correo no hay a dónde. Y `rescateCliente` va aquí y no en `rescatables()`
+ * por una razón concreta: los dos canales se marcan por separado, así que si el
+ * aviso a la tienda falla un día, mañana la lista vuelve a salir entera —eso es
+ * lo que queremos, el propietario no puede perderse esos pedidos— pero a la
+ * clienta que ya recibió el suyo no se le puede escribir otra vez por ese
+ * fallo. Dos correos iguales con un día de diferencia es exactamente la clase
+ * de automático que hace que la gente deje de abrir los correos de una tienda. */
+const alcanzable = p => autorizo(p)
+  && !!(p.cliente.correo || '').trim()
+  && !p.rescateCliente;
+
 const esc = s => String(s == null ? '' : s)
   .replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
 
@@ -92,16 +122,17 @@ function cuerpo(lista) {
       + `<span style="color:#6d6070">${piezas || 'sin detalle'}</span><br>`
       + `<span style="color:#8a8290;font-size:12.5px">${esc(p.referencia)} · ${esc(cuando)} · `
       + `${esc(c.ciudad)}, ${esc(c.depto)}</span><br>`
-      /* Si autorizó comunicaciones comerciales, se dice aquí. No cambia lo que
-         se puede hacer hoy —el mensaje lo escribe una persona, y responder por
-         un pedido a medias entra en la finalidad de la compra— pero es el dato
-         que separa a quién se le puede escribir después por una promo y a quién
-         no. Sin marcarlo, esa distinción se pierde en el momento de usarla. */
-      + (c.optin === true
+      /* Lo que de verdad necesita saber quien lee esto es si ya se le escribió,
+         no si podría escribírsele: sin eso, el propietario manda un WhatsApp a
+         quien acaba de recibir el correo automático y el mensaje llega doble.
+         Por eso la insignia dice lo que pasó, no lo que estaba permitido. */
+      + (p.correoEnviado
         ? `<span style="display:inline-block;margin-top:4px;font:400 11.5px/1 Arial,sans-serif;`
           + `color:#1F7A5C;background:#E8F4EF;padding:5px 8px;border-radius:2px">`
-          + `Autorizó recibir novedades</span><br>`
-        : '')
+          + `Ya le llegó el correo automático — escribir solo si hace falta</span><br>`
+        : `<span style="display:inline-block;margin-top:4px;font:400 11.5px/1 Arial,sans-serif;`
+          + `color:#8d5b2f;background:#f7efe6;padding:5px 8px;border-radius:2px">`
+          + `Sin autorización: solo tú puedes escribirle</span><br>`)
       + `<a href="${enlaceWa(p)}" style="display:inline-block;margin-top:8px;background:#25806a;`
       + `color:#fff;text-decoration:none;font:400 13px/1 Arial,sans-serif;padding:10px 16px;`
       + `border-radius:2px">Escribirle por WhatsApp</a>`
@@ -140,14 +171,45 @@ export default async () => {
      porque los pedidos ya salieron de la ventana de 7 días. */
   const { para } = correoTienda();
 
+  const sitio = (process.env.URL_SITIO || process.env.URL || '').replace(/\/$/, '');
+
   const todos = await listar();
   const lista = rescatables(todos);
 
   console.log(JSON.stringify({
     evento: 'rescate', revisados: todos.length, rescatables: lista.length,
+    conPermiso: lista.filter(alcanzable).length,
   }));
 
   if (!lista.length) return new Response('nada que rescatar', { status: 200 });
+
+  /* Primero el correo a la clienta, y solo a quien autorizó.
+   *
+   * Va antes que el aviso a la tienda para que ese aviso pueda decir a quién ya
+   * se le escribió — si fuera al revés, el propietario leería una lista sin
+   * saber cuáles están atendidas y escribiría encima.
+   *
+   * Uno por uno y sin dejar que un fallo tumbe a los demás: son clientas
+   * distintas y el correo de una no puede depender de que el de otra saliera. */
+  const hoy = new Date().toISOString();
+  const enviados = await Promise.allSettled(
+    lista.filter(alcanzable).map(async p => {
+      const r = await recuperarCarrito({
+        referencia: p.referencia, lineas: p.lineas, cuentas: p.cuentas,
+        cliente: p.cliente, sitio,
+      });
+      if (r.enviado) {
+        p.correoEnviado = true;
+        await marcar(p.referencia, { rescateCliente: hoy });
+      } else {
+        console.error(JSON.stringify({
+          evento: 'rescate_cliente_falló', referencia: p.referencia, motivo: r.motivo,
+        }));
+      }
+      return r.enviado;
+    })
+  );
+  const aClientas = enviados.filter(r => r.status === 'fulfilled' && r.value).length;
 
   const { html, txt } = cuerpo(lista);
   const r = await enviar({
@@ -156,15 +218,21 @@ export default async () => {
     html, txt,
   });
 
-  /* Solo se marcan si el correo salió. Si Resend falló, mañana vuelven a
-     aparecer en la lista en vez de perderse por un fallo de correo. */
+  /* Los dos canales se marcan por separado a propósito. Si el aviso a la tienda
+     falla, mañana vuelve a salir la lista —eso está bien— pero a las clientas
+     que ya recibieron el suyo no se les puede volver a escribir por eso: el
+     `rescateCliente` de arriba ya quedó puesto y `rescatables()` las saca por
+     `rescateAvisado`… que aún no está. De ahí que el filtro mire los dos. */
   if (r.enviado) {
-    const hoy = new Date().toISOString();
     await Promise.allSettled(lista.map(p => marcar(p.referencia, { rescateAvisado: hoy })));
   }
 
-  console.log(JSON.stringify({ evento: 'rescate_avisado', enviado: r.enviado, motivo: r.motivo || null }));
+  console.log(JSON.stringify({
+    evento: 'rescate_avisado', enviado: r.enviado, motivo: r.motivo || null,
+    aClientas,
+  }));
   return new Response('ok', { status: 200 });
 };
 
-export const _interno = { rescatables, enlaceWa, cuerpo, HORAS_MIN, DIAS_MAX };
+export const _interno = { rescatables, enlaceWa, cuerpo, autorizo, alcanzable,
+  HORAS_MIN, DIAS_MAX };

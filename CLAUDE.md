@@ -157,6 +157,112 @@ diagnósticos y consultas de datos van directo. Esto sigue vigente aunque el
 conector de Ads MCP termine con permisos de escritura completos — el
 permiso técnico no cambia el acuerdo.
 
+## Conversión — recuperar carritos con permiso y cerrar por WhatsApp
+
+Las dos automatizaciones que el propietario marcó como viables ahora
+(2026-08-23). Plan completo, verificado contra el código real, en
+[`automatizaciones/conversion/BRIEF.md`](automatizaciones/conversion/BRIEF.md).
+Lo que hay que saber sin abrir el documento:
+
+- **`rescate.mjs` ya distingue quién autorizó** (`cliente.optin`, del checkbox
+  de checkout.html) — falta que a esos se les mande el mensaje automático en
+  vez de solo avisar a la tienda. A quien no autorizó, nunca un automático.
+- **Las dos automatizaciones comparten fundación**: la misma app de WhatsApp
+  Business, la misma plantilla aprobada por Meta, y un endpoint nuevo para
+  reanudar un pago —la reserva de inventario original caduca a los 30 minutos,
+  así que un enlace de recuperación tiene que revalidar stock, nunca prometer
+  que el carrito «sigue igual» sin comprobarlo—.
+- **El bot de WhatsApp no genera el cobro directo desde el día uno.** Manda un
+  enlace al checkout existente con la selección ya cargada, y el checkout de
+  siempre —con su recálculo de precio en el servidor— hace el resto. Es la
+  decisión que baja más el riesgo de un frente marcado como «no admite
+  errores».
+- **El modelo nunca calcula precio ni inventa existencia.** Misma regla que ya
+  usa `disponibilidad.mjs` para el asesor: el modelo conversa y decide qué
+  función llamar; los números siempre salen de `_precios.js` y
+  `disponibilidad.mjs`.
+- **La rama `sephora-whatsapp-response-system-682wvv` no se fusiona**: es de
+  antes del checkout con Wompi, con su propio `index.html` y sin
+  `netlify.toml`. Vale por las 28 macros y el system prompt como referencia de
+  tono, nunca como código.
+- **WhatsApp cambió de facturación este mismo año**: desde el 1 de agosto de
+  2026 se cobran las respuestas de un agente de IA por token, y desde el 1 de
+  octubre —semanas después de escribir esto— también los mensajes de servicio
+  dentro de la ventana de 24 horas. El bot no es gratis por estar dentro de una
+  conversación activa.
+
+## Mapa de automatizaciones — qué hay y qué se puede hacer
+
+[`automatizaciones/MAPA.md`](automatizaciones/MAPA.md) inventaría lo que ya
+funciona, lo que se puede construir hoy sin pedirle nada a nadie, lo que espera
+una autorización del propietario y lo que está bloqueado. Verificado contra las
+herramientas reales, no supuesto. Dos hallazgos que conviene tener a mano:
+
+- **n8n tiene dos credenciales** (Header Auth y cuenta de servicio de Google) y
+  **las credenciales gestionadas no están disponibles** en esa instancia
+  (`available: false`). Toda automatización con un servicio nuevo está bloqueada
+  por una autorización, no por programación.
+- **La cuenta sin portafolio bloquea también el catálogo**, no solo la CAPI:
+  `has no owning business, so its catalogs cannot be listed`, y no existe ningún
+  catálogo (`total_count: 0`). O sea que los anuncios dinámicos —los que enseñan
+  la pieza exacta que alguien miró— están detrás de la misma puerta. Eso sube la
+  prioridad de reclamar la cuenta hacia el portafolio: desbloquea tres cosas, no
+  una.
+
+## Contenido orgánico — el motor de paquetes de rodaje
+
+Frente nuevo, hermano de la pauta y con las mismas reglas de dinero. El brief
+completo está en
+[`automatizaciones/contenido/BRIEF.md`](automatizaciones/contenido/BRIEF.md) —
+cuatro fases, orden de construcción y, sobre todo, **qué se decidió no
+construir**. Aquí solo lo que hay que saber para no deshacerlo sin leerlo.
+
+- **El motor no produce videos: produce paquetes de rodaje.** Elige la pieza
+  según inventario real, escribe gancho, guion y lista de tomas, genera portada
+  y b-roll, cronometra subtítulos y deja el texto por red. El propietario graba
+  y monta. Baja el trabajo por video de ~40 a ~5 minutos.
+- **CapCut no se automatiza, y es decisión, no pendiente.** No hay API pública;
+  los envoltorios no oficiales son ingeniería inversa y **CapCut y TikTok son
+  ambos de ByteDance con la misma cuenta**, así que arriesgan justo el activo
+  que se quiere construir. La razón de fondo es otra: el **audio en tendencia**
+  solo se consigue dentro de TikTok y CapCut, y en video corto el audio es la
+  mitad de la viralidad. Armar el video por fuera entrega algo mudo.
+- **Imagen generada nunca puede parecer producto a la venta que no existe.**
+  Con producto de por medio, la foto es la real y la IA solo pone el fondo. Una
+  imagen totalmente generada solo vale para **sondeo**, nunca como oferta.
+- **La medición cierra en checkouts, no en vistas.** Misma lección que Copia 4:
+  mejor CTR de la cuenta y de los peores en conversión.
+- **Los videos no se comitean.** ~15 créditos por despliegue y el historial de
+  git se los queda para siempre. Las 10 imágenes de `assets/ads/` son la
+  excepción correcta —pesan poco y la CAPI necesita URL pública—; video no.
+- **Elegibilidad: 3 unidades o más.** Hoy son 46 referencias de 129 (24 en cero,
+  59 en 1–2). Trampa ya cazada: `stock.json` guarda las unidades en dos formas
+  —charm `stock`, pulsera `tallas`— y un `item.stock || 0` da **cero para las 18
+  pulseras sin dar ningún error**. Y `stock.json` no sabe lo apartado desde el
+  último conteo: eso lo resuelve `disponibilidad.mjs`, que **ya existe sin
+  mezclar** en `claude/zephora-charms-automation-hub-5aihdu`. Traerla pieza por
+  pieza, nunca merge directo — esa rama trae también un rescate duplicado.
+- **Remotion no reabre lo de CapCut, lo confirma.** Se está explorando en otra
+  sesión y encaja de verdad, pero **renderiza mudo**: sirve para portadas,
+  b-roll, carruseles, creativos de pauta (que se ven en silencio) y piezas de
+  pura tipografía — no para el Reel principal. Gratis hasta 3 personas, licencia
+  a partir de 4. Necesita host propio para renderizar (Chromium + FFmpeg):
+  **Netlify no sirve**, empezar en local. Y le da la vuelta a lo de no comitear
+  video: lo que se versiona es el componente React, y el MP4 es salida de build.
+  Frontera entre las dos sesiones y contrato del JSON en
+  [`automatizaciones/contenido/CONTRATO-REMOTION.md`](automatizaciones/contenido/CONTRATO-REMOTION.md).
+- **Fase 4 (publicación automática) existe:** Instagram está como cuenta
+  Business ligada a la Página **«Zephora Charms» (`1096237716904526`)**,
+  confirmada por API como promovida bajo la cuenta `1583713932705268`. IG Reels
+  y FB Reels son **dos integraciones distintas**, no una. TikTok se queda
+  manual: una app sin auditar no publica con difusión, y el audio se elige
+  dentro de la app de todos modos.
+
+Lo de mayor retorno de todo el frente **no necesita el motor**: una historia con
+las iniciales preguntando *«¿cuál te falta?»* resuelve en 24 horas y gratis si
+comprar las 14 letras que faltan (~$73.000 de costo, ~$1.064.000 de utilidad
+potencial) es apuesta o dato. Hoy se está decidiendo a ciegas.
+
 ## Cómo se reparte el trabajo entre sesiones — leer antes de construir
 
 **El riesgo de este repo no son los conflictos de git: es construir dos veces

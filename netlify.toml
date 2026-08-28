@@ -80,6 +80,32 @@
   to = "/404.html"
   status = 404
 
+# Y lo mismo con la carpeta de automatizaciones, que llegó después. Trae los
+# márgenes reales por pieza, la utilidad por venta, los planes de pauta y las
+# decisiones de negocio. Es exactamente lo que no se le sirve a una clienta
+# —ni a la competencia— desde el dominio de la tienda.
+[[redirects]]
+  from = "/automatizaciones/*"
+  to = "/404.html"
+  status = 404
+
+# El enlace que reanuda un pedido sin pagar. Va con nombre propio porque viaja
+# en un correo a una clienta: /.netlify/functions/… en la barra del navegador
+# parece cualquier cosa menos una tienda.
+[[redirects]]
+  from = "/reanudar"
+  to = "/.netlify/functions/reanudar"
+  status = 200
+
+# El que arma un carrito para el bot de WhatsApp. No escribe nada y no cobra:
+# valida, calcula el precio con el mismo código que el checkout, y devuelve un
+# enlace a /checkout.html. Va con nombre propio por el mismo motivo que el de
+# arriba —lo llama n8n desde un workflow y se lee en su configuración—.
+[[redirects]]
+  from = "/armar-carrito"
+  to = "/.netlify/functions/armar-carrito"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
