@@ -21,30 +21,48 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
 
 - **"Nueva campaña de Ventas"** (`120247398773240534`) — ACTIVA, $15.000
   COP/día. Optimiza por `InitiateCheckout`, **no por `Purchase`**: es la
-  limitación de fondo, no un descuido de configuración. 4 anuncios, de los
-  cuales **Copia 4 (`120247400350270534`) y Copia 5 (`120247400376370534`)
-  están PAUSADOS** desde esta sesión: costaban $6.388 y $9.424 por checkout
-  contra $663 de Copia 2 y $1.724 de Copia 3.
+  limitación de fondo, no un descuido de configuración. **Copia 4
+  (`120247400350270534`) y Copia 5 (`120247400376370534`) están PAUSADOS**:
+  costaban $6.663 y $9.465 por checkout contra $1.568 de Copia 2 y $1.272 de
+  Copia 3.
+
+  Después se subieron **10 creativos nuevos** (`Zephora · …`, los de
+  `assets/ads/`), 7 activos y 3 pausados, **todos dentro del mismo conjunto**
+  que Copia 2 y 3. Eso último es el problema: Meta reparte dentro del conjunto
+  y le da el presupuesto a lo que ya tiene historia. En los últimos 7 días
+  Copia 2+3 se llevaron **$94.163 de $97.058** —el 97%— y los diez nuevos
+  $2.895 entre todos.
+
+  Con esa miseria de presupuesto los nuevos ya convierten más barato: **$414
+  por checkout contra $1.326** de los viejos (7 checkouts contra 71). La
+  diferencia es de 3x, pero son **7 conversiones**: da para justificar una
+  prueba con presupuesto propio, no para dar nada por probado. Y la única
+  forma de probarlo es **sacarlos a su propio conjunto**; mientras compartan
+  conjunto con Copia 2 y 3 no van a recibir entrega suficiente para decidir
+  nunca.
 
   Lección del diagnóstico, para no repetirla: **Copia 4 tenía el mejor CTR de
   la cuenta (15,43%) y era de los peores en conversión.** Juzgar creativos por
   CTR habría escalado justo el que peor rendía. La métrica que manda es costo
   por resultado.
 
-- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) — creada,
-  ACTIVA, $10.000 COP/día, **$0 gastados y 0 impresiones**. Sí optimiza por
-  `Purchase`. No entrega por dos razones: un error de segmentación por lugar
-  (#1870194, tipo de ubicación descontinuado por Meta) y, más de fondo, que
-  **el público tiene ~55 personas**. Pendiente de pausar.
+- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) —
+  **PAUSADA**, $10.000 COP/día, **$0 gastados y 0 impresiones en toda su
+  vida**. Sí optimiza por `Purchase`. Nunca entregó por dos razones: un error
+  de segmentación por lugar (#1870194, tipo de ubicación descontinuado por
+  Meta) y, más de fondo, que el público era diminuto. Ojo: **el error de
+  segmentación sigue sin arreglar**, así que reactivarla tal cual no serviría
+  de nada aunque el público ya crezca.
 
 ### Públicos
 
 - `Zephora · Iniciaron checkout sin comprar (30d)` (`120247672124730534`) —
   ACTIVE, sano, lee del píxel viejo `2130673404542988` (el correcto: es el que
   tiene historia). Incluye `InitiateCheckout` 30d, excluye `Purchase`.
-  **Demasiado pequeño para pautar**: la campaña principal produce ~55
-  checkouts/mes. Para hacerlo viable: ventana a 180 días e incluir también
-  `AddToCart` (134 en 30 días).
+  Sigue **por debajo de las 1.000 personas** (Meta no reporta cifra exacta
+  bajo ese piso), pero el panorama cambió: la campaña principal ya produce
+  **189 checkouts en 30 días**, no los ~55 que decía este archivo. Para
+  hacerlo viable antes: ventana a 180 días e incluir también `AddToCart`.
 - `Público similar (CO, 1%)` (`120247672160220534`) — **INACTIVE,
   `operation_status_code: 433`**. La semilla es demasiado chica para construir
   un lookalike. No sirve hasta que crezca el público de origen.
@@ -69,7 +87,8 @@ verdad** mientras las campañas **siguen optimizando a ciegas** sobre
 Margen real: **charms 87,9%** ($9.305 costo / $77.449 venta) · **pulseras
 70,7%** ($18.742 / $64.571). Una venta de 2 charms deja **~$110.386 de
 utilidad neta** tras envío — ese es el CAC máximo por compra. Con costo por
-checkout de ~$1.950, el negocio aguanta hasta una conversión checkout→pago
+checkout de ~$1.556 (30 días reales, 189 checkouts por $294.006), el negocio
+aguanta hasta una conversión checkout→pago
 del 2% antes de perder plata. **El presupuesto actual está muy por debajo de
 lo que la economía soporta**; el limitante es inventario, no dinero.
 
@@ -129,12 +148,32 @@ Por orden de impacto sobre el dinero:
    Colombia no encuentre su inicial. Después, **83 referencias en 1-2
    unidades** ($2,64M para habilitar ~$11,7M de utilidad), priorizando
    charms (88% de margen) sobre pulseras (71%).
-2. **Pausar "Retargeting · Recuperación de checkout"** hasta tener público.
-   Con ~55 personas no entrega; el presupuesto rinde más en la campaña
-   principal.
-3. **Probar el `Purchase` de servidor** con `META_TEST_EVENT_CODE` y
-   confirmar en Events Manager que aparece **una sola vez** por compra (no
-   dos) en el píxel nuevo. **Quitar la variable de prueba al terminar.**
+2. **Arreglar la CAPI, que lleva dos semanas sin mandar nada.** Medido el
+   2026-08-28 contra la API: el píxel nuevo tiene **un solo evento de
+   servidor en toda su vida** —el de la prueba del 13 de agosto— y el viejo
+   tiene `server_last_fired_time` **en época cero**. O sea que las compras
+   posteriores (10 en el píxel nuevo desde el 13) entraron **solo por
+   navegador**: quien pagó y no volvió al sitio, Meta no lo contó.
+
+   El código de `_meta.js` está bien y la llamada corre dentro del mismo
+   `if (tx.status === 'APPROVED')` que manda el correo de «Pago aprobado» —
+   así que **si esos correos llegan, la llamada se está ejecutando** y el
+   fallo está dentro de `purchase()`: token ausente o rechazado. No se puede
+   comprobar desde una sesión remota (`graph.facebook.com` está bloqueado, y
+   el MCP de Netlify respondió 502). **Se resuelve mirando los logs de la
+   función y buscando `meta_purchase`**: el campo `motivo` lo dice
+   («sin configurar» = falta `META_CAPI_TOKEN`; `error 400` = el token y
+   `META_PIXEL_ID` no son del mismo píxel).
+
+   Trampa que ya costó esto: `META_PIXEL_ID` en Netlify tiene que ser el
+   **nuevo** (`1029982529813994`), no el viejo. El token solo vale para el
+   píxel donde se generó. `.env.example` documentaba el viejo y apuntaba a un
+   archivo que no existe; corregido el 2026-08-28.
+
+3. **Cuando la CAPI vuelva a mandar**, probar con `META_TEST_EVENT_CODE` y
+   confirmar en Events Manager que el `Purchase` aparece **una sola vez** por
+   compra (no dos) en el píxel nuevo. **Quitar la variable de prueba al
+   terminar.**
 4. **Registrar ventas en la hoja *Movimientos*** del Excel. Hoy las
    recomendaciones de reposición salen de "subir todo a 4 unidades", que es
    una regla pareja, no rotación real. Con unas semanas de movimientos se
