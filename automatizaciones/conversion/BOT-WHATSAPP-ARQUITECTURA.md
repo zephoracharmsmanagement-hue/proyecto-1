@@ -153,51 +153,64 @@ Siempre dile lo que la herramienta devuelve, nunca adivines.
 
 #### 2.3.2 · Herramienta: Armar Carrito
 
-**Llama:** `https://zephora-charms.netlify.app/.netlify/functions/armar-carrito` (endpoint nuevo, ver sección 3)
+**Llama:** `https://zephoracharms.com/armar-carrito`
 
 **Método:** POST
 
-**Body:**
+**Body** — la misma forma que acepta el checkout, a propósito:
 
 ```json
 {
-  "base": {
-    "id": "pulsera-corazon-liso",
-    "talla": "19"
-  },
-  "charms": ["charm-inicial-a", "charm-inicial-a", "charm-inicial-b"],
+  "base": { "id": "pulsera-copo-de-nieve", "talla": "19" },
+  "charms": ["letra-a", "letra-a", "letra-b"],
   "empaque": true,
   "pago": "anticipado"
 }
 ```
 
-**Respuesta esperada:**
+**Respuesta (200):**
 
 ```json
 {
-  "ref": "xyz789",
-  "enlace": "https://zephora-charms.netlify.app/reanudar?ref=xyz789",
-  "precio_total": 187450,
-  "moneda": "COP",
-  "piezas": 4
+  "enlace": "https://zephoracharms.com/checkout.html?p=pulsera-copo-de-nieve@19,letra-a*2,letra-b&e=1&via=wa",
+  "total": 262840,
+  "totalTexto": "$262.840",
+  "subtotal": 262840,
+  "descuento": 34200,
+  "envio": 0,
+  "envioGratis": true,
+  "piezas": 4,
+  "lineas": [
+    { "nombre": "Brazalete Copo de Nieve", "talla": "19", "unidades": 1, "precio": "$114.000" }
+  ],
+  "disponibilidad": "real",
+  "aviso": "Disponibilidad referencial: conteo manual menos lo apartado por pagos en curso."
 }
 ```
 
 **Qué devuelve:**
-- `ref`: Identificador que guardamos en Blobs (el mismo que luego leerá `/reanudar`)
-- `enlace`: URL completa lista para enviar por WhatsApp
-- `precio_total`: El precio real que el checkout cobrará (recalculado en servidor)
-- `piezas`: Cantidad de unidades en el carrito (brazalete + charms)
+- `enlace` — URL al **checkout de siempre**, lista para mandar por WhatsApp
+- `totalTexto` — ya formateado en pesos colombianos, para que el modelo no
+  escriba `$262,840` (que aquí se lee como otra cifra)
+- `lineas` — con **nombre legible**, para que el bot no traduzca identificadores
+- `disponibilidad` — `'real'` o `'sin-lectura'`; con lo segundo, el bot matiza
 
-**Cuándo el Agent la llama:**
-- Después de que la clienta decide qué quiere (base + charms)
-- Justo antes de armar el mensaje con el enlace
+**Errores, con el mismo contrato que usa el checkout:**
+
+| Código | Cuándo | Qué hace el bot |
+|---|---|---|
+| `400` | Pieza desconocida, talla inválida, más de 60 charms, carrito vacío | Corrige y vuelve a preguntar |
+| `409` + `agotado: true` | Se agotó algo (incluido lo apartado por un pago en curso) | Relata el mensaje tal cual y ofrece alternativas |
+
+**Cuándo el Agent la llama:** después de que la clienta decide qué quiere, justo
+antes de armar el mensaje con el enlace.
 
 **Instrucción en el prompt:**
 ```
-Cuando la clienta haya elegido brazalete y charms, llama a armar-carrito() 
-con su selección. La respuesta trae el precio final, el enlace y cuántas 
-piezas tiene el carrito. Usa esos datos en tu respuesta, nunca inventes.
+Cuando la clienta haya elegido sus piezas, llama a armar-carrito() con la 
+selección. Usa `totalTexto` y `enlace` TAL CUAL vienen — no reformatees el 
+precio ni reescribas la URL. Si responde 409, lee el mensaje de error a la 
+clienta y ofrece alternativas; no insistas con la misma pieza.
 ```
 
 ---
@@ -236,37 +249,60 @@ piezas tiene el carrito. Usa esos datos en tu respuesta, nunca inventes.
 
 ---
 
-## 3 · El nuevo endpoint: `/armar-carrito`
+## 3 · El endpoint `/armar-carrito` — **hecho 2026-08-28**
 
-**Crear:** `netlify/functions/armar-carrito.mjs`
+`netlify/functions/armar-carrito.mjs`, con `pruebas/armar-carrito.js` en verde.
 
-**Qué hace:**
-1. Recibe base + charms + empaque + pago
-2. Valida que existan en catálogo y haya stock
-3. Llama `_precios.js` para calcular total (mismo que usa el checkout)
-4. Genera un `ref` único
-5. Guarda el registro en Blobs con estado `'esperando-pago'` (como lo hace `crear-pago.mjs`)
-6. Devuelve `{ref, enlace, precio_total, moneda, piezas}`
+**Qué hace:** recibe base + charms + empaque + pago, valida con el **mismo
+lector** que usa `crear-pago` (`leerPedido`), comprueba inventario dos veces,
+calcula el total con `calcular()`, y devuelve un enlace a `checkout.html`.
 
-**Por qué existe:**
-- El bot no puede escribir en Blobs directamente
-- El precio debe venir del servidor, recalculado en tiempo real
-- El `ref` debe ser único y determinista (para dedup de Meta)
+### Lo que NO hace, que es la decisión importante
 
-**Estructura del código:**
+**No escribe nada.** No guarda registro, no genera referencia, no aparta
+inventario, no habla con Wompi.
 
-```javascript
-export default async (req) => {
-  const { base, charms, empaque, pago } = JSON.parse(req.body);
-  
-  // 1. Validar que existan en catálogo
-  // 2. Validar stock con disponibilidad.mjs
-  // 3. Calcular precio con _precios.js → _detallar()
-  // 4. Generar ref único
-  // 5. Guardar en Blobs
-  // 6. Devolver { ref, enlace, precio_total, moneda, piezas }
-};
-```
+El plan original decía que guardara el pedido en Blobs con estado
+`esperando-pago` y devolviera un enlace de `/reanudar?ref=…`. Se descartó al
+verificarlo contra el código, por tres razones:
+
+- **Envenenaría el rescate.** `rescatables()` en `rescate.mjs` filtra
+  exactamente `estado === 'esperando-pago'`. Cada conversación de WhatsApp en la
+  que el bot armara un carrito dejaría un checkout abandonado que nunca existió,
+  y a la mañana siguiente el propietario recibiría una lista de pedidos que nadie
+  empezó. Peor: si ese registro fantasma llevara `optin`, saldría un **correo
+  automático de recuperación por una compra imaginaria**.
+- **El registro no se puede construir.** `leerCliente()` exige nombre, apellido,
+  documento, celular, correo, departamento, ciudad y dirección. El bot tiene un
+  dato: un número de teléfono.
+- **Duplicaría estado que ya tiene dueño.** `/reanudar` existe para resucitar un
+  checkout abandonado de verdad.
+
+Es la misma decisión que ya se tomó en `reanudar.mjs`: **un solo sitio donde se
+decide cuánto se cobra.** El enlace lleva al checkout de siempre, la clienta pone
+sus datos, y `crear-pago` recalcula, aparta, firma y cobra.
+
+### Dos comprobaciones de inventario, no una
+
+- `comprobarInventario()` mira `stock.json` —el último conteo a mano— y trae los
+  mensajes en español que la clienta va a leer.
+- `disponibles()` mira además **lo apartado por pagos en curso**. Es la que caza
+  que la última unidad la esté pagando alguien ahora mismo, que por WhatsApp
+  duele más: en el checkout lo corrige una pantalla, aquí hay una persona a la
+  que ya se le dijo que sí.
+
+Si no se puede leer lo apartado, se responde igual con `disponibilidad:
+'sin-lectura'` — el precio es bueno, la disponibilidad es la del último conteo.
+Lo que no pasa nunca es devolver un enlace con un precio inventado.
+
+### El escritor de la URL es uno solo
+
+`_carrito.mjs` tiene la función que escribe `?p=…`, y la usan **las dos**
+funciones (`reanudar` y `armar-carrito`). Las páginas ya tienen cada una su copia
+del lector y eso no se puede evitar; lo que sí se evita es una segunda copia del
+escritor, porque `pruebas/reanudar.js` § 3 comprueba su salida contra la
+expresión regular real de los dos HTML. Con un escritor, esa prueba cubre los
+cuatro sitios; con dos, cubriría uno y el otro podría separarse en silencio.
 
 ---
 
@@ -315,13 +351,15 @@ Clienta: "Pulsera de corazón en 19 y dos iniciales A"
          ↓
 Agent: Valida con disponibilidad(["pulsera-corazon|19", "charm-inicial-a"])
        ↓ Llama armar-carrito({base, charms})
-       ↓ Recibe {ref, enlace, precio}
+       ↓ Recibe {enlace, totalTexto, lineas}
        ↓
-Agent: "Tu pedido: pulsera + 2 iniciales A = $187.450 COP
-         Retómalo aquí 👉 https://...reanudar?ref=xyz"
+Agent: "Tu pedido: pulsera + 2 iniciales A = $187.450
+         Termínalo aquí 👉 https://…/checkout.html?p=…&via=wa"
 ```
 
-El enlace lleva directo al checkout. De ahí en adelante, la magia es del checkout (recalcula, firma, cobra).
+El enlace lleva al checkout de siempre. De ahí en adelante el pedido sigue el
+camino de cualquiera: la clienta pone sus datos y `crear-pago` recalcula,
+aparta, firma y cobra. El bot no genera ningún cobro.
 
 ---
 
@@ -383,10 +421,14 @@ Bot: "Pulsera de corazón + 2 iniciales = $150.000"
 
 ✅ BIEN:
 Bot: llama armar-carrito({base, charms})
-     → respuesta: {precio_total: 187450}
-Bot: "Tu pedido = $187.450 COP
-      https://..."
+     → respuesta: {totalTexto: "$187.450", enlace: "https://…"}
+Bot: "Tu pedido = $187.450
+      https://…"
 ```
+
+`totalTexto` viene ya formateado a propósito: si el modelo formatea el número,
+acaba escribiendo `$187,450`, que en Colombia se lee como ciento ochenta y siete
+pesos con cuarenta y cinco centavos.
 
 ### No puede confirmar talla que no existe
 
@@ -454,20 +496,22 @@ Test 3: Cambio de opinión
 | **Número de WhatsApp** | Propietario | Junto con app |
 | **Credencial en n8n** | Propietario | Minutos (una vez tenga app) |
 | **Credencial del modelo** | Propietario | Minutos (token de Claude API) |
-| **Endpoint `/armar-carrito`** | Nosotros (código) | Esta sesión |
-| **Workflow en n8n (nodos)** | Nosotros (código + n8n UI) | Esta sesión (antes de creds) |
-| **Tests (conversaciones)** | Nosotros (código) | Esta sesión |
+| **Endpoint `/armar-carrito`** | Nosotros (código) | ✅ hecho 2026-08-28 |
+| **Workflow en n8n (nodos)** | Nosotros | Bloqueado por las credenciales de arriba |
+| **Banco de conversaciones** | Nosotros | Cuando exista el bot contra el que correrlo |
 
 ---
 
 ## 9 · Checklist de implementación
 
-### Código (esta sesión)
+### Código
 
-- [ ] Crear `netlify/functions/armar-carrito.mjs`
-- [ ] Tests unitarios de `armar-carrito` en `pruebas/`
-- [ ] Documentar casos de uso en `BOT-TESTS.md`
-- [ ] Desplegar (agregar 1 function más → 12 en total)
+- [x] `netlify/functions/armar-carrito.mjs` · **2026-08-28**, sin estado
+- [x] `netlify/functions/_carrito.mjs` · el escritor de la URL, compartido
+- [x] `pruebas/armar-carrito.js` · 40 comprobaciones, en verde
+- [x] Ruta `/armar-carrito` en `netlify.toml`
+- [ ] Banco de conversaciones de prueba (`BOT-TESTS.md`) — necesita el bot
+- [ ] Desplegar · la cuenta de functions sube a **12**
 
 ### n8n (cuando lleguen credenciales)
 
@@ -504,8 +548,20 @@ Test 3: Cambio de opinión
 
 ## 11 · Notas de seguridad
 
-- **N8n solo puede leer `/disponibilidad` y `/armar-carrito`.** No puede tocar Wompi, no puede firmar pagos.
-- **Todos los números van hasheados a Meta.** El bot no guarda teléfono en plain text.
-- **Las respuestas con dinero no vienen del modelo.** Vienen de `armar-carrito`, que usa el mismo código que el checkout.
-- **Sesión = conversación abierta por clienta.** Cuando pasan 24 horas sin mensajes, memoria se limpia.
+- **Las dos herramientas que el bot puede llamar son de solo lectura.**
+  `/disponibilidad` y `/armar-carrito` no escriben nada: ni registro, ni reserva,
+  ni cobro. Lo comprueba `pruebas/armar-carrito.js` § 6 sobre el código, no sobre
+  el comportamiento — una prueba de comportamiento no cazaría una escritura
+  añadida mañana.
+- **Las respuestas con dinero no vienen del modelo.** Vienen de
+  `armar-carrito`, que usa el mismo `calcular()` con el que cobra el checkout.
+- **Los dos endpoints son públicos y no exponen nada nuevo.** Precios y
+  disponibilidad ya están en la tienda; `/armar-carrito` no revela nada que no
+  se pueda calcular desde `/disponibilidad`.
+- **Sesión = conversación abierta por clienta.** A las 24 horas sin mensajes la
+  memoria se limpia. Es por diseño: no queremos guardar datos de gente para
+  siempre.
+- **Números de teléfono.** El bot los usa como clave de sesión, no los guarda en
+  el repo ni los manda a ningún sitio. Si algún día se manda un `Purchase` a
+  Meta desde aquí, va hasheado con SHA-256 como ya hace `_meta.js`.
 

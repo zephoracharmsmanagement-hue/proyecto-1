@@ -43,6 +43,7 @@
 import { leer, marcar } from './_pedidos.mjs';
 import { disponibles } from './_inventario.mjs';
 import { inventario as stock } from './_precios.js';
+import { comoUrl } from './_carrito.mjs';
 
 /* La misma ventana que usa el rescate para decidir a quién vale la pena
    escribirle. Más allá, los precios y el inventario ya no son los de entonces
@@ -108,22 +109,6 @@ function recortar(carrito, libres) {
 
   const cambio = charms.length !== carrito.charms.length || (!!carrito.base !== !!base);
   return { carrito: Object.assign({}, carrito, { base, charms }), cambio, fuente: 'real' };
-}
-
-/* El carrito, en la forma que leen index.html y checkout.html. */
-function comoUrl(carrito) {
-  const cuenta = {};
-  carrito.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
-  const trozos = [];
-  if (carrito.base) {
-    trozos.push(carrito.base.talla ? `${carrito.base.id}@${carrito.base.talla}` : carrito.base.id);
-  }
-  Object.entries(cuenta).forEach(([id, n]) => trozos.push(n > 1 ? `${id}*${n}` : id));
-  const q = new URLSearchParams();
-  q.set('p', trozos.join(','));
-  if (carrito.empaque) q.set('e', '1');
-  if (carrito.pago === 'contraentrega') q.set('pago', 'contraentrega');
-  return q;
 }
 
 export default async (req) => {

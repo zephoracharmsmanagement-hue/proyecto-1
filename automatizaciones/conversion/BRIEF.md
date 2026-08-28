@@ -238,7 +238,7 @@ importan porque le pasaron a otras piezas de esta tienda:
 | 4 | App de WhatsApp Business + plantilla de marketing aprobada | Las dos | **El propietario**: cuenta verificada, trámite con Meta |
 | 5 | Credencial del modelo en n8n | Automatización 2 | **El propietario** |
 | 6 | WhatsApp automático para quien autorizó (Fase B) | Automatización 1 | `#2` + `#4` |
-| 7 | El bot en n8n, primero contra un número de pruebas | Automatización 2 | `#3` + `#4` + `#5` |
+| 7 | El bot en n8n, primero contra un número de pruebas | Automatización 2 | `#3` + `#4` + `#5` · la herramienta que le pone precio (`/armar-carrito`) ya está hecha |
 | 8 | Banco de conversaciones de prueba, en verde, antes de tocar el número real | Automatización 2 | `#7` |
 
 **Los pasos 1, 2 y 3 no dependen de nada que el propietario tenga que tramitar.**
@@ -260,8 +260,30 @@ Del 4 en adelante, el ritmo lo marca Meta, no el código.
 >   aviso a la tienda le habría mandado a la clienta un segundo correo idéntico
 >   al día siguiente.
 >
+> **Añadido el 2026-08-28: `/armar-carrito`**, la herramienta que el bot llama
+> para que el precio no lo escriba un modelo. Documentada en
+> [`BOT-WHATSAPP-ARQUITECTURA.md`](BOT-WHATSAPP-ARQUITECTURA.md) § 3. Aquí
+> también se decidió algo contra el plan, y por un motivo que solo se ve leyendo
+> `rescate.mjs`:
+>
+> - **No guarda ningún pedido y no acuña referencias.** El plan decía que
+>   creara el registro en Blobs y devolviera un enlace de `/reanudar?ref=…`. Eso
+>   habría **envenenado el rescate**: `rescatables()` filtra exactamente
+>   `estado === 'esperando-pago'`, así que cada conversación de WhatsApp habría
+>   dejado un checkout abandonado que nunca existió —y a quien tuviera `optin`,
+>   un correo automático de recuperación por una compra imaginaria—. Además el
+>   registro ni siquiera se puede construir: `leerCliente()` exige ocho campos y
+>   el bot tiene un número de teléfono. Devuelve un enlace directo a
+>   `checkout.html?p=…` y no escribe nada.
+> - **Comprueba el inventario dos veces**: `stock.json` para los mensajes en
+>   español, y lo apartado por pagos en curso para no ofrecer la unidad que
+>   alguien está pagando ahora mismo.
+> - **El escritor de la URL se extrajo a `_carrito.mjs`**, compartido con
+>   `reanudar`. Con dos copias, la prueba que valida el formato contra los HTML
+>   reales cubriría una y la otra podría separarse en silencio.
+>
 > Falta desplegar: nada de esto está en producción todavía. Al desplegar, la
-> cuenta de functions sube a **11**.
+> cuenta de functions sube a **12**.
 
 ---
 

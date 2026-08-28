@@ -152,7 +152,10 @@ async function main() {
     const codigo = src
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/(^|[^:])\/\/.*$/gm, '$1');
-    comprobar(!/wompi|firmar|createHash|WOMPI_/i.test(codigo),
+    /* `\b` delante de `firmar`: sin él, cualquier «confirmar» que entre algún
+       día en este archivo pondría la comprobación roja por un motivo que no
+       tiene nada que ver con firmar cobros. Pasó en pruebas/armar-carrito.js. */
+    comprobar(!/wompi|\bfirmar|createHash|WOMPI_/i.test(codigo),
       'NO firma ni arma cobros: el camino del dinero sigue estando en un solo sitio');
     comprobar(/'pagado'|"pagado"/.test(codigo),
       'comprueba el pedido ya pagado antes de devolver a nadie a pagar');

@@ -97,6 +97,15 @@
   to = "/.netlify/functions/reanudar"
   status = 200
 
+# El que arma un carrito para el bot de WhatsApp. No escribe nada y no cobra:
+# valida, calcula el precio con el mismo código que el checkout, y devuelve un
+# enlace a /checkout.html. Va con nombre propio por el mismo motivo que el de
+# arriba —lo llama n8n desde un workflow y se lee en su configuración—.
+[[redirects]]
+  from = "/armar-carrito"
+  to = "/.netlify/functions/armar-carrito"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]

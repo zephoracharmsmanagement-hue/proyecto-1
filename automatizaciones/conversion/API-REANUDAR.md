@@ -1,8 +1,16 @@
 # API del endpoint `/reanudar` — cómo lo usan ambas automatizaciones
 
-El endpoint `/reanudar` es el destino común de ambas automatizaciones: donde redirige el correo de recuperación de carritos abandonados, y donde llevará el bot de WhatsApp a la clienta cuando decida comprar.
+El endpoint `/reanudar` es el destino del **correo de recuperación de carritos
+abandonados**: la clienta llegó al final del checkout, se fue sin pagar, y este
+enlace la devuelve a su pedido armado.
 
-**No toca dinero. No firma nada. No llama a Wompi.** Solo revalida stock y arma un carrito en la URL para que el checkout existente haga su trabajo.
+**No toca dinero. No firma nada. No llama a Wompi.** Solo revalida stock y arma
+un carrito en la URL para que el checkout existente haga su trabajo.
+
+> **El bot de WhatsApp no usa este endpoint** — usa `/armar-carrito`, que no
+> escribe nada. El porqué está en el § 6, y no es un detalle: si el bot acuñara
+> referencias, el rescate del día siguiente sacaría una lista de checkouts
+> abandonados que nunca existieron.
 
 ---
 
@@ -36,13 +44,11 @@ GET /reanudar?ref=REFERENCIA_CORTA
 ### Ejemplos de llamada
 
 ```
-https://zephora-charms.netlify.app/reanudar?ref=abc123
+https://zephoracharms.com/reanudar?ref=ZC-260828-87F31F89
 ```
 
-```
-# Por WhatsApp (en un enlace que el bot arma)
-Retoma tu pedido acá: https://zephora-charms.netlify.app/reanudar?ref=xyz789
-```
+La referencia es la que acuñó `crear-pago.mjs` al crear el pedido, con el formato
+`ZC-AAMMDD-XXXXXXXX`. Se recorta a 40 caracteres antes de buscarla.
 
 ---
 
@@ -163,52 +169,70 @@ p=id1,id2*cantidad@talla,id3*cantidad
 
 | Paso | Quién | Qué hace |
 |---|---|---|
-| 1 | `crear-pago.mjs` | Genera `ref` corto (UUID truncado), lo guarda en Blobs |
-| 2 | `_pedidos.mjs` | Lee / escribe / marca en Blobs usando `ref` como clave |
-| 3 | Correo automático (`_correo.js`) | Incluye `ref` en la URL del enlace |
-| 4 | Bot de WhatsApp (n8n, paso 7 del plan) | Genera `ref` nuevo o reutiliza uno antiguo, arma el enlace |
-| 5 | `reanudar.mjs` | Lee el `ref`, marca que se actuó |
+| 1 | `crear-pago.mjs` | Genera la referencia (`ZC-AAMMDD-XXXXXXXX`) y guarda el pedido en Blobs |
+| 2 | `_pedidos.mjs` | Lee / escribe / marca en Blobs usando la referencia como clave |
+| 3 | `rescate.mjs` → `_correo.js` | Incluye la referencia en la URL del enlace de recuperación |
+| 4 | `reanudar.mjs` | Lee la referencia, revalida stock, marca `reanadadoEn` |
+
+**Una sola pieza acuña referencias: `crear-pago`.**
+
+Es a propósito, y es la razón por la que **el bot de WhatsApp no usa este
+endpoint**. Un `ref` solo existe cuando alguien llegó al final del checkout con
+todos sus datos y se fue sin pagar. Si el bot pudiera acuñar referencias:
+
+- Cada conversación dejaría un pedido en `esperando-pago`, y `rescatables()`
+  —que filtra exactamente por ese estado— sacaría al día siguiente una lista de
+  checkouts abandonados que nunca existieron.
+- El registro no se podría construir de todas formas: `leerCliente()` exige
+  nombre, apellido, documento, celular, correo, departamento, ciudad y
+  dirección, y el bot tiene un número de teléfono.
+
+El bot usa **`/armar-carrito`**, que no escribe nada y devuelve un enlace directo
+a `checkout.html?p=…`. Ver
+[`BOT-WHATSAPP-ARQUITECTURA.md`](BOT-WHATSAPP-ARQUITECTURA.md) § 3.
 
 **Casos especiales:**
 
-- **No reusar `ref` de un pedido ya pagado.** Una vez que `estado === 'pagado'`, ese pedido no vuelve a rescatarse.
-- **Un `ref` por intento de pago.** Wompi genera su propio ID de transacción, pero el nuestro marca qué se intentó cobrar y con qué inventario reservado.
+- **Una referencia pagada no se rescata.** Con `estado === 'pagado'` o
+  `'confirmado'`, `/reanudar` manda a `gracias.html` y no arma ningún cobro.
+- **Una referencia por intento de pago.** Wompi genera su propio ID de
+  transacción; el nuestro marca qué se intentó cobrar y con qué inventario
+  apartado.
 
 ---
 
-## 6 · Cómo lo usa el bot de WhatsApp (fase 7)
+## 6 · Quién llama a este endpoint, y quién no
 
-El bot corre en n8n y sigue este flujo:
+**Lo llama el correo de recuperación.** `rescate.mjs` corre cada mañana, arma la
+lista de checkouts abandonados y, para quien autorizó comunicaciones, manda un
+correo con `…/reanudar?ref=REFERENCIA`.
+
+**No lo llama el bot de WhatsApp.** El bot usa `/armar-carrito`, que no escribe
+nada y devuelve un enlace directo a `checkout.html?p=…`. Los dos caminos acaban
+en el mismo sitio —el checkout de siempre, con el carrito puesto por la URL— pero
+solo uno de ellos parte de un pedido que existe:
 
 ```
-Mensaje WhatsApp
-  ↓
-AI Agent (decide qué hacer)
-  ↓
-¿Clienta eligió piezas?
-  ├─ NO → Responde la pregunta, nada más
-  └─ SÍ ↓
-      Llama disponibilidad.mjs (verifica stock real)
-      ↓
-      Llama un nuevo endpoint "armar carrito" (genera ref + p=...)
-      ↓
-      Arma el enlace de reanudar
-      ↓
-      "Retoma aquí 👉 https://...reanudar?ref=XYZ"
-      ↓
-      Clienta toca el enlace
-      ↓
-      /reanudar?ref=XYZ redirige a /checkout.html?p=...
-      ↓
-      Checkout hace su trabajo (precio, firma, Wompi, todo)
+Checkout abandonado (existe registro)      Conversación de WhatsApp (no existe nada)
+  rescate.mjs → correo                       AI Agent → /armar-carrito
+       ↓                                          ↓
+  /reanudar?ref=ZC-…                          (no escribe, no acuña ref)
+       ↓ revalida stock                            ↓
+  /checkout.html?p=…&reanudar=…             /checkout.html?p=…&via=wa
+       ↓                                          ↓
+       └──────────── crear-pago: recalcula, aparta, firma, cobra ────────────┘
 ```
 
-**Reglas del bot que dependen de este endpoint:**
+**Las reglas que comparten los dos caminos:**
 
-1. **Nunca inventa existencia.** Llama a `disponibilidad.mjs`, recibe números de verdad.
-2. **Nunca inventa precio.** Llama a un endpoint que usa `_precios.js`, recibe lo que el servidor cobra.
-3. **Nunca manda un `ref` que ya está pagado.** Antes de armar el enlace, comprueba que `estado !== 'pagado'`.
-4. **Nunca promete que el carrito «sigue igual».** El mensaje dice claramente «retoma aquí» — no promete nada, deja que `/reanudar` lo compruebe.
+1. **Nunca se inventa existencia.** El número sale de `disponibilidad.mjs` o de
+   `disponibles()`, nunca del modelo ni de `stock.json` a secas.
+2. **Nunca se inventa precio.** Sale de `calcular()` en `_precios.js`, el mismo
+   con el que firma el cobro.
+3. **Nunca se promete que el carrito «sigue igual».** `/reanudar` lo comprueba
+   antes de decir nada; `/armar-carrito` lo comprueba al armarlo.
+4. **Ninguno de los dos cobra.** El cobro se decide en un solo sitio,
+   `crear-pago.mjs`.
 
 ---
 
@@ -297,14 +321,17 @@ Las pruebas llaman estas funciones directamente sin levantar Netlify ni tocar Bl
 
 ---
 
-## 11 · Un minuto antes de que el bot lo use
+## 11 · Antes de tocar esta pieza
 
-Checklist para el equipo que arme el bot en n8n:
-
-- [ ] Leer esta documentación completa
-- [ ] Entender que `/reanudar` NO llama a Wompi — eso es responsabilidad del checkout
-- [ ] Entender que `p=...` viaja en URL — no es sensible, es solo la selección
-- [ ] Probar un enlace a mano en local/staging antes de armar el nodo de WhatsApp
-- [ ] Recordar que el `ref` caduca a 7 días — no armar enlaces para hace dos semanas
-- [ ] Si las respuestas del bot llevan dinero, siempre de `_precios.js` o `disponibilidad.mjs`, nunca del modelo
+- [ ] `/reanudar` NO llama a Wompi — el cobro se decide solo en `crear-pago.mjs`
+- [ ] `p=...` viaja en la URL: no es sensible, es solo la selección de piezas
+- [ ] El escritor de `p=…` es **uno solo** (`_carrito.mjs`), compartido con
+      `armar-carrito`. Si se duplica, `pruebas/reanudar.js` § 3 deja de cubrir
+      las dos funciones y una puede separarse en silencio de lo que leen las
+      páginas
+- [ ] La referencia caduca a los 7 días (`DIAS_MAX`) — pasado eso manda a la
+      tienda con `?reanudar=vencido`
+- [ ] Un pedido ya pagado nunca vuelve a la pasarela: se comprueba **antes** que
+      cualquier otra cosa
+- [ ] Correr `./pruebas/correr.sh` antes de desplegar
 

@@ -363,4 +363,10 @@ export async function disponibles(skus) {
 }
 
 export { reservar, confirmar, liberar };
-export const _interno = { usarAlmacen, itemsDe, libre, existencias, sku, vacio, VIGENCIA_MS };
+/* `itemsDe` y `describir` los usa además `armar-carrito.mjs`, que necesita
+   comprobar disponibilidad sin reservar nada y contarlo con las mismas palabras
+   con las que se lo contaría el checkout: si el bot de WhatsApp dice «quedan 2»
+   donde el checkout diría «se agotó», la clienta ya vio dos verdades distintas
+   de la misma tienda. */
+export const _interno = { usarAlmacen, itemsDe, libre, existencias, sku, vacio,
+  describir, VIGENCIA_MS };
