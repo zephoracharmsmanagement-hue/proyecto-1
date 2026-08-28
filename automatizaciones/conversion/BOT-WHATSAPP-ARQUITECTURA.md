@@ -80,7 +80,7 @@ Mensaje a WhatsApp
 **Qué hace:** Escucha mensajes entrantes del número de WhatsApp Business verificado.
 
 **Configuración:**
-- **Credential:** WhatsApp Business Cloud (aún no existe, la traerá el propietario)
+- **Credential:** `WhatsApp Zephora (Trigger)`, tipo `whatsAppTriggerApi` (ver § 0)
 - **Evento:** `messages` (mensaje de texto entrante)
 - **Extrae:**
   - `messages[0].from` → número de clienta (ej: `573001234567`)
@@ -112,8 +112,8 @@ Así el bot recuerda la conversación por número de teléfono, sin mezclar clie
 
 | Campo | Valor | Notas |
 |---|---|---|
-| **Model** | `claude-3-5-sonnet-20241022` | O el modelo que el propietario elija. Debe tener tool use. |
-| **Session ID** | `{{ $node["WhatsApp Trigger"].json.messages[0].from }}` | Número de teléfono. Cada clienta = sesión distinta. |
+| **Model** | `claude-opus-5` | Puesto como id en el nodo. Ver § 0 para la alternativa más barata. |
+| **Session ID** | `messages[0].from` del trigger, vía `nodeJson()` | Número de teléfono. Cada clienta = sesión distinta. En un subnodo de memoria **no vale `$json`**: no comparte el predecesor del flujo principal. |
 | **System Prompt** | [Ver sección 2.2.1] | Incluye instrucciones de tono, guardrails, nunca inventar. |
 | **Tools** | [Ver sección 2.3] | Las 3 herramientas que llamará. |
 
@@ -152,7 +152,7 @@ TONO:
 
 ### 2.3 · Las herramientas que el Agent llama
 
-Tres herramientas HTTP que el Agent puede invocar automáticamente.
+Dos herramientas HTTP, las dos de **solo lectura**. Ninguna escribe, aparta ni cobra.
 
 #### 2.3.1 · Herramienta: Disponibilidad
 
@@ -171,7 +171,7 @@ pieza y gastar un turno en cada una.
 {
   "generado": "2026-08-28T14:02:11.004Z",
   "fuente": "conteo-menos-apartado",
-  "reglas": { "escalaCharms": [0, 0, 0.08, 0.15, 0.2], "envioGratisDesde": 180000, "…": "…" },
+  "reglas": { "escalaCharms": [0, 0, 0.08, 0.15, 0.25], "envioGratisDesde": 180000, "…": "…" },
   "aviso": "Disponibilidad referencial: conteo manual menos lo apartado por pagos en curso.",
   "piezas": [
     { "id": "letra-a", "nombre": "Letra A", "tipo": "charm", "precio": 76000,
