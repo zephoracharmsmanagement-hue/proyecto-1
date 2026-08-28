@@ -6,6 +6,50 @@ Sigue la **guía de mejores prácticas de n8n para chatbots** (verificada contra
 
 ---
 
+## 0 · El workflow ya existe — qué falta para encenderlo
+
+**Construido el 2026-08-28**: `Zephora · Asesora de WhatsApp`, id **`74TjEtDnn940jh9k`**,
+en el proyecto personal de n8n. **Sin publicar**, y no se publica hasta tener lo de
+abajo y correr el banco de conversaciones (§ 8).
+
+### Las tres credenciales, en n8n → Credentials → Add
+
+Son tres, no dos: **WhatsApp necesita dos credenciales distintas** porque el nodo
+que escucha y el que responde autentican de forma diferente.
+
+| # | Nombre exacto | Tipo en n8n | Qué lleva | De dónde sale |
+|---|---|---|---|---|
+| 1 | `WhatsApp Zephora (Trigger)` | **WhatsApp Trigger API** (`whatsAppTriggerApi`) | Client ID y Client Secret | Meta for Developers → tu app → Configuración → Básica |
+| 2 | `WhatsApp Zephora (Envío)` | **WhatsApp API** (`whatsAppApi`) | Access token permanente | Meta → tu app → WhatsApp → Configuración de la API |
+| 3 | `Anthropic Zephora` | **Anthropic API** (`anthropicApi`) | API key | console.anthropic.com → API Keys |
+
+> **El trigger NO lleva «verify token».** n8n registra la suscripción del webhook
+> al activar el workflow y verifica el reto de Meta contra el id del propio nodo.
+> Si Meta pide un verify token a mano, es ese id — nunca una cadena inventada.
+
+### Y un dato que no es una credencial
+
+El nodo **Responder por WhatsApp** tiene un `placeholder` en **Phone Number ID**.
+Es el identificador interno del número, no el `+57 301 899 0672`: sale de
+**WhatsApp Manager → Números de teléfono**, en la fila del número.
+
+### Al activar, comprobar la coexistencia
+
+Activar el workflow apunta el webhook de Meta a n8n. **Justo después, mandar un
+WhatsApp al número desde otro teléfono y confirmar que sigue llegando a la app
+de WhatsApp Business además de al bot.** Si dejara de llegar, el canal manual
+—que es como esta tienda cierra las ventas hoy— se habría apagado sin dar
+ningún error.
+
+### El modelo
+
+`claude-opus-5`, puesto como id en el nodo de Claude. Es el más capaz; si el
+volumen de conversación hace que el coste pese, `claude-sonnet-5` es la
+alternativa —cuesta bastante menos por token— y esa decisión es del propietario,
+no del código. Se cambia en un campo del nodo, sin tocar nada más.
+
+---
+
 ## 1 · Visión general del flujo
 
 ```
