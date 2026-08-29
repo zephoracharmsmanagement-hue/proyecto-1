@@ -122,18 +122,29 @@ button{font-family:inherit}
 @media(min-width:700px){.btn--big{width:auto}}
 
 /* 1 · hero
-   En móvil el titular y el botón de WhatsApp van primero y la foto debajo, acotada:
-   la foto es 502x900 y ella sola empujaba el <h1> a y=884px, o sea fuera de la
-   primera pantalla de un iPhone. Quien llega de la pauta ve la promesa y el CTA sin scroll. */
+   En móvil el orden es: titular, subtítulo e insignias · foto · botones. Los
+   tres bloques del hero-in son justo eso, y por eso son tres y no dos.
+
+   La foto estaba antes DEBAJO de los botones, y no por descuido: puesta arriba
+   del todo empujaba el <h1> a y=884px, fuera de la primera pantalla de un
+   iPhone. Ponerla en medio conserva esa razón —el titular sigue siendo lo
+   primero— y arregla lo otro que pasaba: con la foto al final, en un teléfono
+   de 390px la primera pantalla no tenía ni una joya.
+
+   Lo que hace que las dos cosas quepan es el 22dvh. Con el 46dvh de antes la
+   foto empuja el botón por debajo del dock de compra, que es fijo y se come los
+   últimos ~56px. El margen es más estrecho de lo que parece: el caso apretado
+   es el Android de 360x800, no el iPhone. Al tocar este número, mirar
+   `node pruebas/regresion.js`, que imprime dónde cae el CTA en los tres
+   tamaños. */
 .hero{padding:22px 0 34px}
 .hero-in{display:grid;gap:22px}
-/* El encuadre baja al 72%: la foto trae quemado "La pulsera que todas quieren /
-   Personalízala con tus charms favoritos" en su tercio superior, que repite en otras
-   palabras la promesa del <h1>. Recortándolo, la foto muestra la pulsera y punto. */
-/* 30% en vez del 72% de antes: aquel valor existía para esquivar el texto
-   quemado de la foto anterior. Sin texto, lo que hay que dejar dentro es la
-   pulsera, que vive en el tercio de arriba. */
-.hero-img img{width:100%;max-height:46dvh;object-fit:cover;object-position:center 30%;border-radius:3px}
+/* El gap de la rejilla ya separa los tres bloques; el margen del último hijo
+   del texto se sumaría a él. */
+.hero-txt>:last-child{margin-bottom:0}
+/* Encuadre al 30%: ahí vive la pulsera. El 72% de antes existía para esquivar
+   el titular quemado que traía la foto anterior; esa foto ya no está. */
+.hero-img img{width:100%;max-height:22dvh;object-fit:cover;object-position:center 30%;border-radius:3px}
 .hero h1{font-size:clamp(34px,8.8vw,64px);line-height:1.06;margin:10px 0 14px}
 .hero h1 i{font-style:italic;color:var(--plum)}
 .hero-sub{max-width:48ch;color:#584a5c;margin:0 0 14px;font-size:16.5px}
@@ -731,8 +742,15 @@ body.sheet-open{overflow:hidden}
   .tnav{display:flex}
   .grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:16px}
   .hero{padding:52px 0}
-  .hero-in{grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
-  .hero-img{order:2}
+  /* En dos columnas vuelve a haber una sola columna de texto con la foto al
+     lado. Las filas 1fr de arriba y abajo son las que centran el texto contra
+     la foto: sin ellas, el sobrante lo reparten las filas del texto y separan
+     el titular de los botones. */
+  .hero-in{grid-template-columns:1.05fr .95fr;column-gap:56px;row-gap:0;
+    grid-template-rows:1fr auto auto 1fr}
+  .hero-txt{grid-column:1;grid-row:2}
+  .hero-acc{grid-column:1;grid-row:3;margin-top:22px}
+  .hero-img{grid-column:2;grid-row:1/-1;align-self:center}
   .bens-in{grid-template-columns:repeat(3,1fr);gap:0 26px;padding:6px 24px}
   .ben+.ben{border-top:0}
   .ben:nth-child(n+4){border-top:1px solid var(--line)}
@@ -813,11 +831,24 @@ body.sheet-open{overflow:hidden}
 <!-- 1 · HERO -->
 <section class="hero wrap">
   <div class="hero-in">
-    <div>
+    <div class="hero-txt">
       <span class="eyebrow">Joyería con significado · Colombia</span>
       <h1>Diseña una historia<br><i>tan única como tú</i></h1>
       <p class="hero-sub">Joyería personalizada con charms elaborados en Plata Esterlina 925 verificada y brazaletes con acabado de alta calidad en baño de plata, compatibles con Pandora.</p>
       <p class="hero-badges"><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="dot">·</span><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span><span class="hero-badge-n">+2.400 pulseras creadas</span></p>
+    </div>
+
+    <!-- La foto del hero es un recorte limpio de assets/ads/pulsera-mano-ventana.jpg.
+         Antes iba el creativo entero, y traía su propio titular quemado —«La
+         pulsera que todas quieren»—: el recorte del navegador lo partía a
+         media frase y dejaba un segundo titular huérfano al lado del h1 de
+         verdad. Sin texto encima, manda el h1. Y de paso el recorte sale de la
+         versión de 714 px en vez de la de 502, así que llega más nítida. -->
+    <div class="hero-img">
+      <img src="assets/hero-pulsera-armada-en-la-mano.webp" alt="Pulsera Zephora en plata 925 armada con charms de mariposa, osito y murano, puesta en la muñeca de una clienta" width="714" height="766" fetchpriority="high" decoding="async">
+    </div>
+
+    <div class="hero-acc">
       <!-- El botón grande arma y compra en el sitio; WhatsApp queda como
            asesoría, no como vía de compra. Antes era al revés y el CTA
            principal sacaba a la clienta de la página hacia una conversación
@@ -827,15 +858,6 @@ body.sheet-open{overflow:hidden}
         <a class="btn btn--ghost" data-wa="hero" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20web%20y%20quiero%20dise%C3%B1ar%20mi%20pulsera%20personalizada.%20%C2%BFMe%20pueden%20asesorar%20con%20los%20charms%20y%20la%20talla%3F">💬 Asesoría por WhatsApp</a>
       </div>
       <p class="hero-hint">El precio se calcula solo mientras eliges, con la promo ya incluida. Pagas aquí mismo con Nequi, PSE, Bancolombia o tarjeta.</p>
-    </div>
-    <!-- La foto del hero es un recorte limpio de assets/ads/pulsera-mano-ventana.jpg.
-         Antes iba el creativo entero, y traía su propio titular quemado —«La
-         pulsera que todas quieren»—: el recorte del navegador lo partía a
-         media frase y dejaba un segundo titular huérfano al lado del h1 de
-         verdad. Sin texto encima, manda el h1. Y de paso el recorte sale de la
-         versión de 714 px en vez de la de 502, así que llega más nítida. -->
-    <div class="hero-img">
-      <img src="assets/hero-pulsera-armada-en-la-mano.webp" alt="Pulsera Zephora en plata 925 armada con charms de mariposa, osito y murano, puesta en la muñeca de una clienta" width="714" height="766" fetchpriority="high" decoding="async">
     </div>
   </div>
 </section>

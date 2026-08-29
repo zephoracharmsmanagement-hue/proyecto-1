@@ -168,12 +168,33 @@ encuadre pasó a `center 30%`, que es donde vive la pulsera.
 > `Armada-9x16` del proyecto de video (§ 5d), que existe precisamente para
 > aprovechar el titular quemado en un Reel, que es donde sí funciona.
 
-Queda una observación aparte, que **no es del archivo sino del layout**: en un
-teléfono de 390 px la foto arranca por debajo del pliegue —antes van h1,
-subtítulo, insignias, dos botones y la nota de precio—, así que en la primera
-pantalla la clienta no ve ninguna joya. Subirla por encima de los botones en
-móvil es un cambio de estructura del hero, no de imagen; se deja anotado sin
-tocar.
+**Y en la misma pasada se subió la foto por encima de los botones en móvil.**
+Antes iba al final del hero y en un teléfono de 390 px arrancaba por debajo del
+pliegue: la primera pantalla no tenía ni una joya. Ahora el orden en móvil es
+**titular, subtítulo e insignias · foto · botones**, y el hero entero cabe sobre
+el pliegue en los tres tamaños que mide `pruebas/regresion.js`.
+
+Para eso `.hero-in` pasó a tener **tres bloques** —`.hero-txt`, `.hero-img`,
+`.hero-acc`— en vez de dos. En escritorio la rejilla los recompone: texto y
+botones en la columna 1, filas 2 y 3; la foto en la columna 2 abarcando de la
+1 a la última. Las filas `1fr` de los extremos son las que centran el texto
+contra la foto — sin ellas el sobrante lo reparten las filas del texto y separa
+el titular de los botones. El resultado en escritorio es idéntico al de antes,
+píxel a píxel.
+
+> **El número delicado es el `max-height` de la foto en móvil: 22dvh.** No es
+> estético, es lo que hace que quepan las dos cosas. Con el 46dvh que tenía, el
+> botón «Armar mi pulsera» queda por debajo del dock de compra, que es fijo y se
+> come los últimos ~56 px. Y el caso apretado **no es el iPhone: es el Android
+> de 360×800**, donde el subtítulo ocupa cuatro renglones y el pliegue está más
+> arriba — ahí sobran 14 px. Al tocar ese valor, correr
+> `node pruebas/regresion.js`, que imprime dónde cae el CTA en los tres
+> tamaños.
+
+> Aparte, y **de antes de este cambio**: a exactamente 700 px de ancho —el
+> primer píxel de la vista de escritorio— el menú del encabezado se parte en dos
+> líneas y la página desborda a lo ancho. Se comprobó contra la versión anterior
+> y sale igual, así que no lo trajo este cambio. Sin arreglar.
 
 ### 2 · Domicilio
 
