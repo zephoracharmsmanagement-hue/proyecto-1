@@ -144,6 +144,37 @@ se dejó de vender nada.
 > cosa que un duplicado esconde — dos precios para la misma pieza, y la clienta
 > comprando por el que encuentre primero.
 
+### 1b · La foto del hero — cambiada
+
+La que estaba (`pulsera-zephora-armada-con-charms-en-plata-925.webp`) **no era
+una foto de producto: era un creativo de anuncio terminado**, con su propio
+titular quemado —«La pulsera que todas quieren / Personalízala con tus charms
+favoritos»— y el logo abajo a la derecha.
+
+Puesta en el hero, el `object-fit:cover` del navegador la partía por la mitad:
+en escritorio se leía solo «Personalízala con tus charms favoritos», un
+**segundo titular huérfano** al lado del h1 de verdad; en móvil el encuadre
+estaba en `center 72%` justo para esquivar el texto, así que se veía una franja
+sin contexto. Casi la mitad del archivo eran píxeles de texto que se
+descargaban para tirarse.
+
+Ahora va `assets/hero-pulsera-armada-en-la-mano.webp`: el mismo momento
+fotográfico, recortado por encima del titular y por debajo del logo, sacado de
+`assets/ads/pulsera-mano-ventana.jpg`, que es **la misma toma a 714×1280** en
+vez de los 502×900 de la que había. Sale más nítida y sin texto encima. El
+encuadre pasó a `center 30%`, que es donde vive la pulsera.
+
+> **La foto vieja no se borró y no hay que borrarla.** La usa la composición
+> `Armada-9x16` del proyecto de video (§ 5d), que existe precisamente para
+> aprovechar el titular quemado en un Reel, que es donde sí funciona.
+
+Queda una observación aparte, que **no es del archivo sino del layout**: en un
+teléfono de 390 px la foto arranca por debajo del pliegue —antes van h1,
+subtítulo, insignias, dos botones y la nota de precio—, así que en la primera
+pantalla la clienta no ve ninguna joya. Subirla por encima de los botones en
+móvil es un cambio de estructura del hero, no de imagen; se deja anotado sin
+tocar.
+
 ### 2 · Domicilio
 
 No se publica, por decisión del propietario. Queda anotado que el **artículo 50 de

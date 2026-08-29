@@ -130,7 +130,10 @@ button{font-family:inherit}
 /* El encuadre baja al 72%: la foto trae quemado "La pulsera que todas quieren /
    Personalízala con tus charms favoritos" en su tercio superior, que repite en otras
    palabras la promesa del <h1>. Recortándolo, la foto muestra la pulsera y punto. */
-.hero-img img{width:100%;max-height:46dvh;object-fit:cover;object-position:center 72%;border-radius:3px}
+/* 30% en vez del 72% de antes: aquel valor existía para esquivar el texto
+   quemado de la foto anterior. Sin texto, lo que hay que dejar dentro es la
+   pulsera, que vive en el tercio de arriba. */
+.hero-img img{width:100%;max-height:46dvh;object-fit:cover;object-position:center 30%;border-radius:3px}
 .hero h1{font-size:clamp(34px,8.8vw,64px);line-height:1.06;margin:10px 0 14px}
 .hero h1 i{font-style:italic;color:var(--plum)}
 .hero-sub{max-width:48ch;color:#584a5c;margin:0 0 14px;font-size:16.5px}
@@ -825,8 +828,14 @@ body.sheet-open{overflow:hidden}
       </div>
       <p class="hero-hint">El precio se calcula solo mientras eliges, con la promo ya incluida. Pagas aquí mismo con Nequi, PSE, Bancolombia o tarjeta.</p>
     </div>
+    <!-- La foto del hero es un recorte limpio de assets/ads/pulsera-mano-ventana.jpg.
+         Antes iba el creativo entero, y traía su propio titular quemado —«La
+         pulsera que todas quieren»—: el recorte del navegador lo partía a
+         media frase y dejaba un segundo titular huérfano al lado del h1 de
+         verdad. Sin texto encima, manda el h1. Y de paso el recorte sale de la
+         versión de 714 px en vez de la de 502, así que llega más nítida. -->
     <div class="hero-img">
-      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp" alt="Pulsera Zephora armada con charms en plata 925" width="502" height="900" fetchpriority="high" decoding="async">
+      <img src="assets/hero-pulsera-armada-en-la-mano.webp" alt="Pulsera Zephora en plata 925 armada con charms de mariposa, osito y murano, puesta en la muñeca de una clienta" width="714" height="766" fetchpriority="high" decoding="async">
     </div>
   </div>
 </section>
