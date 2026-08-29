@@ -306,9 +306,9 @@
   "capitan-america": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 0,
+   "stock": 1,
    "familia": "pasador",
-   "nota": "Vendido 2026-08-29 Wompi"
+   "nota": "1 vendido históricamente; 1 disponible"
   },
   "wolverine": {
    "tipo": "charm",
