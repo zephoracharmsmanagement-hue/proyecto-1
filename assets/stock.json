@@ -1,5 +1,5 @@
 {
- "generado": "2026-08-16",
+ "generado": "2026-08-29",
  "conteo_inventario": "2026-08-01",
  "items": {
   "letra-a": {
@@ -239,8 +239,9 @@
   "gato-cheshire": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 3,
-   "familia": "pasador"
+   "stock": 2,
+   "familia": "pasador",
+   "nota": "1 vendido 2026-08-29 Wompi"
   },
   "buzz-lightyear": {
    "tipo": "charm",
@@ -305,8 +306,9 @@
   "capitan-america": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 1,
-   "familia": "pasador"
+   "stock": 0,
+   "familia": "pasador",
+   "nota": "Vendido 2026-08-29 Wompi"
   },
   "wolverine": {
    "tipo": "charm",
@@ -329,8 +331,9 @@
   "cadena-seguridad-hamsa-y-ojo": {
    "tipo": "charm",
    "precio": 65000,
-   "stock": 2,
-   "familia": "cadena"
+   "stock": 1,
+   "familia": "cadena",
+   "nota": "Vendida 2026-08-29 orgánico"
   },
   "cadena-seguridad-luna-y-sol": {
    "tipo": "charm",
@@ -479,8 +482,9 @@
   "atrapasuenos-corazon-multicolor": {
    "tipo": "charm",
    "precio": 72000,
-   "stock": 5,
-   "familia": "pasador"
+   "stock": 4,
+   "familia": "pasador",
+   "nota": "Vendido 2026-08-29 orgánico"
   },
   "pulpo-azul-cristal": {
    "tipo": "charm",
@@ -521,8 +525,9 @@
   "angel-guardian": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 2,
-   "familia": "colgante"
+   "stock": 1,
+   "familia": "colgante",
+   "nota": "Vendido 2026-08-29 Wompi"
   },
   "pulsera-copo-de-nieve": {
    "tipo": "pulsera",
@@ -602,10 +607,11 @@
    "precio": 58000,
    "tallas": {
     "17": 2,
-    "18": 2,
+    "18": 1,
     "19": 2,
     "20": 2
-   }
+   },
+   "nota": "1 talla 18 vendida 2026-08-29 Wompi"
   },
   "pulsera-clasica-cierre-barril": {
    "tipo": "pulsera",
@@ -637,7 +643,8 @@
   "pulsera-avengers": {
    "tipo": "pulsera",
    "precio": 58000,
-   "tallas": {}
+   "tallas": {},
+   "nota": "Vendida 2026-08-29 contraentrega"
   },
   "pulsera-mono-rosa-con-cadena": {
    "tipo": "pulsera",
