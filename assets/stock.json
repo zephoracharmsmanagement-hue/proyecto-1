@@ -239,9 +239,8 @@
   "gato-cheshire": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 2,
-   "familia": "pasador",
-   "nota": "1 vendido 2026-08-29 Wompi"
+   "stock": 3,
+   "familia": "pasador"
   },
   "buzz-lightyear": {
    "tipo": "charm",
