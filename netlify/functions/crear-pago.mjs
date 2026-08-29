@@ -17,7 +17,7 @@
 import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
   PedidoInvalido, SinInventario } from './_precios.js';
-import { reservar, confirmar, liberar } from './_inventario.mjs';
+import { reservar, liberar, VIGENCIA_CONTRAENTREGA_MS } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
@@ -243,7 +243,12 @@ export default async (req) => {
    * la venta sigue: la reserva es una red de seguridad, no un peaje. */
   let reserva;
   try {
-    reserva = await reservar(ref, pedido);
+    /* Contraentrega no pasa por pasarela: nadie va a avisar que pagó, y la
+       confirmación ocurre por WhatsApp con una persona respondiendo. Por eso su
+       reserva dura horas y no media hora — pero sigue siendo una reserva, que
+       caduca sola si el pedido no se concreta. Ver VIGENCIA_CONTRAENTREGA_MS. */
+    reserva = await reservar(ref, pedido,
+      pedido.pago === 'contraentrega' ? VIGENCIA_CONTRAENTREGA_MS : undefined);
   } catch (e) {
     if (e instanceof SinInventario) return responder(409, { error: e.message, agotado: true });
     throw e;
@@ -278,7 +283,11 @@ export default async (req) => {
   /* El pedido entero, guardado aparte del correo. Si Resend falla o el correo
      se pierde, esto sigue diciendo qué despachar y a dónde. */
   const registro = await guardar(ref, {
-    estado: pedido.pago === 'contraentrega' ? 'confirmado' : 'esperando-pago',
+    /* Contraentrega ya no nace `confirmado`: nadie lo ha confirmado todavía.
+       Pasa a `despachado` cuando la clienta dice que sí por WhatsApp y sale el
+       paquete —`pedido-cerrar.mjs`—, que es el mismo momento en que se
+       confirma la reserva de inventario. */
+    estado: pedido.pago === 'contraentrega' ? 'por-confirmar' : 'esperando-pago',
     pago: pedido.pago, lineas, cuentas, cliente,
   });
   if (!registro.ok) {
@@ -338,19 +347,33 @@ export default async (req) => {
   if (pedido.pago === 'contraentrega') {
     /* Nada que firmar: se paga al mensajero. El pedido queda registrado y la
        confirmación de existencias sigue haciéndose por WhatsApp, como hoy.
-       La reserva se confirma ya: no hay pasarela de la que esperar un aviso, y
-       dejarla caducando media hora liberaría unidades de un pedido en firme. */
-    const cierre = await confirmar(ref);
+     *
+     * Aquí NO se confirma la reserva, y eso es lo importante. Antes sí se
+     * hacía —`confirmar(ref)` en esta misma línea— con el argumento de que sin
+     * pasarela no hay aviso que esperar. El argumento era cierto y la
+     * conclusión estaba mal: nadie ha pagado ni ha dicho que sí, así que un
+     * contraentrega recién hecho es una intención, no una venta. Dando por
+     * vendido lo que solo estaba pedido, cada prueba del checkout en
+     * producción y cada pedido que la clienta no confirmó se llevó unidades
+     * para siempre —se descubrió el 2026-08-29 cuadrando la hoja: Letra E ×2,
+     * Atrapasueños Azul, Guantelete—, y un descuento permanente no se deshace
+     * solo.
+     *
+     * La reserva larga cubre las dos direcciones del error: mientras vive, esas
+     * unidades no se le pueden vender a nadie más —`libre()` resta las
+     * reservas igual que lo vendido—, y si el pedido no se concreta caduca y
+     * vuelven al mostrador sin que nadie tenga que acordarse. Confirmarla es un
+     * paso explícito al despachar: `pedido-cerrar.mjs`. */
 
-    /* A la hoja de inventario. Contraentrega es la única venta que se cierra
-       aquí: el pago en línea la anota `wompi-webhook` al aprobarse, porque hasta
-       ese momento no ha salido nada del inventario. `quedan` sale del propio CAS
-       que acaba de confirmar, así que es el número cierto y no una resta de la
-       hoja. Nunca se espera a que esto salga bien para responder. */
+    /* A la hoja de inventario, como PENDIENTE. El pago en línea lo anota
+       `wompi-webhook` al aprobarse, ya como vendido. `quedan` sale del propio
+       CAS de la reserva, así que es el número cierto —con estas unidades ya
+       descontadas— y no una resta de la hoja. Nunca se espera a que esto salga
+       bien para responder. */
     await anotarVenta({
       referencia: ref, pago: 'contraentrega', cuando: new Date().toISOString(),
-      ciudad: `${cliente.ciudad}, ${cliente.depto}`,
-      total: cuentas.total, lineas, restante: cierre.restante,
+      ciudad: `${cliente.ciudad}, ${cliente.depto}`, estado: 'pendiente',
+      total: cuentas.total, lineas, restante: reserva.restante,
     });
 
     /* El Purchase de contraentrega sale de aquí y no del webhook, porque para

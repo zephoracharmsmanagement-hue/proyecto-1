@@ -1,4 +1,9 @@
-/* La hoja de inventario: un aviso por cada venta cobrada.
+/* La hoja de inventario: un aviso por cada movimiento de inventario.
+ *
+ * Dos estados, y la diferencia importa: `vendido` es plata cobrada (Wompi
+ * aprobado) o un contraentrega ya despachado; `pendiente` es un contraentrega
+ * recién hecho, con las unidades apartadas pero sin confirmar por WhatsApp. Un
+ * pendiente puede volver atrás; un vendido no. Mezclarlos infla la reposición.
  *
  * ── Qué problema resuelve ──
  *
@@ -50,7 +55,7 @@ const TIMEOUT_MS = 4000;
    de tres charms son tres movimientos, cada uno con su pieza, su talla y lo que
    queda de ella. Agrupar por pedido obligaría a leer una celda con una lista
    dentro, que en una hoja de cálculo no se puede filtrar ni sumar. */
-function movimientos({ referencia, pago, cuando, ciudad, lineas, restante }) {
+function movimientos({ referencia, pago, cuando, ciudad, lineas, restante, estado }) {
   const resto = restante || {};
   return (lineas || []).map(l => {
     const sku = l.talla ? `${l.id}|${l.talla}` : l.id;
@@ -58,6 +63,11 @@ function movimientos({ referencia, pago, cuando, ciudad, lineas, restante }) {
     return {
       referencia,
       cuando,
+      /* `pendiente` es un contraentrega que todavía nadie confirmó: las
+         unidades están apartadas, no vendidas, y si el pedido se cae vuelven
+         solas. Sin esta columna la hoja mezcla intención con venta, y las
+         recomendaciones de reposición salen de un número inflado. */
+      estado: estado || 'vendido',
       pieza: l.nombre,
       id: l.id,
       talla: l.talla || '',
@@ -84,6 +94,7 @@ async function anotarVenta(venta) {
     referencia: venta.referencia,
     cuando: venta.cuando,
     pago: venta.pago,
+    estado: venta.estado || 'vendido',
     total: venta.total,
     movimientos: filas,
   };

@@ -309,6 +309,82 @@ async function main() {
 
   inventario._interno.usarAlmacen(null);
 
+  console.log('\n5b · Contraentrega aparta, no vende');
+
+  /* La regresión del 2026-08-29. Contraentrega se daba por vendido al crear el
+     pedido: nadie había pagado ni confirmado nada, pero las unidades salían del
+     inventario para siempre. Las pruebas del checkout en producción y los
+     pedidos que la clienta nunca confirmó se llevaron Letra E ×2, Atrapasueños
+     Azul y el Guantelete, y solo se vio semanas después cuadrando la hoja a
+     mano. Lo que sigue es lo que tendría que haber fallado entonces. */
+  {
+    const pieza = UNICA[0];
+    const stock = inventario._interno.existencias(pieza);
+
+    const almacen = almacenFalso();
+    inventario._interno.usarAlmacen(almacen);
+    const larga = inventario._interno.VIGENCIA_CONTRAENTREGA_MS;
+    const r = await inventario.reservar('ZC-CE', pedidoDe([pieza]), larga);
+
+    comprobar(r.modo === 'reservado', 'un contraentrega aparta las unidades', r.modo);
+
+    /* Lo esencial, y leído del estado que de verdad quedó escrito: apartado no
+       es vendido. La reserva se puede deshacer; `vendido` no —solo vuelve a
+       cero al reponer, y para entonces ya deformó el inventario semanas—. */
+    const guardado = almacen._estado();
+    comprobar(Boolean(guardado.reservas['ZC-CE']),
+      'queda como reserva, con su referencia');
+    comprobar(Object.keys(guardado.vendido).length === 0,
+      'y `vendido` sigue vacío: un pedido sin confirmar se puede deshacer',
+      JSON.stringify(guardado.vendido));
+    comprobar(guardado.reservas['ZC-CE'].vence > Date.now() + inventario._interno.VIGENCIA_MS,
+      'con la vigencia larga escrita en el propio blob, no la de un pago en línea');
+
+    comprobar(r.restante && typeof r.restante[pieza] === 'number',
+      'la reserva devuelve lo que queda, para que la hoja no reste por su cuenta',
+      r.restante && String(r.restante[pieza]));
+    comprobar(r.restante[pieza] === stock - 1,
+      'y ese número ya descuenta lo que se acaba de apartar');
+
+    /* La vigencia larga es lo que hace viable no confirmar: tiene que cubrir el
+       ida y vuelta por WhatsApp incluyendo un fin de semana. Media hora —la de
+       un pago en línea— liberaría el pedido antes de poder confirmarlo. */
+    comprobar(larga >= 24 * 60 * 60 * 1000,
+      'la reserva de contraentrega dura lo que tarda una confirmación por WhatsApp',
+      `${larga / 3600000} h`);
+    comprobar(larga > inventario._interno.VIGENCIA_MS,
+      'y bastante más que la de un pago en línea');
+
+    inventario._interno.usarAlmacen(null);
+  }
+
+  {
+    /* Y caduca sola. Ésta es la mitad que arregla el error original: si el
+       pedido no se concreta, las unidades vuelven al mostrador sin que nadie
+       tenga que acordarse de nada. Se prueba de punta a punta —una reserva
+       vencida y otra clienta pidiendo la misma pieza— porque el que la reserva
+       desaparezca del blob no sirve de nada si la venta siguiente igual se
+       rechaza. */
+    const pieza = UNICA[0];
+    const vencida = almacenFalso();
+    await vencida.setJSON('estado', {
+      v: 1, base: (INV && INV.generado) || '', vendido: {},
+      reservas: { 'ZC-NUNCA-CONFIRMADO': { items: { [pieza]: 1 }, vence: Date.now() - 1000 } },
+    }, { onlyIfNew: true });
+    inventario._interno.usarAlmacen(vencida);
+
+    let r = null;
+    try { r = await inventario.reservar('ZC-OTRA', pedidoDe([pieza])); }
+    catch (e) { void e; }
+    comprobar(r !== null && r.modo === 'reservado',
+      'un contraentrega que nadie confirmó caduca y la pieza se vuelve a vender',
+      r ? r.modo : 'SinInventario');
+    comprobar(!vencida._estado().reservas['ZC-NUNCA-CONFIRMADO'],
+      'y la reserva muerta se barre del estado al pasar por él');
+
+    inventario._interno.usarAlmacen(null);
+  }
+
   console.log('\n6 · Las funciones tienen que ser v2');
 
   /* Esta sección existe porque el fallo ya ocurrió y ninguna prueba lo vio.

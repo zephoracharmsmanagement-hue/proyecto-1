@@ -89,6 +89,31 @@ const CLAVE = 'estado';
    inventario congelado media tarde porque alguien abandonó el checkout. */
 const VIGENCIA_MS = 30 * 60 * 1000;
 
+/* Cuánto vale un pedido contraentrega sin confirmar.
+ *
+ * Contraentrega no tiene pasarela que avise: nadie paga nada al hacer el
+ * pedido, y la confirmación de verdad ocurre por WhatsApp, con una persona
+ * respondiendo. Hasta ese momento el pedido es una intención, no una venta.
+ *
+ * Antes esto se daba por vendido al instante (`confirmar()` en crear-pago), y
+ * el efecto fue el que se descubrió el 2026-08-29 al cuadrar la hoja: las
+ * pruebas del checkout en producción y los pedidos que la clienta nunca
+ * confirmó se llevaron unidades para siempre —Letra E ×2, Atrapasueños Azul,
+ * Guantelete— sin que nada quedara mal a la vista. Un descuento permanente por
+ * un pedido que nadie confirmó no tiene forma de deshacerse solo.
+ *
+ * Ahora se queda como reserva larga: las unidades siguen sin poder venderse a
+ * otra persona —`libre()` ya resta las reservas—, pero si nadie la confirma
+ * caduca sola y vuelven al mostrador. Confirmarla es un paso explícito, al
+ * despachar (ver `pedido-cerrar.mjs`).
+ *
+ * La ventana tiene que cubrir el ida y vuelta por WhatsApp incluyendo un fin de
+ * semana; 72 horas lo hace con holgura. Se puede ajustar sin tocar código. */
+const VIGENCIA_CONTRAENTREGA_MS = (() => {
+  const horas = Number(process.env.CONTRAENTREGA_HORAS);
+  return (Number.isFinite(horas) && horas > 0 ? horas : 72) * 60 * 60 * 1000;
+})();
+
 /* Reintentos del compare-and-swap. Cada choque significa que otro pedido
    escribió primero; seis sobran para cualquier volumen que esta tienda vaya a
    ver, y si no convergen es que pasa algo raro y se deja pasar la venta. */
@@ -200,6 +225,26 @@ function libre(estado, s, salvo) {
   return existencias(s) - tomado;
 }
 
+/* Cuántas quedan libres de cada pieza que acaba de moverse.
+ *
+ * Se llama siempre desde dentro de un CAS, sobre el estado ya mutado, porque es
+ * el único punto del programa donde el número es cierto: leerlo después sería
+ * otra lectura, con otras ventas de por medio. Lo consume la hoja de
+ * inventario, para que muestre el dato de la fuente de verdad en vez de restar
+ * por su cuenta —una hoja que hace su propia cuenta acaba siendo un segundo
+ * inventario que discrepa del que decide las ventas—.
+ *
+ * `Infinity` (pieza sin conteo declarado) viaja como null: no es que queden
+ * cero, es que no se lleva la cuenta, y un 0 ahí haría pensar que se agotó. */
+function restanteDe(estado, items) {
+  const restante = {};
+  Object.keys(items).forEach(s => {
+    const n = libre(estado, s);
+    restante[s] = Number.isFinite(n) ? n : null;
+  });
+  return restante;
+}
+
 function describir(s, hay, piden) {
   const [id, talla] = partir(s);
   const nombre = nombres[id] || id;
@@ -270,8 +315,9 @@ async function transaccion(mutar, etiqueta) {
 /* Aparta las unidades de un pedido. Lanza SinInventario si no alcanzan —el
    mismo error que ya sabe manejar crear-pago.js, para que el checkout siga
    diciéndole a la clienta qué ajustar. */
-async function reservar(referencia, pedido) {
+async function reservar(referencia, pedido, vigenciaMs) {
   const piden = itemsDe(pedido);
+  const vigencia = Number.isFinite(vigenciaMs) && vigenciaMs > 0 ? vigenciaMs : VIGENCIA_MS;
   return transaccion(estado => {
     const faltan = [];
     Object.entries(piden).forEach(([s, n]) => {
@@ -283,8 +329,12 @@ async function reservar(referencia, pedido) {
         'Se agotó algo de tu selección mientras la armabas: ' + faltan.join('; ')
         + '. Ajusta tu pulsera o escríbenos y lo conseguimos por encargo.');
     }
-    estado.reservas[referencia] = { items: piden, vence: Date.now() + VIGENCIA_MS };
-    return { ok: true, modo: 'reservado', items: piden };
+    estado.reservas[referencia] = { items: piden, vence: Date.now() + vigencia };
+    /* Igual que en `confirmar()`: lo que queda libre se calcula aquí dentro,
+       sobre el estado ya mutado, porque es el único punto donde el número es
+       cierto. Lo necesita la hoja para anotar un contraentrega pendiente sin
+       tener que restar por su cuenta. */
+    return { ok: true, modo: 'reservado', items: piden, restante: restanteDe(estado, piden) };
   }, 'reservar');
 }
 
@@ -299,23 +349,7 @@ async function confirmar(referencia) {
       estado.vendido[s] = (estado.vendido[s] || 0) + n;
     });
     delete estado.reservas[referencia];
-    /* Cuántas quedan libres de cada pieza que acaba de salir.
-     *
-     * Se calcula aquí dentro, sobre el estado ya mutado y dentro del mismo CAS,
-     * porque es el único punto del programa donde el número es cierto: leerlo
-     * después sería otra lectura, con otras ventas de por medio. Lo consume la
-     * hoja de inventario, para que muestre el dato de la fuente de verdad en vez
-     * de restar por su cuenta —una hoja que hace su propia cuenta acaba siendo
-     * un segundo inventario que discrepa del que decide las ventas—.
-     *
-     * `Infinity` (pieza sin conteo declarado) viaja como null: no es que queden
-     * cero, es que no se lleva la cuenta, y un 0 ahí haría pensar que se agotó. */
-    const restante = {};
-    Object.keys(r.items).forEach(s => {
-      const n = libre(estado, s);
-      restante[s] = Number.isFinite(n) ? n : null;
-    });
-    return { ok: true, modo: 'confirmado', items: r.items, restante };
+    return { ok: true, modo: 'confirmado', items: r.items, restante: restanteDe(estado, r.items) };
   }, 'confirmar');
 }
 
@@ -362,5 +396,8 @@ export async function disponibles(skus) {
   return salida;
 }
 
-export { reservar, confirmar, liberar };
-export const _interno = { usarAlmacen, itemsDe, libre, existencias, sku, vacio, VIGENCIA_MS };
+export { reservar, confirmar, liberar, VIGENCIA_CONTRAENTREGA_MS };
+export const _interno = {
+  usarAlmacen, itemsDe, libre, existencias, sku, vacio,
+  VIGENCIA_MS, VIGENCIA_CONTRAENTREGA_MS,
+};

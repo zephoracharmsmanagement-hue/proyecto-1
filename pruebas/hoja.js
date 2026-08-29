@@ -36,6 +36,10 @@ function almacenFalso() {
       dato = JSON.parse(JSON.stringify(valor)); etag++;
       return { modified: true };
     },
+    /* Para mirar qué quedó escrito de verdad. Una prueba que solo comprueba lo
+       que devuelve la función puede estar certificando nada: la regresión del
+       contraentrega se veía en el blob, no en la respuesta. */
+    _estado: () => dato,
   };
 }
 
@@ -182,6 +186,73 @@ const LINEAS = [
     const cuerpo = JSON.parse(await r.text());
     comprobar(cuerpo.modo === 'contraentrega' && cuerpo.referencia,
       'y devuelve su referencia como si nada', cuerpo.referencia);
+  }
+
+  console.log('\n5 · Un contraentrega se anota pendiente, no vendido');
+  {
+    /* La regresión del 2026-08-29, en el sitio donde ocurrió.
+     *
+     * crear-pago daba el contraentrega por vendido al crearlo: `confirmar()` en
+     * el acto, sin que nadie hubiera pagado ni confirmado. Cada prueba del
+     * checkout en producción y cada pedido que la clienta no confirmó se llevó
+     * unidades para siempre —Letra E ×2, Atrapasueños Azul, Guantelete— y no se
+     * vio hasta cuadrar la hoja a mano semanas después.
+     *
+     * Aquí se mira lo que de verdad sale hacia n8n y lo que queda en el blob de
+     * inventario: la fila tiene que ir como `pendiente`, y `vendido` tiene que
+     * seguir vacío. */
+    const almacen = almacenFalso();
+    inventario._interno.usarAlmacen(almacen);
+
+    const guardado = process.env.HOJA_WEBHOOK;
+    process.env.HOJA_WEBHOOK = 'https://n8n.ejemplo/webhook/hoja';
+    const crearPago = await cargar('crear-pago.mjs');
+    const fetchReal = globalThis.fetch;
+    let enviado = null;
+    globalThis.fetch = async (u, opciones) => {
+      if (String(u).includes('n8n.ejemplo')) {
+        enviado = JSON.parse(opciones.body);
+        return { ok: true, status: 200 };
+      }
+      return { status: 200 };
+    };
+    const r = await crearPago.default({
+      method: 'POST',
+      text: async () => JSON.stringify({
+        base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse'],
+        empaque: false, pago: 'contraentrega',
+        cliente: {
+          nombre: 'Marialejandra', apellido: 'Quintanilla', tipodoc: 'CC',
+          documento: '1007401199', celular: '3012345678', correo: 'm@ejemplo.com',
+          depto: 'Bogotá D.C.', ciudad: 'Bogotá D.C.', direccion: 'Calle 16f #99 - 72',
+        },
+      }),
+    });
+    globalThis.fetch = fetchReal;
+    if (guardado === undefined) delete process.env.HOJA_WEBHOOK;
+    else process.env.HOJA_WEBHOOK = guardado;
+
+    comprobar(r.status === 200, 'el pedido se crea', `HTTP ${r.status}`);
+    comprobar(enviado !== null, 'y la hoja recibe su aviso');
+    if (enviado) {
+      comprobar(enviado.estado === 'pendiente',
+        'el pedido va a la hoja como PENDIENTE, no como venta cerrada',
+        enviado.estado);
+      comprobar((enviado.movimientos || []).every(m => m.estado === 'pendiente'),
+        'y cada movimiento lleva el estado, que es por columna donde se filtra');
+      comprobar((enviado.movimientos || []).every(m => typeof m.quedan === 'number'),
+        '`quedan` sigue saliendo del inventario y no de una resta de la hoja',
+        JSON.stringify((enviado.movimientos || []).map(m => m.quedan)));
+    }
+
+    const estado = almacen._estado() || { vendido: {}, reservas: {} };
+    comprobar(Object.keys(estado.vendido || {}).length === 0,
+      'y NADA queda como vendido: nadie ha pagado ni confirmado todavía',
+      JSON.stringify(estado.vendido));
+    comprobar(Object.keys(estado.reservas || {}).length === 1,
+      'las unidades quedan apartadas, que sí se puede deshacer');
+
+    inventario._interno.usarAlmacen(null);
   }
 
   console.log(fallos ? `\nHoja de inventario: ${fallos} en rojo` : '\nHoja de inventario en verde ✓');

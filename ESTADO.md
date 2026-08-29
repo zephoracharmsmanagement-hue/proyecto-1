@@ -646,11 +646,13 @@ y convirtiéndolo a `stock.json` con **un paso explícito**.
 > deduce. Una hoja que hace su propia resta acaba discrepando del inventario que
 > de verdad manda.
 
-**Hecho y desplegado (lado Netlify):** `_hoja.mjs` manda un aviso por venta
-cobrada. Contraentrega lo dispara `crear-pago` al confirmar; el pago en línea lo
-dispara `wompi-webhook` al aprobarse —y no antes, porque hasta que Wompi aprueba
-no ha salido nada del inventario, y apuntar ventas que se declinan infla lo
-vendido y esconde existencias que sí están—. Vigilado por `pruebas/hoja.js`.
+**Hecho y desplegado (lado Netlify):** `_hoja.mjs` manda un aviso por movimiento
+de inventario, con un campo `estado`. El pago en línea lo dispara
+`wompi-webhook` al aprobarse como `vendido` —y no antes, porque hasta que Wompi
+aprueba no ha salido nada del inventario, y apuntar ventas que se declinan infla
+lo vendido y esconde existencias que sí están—. Contraentrega lo dispara
+`crear-pago` como **`pendiente`**, y pasa a `vendido` al despacharlo (ver
+**4g**). Vigilado por `pruebas/hoja.js`.
 
 - Variables: `HOJA_WEBHOOK` (URL del webhook) y `HOJA_TOKEN` (opcional, viaja
   como cabecera `X-Zephora-Token`, **no en la URL**: las URLs quedan en logs e
@@ -688,6 +690,78 @@ recuento físico → `stock.json` con `herramientas/reponer.mjs`.
 > sigue ofreciendo una pieza que ya no está, y la vendería**. Pasó el
 > 2026-08-22 con el último brazalete Avengers. Mientras exista venta por
 > WhatsApp, hay que bajar la pieza a mano en `stock.json` el mismo día.
+
+### 4g · Contraentrega: apartar en vez de vender — 2026-08-29
+
+**Cómo se descubrió.** Cuadrando la hoja contra las ventas reales. El propietario
+confirmó que desde el principio solo ha habido **cuatro** ventas: el brazalete
+Avengers (contraentrega), Capitán América + Gatito Corazón Azul
+(`ZC-260812-35FCB0D5`, Wompi, 13 ago), brazalete Corazón Liso t18 + Ángel de la
+Guarda (Wompi, 27 ago) y Atrapasueños Corazón + Cadena Ojo Turco (orgánica, fuera
+de la web). Pero la hoja traía además **`ZC-260819-DDCEF41D` (Letra E ×2)** y
+**`ZC-260821-A4C64EC2` (Atrapasueños Azul, Guantelete)** — las dos anotadas
+arriba en 4f como si fueran ventas. No lo eran: eran pruebas del checkout hechas
+**contra producción**, o pedidos que nadie confirmó.
+
+**Por qué costaron inventario de verdad.** `crear-pago` llamaba `confirmar(ref)`
+en el acto para contraentrega. El razonamiento era correcto en su premisa —no hay
+pasarela de la que esperar un aviso, y dejar la reserva caducando a la media hora
+liberaría unidades de un pedido en firme— y equivocado en su conclusión: **nadie
+ha pagado ni ha dicho que sí**, así que un contraentrega recién hecho es una
+intención, no una venta. Dando por vendido lo solo pedido, cada prueba y cada
+pedido caído se llevó unidades **para siempre**: `vendido` no caduca, solo vuelve
+a cero al reponer, y para entonces ya deformó el inventario semanas.
+
+Nota: el almacén de pruebas está separado (`inventario-pruebas` cuando
+`CONTEXT !== 'production'`), así que esto solo pasa probando contra el sitio en
+vivo — que es exactamente lo que ocurrió.
+
+**El arreglo.** Contraentrega ya no confirma: deja una **reserva larga** (72 h,
+`CONTRAENTREGA_HORAS`). Cubre las dos direcciones del error a la vez —mientras
+viva, esas unidades no se le pueden vender a nadie más, porque `libre()` resta
+las reservas igual que lo vendido; y si el pedido no se concreta, **caduca sola**
+y vuelven al mostrador sin que nadie tenga que acordarse—.
+
+**El final del ciclo es explícito:** `netlify/functions/pedido-cerrar.mjs`.
+
+```
+GET  /.netlify/functions/pedido-cerrar     → los que esperan confirmación
+POST /.netlify/functions/pedido-cerrar     {"referencia":"ZC-…","accion":"despachar"}
+                                           {"referencia":"ZC-…","accion":"anular"}
+```
+
+Cabecera `X-Zephora-Admin: <ADMIN_TOKEN>` (o `Authorization: Bearer`). Es
+idempotente: cerrar dos veces no descuenta dos veces.
+
+> Sin este paso el arreglo estaría a medias y en la dirección peligrosa: a las
+> 72 h la reserva caduca, y si el paquete ya salió la tienda vuelve a ofrecer lo
+> que va en camino. **Sobrevender es peor que perder una venta**, porque hay una
+> clienta que ya pagó.
+
+**Falta hacer, y sin esto el arreglo no está completo:**
+
+1. **`ADMIN_TOKEN` en Netlify** (Scopes: Functions). Sin él `pedido-cerrar`
+   responde 503 y **no hay forma de despachar**: los contraentrega caducarían
+   todos a las 72 h. Es lo primero.
+2. **n8n: la hoja tiene que ACTUALIZAR, no insertar.** Un contraentrega manda
+   ahora dos avisos con la misma `referencia` — `pendiente` al pedirse,
+   `vendido` al despacharse. Si el nodo inserta las dos, la hoja cuenta el
+   pedido **dos veces** y la reposición sale inflada. La clave es
+   `referencia` + `id` + `talla`. Hay que añadir además la columna `estado` a
+   *Movimientos*.
+3. **Filtrar por `estado` al reponer.** Un `pendiente` no es una venta: si entra
+   en el cálculo de rotación, vuelve el mismo problema por otra puerta.
+
+**Lo que NO se tocó, a propósito:** el `Purchase` a Meta sigue saliendo al crear
+el contraentrega, no al despacharlo. Moverlo cambiaría el embudo a mitad de
+medición y rompería la comparación con lo ya medido; el criterio actual (un
+pedido en firme cuenta como compra) es el mismo que usaba el pixel desde
+`checkout.html`. Queda anotado: **si muchos contraentrega se anulan, Meta está
+optimizando hacia pedidos que no se concretan.** Con `pedido-cerrar` llevando la
+cuenta de anulados, por primera vez se puede medir.
+
+El correo a la clienta tampoco cambió: sigue diciendo «pedido confirmado», que en
+su contexto significa «no tienes que pagar nada ahora» y sigue siendo cierto.
 
 ### 4c · Dónde queda el registro de cada pedido
 
