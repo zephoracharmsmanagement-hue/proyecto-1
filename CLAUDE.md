@@ -20,22 +20,91 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
 "Zephora Charms"), existe pero no tiene campañas.
 
 - **"Nueva campaña de Ventas"** (`120247398773240534`) — ACTIVA, $15.000
-  COP/día. Optimiza por `InitiateCheckout`, **no por `Purchase`**: es la
-  limitación de fondo, no un descuido de configuración. 4 anuncios, de los
-  cuales **Copia 4 (`120247400350270534`) y Copia 5 (`120247400376370534`)
-  están PAUSADOS** desde esta sesión: costaban $6.388 y $9.424 por checkout
-  contra $663 de Copia 2 y $1.724 de Copia 3.
+  COP/día, con **un solo conjunto** (`120247398773250534`). Optimiza por
+  `InitiateCheckout`, **no por `Purchase`**: es la limitación de fondo, no un
+  descuido de configuración.
+
+  Anuncios pausados y por qué: **Copia 4** (`120247400350270534`) y **Copia 5**
+  (`120247400376370534`) por costo — $6.388 y $9.424 por checkout contra $663
+  de Copia 2. **Copia 3** (`120247400003930534`) el 2026-09-01 por otra razón:
+  pautaba la pulsera Avengers, que quedó en **1 unidad**. Pagar por vender lo
+  que no hay es peor que no pautar.
+
+  Copia 3 no era un anuncio cualquiera: llevaba **el 72% del gasto y el 83% de
+  los checkouts** de los últimos 7 días, y era el más barato ($1.665 contra
+  $3.184 de Copia 2). Al sacarlo quedan Copia 2 —el flojo— y **7 anuncios
+  nuevos "Zephora ·"** sin historia. Contar con 3–5 días de costo por checkout
+  inflado; es reaprendizaje, no una regresión.
 
   Lección del diagnóstico, para no repetirla: **Copia 4 tenía el mejor CTR de
   la cuenta (15,43%) y era de los peores en conversión.** Juzgar creativos por
   CTR habría escalado justo el que peor rendía. La métrica que manda es costo
   por resultado.
 
-- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) — creada,
-  ACTIVA, $10.000 COP/día, **$0 gastados y 0 impresiones**. Sí optimiza por
-  `Purchase`. No entrega por dos razones: un error de segmentación por lugar
-  (#1870194, tipo de ubicación descontinuado por Meta) y, más de fondo, que
-  **el público tiene ~55 personas**. Pendiente de pausar.
+- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) —
+  **PAUSADA**. Nunca entregó: $0 gastados, 0 impresiones. Sí optimizaba por
+  `Purchase`. Dos causas: un error de segmentación por lugar (#1870194, tipo de
+  ubicación descontinuado por Meta) y, más de fondo, que **el público tiene ~55
+  personas**. No reactivar hasta que el público crezca (ver § Públicos).
+
+### Ubicaciones — el desglose que nadie había mirado
+
+Datos de 30 días leídos el 2026-09-01, campaña principal. Ordenado por lo que
+de verdad manda, costo por checkout:
+
+| Ubicación | Gasto | % pres. | CTR | Checkouts | Costo/checkout |
+|---|---|---|---|---|---|
+| FB Stories | $10.111 | 2,8% | 3,65% | 20 | **$506** |
+| Threads | $1.177 | 0,3% | 2,18% | 2 | $589 |
+| IG Stories | $79.752 | 21,7% | 5,68% | 70 | **$1.139** |
+| FB Search | $2.720 | 0,7% | 3,16% | 2 | $1.360 |
+| IG Feed | $57.379 | 15,6% | 5,81% | 40 | $1.434 |
+| Marketplace | $2.982 | 0,8% | 4,29% | 2 | $1.491 |
+| IG Reels | $22.790 | 6,2% | 5,68% | 13 | $1.753 |
+| FB Feed | $53.140 | 14,5% | 4,97% | 23 | $2.310 |
+| **Audience Network** | **$116.278** | **31,7%** | 1,96% | 47 | **$2.474** |
+| **FB Reels** | $19.567 | 5,3% | **6,26%** | 3 | **$6.522** |
+| instream video, columna derecha, notificaciones, explorar | ~$1.250 | 0,3% | — | **0** | ∞ |
+
+Tres hallazgos, y el tercero es el que se repite:
+
+1. **Audience Network se llevaba un tercio del presupuesto y rendía 2,2× peor
+   que IG Stories.** El renglón más grande de la cuenta era el segundo peor.
+2. **FB Stories era la mejor ubicación de todas y recibía el 2,8%.** $506 por
+   checkout, la mitad que IG Stories.
+3. **FB Reels: mejor CTR de la cuenta (6,26%) y el peor costo por checkout
+   ($6.522).** Tercera vez que aparece el mismo patrón en este proyecto —
+   Copia 4, el motor de contenido, y ahora esto. **CTR alto no es señal de
+   nada**, y cada vez que se ha usado como criterio habría escalado lo peor.
+
+El 2026-09-01 el conjunto pasó de ubicaciones Advantage+ a **manuales**:
+Facebook (feed, story, marketplace, search, profile_feed), Instagram (stream,
+story, reels, explore_home, ig_search) y Threads. **Fuera Audience Network,
+Facebook Reels, Messenger, instream video, columna derecha y notificaciones.**
+Verificado por el propietario en el Administrador de anuncios.
+
+Cautela al leer esa tabla: **no se sigue que los $116.278 de Audience Network
+rindan a $1.139 al mudarse a IG Stories.** La subasta se encarece cuando se
+concentra el presupuesto en menos inventario. Lo que sí sostiene el dato es que
+se pagaba precio de Stories por inventario de Audience Network.
+
+### Trampa de la API: un cambio de segmentación pausa el conjunto
+
+`ads_update_entity` sobre el `targeting` de un conjunto devuelve
+**`status_forced_to_paused: true`** y deja el conjunto en PAUSED. Es una
+salvaguarda de Meta, no un error — pero si nadie mira la respuesta, **la
+campaña se queda parada sin que nada avise**. Hay que reactivar con
+`ads_activate_entity` justo después, y confirmarlo.
+
+Dos cosas más de ese mismo cambio:
+
+- **El objeto `targeting` se reemplaza entero, no se fusiona.** Si el payload
+  no repite las exclusiones geográficas (San Andrés, Providencia, Amazonas,
+  Guainía, Vaupés, Vichada), se pierden en silencio y se empieza a pagar por
+  tráfico al que no se puede despachar.
+- El `entity_type` es **`ad_set`**, con guión bajo — no `adset`, que es lo que
+  usa el parámetro `level` de `ads_get_ad_entities`. Los dos nombres conviven
+  en la misma herramienta.
 
 ### Públicos
 
@@ -129,9 +198,12 @@ Por orden de impacto sobre el dinero:
    Colombia no encuentre su inicial. Después, **83 referencias en 1-2
    unidades** ($2,64M para habilitar ~$11,7M de utilidad), priorizando
    charms (88% de margen) sobre pulseras (71%).
-2. **Pausar "Retargeting · Recuperación de checkout"** hasta tener público.
-   Con ~55 personas no entrega; el presupuesto rinde más en la campaña
-   principal.
+2. **Confirmar que los 7 anuncios "Zephora ·" llevan las imágenes 4:5**, no
+   las 9:16 originales. Se subieron desde la terminal para arreglar el recorte
+   en Feed —el 31% del gasto—, pero los creativos que devuelve la API están
+   fechados 20-ago, que no cuadra con que el reformateo fuera posterior. Se ve
+   en la vista previa de cada anuncio. Si quedaron con las viejas, hay que
+   rehacer los creativos (son inmutables: creativo nuevo + anuncio nuevo).
 3. **Probar el `Purchase` de servidor** con `META_TEST_EVENT_CODE` y
    confirmar en Events Manager que aparece **una sola vez** por compra (no
    dos) en el píxel nuevo. **Quitar la variable de prueba al terminar.**
