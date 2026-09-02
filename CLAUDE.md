@@ -21,30 +21,51 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
 
 - **"Nueva campaña de Ventas"** (`120247398773240534`) — ACTIVA, $15.000
   COP/día. Optimiza por `InitiateCheckout`, **no por `Purchase`**: es la
-  limitación de fondo, no un descuido de configuración. 4 anuncios, de los
-  cuales **Copia 4 (`120247400350270534`) y Copia 5 (`120247400376370534`)
-  están PAUSADOS** desde esta sesión: costaban $6.388 y $9.424 por checkout
-  contra $663 de Copia 2 y $1.724 de Copia 3.
+  limitación de fondo, no un descuido de configuración.
+
+  **Volumen real (30 días al 2026-09-02): 235 checkouts, $381.392 gastados,
+  $1.623 por checkout.** Una versión anterior de este archivo decía ~55
+  checkouts/mes; era un dato viejo y llevaba a conclusiones equivocadas sobre
+  el tamaño de los públicos de retargeting. Verificar siempre contra la API
+  antes de razonar sobre volumen.
 
   Lección del diagnóstico, para no repetirla: **Copia 4 tenía el mejor CTR de
   la cuenta (15,43%) y era de los peores en conversión.** Juzgar creativos por
   CTR habría escalado justo el que peor rendía. La métrica que manda es costo
   por resultado.
 
-- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) — creada,
-  ACTIVA, $10.000 COP/día, **$0 gastados y 0 impresiones**. Sí optimiza por
-  `Purchase`. No entrega por dos razones: un error de segmentación por lugar
-  (#1870194, tipo de ubicación descontinuado por Meta) y, más de fondo, que
-  **el público tiene ~55 personas**. Pendiente de pausar.
+  Segunda lección, de la sesión del 2026-09-02: **dos veces se pausó el
+  anuncio bueno y quedó corriendo el caro.** Primero Copia 3 ($1.478/checkout)
+  contra Copia 2 ($2.780); después "Caja de regalo" ($1.204) contra la misma
+  Copia 2 ($2.368). Al pausar por cualquier motivo —agotamiento de la pieza,
+  renovación de creativos— revisar qué queda activo, no solo qué se apaga.
+
+  **Copia 3 (`120247400003930534`) está pausada por inventario, no por
+  rendimiento**: la pieza que mostraba se agotó y la pauta seguía generando
+  pedidos de algo inexistente. Reactivar cuando llegue la mercancía — era el
+  mejor anuncio de la cuenta.
+
+  **Techo de anuncios simultáneos: 4-5.** Con $15.000 COP/día, repartir entre
+  ocho deja ~$1.900/día por anuncio y ninguno sale de fase de aprendizaje.
+
+- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) —
+  **PAUSADA** (confirmado 2026-09-02, $0 gastados, 0 impresiones). Optimiza por
+  `Purchase`. No entregaba por un error de segmentación por lugar (#1870194,
+  tipo de ubicación descontinuado por Meta). La segunda razón que se
+  documentó —público demasiado chico— **partía del dato errado de 55
+  checkouts/mes**; con 235 reales el público es viable y vale reevaluar la
+  campaña arreglando primero la segmentación.
 
 ### Públicos
 
 - `Zephora · Iniciaron checkout sin comprar (30d)` (`120247672124730534`) —
   ACTIVE, sano, lee del píxel viejo `2130673404542988` (el correcto: es el que
   tiene historia). Incluye `InitiateCheckout` 30d, excluye `Purchase`.
-  **Demasiado pequeño para pautar**: la campaña principal produce ~55
-  checkouts/mes. Para hacerlo viable: ventana a 180 días e incluir también
-  `AddToCart` (134 en 30 días).
+  **Se creía demasiado pequeño para pautar, con base en un dato errado de ~55
+  checkouts/mes.** El volumen real es de **235 checkouts en 30 días**, así que
+  el público debería ser varias veces mayor de lo que se asumió. Confirmar el
+  tamaño real antes de descartarlo; si aun así queda corto, ampliar la ventana
+  a 180 días e incluir `AddToCart`.
 - `Público similar (CO, 1%)` (`120247672160220534`) — **INACTIVE,
   `operation_status_code: 433`**. La semilla es demasiado chica para construir
   un lookalike. No sirve hasta que crezca el público de origen.
@@ -79,8 +100,26 @@ El dato de costo **no está en el repo**: vive en `Inventario_Zephora_v3.xlsx`
 ### Creativos
 
 `assets/ads/` tiene 10 imágenes alojadas para usar como imagen de anuncio
-(la CAPI necesita URL pública). Queda fuera a propósito la variante que
-nombra a Pandora — riesgo de marca.
+(la CAPI necesita URL pública), todas **714×1280 JPG**. Queda fuera a
+propósito la variante que nombra a Pandora — riesgo de marca.
+
+**Las fotos de producto del sitio NO sirven para pauta.** Las 111 imágenes de
+`assets/*.webp` son **440×440 y WebP**, y fallan por dos lados: Meta no acepta
+WebP en creativos (solo JPG/PNG), y 440×440 está por debajo del mínimo de
+500×500 para carrusel (recomendado 1080×1080). Convertir el formato es
+trivial; la resolución no se arregla escalando —en joyería el detalle es el
+producto y el ampliado se ve blando justo en cristales y grabado—. Para
+carrusel hacen falta las **fotos originales en alta**, no las de la web.
+
+**Trampa: editar un anuncio existente en vez de crear uno nuevo.** Meta
+conserva el ad ID y con él las métricas acumuladas, así que el anuncio nuevo
+reporta el gasto y las conversiones del viejo mezclados con los suyos. Pasó el
+2026-09-02: cuatro creativos nuevos se montaron sobre anuncios existentes, y
+uno de ellos (`zephora simbolos 1`, sobre el ID de Copia 4) arrastraba $26.652
+y 4 checkouts ajenos. Si el anuncio reusado tiene historia, **crear uno nuevo
+apuntando al mismo `creative_id`** —no hay que resubir la imagen— y pausar el
+viejo. Si arrastra ~$0, no vale la pena y basta con medir por ventana de
+fechas desde el cambio.
 
 ### Píxel del sitio
 
@@ -129,9 +168,9 @@ Por orden de impacto sobre el dinero:
    Colombia no encuentre su inicial. Después, **83 referencias en 1-2
    unidades** ($2,64M para habilitar ~$11,7M de utilidad), priorizando
    charms (88% de margen) sobre pulseras (71%).
-2. **Pausar "Retargeting · Recuperación de checkout"** hasta tener público.
-   Con ~55 personas no entrega; el presupuesto rinde más en la campaña
-   principal.
+2. ~~Pausar "Retargeting · Recuperación de checkout"~~ — **hecho.** Queda en
+   su lugar: arreglar el error de segmentación #1870194 y reevaluar, porque el
+   público es mayor de lo que se creía (ver arriba).
 3. **Probar el `Purchase` de servidor** con `META_TEST_EVENT_CODE` y
    confirmar en Events Manager que aparece **una sola vez** por compra (no
    dos) en el píxel nuevo. **Quitar la variable de prueba al terminar.**
@@ -156,6 +195,16 @@ payload/estructura exacto para aprobación antes de ejecutar. Lecturas,
 diagnósticos y consultas de datos van directo. Esto sigue vigente aunque el
 conector de Ads MCP termine con permisos de escritura completos — el
 permiso técnico no cambia el acuerdo.
+
+**En sesiones remotas (Claude Code en la web), las escrituras a Meta Ads están
+bloqueadas de todos modos**: el clasificador de auto-mode corta cualquier
+`ads_activate_entity` / `ads_update_entity` antes de que salga la llamada, y
+**la aprobación del usuario en el chat no lo levanta** —se comprobó tres veces
+el 2026-09-02—. Las lecturas pasan sin problema, así que el diagnóstico
+completo sí se puede hacer desde aquí. Para ejecutar hay dos vías: una regla
+de permisos (`/permissions` para `mcp__Meta_Ads_MCP__ads_*`) o que el
+propietario aplique los cambios a mano en Ads Manager. Entregar siempre la
+lista de cambios en forma de checklist accionable, no solo el payload.
 
 ## Conversión — recuperar carritos con permiso y cerrar por WhatsApp
 
@@ -207,7 +256,21 @@ herramientas reales, no supuesto. Dos hallazgos que conviene tener a mano:
   catálogo (`total_count: 0`). O sea que los anuncios dinámicos —los que enseñan
   la pieza exacta que alguien miró— están detrás de la misma puerta. Eso sube la
   prioridad de reclamar la cuenta hacia el portafolio: desbloquea tres cosas, no
-  una.
+  una. **Reconfirmado el 2026-09-02**, también contra el portafolio directo
+  (`business_id 1499356148452488` → `total_count: 0`).
+
+  Lo bueno: **el trabajo difícil del feed ya está hecho.** El sitio manda
+  `content_ids` con los slugs reales en `AddToCart` y `ViewContent`
+  (`index.html:2694`, `index.html:3091`), que es el requisito que suele costar
+  semanas. Cuando se desbloquee la cuenta, el catálogo es cuestión de días.
+
+  Y el catálogo no es solo "más alcance": **es la solución estructural al
+  problema de agotar lo que se pauta.** Con imagen única, la pauta concentra
+  toda la demanda en un SKU de 1-3 unidades y toca pausar el anuncio bueno
+  cuando se acaba (ya pasó con Copia 3). El feed de catálogo apaga solo lo que
+  queda sin existencias vía el campo `availability`. Un carrusel estático
+  reparte la demanda pero **no** se apaga solo: sirve de puente, no de
+  solución, y exige la regla de pautar únicamente piezas con **stock ≥3**.
 
 ## Contenido orgánico — el motor de paquetes de rodaje
 
