@@ -12,6 +12,15 @@ Claude Code en varias sesiones/terminales a la vez.
 
 ## Meta Ads — estado de la automatización
 
+> ⚠️ **Hay un plan sin ejecutar:**
+> [`automatizaciones/meta-ads/PLAN-2026-09-02.md`](automatizaciones/meta-ads/PLAN-2026-09-02.md)
+> — cambio de público (18-44), estados de anuncios y copys de los 4 creativos
+> nuevos. Lo escribió una sesión web, que no puede escribir a Meta. Si esta
+> sesión sí puede, **ese archivo es la tarea**; verificar el estado real antes
+> de ejecutar, porque el propietario puede haber aplicado parte a mano.
+> Borrar la nota cuando quede aplicado.
+
+
 ### Campañas en producción (cuenta `1583713932705268`)
 
 Esa cuenta **no pertenece a ningún portafolio comercial** — de ahí sale casi
