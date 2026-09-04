@@ -122,13 +122,17 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   await p.waitForTimeout(300);
 
   console.log('7 · tope por unidades');
-  const topeOk = await p.evaluate(() => {
-    const c = document.querySelector('.pc[data-id="clip-mariposas-de-colores"]'); // stock 1
+  /* El charm se elige del inventario, no se escribe a mano: ver _pieza.js. */
+  const UNO = require('./_pieza').charmDeUnaUnidad();
+  const topeOk = await p.evaluate((id) => {
+    const c = document.querySelector('.pc[data-id="' + id + '"]');
+    if (!c) return { txt: '(sin tarjeta para ' + id + ')', off: false };
     const b = c.querySelector('.pc-add');
     b.click(); b.click(); b.click();
     return { txt: b.textContent.trim(), off: b.getAttribute('aria-disabled') === 'true' };
-  });
-  ok(topeOk.txt === 'Agregado' && topeOk.off, 'un charm con 1 unidad no se puede agregar dos veces');
+  }, UNO.id);
+  ok(topeOk.txt === 'Agregado' && topeOk.off,
+    'un charm con 1 unidad no se puede agregar dos veces — ' + UNO.nombre);
 
   console.log('8 · filtro "solo disponibles"');
   await p.click('#solo-disp');

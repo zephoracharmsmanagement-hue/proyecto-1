@@ -1,5 +1,5 @@
 {
- "generado": "2026-08-29",
+ "generado": "2026-09-04",
  "conteo_inventario": "2026-08-01",
  "items": {
   "letra-a": {
@@ -95,8 +95,9 @@
   "geminis": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 2,
-   "familia": "pasador"
+   "stock": 1,
+   "familia": "pasador",
+   "nota": "1 vendido 2026-09-04 Wompi ZC-260904-9AFF9446"
   },
   "leo": {
    "tipo": "charm",
@@ -287,8 +288,9 @@
   "deadpool": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 1,
-   "familia": "pasador"
+   "stock": 0,
+   "familia": "pasador",
+   "nota": "1 vendido 2026-09-04 Wompi ZC-260904-9AFF9446"
   },
   "spider-man": {
    "tipo": "charm",
@@ -361,8 +363,9 @@
   "clip-mariposas-de-colores": {
    "tipo": "charm",
    "precio": 68000,
-   "stock": 1,
-   "familia": "clip"
+   "stock": 0,
+   "familia": "clip",
+   "nota": "1 vendido 2026-09-04 Wompi ZC-260904-9AFF9446"
   },
   "torre-eiffel-y-camara": {
    "tipo": "charm",
@@ -403,8 +406,9 @@
   "gatito-con-corazon-azul": {
    "tipo": "charm",
    "precio": 72000,
-   "stock": 3,
-   "familia": "pasador"
+   "stock": 2,
+   "familia": "pasador",
+   "nota": "1 vendido 2026-09-04 Wompi ZC-260904-9AFF9446"
   },
   "sol-y-luna-con-cristales": {
    "tipo": "charm",
@@ -512,8 +516,9 @@
   "camaleon-verde": {
    "tipo": "charm",
    "precio": 72000,
-   "stock": 4,
-   "familia": "pasador"
+   "stock": 3,
+   "familia": "pasador",
+   "nota": "1 vendido 2026-09-04 Wompi ZC-260904-9AFF9446"
   },
   "manos-orando-con-cruz": {
    "tipo": "charm",

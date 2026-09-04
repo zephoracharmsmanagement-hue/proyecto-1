@@ -58,4 +58,20 @@ function unaSolaTalla() {
   return { id: hit[0], talla: conUnidades(hit[1].tallas)[0][0] };
 }
 
-module.exports = { brazalete, ultimaUnidad, unaSolaTalla };
+/* Un charm con exactamente una unidad, para probar el tope por existencias.
+ *
+ * Estaba clavado a `clip-mariposas-de-colores` en pruebas/stock.js, con un
+ * comentario «// stock 1» al lado. El 4 de septiembre se vendió esa unidad y la
+ * aserción se puso roja con el sitio en lo cierto: el charm salía «Agotado»,
+ * que es justo lo que tiene que salir. Mismo fallo que el de `brazalete()`, en
+ * la otra mitad del catálogo. */
+/* Las letras quedan fuera: el catálogo las pinta en una sola tarjeta
+   `data-id="letras"`, así que no hay `.pc[data-id="letra-n"]` que clicar. */
+function charmDeUnaUnidad() {
+  const hit = Object.entries(INV).find(([id, v]) =>
+    v.tipo === 'charm' && v.stock === 1 && !/^letra-/.test(id));
+  exigir(hit, 'ningún charm con una sola unidad y tarjeta propia');
+  return { id: hit[0], precio: hit[1].precio, nombre: NOMBRES[hit[0]] };
+}
+
+module.exports = { brazalete, ultimaUnidad, unaSolaTalla, charmDeUnaUnidad };
