@@ -70,11 +70,18 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
 - `Zephora · Iniciaron checkout sin comprar (30d)` (`120247672124730534`) —
   ACTIVE, sano, lee del píxel viejo `2130673404542988` (el correcto: es el que
   tiene historia). Incluye `InitiateCheckout` 30d, excluye `Purchase`.
-  **Se creía demasiado pequeño para pautar, con base en un dato errado de ~55
-  checkouts/mes.** El volumen real es de **235 checkouts en 30 días**, así que
-  el público debería ser varias veces mayor de lo que se asumió. Confirmar el
-  tamaño real antes de descartarlo; si aun así queda corto, ampliar la ventana
-  a 180 días e incluir `AddToCart`.
+  **Es demasiado pequeño para pautar — confirmado con datos el 2026-09-04.**
+  El píxel registra 360 `InitiateCheckout` y 26 `Purchase` en 30 días, así que
+  el público ronda **334 personas**, bajo el **mínimo de 1.000** que Meta exige
+  para entregar. El `approximate_count` de 1.000-1.000 es el piso que reporta
+  la API, no una medición.
+
+  Una nota anterior de este archivo decía que con 235 checkouts/mes el público
+  «debería ser varias veces mayor de lo asumido». La corrección del volumen era
+  real, pero esa conclusión no se sostuvo: los 235 son checkouts **atribuidos a
+  la pauta**, no personas únicas del público. **Arreglarlo exige un público
+  nuevo** (ventana 180 días + `AddToCart`), no reevaluar este. Detalle y plan
+  en [`automatizaciones/meta-ads/RETARGETING.md`](automatizaciones/meta-ads/RETARGETING.md).
 - `Público similar (CO, 1%)` (`120247672160220534`) — **INACTIVE,
   `operation_status_code: 433`**. La semilla es demasiado chica para construir
   un lookalike. No sirve hasta que crezca el público de origen.
