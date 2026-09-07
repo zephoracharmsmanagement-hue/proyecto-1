@@ -9,6 +9,14 @@ de software y, sobre todo, el registro de **qué se decidió no construir y por
 qué**. La segunda parte importa más que la primera, porque las decisiones de no
 construir son las que una sesión nueva deshace sin darse cuenta.
 
+> **2026-09-07 — hay un análisis de un plan alternativo.** El propietario
+> trajo un borrador de plan de contenido hecho con Gemini (3 videos diarios,
+> render por API, publicación automática). El contraste contra este brief y
+> contra los datos reales está en
+> [`ANALISIS-PLAN-GEMINI.md`](ANALISIS-PLAN-GEMINI.md), con la cadencia
+> reencuadrada (3 publicaciones al día, **una sola con cámara**) y el reparto
+> Data Table / Google Sheets que ese plan sí mejora.
+
 ---
 
 ## Qué es, en una frase
