@@ -264,11 +264,23 @@ WhatsApp Trigger → Agente (modelo + memoria + herramientas) → WhatsApp (env�
 
 ## Trabajar con n8n por API sin romper cosas
 
-- **El editor abierto bloquea los cambios por API**, y a veces los revierte en
-  silencio: si alguien tiene el workflow abierto y guarda, se lleva por delante
-  lo que acabas de escribir. Cierra la pestaña antes de tocar nada, y vuelve a
-  leer el workflow después de cada cambio importante para confirmar que quedó.
+- **La ruta de `setNodeParameter` es relativa a los parámetros del nodo.** Si
+  escribes `/parameters/model/value`, no cambias nada: creas un objeto
+  `parameters` anidado *dentro* de los parámetros, que n8n ignora. La operación
+  responde éxito, la publicación responde éxito, y el nodo sigue igual. Va
+  `/model/value` a secas. Este error se puede repetir cuatro veces seguidas
+  antes de que uno lo vea, porque nada falla — simplemente no pasa nada.
+- **Ante la duda, usa `updateNodeParameters` con `replace: true`** y escribe
+  los parámetros completos del nodo. No depende de rutas y deja el nodo en un
+  estado conocido.
+- **Verifica leyendo la versión publicada, no el «éxito» de la escritura.**
+  `get_workflow_version` con el `activeVersionId` que devolvió la publicación
+  es la única confirmación que vale. «Guardado con éxito» solo dice que el
+  servidor aceptó la petición, no que hizo lo que querías.
 - **Publicar es lo que activa el cambio.** Guardar no basta.
+- **El editor abierto bloquea la escritura por API** con `Cannot modify
+  workflow while it is being edited by a user in the editor`. Es un error
+  explícito, no silencioso: si lo ves, cierra la pestaña y reintenta.
 - **Los parámetros complejos, mejor en la interfaz.** Condiciones de Filter,
   selectores de recurso y campos con lista desplegable tienen formas internas
   que es fácil escribir mal por API, y el error no aparece hasta que llega
