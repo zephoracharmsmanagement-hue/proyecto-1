@@ -23,6 +23,20 @@ queda en el historial de git para siempre.
 |---|---|---|
 | — | **Zephora · Hoja de Inventario** (`K1J4pHYfvd6QuAq8`) | **Activo en producción.** Sin exportar todavía |
 | — | **Zephora · Purchase a Meta (CAPI)** (`h5U0fGHrW4hekjtp`) | Construido, **sin publicar** y sin exportar todavía |
+| — | **Zephora · Asesora de WhatsApp** (`74TjEtDnn940jh9k`) | **Activo en producción** contra el número real (+57 301 899 0672). Sin exportar todavía |
+
+### Zephora · Asesora de WhatsApp
+
+Atiende WhatsApp con un agente de Claude (Sonnet). Consulta inventario real y
+arma el carrito llamando a `disponibilidad` y `armar-carrito` del sitio: el
+modelo conversa, pero **el precio y las existencias siempre salen del
+servidor**. Termina mandando el enlace al checkout de siempre, donde el cobro
+se recalcula.
+
+Cómo se montó, qué falla y en qué orden se arma:
+[`.claude/skills/whatsapp-n8n/SKILL.md`](../../.claude/skills/whatsapp-n8n/SKILL.md).
+Léelo antes de tocar la configuración del webhook — la mitad de los errores de
+esta integración no dan ningún mensaje de error.
 
 ### Zephora · Hoja de Inventario
 
