@@ -58,12 +58,23 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
   ocho deja ~$1.900/día por anuncio y ninguno sale de fase de aprendizaje.
 
 - **"Retargeting · Recuperación de checkout"** (`120247672148980534`) —
-  **PAUSADA** (confirmado 2026-09-02, $0 gastados, 0 impresiones). Optimiza por
-  `Purchase`. No entregaba por un error de segmentación por lugar (#1870194,
-  tipo de ubicación descontinuado por Meta). La segunda razón que se
-  documentó —público demasiado chico— **partía del dato errado de 55
-  checkouts/mes**; con 235 reales el público es viable y vale reevaluar la
-  campaña arreglando primero la segmentación.
+  **ACTIVA desde el 2026-09-06** como prueba controlada: $5.000 COP/día,
+  público de 180 días, expansión apagada. Estuvo pausada meses sin entregar
+  por un error de segmentación (#1870194): `location_types` estaba en
+  `["home"]`, una opción que Meta descontinuó. Corregido a `["home","recent"]`.
+
+  Sigue optimizando por **`Purchase`** y eso es deliberado, no un pendiente:
+  `INITIATE_CHECKOUT` **falla siempre** en `promoted_object.custom_event_type`
+  para este píxel, con error interno de Meta. Se aisló con una prueba de
+  control —un conjunto idéntico con `PURCHASE` se crea a la primera— así que
+  es restricción de Meta, no del payload. No insistir por esa vía.
+
+  **Criterio de salida, para que nadie la deje correr por inercia:** 7 días o
+  $35.000 COP. Se juzga por **pedidos reales**, no por las métricas de Meta —
+  con 26 `Purchase` mensuales de señal, lo que reporte es ruido. Si gasta $0
+  en 2-3 días, Meta no entrega con `Purchase` y toca conversión personalizada.
+  Detalle completo en
+  [`automatizaciones/meta-ads/RETARGETING.md`](automatizaciones/meta-ads/RETARGETING.md).
 
 ### Públicos
 
@@ -434,6 +445,27 @@ que el diff: una rama anterior al doble píxel trae un `<head>` con un solo
   `netlify.com`, etc.) están bloqueadas por política de red en entornos de
   ejecución remota — hay que correrlas desde una terminal con acceso real,
   no asumir que fallan por otra razón.
+
+## ⚠️ El COP no tiene centavos en la API de Meta
+
+**Los presupuestos van en pesos enteros: $5.000 COP = `5000`.**
+
+La documentación del conector dice que los campos de presupuesto van «en la
+unidad menor de la moneda (p. ej. centavos)». **Para el peso colombiano eso es
+falso** — el COP es moneda sin decimales y el valor va tal cual.
+
+Costó un susto real el 2026-09-06: una instrucción que decía «`daily_budget:
+500000`, son centavos» dejó la campaña de retargeting en **$500.000 COP/día**,
+cien veces lo previsto y 33 veces el presupuesto de la campaña principal. No
+llegó a gastar solo porque la sesión que ejecutaba paró antes de activar.
+
+**Cómo verificarlo en dos segundos:** leer `daily_budget` de la campaña de
+Ventas. Devuelve `$ 15.000 COP`, que es su presupuesto real. Si el campo fuera
+en centavos, mostraría $150.
+
+Regla operativa: **después de tocar un presupuesto, releerlo de la API y
+confirmar el número formateado antes de activar nada.** Un cero de más en un
+presupuesto no se nota hasta que ya gastó.
 
 ## Seguridad — recordatorios permanentes
 
