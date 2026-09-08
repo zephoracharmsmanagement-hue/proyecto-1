@@ -19,10 +19,14 @@ El triaje encontró un problema que el `BRIEF-FLOW` no anticipaba. No es de
 inventario ni de calidad: es **riesgo de marca**, y afecta a la mayor parte de
 la carpeta.
 
-### 1 · El creativo que hay que borrar, no archivar
+### 1 · El creativo que había que sacar de la carpeta — hecho 2026-09-08
 
-**`WhatsApp Image 2026-08-02 at 10.25.12 PM (8).jpeg`** lleva como titular, en
-tipografía grande:
+> **Resuelto.** Movido a `pauta meta 2026/NO USAR - riesgo de marca/`, fuera de
+> la carpeta de trabajo. Ya no aparece en ningún triaje futuro de «pauta meta
+> 2026». Queda la descripción de por qué, para que nadie lo devuelva por error.
+
+**`WhatsApp Image 2026-08-02 at 10.25.12 PM (8).jpeg`** llevaba como titular,
+en tipografía grande:
 
 > **«No es Pandora… pero todos creen que sí»**
 

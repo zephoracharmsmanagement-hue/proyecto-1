@@ -47,13 +47,25 @@ Y lee, en este orden: este bloque · `automatizaciones/contenido/BRIEF.md` ·
 
 **Lo siguiente que hay que hacer, por orden y sin gastar un crédito:**
 
-1. **Borrar el creativo «No es Pandora… pero todos creen que sí»** de la carpeta
-   de trabajo. Es riesgo de marca, no material flojo (`TRIAJE-FOTOS.md` § 1).
+1. ~~**Borrar el creativo «No es Pandora… pero todos creen que sí»**~~ — **hecho
+   2026-09-08.** Movido (no borrado, por si hace falta de referencia) a
+   `pauta meta 2026/NO USAR - riesgo de marca/`, fuera de la carpeta de
+   trabajo. No vuelve a aparecer en ningún triaje futuro de esa carpeta.
 2. **Recomponer el fondo del set `0bd627e3`** —manos orando, virgen María,
    trébol, herradura sobre Corazón Liso—: es el único con las cinco piezas
    elegibles, y el fondo es una caja Pandora, así que cambiarlo es obligatorio.
 3. **Sesión de fotos de las nueve letras**, dos tomas cada una: catálogo sobre
    blanco (recortable) y estilo de vida. Desbloquea toda la rama de imagen.
+
+   > **Matiz que hay que resolver primero:** `TRIAJE-FOTOS.md` encontró que
+   > **`letra-a` ya está fotografiada** —montada en una pulsera, en la foto
+   > `662562d4` y sus tres composiciones—, con fecha de creación **2026-09-01**.
+   > Esto contradice que «las nueve letras están llegando y no se han
+   > fotografiado». No es foto de catálogo (está en ángulo, sobre la caja
+   > Pandora, parcialmente ocluida), así que no desbloquea nada por sí sola,
+   > pero alguien tiene que confirmar si esa `letra-a` sigue siendo stock
+   > vigente o es de un lote anterior antes de asumir que las nueve siguen
+   > completamente sin fotografiar.
 4. **Grabar los guiones 1 a 4**, y el 5 con los precios ya corregidos.
 5. **Guion 8, la historia de sondeo de las 14 letras**, el viernes 19.
 
