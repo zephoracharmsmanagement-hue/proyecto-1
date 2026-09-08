@@ -57,15 +57,13 @@ Y lee, en este orden: este bloque · `automatizaciones/contenido/BRIEF.md` ·
 3. **Sesión de fotos de las nueve letras**, dos tomas cada una: catálogo sobre
    blanco (recortable) y estilo de vida. Desbloquea toda la rama de imagen.
 
-   > **Matiz que hay que resolver primero:** `TRIAJE-FOTOS.md` encontró que
-   > **`letra-a` ya está fotografiada** —montada en una pulsera, en la foto
-   > `662562d4` y sus tres composiciones—, con fecha de creación **2026-09-01**.
-   > Esto contradice que «las nueve letras están llegando y no se han
-   > fotografiado». No es foto de catálogo (está en ángulo, sobre la caja
-   > Pandora, parcialmente ocluida), así que no desbloquea nada por sí sola,
-   > pero alguien tiene que confirmar si esa `letra-a` sigue siendo stock
-   > vigente o es de un lote anterior antes de asumir que las nueve siguen
-   > completamente sin fotografiar.
+   > **Resuelto 2026-09-08.** El propietario confirmó que la `letra-a` de
+   > `662562d4` (y sus tres composiciones) **sigue siendo stock vigente**, no
+   > un lote anterior. No cambia el plan: esa foto no sirve como catálogo
+   > (ángulo, sobre la caja Pandora, parcialmente ocluida), así que **las
+   > nueve letras siguen necesitando su sesión de fotos igual**. Lo único que
+   > cambia es que ya hay una foto de contexto usable de `letra-a` mientras
+   > tanto — no de catálogo, pero sí de «se ve así».
 4. **Grabar los guiones 1 a 4**, y el 5 con los precios ya corregidos.
 5. **Guion 8, la historia de sondeo de las 14 letras**, el viernes 19.
 
