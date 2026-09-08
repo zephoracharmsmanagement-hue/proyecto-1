@@ -149,9 +149,15 @@ referencias:
 
 | Estado | Referencias |
 |---|---|
-| En cero | 24 |
-| 1–2 unidades | 59 |
+| En cero | 25 |
+| 1–2 unidades | 58 |
 | **3 o más — pool elegible** | **46** |
+
+> **Corregido el 2026-09-08.** Esta tabla decía 24/59/46. Dos recuentos
+> independientes —`CALENDARIO-EDITORIAL.md` § 1.5 y `ANALISIS-PLAN-GEMINI.md`
+> § 2— dieron 25/58/46 y coincidieron entre sí; recontado una tercera vez aquí
+> mismo con el mismo contador da lo mismo. El pool elegible (46), que es lo
+> único que decide qué se graba, nunca cambió.
 
 46 referencias son meses de calendario a un video por pieza. **El limitante del
 contenido no es el inventario; es el tiempo de grabación.**
