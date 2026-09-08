@@ -23,6 +23,46 @@ Qué trae:
 | `CLAUDE.md` | Tres hallazgos enlazados desde la sección de contenido |
 | `netlify.toml` | Regla `ignore` para no desplegar cuando el push solo cambia `.md` |
 
+### La sesión de estrategia se cierra — el trabajo sigue desde la terminal
+
+**2026-09-08.** La sesión de estrategia (en la nube, Opus) **termina aquí**. Todo
+lo que decidió está escrito en esta rama; **nada quedó solo en un chat**. No hay
+que reabrirla: cuesta más que la sesión local y no sabe nada que no esté en
+estos archivos.
+
+Lo demostró el propio flujo: la sesión de Flow leyó estos documentos, hizo el
+triaje **y encontró un error de precios en el calendario**, sin que las dos
+sesiones se hablaran ni una vez. **El repo ya es el canal; funciona.**
+
+**Desde ahora, una sola sesión lleva contenido** —la de la terminal—, que es
+además lo que pide la regla 1 de `CLAUDE.md`. Arranca así:
+
+```bash
+git fetch --all
+git checkout claude/zephora-charm-content-strategy-ktc7fi
+```
+
+Y lee, en este orden: este bloque · `automatizaciones/contenido/BRIEF.md` ·
+`CALENDARIO-EDITORIAL.md` · `BRIEF-FLOW.md` · `TRIAJE-FOTOS.md`.
+
+**Lo siguiente que hay que hacer, por orden y sin gastar un crédito:**
+
+1. **Borrar el creativo «No es Pandora… pero todos creen que sí»** de la carpeta
+   de trabajo. Es riesgo de marca, no material flojo (`TRIAJE-FOTOS.md` § 1).
+2. **Recomponer el fondo del set `0bd627e3`** —manos orando, virgen María,
+   trébol, herradura sobre Corazón Liso—: es el único con las cinco piezas
+   elegibles, y el fondo es una caja Pandora, así que cambiarlo es obligatorio.
+3. **Sesión de fotos de las nueve letras**, dos tomas cada una: catálogo sobre
+   blanco (recortable) y estilo de vida. Desbloquea toda la rama de imagen.
+4. **Grabar los guiones 1 a 4**, y el 5 con los precios ya corregidos.
+5. **Guion 8, la historia de sondeo de las 14 letras**, el viernes 19.
+
+**Fechas que no se mueven:** Amor y Amistad es el **sábado 19 de septiembre**, y
+las fechas límite de pedido son **10 sept** (resto del país), **14** (ciudades
+principales) y **16** (Bogotá).
+
+---
+
 ### Hay tres sesiones en contenido, y no pueden hablarse
 
 Comprobado el 2026-09-08: **las sesiones no se alcanzan entre sí.** La de
