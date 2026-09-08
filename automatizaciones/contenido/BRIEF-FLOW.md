@@ -1,0 +1,319 @@
+# Encargo para la sesión de Google Flow — fotos crudas y b-roll
+
+Documento de traspaso entre sesiones. Lo escribe la sesión de estrategia
+editorial (2026-09-07) para la sesión que tiene Google Flow conectado y una
+carpeta de fotos crudas.
+
+**Antes de nada, leer:** [`BRIEF.md`](BRIEF.md) (qué se decidió no construir) y
+[`CALENDARIO-EDITORIAL.md`](CALENDARIO-EDITORIAL.md) (los 8 guiones que hay que
+alimentar). Este documento no los repite: dice **qué le toca a Flow y qué no**.
+
+---
+
+## La frontera, en una frase
+
+**Flow hace movimiento y ambiente. Flow no hace producto.**
+
+El plano donde se ve la pieza que se vende se graba con cámara, con la pieza
+real en la mano. Todo lo demás —el aire entre cortes, la textura, la luz, el
+fondo, el contexto de regalo— puede salir de Flow.
+
+### Por qué, y por qué no se negocia
+
+`BRIEF.md` regla 2: *«Imagen generada nunca puede parecer producto a la venta
+que no existe. Cuando hay producto de por medio, la foto es real y la IA solo
+pone el fondo.»*
+
+Con video generativo el riesgo es **peor** que con imagen fija, y conviene
+entender por qué antes de pedirle un macro a Flow: en un plano cerrado de
+joyería, el modelo **reconstruye la pieza fotograma a fotograma**. Un dije que
+en el segundo 1 tiene tres cristales, en el segundo 3 tiene cuatro. Un pasador
+que se convierte en colgante. Eso no es un defecto de calidad: es un video de un
+producto que no existe, enseñado como si estuviera a la venta. La tienda cobra
+de verdad, y eso se paga con la clienta.
+
+**Regla operativa:** si en el fotograma se puede leer *qué pieza es y cuánto
+cuesta*, no lo hace Flow.
+
+### La regla de oro, con las palabras del propietario
+
+> **No se modifica la joya. Ni los jumps, ni el brazalete.**
+
+Es la regla 2 del `BRIEF.md` dicha mejor, y conviene usar esta formulación
+porque nombra las tres cosas concretas que un modelo altera sin que se note: la
+pieza, **el jump** (la argollita que la une) y el brazalete. El jump es el que
+más se pierde de vista y el que más delata: si cambia de forma o desaparece,
+la foto deja de enseñar cómo se engancha de verdad lo que se está vendiendo.
+
+**Lo que sí se puede cambiar:** el fondo, la luz, el contexto, el encuadre.
+**Lo que no se toca nunca:** los píxeles de la joya, su jump y el brazalete.
+
+### Y el audio
+
+`BRIEF.md` decisión 1: el audio en tendencia se elige **dentro** de TikTok o
+CapCut, y en video corto el audio es la mitad de la viralidad.
+
+**Todo lo que salga de Flow se entrega mudo.** Si trae pista de audio, se quita
+antes de guardarlo. Un clip de b-roll con audio propio pelea con el audio en
+tendencia y obliga a silenciarlo a mano en cada montaje.
+
+---
+
+## Tarea 1 — Triaje de la carpeta de fotos crudas (antes de crear nada)
+
+Esto va primero y es barato. **No se retoca ni se genera nada hasta tener este
+inventario**, porque trabajar una foto de una pieza que no se puede vender es
+tiempo tirado — es la misma trampa que `BRIEF.md` § 1.1 describe para el rodaje.
+
+Lo que hay que producir es una tabla: **cada foto cruda → a qué id de
+`assets/stock.json` corresponde → cuántas unidades tiene esa pieza**.
+
+**El contador de unidades tiene una trampa ya documentada.** Un charm guarda
+`stock: 3`. Una pulsera **no tiene campo `stock`**: tiene
+`tallas: {"18": 2, "20": 1}`. Un `item.stock || 0` da **cero para las 18
+pulseras sin dar ningún error**. El contador correcto:
+
+```js
+tipo === 'pulsera' ? suma(Object.values(tallas)) : stock
+```
+
+Con eso, la clasificación de cada foto:
+
+| Unidades de la pieza | Qué se hace con la foto |
+|---|---|
+| **3 o más** (46 referencias) | **Se trabaja.** Es catálogo utilizable |
+| 1–2 (58 referencias) | **Se archiva.** Ni se retoca ni se publica: se agota con dos ventas |
+| 0 (25 referencias) | **Se archiva.** No existe |
+
+### El hueco concreto que hay que buscar en esa carpeta
+
+Comprobado hoy contra `assets/`: de las 46 referencias elegibles, **37 ya tienen
+foto propia y 9 no**. Las nueve son **exactamente las letras elegibles**:
+
+> **`letra-a`, `letra-b`, `letra-d`, `letra-e`, `letra-k`, `letra-l`,
+> `letra-o`, `letra-s`, `letra-v`**
+
+De letras solo existe `charms-de-letras-pave.webp`, que es una foto de grupo. No
+hay ni una sola foto individual de una inicial.
+
+**No están en la carpeta, y no es un problema de inventario.** El propietario
+confirmó (2026-09-07) que **las nueve letras están físicamente en la tienda**;
+lo único que falta es fotografiarlas. `stock.json` es correcto y esas nueve
+piezas **se pueden vender esta quincena**.
+
+### Grabar no es lo mismo que tener foto de catálogo
+
+La distinción importa porque decide qué está bloqueado y qué no:
+
+| | ¿Necesita foto de archivo? | Estado |
+|---|---|---|
+| **Grabar un Reel** con la letra | **No.** Se apunta la cámara a la pieza real, que está en la mano | **Desbloqueado.** Los guiones 5 y 7 se graban tal como están escritos, con `letra-e` y `letra-o`. **No hacen falta sustitutos** |
+| **Recomponer fondo, carrusel, creativo de pauta, ficha de producto** | **Sí.** Hace falta un archivo limpio y recortable | **Bloqueado** hasta la sesión de fotos |
+
+Así que la sesión de fotos **no bloquea el rodaje**: bloquea toda la rama de
+trabajo con imagen, que es justo la que no cuesta créditos. Media hora de mesa y
+teléfono desbloquea semanas de trabajo gratuito sobre el charm más vendible del
+catálogo.
+
+> **Y siguen sin generarse con IA.** Una letra generada es una joya dibujada:
+> regla de oro. La foto es de la pieza real o no hay foto.
+
+**Cuándo:** el mismo domingo de rodaje de `CALENDARIO-EDITORIAL.md` § 2.1, con
+la cámara ya montada. Sacar de cada letra **dos tomas**: una sobre fondo blanco
+limpio —la de catálogo, recortable, la que va a `assets/`— y una sobre superficie
+de estilo de vida. La primera es la que desbloquea todo lo demás.
+
+### Y una regla de contenido que sale de aquí
+
+La ficha del sitio anuncia **«27 iniciales»**, pero **14 letras están en cero**
+(F G H I P Q R T U W X Y Z Ñ). La tienda está protegida —`index.html` tiene su
+`agotado(id)` y bloquea añadir lo que no hay—, así que no es un fallo del sitio.
+
+**Pero sí es una regla para el contenido:** un video que diga *«toca tu
+inicial»* o *«27 iniciales»* manda a **catorce de cada veintisiete**
+espectadores a un botón bloqueado. En cámara se enseñan **solo las nueve
+elegibles**; las catorce ausentes aparecen únicamente en la historia de sondeo
+del guion 8, que pregunta y no ofrece.
+
+---
+
+## Tarea 2 — Primero todo lo que es gratis
+
+**El orden es este y no otro: agotar lo gratuito antes de tocar un crédito.**
+Con imágenes ilimitadas y una carpeta de fotos reales, hay semanas de trabajo
+sin gastar nada.
+
+### 2.1 · La carpeta «pauta meta 2026» es el material, y es gratis trabajarla
+
+Vive en la máquina del propietario, no en el repo. Contiene **creativos ya
+editados**, no fotos crudas: material que ya pasó por una mano y que tiene buena
+calidad. Se usan **todos** los que pasen el triaje de la Tarea 1.
+
+**Que ya estén editados no los descalifica — pero cambia el cuidado.** Un
+creativo terminado está **más lejos de la joya real** que una foto de catálogo:
+ya lleva encima recortes, retoques y composición. Volver a editarlo acumula
+deriva sobre deriva, y la joya es justo lo que no puede derivar.
+
+De ahí la prueba que decide si un creativo sirve como producto:
+
+> **¿Se puede aislar la joya de esta imagen sin tocarla?**
+> **Sí** → sirve como producto: se cambia el fondo alrededor y los píxeles de la
+> pieza, su jump y el brazalete pasan intactos a la versión nueva.
+> **No** → no se usa como producto. Se puede aprovechar como **fondo o
+> ambiente**, que es un destino perfectamente útil y no arriesga nada.
+
+### Tres cosas que hay que revisar en un creativo viejo antes de reutilizarlo
+
+Un creativo terminado trae cosas quemadas encima que una foto cruda no tiene, y
+dos de ellas son problema de verdad:
+
+1. **Precios quemados en la imagen.** Es la peor. Los precios de la tienda los
+   calcula `netlify/functions/_precios.js` con la escala de charms y el
+   descuento de brazalete; un creativo de hace meses puede llevar impreso un
+   número que hoy **no es el que cobra el checkout**. Reutilizarlo es prometer
+   un precio que la tienda desmiente. **Todo creativo con precio en la imagen se
+   aparta hasta comprobar el número contra `calcular()`.**
+2. **Menciones de otras marcas.** `CLAUDE.md` deja constancia de que se excluyó
+   a propósito una variante que nombraba a Pandora, por riesgo de marca. Si algo
+   así sigue en la carpeta, no se reutiliza.
+3. **Texto y logos superpuestos** que ya no corresponden a la temporada, o que
+   estorban al recortar a 9:16.
+
+### Qué se hace con los que pasan, todo a coste cero
+
+- **Recomposición de fondo.** La misma pieza sobre mármol, en luz de tarde o en
+  mesa de regalo, sin volver a fotografiar nada.
+- **Versiones de temporada.** Amor y Amistad ahora; Navidad y Día de la Madre
+  después. Es **recomponer, no volver a fotografiar**.
+- **Recortes por formato:** 9:16 historias, 4:5 feed, 1:1 catálogo.
+- **Doble destino:** el mismo archivo sirve para **creativo de pauta** y para
+  **contenido orgánico**. Es el mismo trabajo cobrado dos veces.
+
+### 2.2 · Fondos y texturas como imagen, no como video
+
+Lo que en la versión anterior era una lista de clips, ahora es una lista de
+**imágenes** —gratis— a las que CapCut les pone el zoom:
+
+Mármol blanco con luz cruzada · lino crudo · madera clara · destellos dorados
+desenfocados sobre fondo oscuro · mesa de regalo vestida · superficie de piedra
+clara.
+
+Seis fondos, generados una vez, sirven para todos los guiones y todas las
+temporadas. **Costo en créditos: cero.**
+
+### 2.3 · Lo que se graba con el teléfono y no le cuesta a nadie
+
+Manos envolviendo una cajita · una tarjeta en blanco y un lápiz · la luz de la
+tarde cruzando la mesa · tela moviéndose · unas manos sirviendo café. Son dos
+minutos de grabación y quedan mejor que generadas, porque son reales.
+
+**Se hacen el mismo domingo de rodaje** de `CALENDARIO-EDITORIAL.md` § 2.1,
+aprovechando que la cámara ya está montada.
+
+---
+
+## Tarea 2b — Dónde SÍ vale gastar créditos de video
+
+Solo cuando esté hecho todo lo anterior, y solo en esto:
+
+| Prioridad | Qué | Por qué vale el crédito |
+|---|---|---|
+| **1** | **Un plano de establecimiento de Amor y Amistad** que no se puede filmar: mesa vestida en luz dorada, profundidad, ambiente de celebración | Se reutiliza en los guiones 1, 2, 3 y 6 del lote. Un solo gasto, cuatro videos |
+| **2** | **Un creativo de pauta con movimiento**, mudo y vertical | Los anuncios se ven **en silencio**, así que aquí el video generado no pierde nada — es justo donde `BRIEF.md` dice que el render mudo encaja. Y la pauta ya está gastando dinero real todos los días |
+| **3** | **Un ambiente aspiracional** fuera de alcance: una locación, una luz o una escena que la cámara del teléfono no puede conseguir | Es lo único que no tiene sustituto gratis |
+
+**Tres o cuatro generaciones bien elegidas, reutilizadas en todo el lote.** No
+una por video. Un clip de ambiente que no lleva producto **no caduca y no se
+gasta**: sirve igual en septiembre que en diciembre.
+
+Y todo lo que salga de Flow, **mudo**: un clip con pista propia pelea con el
+audio en tendencia que se elige dentro de CapCut (`BRIEF.md` decisión 1).
+
+---
+
+## Tarea 3 — Fondos para las fotos de catálogo (si Flow no da, se hace con otra herramienta)
+
+`BRIEF.md` § 2.3: hay **116 archivos en `assets/`, casi todos sobre fondo blanco
+de catálogo**. La misma pieza sobre mármol, en luz de tarde o en mesa de regalo
+es un book de estilo de vida completo sin un día de fotos.
+
+**Pero esto es recomposición, no generación:** se recorta la pieza real de la
+foto real y se le cambia el fondo. La pieza **no se vuelve a dibujar**. Si la
+herramienta redibuja la joya en vez de recortarla y pegarla, no sirve para esto
+—vale para el bloque B de arriba, que no lleva producto—.
+
+Empezar por las **8 pulseras elegibles**, que son las de cámara, y en concreto
+por `pulsera-corazon-liso` y `pulsera-corona-pave`: son las dos únicas que
+cubren las tallas 17 a 20 completas y por eso son las que aguantan un video de
+venta directa a cualquiera.
+
+---
+
+## Lo que esta sesión NO debe hacer
+
+1. **No generar planos de producto.** Ni macro, ni girando, ni «solo para
+   probar». Es la regla 2 y aplica aunque el resultado se vea perfecto.
+2. **No tocar `netlify/functions/`.** `BRIEF.md` decisión 4: una sola sesión toca
+   la tienda. Si el trabajo empieza a pedir cambios ahí, se desvió.
+3. **No gastar un crédito de video en algo que resuelve un zoom sobre una
+   imagen, o dos minutos de teléfono.** Es la escalera de costo de arriba, y es
+   el error que se comete el primer día.
+4. **No comitear video al repo.** `BRIEF.md` decisión 5: Netlify cobra ~15
+   créditos por despliegue y el historial de git se queda los archivos para
+   siempre. Las 10 imágenes de `assets/ads/` son la excepción correcta —pesan
+   poco y la CAPI necesita URL pública—. **Video no.** El b-roll vive en la
+   máquina o en un host externo.
+5. **No inventar precios.** Cualquier número que vaya en pantalla sale de
+   `calcular()` en `netlify/functions/_precios.js`, nunca de memoria.
+6. **No trabajar piezas de menos de 3 unidades**, por bonitas que salgan.
+7. **No entregar nada con audio.**
+
+---
+
+## Las portadas — Flow y Remotion, no Flow o Remotion
+
+La pregunta estaba abierta y los créditos la resuelven, porque **una portada es
+una imagen y las imágenes no cuestan créditos**.
+
+Pero el costo nunca fue el argumento. `BRIEF.md` § 2.1 dice por qué existen las
+portadas: cuando alguien llega al perfil desde un video ve una **cuadrícula**, y
+esa cuadrícula decide si sigue o se va. Para que parezca marca, **dos portadas
+hechas con un mes de diferencia tienen que salir idénticas en estilo**. Un
+modelo generativo no es determinista: pedir la misma portada dos veces da dos
+portadas parecidas, y una cuadrícula de piezas parecidas se ve improvisada
+—justo lo que se quería arreglar—.
+
+**La portada se parte en dos capas, y cada herramienta hace la suya:**
+
+| Capa | Herramienta | Por qué |
+|---|---|---|
+| **Fondo (plancha)** | **Flow**, imagen, gratis | Se generan **una vez** cuatro o cinco planchas —una por pilar de contenido— y **se reutilizan siempre**. Al no regenerarse, la falta de determinismo deja de importar |
+| **Tipografía + recorte del producto real** | **Remotion** (o una plantilla fija mientras tanto) | Es código: sale idéntico siempre. Y **compone en vez de inventar**, así que la regla 2 se cumple sola |
+
+Así la cuadrícula es consistente porque la capa que se repite es la
+determinista, y el fondo es un activo fijo, no una tirada nueva cada vez.
+
+**Qué hacer esta semana, sin esperar a nadie:** generar las **cuatro o cinco
+planchas** en Flow (gratis) y montar la capa de tipografía en una plantilla fija
+de CapCut o Canva. Remotion todavía necesita host propio con Chromium y FFmpeg,
+se está explorando en otra sesión y **Netlify no sirve** para renderizarlo
+(`CLAUDE.md`). Cuando esté listo, la capa de tipografía se migra y las planchas
+siguen siendo las mismas. **Las portadas no se bloquean esperando a Remotion.**
+
+---
+
+## Cómo se sabe que esta sesión sirvió
+
+No es «cuántos clips salieron» ni «cuántos créditos se gastaron». Es:
+
+- **La tabla de triaje** de «fotos de pauta»: cada foto con su id de pieza y sus
+  unidades, y las de menos de 3 unidades apartadas.
+- **Saber si las 9 letras elegibles estaban en la carpeta** (A B D E K L O S V).
+  Si no estaban, eso también es una respuesta: significa que hay que
+  fotografiarlas.
+- **Las fotos que pasaron el triaje, recompuestas** sobre fondo de estilo de
+  vida y recortadas a 9:16, 4:5 y 1:1. Todo a coste cero.
+- **Seis fondos y cuatro planchas de portada** generados como imagen.
+- **`COSTOS-FLOW.md` empezado**, aunque sea con dos líneas.
+- **Cero o casi cero créditos gastados.** Esta primera tanda es de imagen. Si se
+  fueron cincuenta créditos en video de textura, la escalera de costo se saltó.
