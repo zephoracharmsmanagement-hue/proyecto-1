@@ -265,11 +265,19 @@ de ocho guiones listos para grabar. El BRIEF dice *cómo elegir la pieza*; ese
 documento dice *qué se graba con ella*. Tres cosas de ahí que cambian decisiones
 y que no estaban escritas en ningún sitio:
 
-- **El tercer dije cuesta $32.600, no $76.000.** `escalaCharms` (15% con tres) y
-  `descuentoBrazalete` (30% a partir de tres) se disparan juntos: pulsera + 2
-  dijes son $205.200 y + 3 son $237.800. Es el argumento de venta más fuerte que
-  la tienda ya tiene programado y **no aparece en ningún guion, historia ni
-  anuncio**. Verificado corriendo `calcular()` de `_precios.js`, no de memoria.
+- **El tercer dije cuesta $36.560, no $76.000 — menos de la mitad.**
+  `escalaCharms` (15% con tres) y `descuentoBrazalete` (30% a partir de tres) se
+  disparan juntos: sobre Corazón Liso con dijes de $76.000, pulsera + 2 dijes
+  son **$197.840** y + 3 son **$234.400**. Es el argumento de venta más fuerte
+  que la tienda ya tiene programado y **no aparece en ningún guion, historia ni
+  anuncio**.
+
+  > **Corregido el 2026-09-07.** Este párrafo decía $32.600 / $205.200 /
+  > $237.800 y afirmaba estar «verificado corriendo `calcular()`». No lo estaba:
+  > ninguno de los tres números se reproduce. Se detectó al correrlos de verdad,
+  > antes de grabar el guion 5, que los repetía en voz alta. **Un número de
+  > precio en cualquier documento de este repo tiene que poder reproducirse
+  > con `calcular()`; si no, no se escribe.**
 - **El zodiaco no puede ser pilar de contenido:** cero de doce signos llegan a 3
   unidades y Cáncer y Acuario están en cero. Y `pulsera-avengers` está agotada,
   así que el set Marvel —6 referencias elegibles, las más caras del catálogo— se
