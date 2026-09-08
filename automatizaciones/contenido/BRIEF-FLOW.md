@@ -340,6 +340,14 @@ minutos de grabación y quedan mejor que generadas, porque son reales.
 **Se hacen el mismo domingo de rodaje** de `CALENDARIO-EDITORIAL.md` § 2.1,
 aprovechando que la cámara ya está montada.
 
+> **Excepción decidida por el propietario, 2026-09-08: estos cinco se generan
+> en Flow como video, no con el teléfono.** Es lo contrario de lo que dice este
+> párrafo, y se decide así a sabiendas del costo — no es un descuido de una
+> sesión que no leyó esto. Gastan crédito de video de verdad, así que van con
+> la escalera de § *Los ajustes que bajan el costo* (duración mínima, generador
+> económico primero, boceto antes que obra) y se anotan en `COSTOS-FLOW.md` uno
+> por uno. Si una sesión futura ve este gasto y no encuentra por qué, es esto.
+
 ---
 
 ## Tarea 2b — Dónde SÍ vale gastar créditos de video
