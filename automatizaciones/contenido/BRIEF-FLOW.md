@@ -137,6 +137,85 @@ del guion 8, que pregunta y no ofrece.
 
 ---
 
+## El presupuesto de créditos — la restricción que manda sobre todo lo demás
+
+**Plan Flow Pro: 250 créditos de tope, +50 que se recargan cada día.**
+
+**Se trabaja desde la interfaz web de Flow, con los créditos del plan. No se usa
+la API de pago de Google Cloud** (decisión del propietario, 2026-09-07). Es
+coherente con todo lo demás: no hay integración que construir ni facturación por
+uso que vigilar, y el único recurso a administrar son estos créditos. Que nadie
+proponga «automatizarlo con la API» sin decidirlo antes — sería cambiar un costo
+de cero por uno variable.
+
+Tres consecuencias, y la tercera es la que cambia el plan:
+
+**1 · Las imágenes no gastan créditos. El video sí.** Y el costo de un video
+depende de tres cosas: **duración, resolución y qué generador se use**. Esa es
+toda la economía de esta herramienta.
+
+**2 · El tope de 250 significa que los créditos NO se acumulan indefinidamente.**
+Se pueden guardar como mucho **cinco días** (5 × 50 = 250). Estando en 250, la
+recarga del día siguiente **se pierde**. Así que: o se gasta con regularidad, o
+se ahorra a propósito durante cinco días justo antes de una tanda grande —nunca
+más de cinco—.
+
+**3 · Y la que de verdad importa: casi ningún b-roll de este proyecto necesita
+video generado.** Esto corrige la lista de doce clips que traía la versión
+anterior de este documento; se deja escrito el porqué para que nadie la
+reponga.
+
+### La escalera de costo — se baja hasta el escalón más barato que sirva
+
+Antes de gastar un crédito, la pregunta es siempre: **¿cuál es el escalón más
+barato que resuelve este plano?**
+
+| # | Cómo se consigue el plano | Costo | Cuándo |
+|---|---|---|---|
+| **1** | **Una foto que ya existe + zoom lento en CapCut** | **Cero** | Textura, producto, cualquier plano quieto. `BRIEF.md` § 2.2 ya lo dice: *«una imagen con zoom lento da 3 segundos de aire»* |
+| **2** | **Grabarlo con el teléfono** | **Cero, 2 minutos** | Manos, mesa, tela, luz de ventana. Todo lo que esté al alcance del brazo |
+| **3** | **Imagen generada en Flow + zoom en CapCut** | **Cero créditos** | Fondos y ambientes que no se pueden fotografiar |
+| **4** | **Video generado en Flow** | **Caro y limitado** | **Último recurso.** Solo lo que no se puede filmar ni fingir con un zoom |
+
+Los doce clips de la versión anterior de este documento —mármol con luz, lino
+arrugándose, manos envolviendo una cajita, tazas de café— **caen todos en los
+escalones 1, 2 o 3**. Unas manos envolviendo un regalo se graban con el teléfono
+en dos minutos y salen mejor que generadas, porque son las manos de verdad.
+Pedirle eso a Flow es gastar el recurso escaso en lo único que sobra.
+
+> **La regla, para no tener que releer la tabla:** un crédito de video se gasta
+> **solo cuando algo tiene que moverse y cambiar de forma en cuadro, y no está
+> al alcance de la cámara del teléfono.** Si el plano está quieto, es un zoom
+> sobre una imagen y es gratis.
+
+### Los ajustes que bajan el costo, y en qué orden se tocan
+
+Cuando toque gastar, se gasta al mínimo:
+
+1. **Duración: la más corta posible.** El b-roll está en pantalla 2–3 segundos.
+   Generar 8 para usar 3 es tirar la diferencia.
+2. **Generador: siempre el rápido/económico primero.** El de máxima calidad se
+   reserva para un plano que ya demostró que se usa.
+3. **Resolución: la menor que aguante el destino.** Un clip de 2 segundos entre
+   dos cortes, visto en un teléfono, no necesita la resolución máxima. El hero
+   del gancho sí.
+4. **Un boceto antes que una obra.** Generar barato, meterlo en el montaje, y
+   **solo si el video funciona** volver a generarlo en calidad. Al revés se
+   pagan cinco veces planos que no entran al corte final.
+
+### El registro de costos — hay que llevarlo desde el primer día
+
+**No hay una tabla de costos escrita en este documento a propósito**, porque
+sería un supuesto. La interfaz de Flow muestra el costo antes de generar.
+
+**Anotar ese número real** en `automatizaciones/contenido/COSTOS-FLOW.md`, una
+línea por generación: fecha · generador · duración · resolución · créditos ·
+para qué guion. En dos semanas eso deja de ser burocracia y se convierte en la
+tabla con la que se planea una tanda sin quedarse sin créditos a medias — que
+es exactamente lo que pasa la primera vez que alguien no la lleva.
+
+---
+
 ## Tarea 2 — Primero todo lo que es gratis
 
 **El orden es este y no otro: agotar lo gratuito antes de tocar un crédito.**
