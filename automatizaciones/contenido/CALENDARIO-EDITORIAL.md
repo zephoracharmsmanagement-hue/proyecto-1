@@ -26,7 +26,7 @@ del BRIEF (una sola sesión toca la tienda).
 Cinco hallazgos, todos calculados contra los archivos reales. Cuatro no estaban
 escritos en ningún sitio del repo y **cambian qué se graba**.
 
-### 1.1 · El tercer dije cuesta $32.600, y nadie lo está contando
+### 1.1 · El tercer dije cuesta $36.560, y nadie lo está contando
 
 El hallazgo más rentable de todo el análisis. `assets/catalogo.json` define:
 
@@ -40,23 +40,33 @@ envioGratisDesde: 180000                  // solo pago anticipado
 Corrido contra `calcular()` de `_precios.js` (pulsera Corazón Liso + charms de
 $76.000, pago anticipado):
 
-| Selección | Total real | Lo que cuesta el charm que se añade |
-|---|---|---|
-| Pulsera + 1 charm | **$149.000** | — |
-| Pulsera + 2 charms | **$205.200** · envío gratis | $56.200 |
-| **Pulsera + 3 charms** | **$237.800** · envío gratis | **$32.600** |
-| Pulsera + 4 charms | **$268.600** · envío gratis | $30.800 |
+| Selección | Mercancía | Envío | Total real | Lo que costó el dije que se añadió |
+|---|---|---|---|---|
+| Pulsera + 1 dije | $134.000 | $15.000 | **$149.000** | — |
+| Pulsera + 2 dijes | $197.840 | gratis | **$197.840** | $63.840 |
+| **Pulsera + 3 dijes** | $234.400 | gratis | **$234.400** | **$36.560** |
+| Pulsera + 4 dijes | $268.600 | gratis | **$268.600** | $34.200 |
 
-**Un dije de lista $76.000 sale en $32.600 cuando es el tercero**, porque
-dispara a la vez el 15% de la escala y el 30% de la pulsera. El salto de 2 a 3
-piezas es el más barato del catálogo y **no aparece en ningún guion, ninguna
-historia ni ningún anuncio**.
+**Un dije de lista $76.000 sale en $36.560 cuando es el tercero** —**menos de la
+mitad**—, porque dispara a la vez el 15% de la escala y el 30% de la pulsera.
+
+El tercero es donde **se desploma** el precio marginal: el segundo dije cuesta
+$63.840 y el tercero $36.560. (El cuarto sale un poco más barato todavía,
+$34.200, pero ahí ya no hay ningún descuento nuevo: solo se reparte mejor el
+25% de la escala. **El salto que hay que contar es el de 2 a 3.**) Y **no
+aparece en ningún guion, ninguna historia ni ningún anuncio**.
+
+> **Números verificados el 2026-09-07** corriendo `calcular()` de
+> `netlify/functions/_precios.js` sobre `pulsera-corazon-liso` ($58.000) con
+> dijes de $76.000, pago anticipado. **Una versión anterior de esta tabla decía
+> $205.200 / $237.800 / tercer dije $32.600: eran incorrectos** y el guion 5 los
+> repetía en voz alta. Si se vuelven a tocar, se recalculan, no se estiman.
 
 Esto ordena todo el contenido: **el objetivo de conversión nunca es «compra la
 pulsera». Es «llega a tres».** Coincide con lo que ya dice `CLAUDE.md`: el
 margen está en el charm (87,9%), no en la pulsera (70,7%), y una venta de dos
 charms deja ~$110.386 de utilidad. Un carrito de 3 charms deja más y le cuesta
-a la clienta $32.600 más. Es la oferta redonda que la tienda ya tiene programada
+a la clienta $36.560 más. Es la oferta redonda que la tienda ya tiene programada
 y no comunica.
 
 ### 1.2 · Amor y Amistad es en 12 días y hay fecha límite de pedido
@@ -87,7 +97,9 @@ escrita por la clienta**. Para un producto de regalo en la semana de Amor y
 Amistad, esa tarjeta *es* el producto emocional, y hoy solo se descubre en el
 paso 2 del checkout, cuando la decisión ya está tomada.
 
-Pulsera + 3 charms + empaque = **$277.800**, envío gratis. Debe salir en cámara.
+Corona Pavé + 3 dijes de $76.000 + empaque = **$281.400**, envío gratis
+(verificado con `calcular()`; sobre Corazón Liso serían **$274.400**). Debe
+salir en cámara.
 
 ### 1.4 · El zodiaco NO puede ser pilar, y las letras solo a medias
 
@@ -270,6 +282,18 @@ debe emitirlas en este orden:
 - **No se enseña una pieza con menos de 3 unidades.**
 - **Producto en cámara = producto real.** Nada generado (BRIEF, regla 2).
 
+> **Y la regla se comprueba, no se promete.** Escribir «verificado contra
+> `calcular()`» no es verificarlo: la primera versión de este documento lo
+> decía y sus tres números centrales estaban mal (§ 1.1). Antes de grabar:
+>
+> ```
+> node automatizaciones/contenido/verificar-precios-guiones.js
+> ```
+>
+> Corre cada precio de este documento contra `calcular()` y sale con error
+> nombrando el que dejó de cuadrar. **Un precio nuevo en un guion se añade
+> también a ese archivo**, o la próxima vez tampoco lo va a cazar nadie.
+
 ---
 
 ### GUION 1 · POV — «El regalo que sí pensó» · TikTok + IG Reels
@@ -319,8 +343,8 @@ debe emitirlas en este orden:
 > Un atrapasueños, porque los míos los cumplo yo.»
 
 **CTA:**
-> «Está en el link. Y si llevas tres dijes, el tercero te sale en **$32.600**.»
-> *(En pantalla: `3.er dije = $32.600`)*
+> «Está en el link. Y si llevas tres dijes, el tercero te sale por **menos de la mitad**.»
+> *(En pantalla: `3.er dije de $76.000 = $36.560`)*
 
 **Tomas:**
 1. Muñeca puesta escribiendo (bloque 4).
@@ -396,21 +420,28 @@ debe emitirlas en este orden:
 
 ### GUION 5 · Venta directa — «El tercer dije» · TikTok + IG Reels
 **Pilar 2 · El guion más importante del lote. Es el hallazgo § 1.1 puesto en cámara.**
-**Piezas: `pulsera-corazon-liso` (8 u) + `letra-e` (4 u) + `esfera-azul-con-cristales` (5 u) + `atrapasuenos-corazon-multicolor` (5 u)**
+**Piezas: `pulsera-corazon-liso` (8 u) + `esfera-azul-con-cristales` (5 u) + `atrapasuenos-corazon-multicolor` (5 u) + `letra-e` (4 u)**
+
+> **El orden importa y no es decorativo.** Los dos primeros dijes son de $72.000
+> y **el tercero, `letra-e`, es el de $76.000**. Así el gancho —«este dije
+> cuesta $76.000»— señala exactamente la pieza que entra de tercera, y la cuenta
+> que se dice en voz alta es la de esa pieza. Si se cambia el orden o se
+> sustituye una pieza, **los tres números cambian y hay que recalcularlos**.
 
 | Bloque | Tiempo | Qué pasa |
 |---|---|---|
-| **Gancho** | 0–3 s | Pulsera con **dos** dijes sobre la mesa. Una mano deja un tercero al lado, sin ponerlo. **Texto: «Este dije cuesta $76.000… pero no si es el tercero»** |
-| **Desarrollo** | 3–8 s | En pantalla, número grande: `2 dijes → $205.200`. Plano de la pulsera con dos |
-| | 8–13 s | La mano pone el tercero. Clic. En pantalla: `3 dijes → $237.800` |
-| | 13–18 s | En pantalla, en grande: `**+$32.600**`. Plano final de la pulsera completa girando |
+| **Gancho** | 0–3 s | Pulsera con **dos** dijes sobre la mesa. Una mano deja la `letra-e` al lado, sin ponerla. **Texto: «Este dije cuesta $76.000… pero no si es el tercero»** |
+| **Desarrollo** | 3–8 s | En pantalla, número grande: `2 dijes → $190.480`. Plano de la pulsera con dos |
+| | 8–13 s | La mano pone el tercero. Clic. En pantalla: `3 dijes → $227.600` |
+| | 13–18 s | En pantalla, en grande: `**+$37.120**` y debajo, más pequeño, `menos de la mitad de $76.000`. Plano final de la pulsera completa girando |
 
 **Voz en off (exacta):**
 > «Este dije cuesta setenta y seis mil pesos.
 > Pero si es el tercero de tu pulsera, no.
-> Con dos dijes, tu pulsera va en doscientos cinco mil doscientos.
-> Con tres, en doscientos treinta y siete mil ochocientos.
-> El tercer dije te sale en treinta y dos mil seiscientos, porque a partir de tres la pulsera baja el treinta por ciento.
+> Con dos dijes, esta pulsera va en ciento noventa mil cuatrocientos ochenta.
+> Le pongo el tercero… y queda en doscientos veintisiete mil seiscientos.
+> Te salió en treinta y siete mil ciento veinte. **Menos de la mitad.**
+> Porque a partir de tres, los dijes bajan quince por ciento y la pulsera baja treinta.
 > Y desde ciento ochenta mil, el envío va gratis.»
 
 **CTA:**
@@ -418,21 +449,32 @@ debe emitirlas en este orden:
 
 **Tomas:**
 1. Pulsera completa (3 dijes) girando sobre la mesa (bloque 4).
-2. Pulsera con 2 dijes, quieta (bloques 1 y 2) — **quitar un dije, no volver a montar todo**.
-3. La mano poniendo el tercero, con clic y audio limpio (bloque 3).
+2. Pulsera con 2 dijes, quieta (bloques 1 y 2) — **quitar la `letra-e`, no volver a montar todo**.
+3. La mano poniendo la `letra-e` de tercera, con clic y audio limpio (bloque 3).
 
 > **Verificación obligatoria antes de publicar:** correr el combo en el checkout
 > real y confirmar los tres números. Si `catalogo.json` cambia la escala o el
 > descuento, **este guion queda mintiendo** y hay que rehacerlo. Es el único
 > guion del lote con esa dependencia.
+>
+> **Ya pasó una vez.** La primera versión de este guion decía $205.200 /
+> $237.800 / tercer dije $32.600, y ninguno de los tres salía de `calcular()`.
+> Los reales, con estas piezas y en este orden, son **$190.480 / $227.600 /
+> $37.120** (verificado 2026-09-07, antes de grabar). La regla de § 4.1 —**el
+> precio se corre, no se estima**— solo sirve si «verificado contra
+> `_precios.js`» se puede reproducir, no solo escribir.
 
 **Texto TikTok:** `hagan la cuenta 🧮 #joyeria #charms #pulseraspersonalizadas #zephoracharms`
 
 ---
 
 ### GUION 6 · Venta directa — Empaque y tarjeta · TikTok + IG Reels
-**Pilar 2 · `pulsera-corona-pave` (8 u, tallas 17-20) + 3 charms + Empaque Premium ($40.000)**
-**Total real: $277.800 · envío gratis.**
+**Pilar 2 · `pulsera-corona-pave` (8 u, tallas 17-20) + `letra-o` (4 u) + `virgen-maria` (4 u) + `manos-orando-con-cruz` (4 u) + Empaque Premium ($40.000)**
+**Total real: $281.400 · envío gratis** (verificado con `calcular()`, 2026-09-07).
+
+> Los tres dijes son de **$76.000**, así que cualquier otro trío a ese precio da
+> el mismo total. Con dijes de otro precio **cambia**, y hay que recalcularlo
+> antes de decirlo en cámara.
 
 | Bloque | Tiempo | Qué pasa |
 |---|---|---|
@@ -445,7 +487,7 @@ debe emitirlas en este orden:
 > «El empaque premium trae una tarjeta.
 > Y lo que va escrito en esa tarjeta lo escribes tú, en el checkout — nosotros solo lo copiamos tal cual.
 > Es lo primero que ve, antes que la pulsera.
-> Pulsera, tres dijes y empaque: doscientos setenta y siete mil ochocientos, con envío gratis.»
+> Pulsera, tres dijes y empaque: doscientos ochenta y un mil cuatrocientos, con envío gratis.»
 
 **CTA:**
 > «Escoge “Empaque Premium” en el paso dos. Ahí va tu dedicatoria.»
@@ -540,7 +582,8 @@ dos Reels con tres checkouts cada uno **no es un resultado, es ruido**. Antes de
 declarar que un pilar funciona hacen falta semanas, no días.
 
 **Un solo experimento por quincena.** Esta quincena el experimento es el
-**guion 5** (el tercer dije): si el argumento del $32.600 mueve checkouts, pasa
+**guion 5** (el tercer dije): si el argumento del $37.120 —«menos de la
+mitad»— mueve checkouts, pasa
 a ser el CTA por defecto de todo el pilar 2 y se lleva también a la pauta.
 
 ---
