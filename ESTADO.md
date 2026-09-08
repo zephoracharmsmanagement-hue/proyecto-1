@@ -23,6 +23,29 @@ Qué trae:
 | `CLAUDE.md` | Tres hallazgos enlazados desde la sección de contenido |
 | `netlify.toml` | Regla `ignore` para no desplegar cuando el push solo cambia `.md` |
 
+### Hay tres sesiones en contenido, y no pueden hablarse
+
+Comprobado el 2026-09-08: **las sesiones no se alcanzan entre sí.** La de
+estrategia corre en la nube y las otras en la máquina del propietario; el canal
+entre sesiones no las conecta. Se intentó y falló. **El único canal compartido
+es el repo**, que es justo lo que dice la regla 4 de `CLAUDE.md`.
+
+| Sesión | Rama | Qué hace |
+|---|---|---|
+| Estrategia de contenido | `claude/zephora-charm-content-strategy-ktc7fi` | Doctrina editorial, guiones, encargo de Flow |
+| Google Flow | trabaja sobre la rama de arriba | Triaje de «pauta meta 2026» e imagen |
+| Automatización de contenido | `claude/social-content-automation-n1rh2j` | `ANALISIS-PLAN-GEMINI.md` + 8 líneas a `BRIEF.md` |
+
+Las dos ramas **no chocan** —archivos distintos, merge limpio— y sus
+conclusiones coinciden: la tercera sesión recontó el inventario por su cuenta y
+le dio **25/58/46**, los mismos números que `CALENDARIO-EDITORIAL.md`. Eso
+confirma que el **24/59/46 del `BRIEF.md` § 1.1 está desactualizado** y hay que
+corregirlo al reconciliar.
+
+Pero que no choquen es lo peligroso, no lo tranquilizador: es literalmente el
+patrón que `CLAUDE.md` describe —«git no ve nada raro ahí»—. **Antes de escribir
+en `automatizaciones/contenido/`, leer las dos ramas.**
+
 ### ⛔ Esta rama NO se mezcla a `main` todavía — no hay créditos de Netlify
 
 **Estado al 2026-09-07: la cuenta no tiene créditos para ningún despliegue.**

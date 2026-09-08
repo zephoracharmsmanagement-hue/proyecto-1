@@ -10,6 +10,57 @@ alimentar). Este documento no los repite: dice **qué le toca a Flow y qué no**
 
 ---
 
+## Cómo trabajamos en conjunto — el repo es el canal
+
+Las sesiones **no pueden hablarse directamente**. Se comprobó el 2026-09-08: la
+sesión de estrategia corre en la nube y la de Flow en la máquina del
+propietario, y el canal entre sesiones no las alcanza. Así que el propietario
+no debería quedarse de mensajero: **la rama es el canal**.
+
+```bash
+git fetch --all
+git checkout claude/zephora-charm-content-strategy-ktc7fi
+```
+
+**No se mezcla a `main`.** No hay créditos de Netlify y `main` es la rama que
+publica, así que cualquier push a `main` intenta desplegar. Trabajar en esta
+rama no dispara ningún despliegue.
+
+### Dónde escribe cada quien
+
+| Documento | Lo escribe | Lo lee |
+|---|---|---|
+| `BRIEF-FLOW.md` (este) | La sesión de estrategia | La sesión de Flow |
+| `CALENDARIO-EDITORIAL.md` | La sesión de estrategia | Todas |
+| **`TRIAJE-PAUTA-META-2026.md`** | **La sesión de Flow** | La sesión de estrategia |
+| **`COSTOS-FLOW.md`** | **La sesión de Flow** | Todas |
+| `ESTADO.md` § *Trabajo en curso* | Quien empiece algo | Todas |
+
+**La sesión de Flow contesta escribiendo y commiteando, no respondiendo en su
+chat.** El resultado del triaje va a `TRIAJE-PAUTA-META-2026.md` en esta misma
+rama, con la tabla completa y el resumen. Así la sesión de estrategia lo lee
+directamente y planea la tanda siguiente sin que nadie transcriba nada.
+
+### Hay una tercera sesión en contenido — reconciliar antes de ampliar
+
+Rama `claude/social-content-automation-n1rh2j`. Analizó un plan de contenido
+externo (de Gemini) y llegó por su cuenta a las mismas conclusiones: 46
+referencias elegibles, el audio en tendencia como límite real y el tiempo de
+cámara como cuello de botella. **Recontó el inventario y le dio 25/58/46, los
+mismos números que el recuento de `CALENDARIO-EDITORIAL.md` § 1**, lo que
+confirma que el 24/59/46 del `BRIEF.md` § 1.1 está desactualizado.
+
+No es duplicación —ese documento critica un plan externo, el calendario escribe
+la doctrina— y da la casualidad de que **no chocan**: esa rama añade
+`ANALISIS-PLAN-GEMINI.md` y ocho líneas a `BRIEF.md`; esta no toca `BRIEF.md`.
+
+**Pero es exactamente el escenario que `CLAUDE.md` marca como peligroso:** dos
+ramas tocando `automatizaciones/contenido/`, con archivos distintos y merge
+limpio, sin que git avise de nada. Antes de escribir nada nuevo en esa carpeta,
+leer las dos.
+
+---
+
 ## La frontera, en una frase
 
 **Flow hace movimiento y ambiente. Flow no hace producto.**
