@@ -35,6 +35,19 @@ de verdad, y eso se paga con la clienta.
 **Regla operativa:** si en el fotograma se puede leer *qué pieza es y cuánto
 cuesta*, no lo hace Flow.
 
+### La regla de oro, con las palabras del propietario
+
+> **No se modifica la joya. Ni los jumps, ni el brazalete.**
+
+Es la regla 2 del `BRIEF.md` dicha mejor, y conviene usar esta formulación
+porque nombra las tres cosas concretas que un modelo altera sin que se note: la
+pieza, **el jump** (la argollita que la une) y el brazalete. El jump es el que
+más se pierde de vista y el que más delata: si cambia de forma o desaparece,
+la foto deja de enseñar cómo se engancha de verdad lo que se está vendiendo.
+
+**Lo que sí se puede cambiar:** el fondo, la luz, el contexto, el encuadre.
+**Lo que no se toca nunca:** los píxeles de la joya, su jump y el brazalete.
+
 ### Y el audio
 
 `BRIEF.md` decisión 1: el audio en tendencia se elige **dentro** de TikTok o
@@ -83,10 +96,23 @@ foto propia y 9 no**. Las nueve son **exactamente las letras elegibles**:
 De letras solo existe `charms-de-letras-pave.webp`, que es una foto de grupo. No
 hay ni una sola foto individual de una inicial.
 
-**Eso es lo primero que hay que buscar en la carpeta cruda**, porque las letras
-son el charm más vendible del catálogo (una inicial es el regalo personalizado
-por defecto) y salen en los guiones 5 y 7. Si en la carpeta hay tomas sueltas de
-iniciales, recuperarlas vale más que cualquier otra cosa que se haga hoy.
+**Y no están en la carpeta: el propietario confirmó (2026-09-07) que las nueve
+letras están llegando y todavía no se han fotografiado.** Así que esto no es una
+búsqueda, es **una sesión de fotos pendiente** — mesa, teléfono y media hora en
+cuanto lleguen. No hay nada que Flow pueda hacer al respecto.
+
+> **Y no se generan con IA, ni «solo para salir del paso».** Una letra generada
+> es una joya dibujada, que es exactamente lo que prohíbe la regla de oro. Sin
+> foto real, esas nueve piezas **no salen en cámara**.
+
+Importa porque las letras son el charm más vendible del catálogo —una inicial es
+el regalo personalizado por defecto— y salen en los guiones 5 y 7 de
+`CALENDARIO-EDITORIAL.md`. **Mientras no lleguen y no estén fotografiadas, esos
+dos guiones se graban con sustitutos:** en el guion 5, `sol-y-luna-con-cristales`
+(4 u) en lugar de `letra-e`; en el guion 7, `mariposas-tricolor-colgantes` (3 u)
+en lugar de `letra-o`. El guion no cambia en nada más — los precios de la § 1.1
+de `CALENDARIO-EDITORIAL.md` son los mismos, porque los tres charms cuestan
+igual o menos.
 
 > **Las otras 14 letras (F G H I P Q R T U W X Y Z Ñ) no se fotografían ni se
 > generan: no existen.** Aparecen solo en la historia de sondeo del guion 8, que
@@ -173,28 +199,51 @@ es exactamente lo que pasa la primera vez que alguien no la lleva.
 Con imágenes ilimitadas y una carpeta de fotos reales, hay semanas de trabajo
 sin gastar nada.
 
-### 2.1 · La carpeta «fotos de pauta» es el material, y es gratis trabajarla
+### 2.1 · La carpeta «pauta meta 2026» es el material, y es gratis trabajarla
 
-Se usan **todas** las fotos de esa carpeta que pasen el triaje de la Tarea 1
-(pieza con 3 unidades o más). Sirven para lo mismo dos veces: **creativos de
-pauta** y **contenido orgánico** —posts, carruseles, portadas—. Es el mismo
-archivo con dos destinos.
+Vive en la máquina del propietario, no en el repo. Contiene **creativos ya
+editados**, no fotos crudas: material que ya pasó por una mano y que tiene buena
+calidad. Se usan **todos** los que pasen el triaje de la Tarea 1.
 
-Sobre cada foto que pase el triaje, y todo a coste cero:
+**Que ya estén editados no los descalifica — pero cambia el cuidado.** Un
+creativo terminado está **más lejos de la joya real** que una foto de catálogo:
+ya lleva encima recortes, retoques y composición. Volver a editarlo acumula
+deriva sobre deriva, y la joya es justo lo que no puede derivar.
 
-- **Recomposición de fondo.** `BRIEF.md` § 2.3: las fotos son casi todas de
-  fondo blanco de catálogo. La misma pieza sobre mármol, en luz de tarde o en
-  mesa de regalo es un book de estilo de vida sin un día de fotos.
+De ahí la prueba que decide si un creativo sirve como producto:
+
+> **¿Se puede aislar la joya de esta imagen sin tocarla?**
+> **Sí** → sirve como producto: se cambia el fondo alrededor y los píxeles de la
+> pieza, su jump y el brazalete pasan intactos a la versión nueva.
+> **No** → no se usa como producto. Se puede aprovechar como **fondo o
+> ambiente**, que es un destino perfectamente útil y no arriesga nada.
+
+### Tres cosas que hay que revisar en un creativo viejo antes de reutilizarlo
+
+Un creativo terminado trae cosas quemadas encima que una foto cruda no tiene, y
+dos de ellas son problema de verdad:
+
+1. **Precios quemados en la imagen.** Es la peor. Los precios de la tienda los
+   calcula `netlify/functions/_precios.js` con la escala de charms y el
+   descuento de brazalete; un creativo de hace meses puede llevar impreso un
+   número que hoy **no es el que cobra el checkout**. Reutilizarlo es prometer
+   un precio que la tienda desmiente. **Todo creativo con precio en la imagen se
+   aparta hasta comprobar el número contra `calcular()`.**
+2. **Menciones de otras marcas.** `CLAUDE.md` deja constancia de que se excluyó
+   a propósito una variante que nombraba a Pandora, por riesgo de marca. Si algo
+   así sigue en la carpeta, no se reutiliza.
+3. **Texto y logos superpuestos** que ya no corresponden a la temporada, o que
+   estorban al recortar a 9:16.
+
+### Qué se hace con los que pasan, todo a coste cero
+
+- **Recomposición de fondo.** La misma pieza sobre mármol, en luz de tarde o en
+  mesa de regalo, sin volver a fotografiar nada.
 - **Versiones de temporada.** Amor y Amistad ahora; Navidad y Día de la Madre
   después. Es **recomponer, no volver a fotografiar**.
-- **Recortes por formato:** 9:16 para historias, 4:5 para feed, 1:1 para
-  catálogo.
-
-> **Y aquí la regla 2 sigue mandando, aunque sea gratis:** se recorta la pieza
-> **real** de la foto **real** y se le cambia el fondo. La joya **no se vuelve a
-> dibujar**. Si la herramienta redibuja la pieza en vez de recortarla y pegarla,
-> ese resultado no se usa con producto — vale para un fondo vacío y nada más.
-> Que no cueste créditos no la vuelve permitida.
+- **Recortes por formato:** 9:16 historias, 4:5 feed, 1:1 catálogo.
+- **Doble destino:** el mismo archivo sirve para **creativo de pauta** y para
+  **contenido orgánico**. Es el mismo trabajo cobrado dos veces.
 
 ### 2.2 · Fondos y texturas como imagen, no como video
 
