@@ -95,54 +95,146 @@ iniciales, recuperarlas vale más que cualquier otra cosa que se haga hoy.
 
 ---
 
-## Tarea 2 — B-roll mudo, que es donde Flow rinde de verdad
+## El presupuesto de créditos — la restricción que manda sobre todo lo demás
 
-`BRIEF.md` § 2.2: *«Un Reel necesita cortes cada 2–3 segundos o la gente se va.
-Sin b-roll hay que grabar el triple.»*
+**Plan Flow Pro: 250 créditos de tope, +50 que se recargan cada día.**
 
-Ese es el encargo. **Clips de 3 segundos, verticales 9:16, mudos, sin producto
-identificable**, que sirven de aire entre los planos reales.
+Tres consecuencias, y la tercera es la que cambia el plan:
 
-Especificación fija para todo lo que se pida:
+**1 · Las imágenes no gastan créditos. El video sí.** Y el costo de un video
+depende de tres cosas: **duración, resolución y qué generador se use**. Esa es
+toda la economía de esta herramienta.
 
-| | |
-|---|---|
-| Duración | 3 segundos |
-| Formato | Vertical 9:16 |
-| Audio | **Ninguno** |
-| Movimiento | Lento. Un empuje suave o un giro. Nada de cámara nerviosa |
-| Luz | Natural, de ventana, tarde. Cálida, no de estudio |
-| Paleta | Mármol blanco, madera clara, lino crudo, dorado suave, verde salvia |
-| Producto | **Ausente**, o desenfocado al fondo sin que se lea qué pieza es |
+**2 · El tope de 250 significa que los créditos NO se acumulan indefinidamente.**
+Se pueden guardar como mucho **cinco días** (5 × 50 = 250). Estando en 250, la
+recarga del día siguiente **se pierde**. Así que: o se gasta con regularidad, o
+se ahorra a propósito durante cinco días justo antes de una tanda grande —nunca
+más de cinco—.
 
-### Lo que hace falta, por prioridad
+**3 · Y la que de verdad importa: casi ningún b-roll de este proyecto necesita
+video generado.** Esto corrige la lista de doce clips que traía la versión
+anterior de este documento; se deja escrito el porqué para que nadie la
+reponga.
 
-**Bloque A — Ambiente de regalo (urgente: Amor y Amistad es el 19 de septiembre).**
-Alimenta los guiones 1, 2, 3 y 6.
+### La escalera de costo — se baja hasta el escalón más barato que sirva
 
-1. Manos envolviendo una cajita pequeña con cinta, plano cenital, mármol.
-2. Una tarjeta de dedicatoria en blanco sobre una mesa, con una mano dejando un
-   lápiz al lado.
-3. Luz de ventana de tarde moviéndose sobre una mesa vacía de madera clara.
-4. Dos tazas de café y unas manos, plano medio, conversación que no se oye.
-5. Una cajita cerrada sobre lino crudo, la cámara empujando muy despacio.
+Antes de gastar un crédito, la pregunta es siempre: **¿cuál es el escalón más
+barato que resuelve este plano?**
 
-**Bloque B — Textura y transición.** Sirven para cualquier guion.
+| # | Cómo se consigue el plano | Costo | Cuándo |
+|---|---|---|---|
+| **1** | **Una foto que ya existe + zoom lento en CapCut** | **Cero** | Textura, producto, cualquier plano quieto. `BRIEF.md` § 2.2 ya lo dice: *«una imagen con zoom lento da 3 segundos de aire»* |
+| **2** | **Grabarlo con el teléfono** | **Cero, 2 minutos** | Manos, mesa, tela, luz de ventana. Todo lo que esté al alcance del brazo |
+| **3** | **Imagen generada en Flow + zoom en CapCut** | **Cero créditos** | Fondos y ambientes que no se pueden fotografiar |
+| **4** | **Video generado en Flow** | **Caro y limitado** | **Último recurso.** Solo lo que no se puede filmar ni fingir con un zoom |
 
-6. Mármol blanco con la luz cruzando, giro lentísimo.
-7. Lino crudo arrugándose muy despacio.
-8. Destellos dorados desenfocados (bokeh) sobre fondo oscuro.
-9. Agua muy quieta con un reflejo cálido.
+Los doce clips de la versión anterior de este documento —mármol con luz, lino
+arrugándose, manos envolviendo una cajita, tazas de café— **caen todos en los
+escalones 1, 2 o 3**. Unas manos envolviendo un regalo se graban con el teléfono
+en dos minutos y salen mejor que generadas, porque son las manos de verdad.
+Pedirle eso a Flow es gastar el recurso escaso en lo único que sobra.
 
-**Bloque C — Contexto de uso, sin que se lea la pieza.** Guiones 2 y 7.
+> **La regla, para no tener que releer la tabla:** un crédito de video se gasta
+> **solo cuando algo tiene que moverse y cambiar de forma en cuadro, y no está
+> al alcance de la cámara del teléfono.** Si el plano está quieto, es un zoom
+> sobre una imagen y es gratis.
 
-10. Una muñeca escribiendo en un teclado, **desenfocada**, sin que se distinga
-    qué lleva puesto.
-11. Alguien apartándose el pelo con la mano, contraluz, plano corto.
-12. Manos abriendo unas cortinas por la mañana.
+### Los ajustes que bajan el costo, y en qué orden se tocan
 
-**Doce clips de 3 segundos cubren los ocho guiones del lote 1 con margen.** No
-hacen falta más: el b-roll se reutiliza entre videos, es su gracia.
+Cuando toque gastar, se gasta al mínimo:
+
+1. **Duración: la más corta posible.** El b-roll está en pantalla 2–3 segundos.
+   Generar 8 para usar 3 es tirar la diferencia.
+2. **Generador: siempre el rápido/económico primero.** El de máxima calidad se
+   reserva para un plano que ya demostró que se usa.
+3. **Resolución: la menor que aguante el destino.** Un clip de 2 segundos entre
+   dos cortes, visto en un teléfono, no necesita la resolución máxima. El hero
+   del gancho sí.
+4. **Un boceto antes que una obra.** Generar barato, meterlo en el montaje, y
+   **solo si el video funciona** volver a generarlo en calidad. Al revés se
+   pagan cinco veces planos que no entran al corte final.
+
+### El registro de costos — hay que llevarlo desde el primer día
+
+**No hay una tabla de costos escrita en este documento a propósito**, porque
+sería un supuesto. La interfaz de Flow muestra el costo antes de generar.
+
+**Anotar ese número real** en `automatizaciones/contenido/COSTOS-FLOW.md`, una
+línea por generación: fecha · generador · duración · resolución · créditos ·
+para qué guion. En dos semanas eso deja de ser burocracia y se convierte en la
+tabla con la que se planea una tanda sin quedarse sin créditos a medias — que
+es exactamente lo que pasa la primera vez que alguien no la lleva.
+
+---
+
+## Tarea 2 — Primero todo lo que es gratis
+
+**El orden es este y no otro: agotar lo gratuito antes de tocar un crédito.**
+Con imágenes ilimitadas y una carpeta de fotos reales, hay semanas de trabajo
+sin gastar nada.
+
+### 2.1 · La carpeta «fotos de pauta» es el material, y es gratis trabajarla
+
+Se usan **todas** las fotos de esa carpeta que pasen el triaje de la Tarea 1
+(pieza con 3 unidades o más). Sirven para lo mismo dos veces: **creativos de
+pauta** y **contenido orgánico** —posts, carruseles, portadas—. Es el mismo
+archivo con dos destinos.
+
+Sobre cada foto que pase el triaje, y todo a coste cero:
+
+- **Recomposición de fondo.** `BRIEF.md` § 2.3: las fotos son casi todas de
+  fondo blanco de catálogo. La misma pieza sobre mármol, en luz de tarde o en
+  mesa de regalo es un book de estilo de vida sin un día de fotos.
+- **Versiones de temporada.** Amor y Amistad ahora; Navidad y Día de la Madre
+  después. Es **recomponer, no volver a fotografiar**.
+- **Recortes por formato:** 9:16 para historias, 4:5 para feed, 1:1 para
+  catálogo.
+
+> **Y aquí la regla 2 sigue mandando, aunque sea gratis:** se recorta la pieza
+> **real** de la foto **real** y se le cambia el fondo. La joya **no se vuelve a
+> dibujar**. Si la herramienta redibuja la pieza en vez de recortarla y pegarla,
+> ese resultado no se usa con producto — vale para un fondo vacío y nada más.
+> Que no cueste créditos no la vuelve permitida.
+
+### 2.2 · Fondos y texturas como imagen, no como video
+
+Lo que en la versión anterior era una lista de clips, ahora es una lista de
+**imágenes** —gratis— a las que CapCut les pone el zoom:
+
+Mármol blanco con luz cruzada · lino crudo · madera clara · destellos dorados
+desenfocados sobre fondo oscuro · mesa de regalo vestida · superficie de piedra
+clara.
+
+Seis fondos, generados una vez, sirven para todos los guiones y todas las
+temporadas. **Costo en créditos: cero.**
+
+### 2.3 · Lo que se graba con el teléfono y no le cuesta a nadie
+
+Manos envolviendo una cajita · una tarjeta en blanco y un lápiz · la luz de la
+tarde cruzando la mesa · tela moviéndose · unas manos sirviendo café. Son dos
+minutos de grabación y quedan mejor que generadas, porque son reales.
+
+**Se hacen el mismo domingo de rodaje** de `CALENDARIO-EDITORIAL.md` § 2.1,
+aprovechando que la cámara ya está montada.
+
+---
+
+## Tarea 2b — Dónde SÍ vale gastar créditos de video
+
+Solo cuando esté hecho todo lo anterior, y solo en esto:
+
+| Prioridad | Qué | Por qué vale el crédito |
+|---|---|---|
+| **1** | **Un plano de establecimiento de Amor y Amistad** que no se puede filmar: mesa vestida en luz dorada, profundidad, ambiente de celebración | Se reutiliza en los guiones 1, 2, 3 y 6 del lote. Un solo gasto, cuatro videos |
+| **2** | **Un creativo de pauta con movimiento**, mudo y vertical | Los anuncios se ven **en silencio**, así que aquí el video generado no pierde nada — es justo donde `BRIEF.md` dice que el render mudo encaja. Y la pauta ya está gastando dinero real todos los días |
+| **3** | **Un ambiente aspiracional** fuera de alcance: una locación, una luz o una escena que la cámara del teléfono no puede conseguir | Es lo único que no tiene sustituto gratis |
+
+**Tres o cuatro generaciones bien elegidas, reutilizadas en todo el lote.** No
+una por video. Un clip de ambiente que no lleva producto **no caduca y no se
+gasta**: sirve igual en septiembre que en diciembre.
+
+Y todo lo que salga de Flow, **mudo**: un clip con pista propia pelea con el
+audio en tendencia que se elige dentro de CapCut (`BRIEF.md` decisión 1).
 
 ---
 
@@ -170,27 +262,65 @@ venta directa a cualquiera.
    probar». Es la regla 2 y aplica aunque el resultado se vea perfecto.
 2. **No tocar `netlify/functions/`.** `BRIEF.md` decisión 4: una sola sesión toca
    la tienda. Si el trabajo empieza a pedir cambios ahí, se desvió.
-3. **No comitear video al repo.** `BRIEF.md` decisión 5: Netlify cobra ~15
+3. **No gastar un crédito de video en algo que resuelve un zoom sobre una
+   imagen, o dos minutos de teléfono.** Es la escalera de costo de arriba, y es
+   el error que se comete el primer día.
+4. **No comitear video al repo.** `BRIEF.md` decisión 5: Netlify cobra ~15
    créditos por despliegue y el historial de git se queda los archivos para
    siempre. Las 10 imágenes de `assets/ads/` son la excepción correcta —pesan
    poco y la CAPI necesita URL pública—. **Video no.** El b-roll vive en la
    máquina o en un host externo.
-4. **No inventar precios.** Cualquier número que vaya en pantalla sale de
+5. **No inventar precios.** Cualquier número que vaya en pantalla sale de
    `calcular()` en `netlify/functions/_precios.js`, nunca de memoria.
-5. **No trabajar piezas de menos de 3 unidades**, por bonitas que salgan.
-6. **No entregar nada con audio.**
+6. **No trabajar piezas de menos de 3 unidades**, por bonitas que salgan.
+7. **No entregar nada con audio.**
+
+---
+
+## Las portadas — Flow y Remotion, no Flow o Remotion
+
+La pregunta estaba abierta y los créditos la resuelven, porque **una portada es
+una imagen y las imágenes no cuestan créditos**.
+
+Pero el costo nunca fue el argumento. `BRIEF.md` § 2.1 dice por qué existen las
+portadas: cuando alguien llega al perfil desde un video ve una **cuadrícula**, y
+esa cuadrícula decide si sigue o se va. Para que parezca marca, **dos portadas
+hechas con un mes de diferencia tienen que salir idénticas en estilo**. Un
+modelo generativo no es determinista: pedir la misma portada dos veces da dos
+portadas parecidas, y una cuadrícula de piezas parecidas se ve improvisada
+—justo lo que se quería arreglar—.
+
+**La portada se parte en dos capas, y cada herramienta hace la suya:**
+
+| Capa | Herramienta | Por qué |
+|---|---|---|
+| **Fondo (plancha)** | **Flow**, imagen, gratis | Se generan **una vez** cuatro o cinco planchas —una por pilar de contenido— y **se reutilizan siempre**. Al no regenerarse, la falta de determinismo deja de importar |
+| **Tipografía + recorte del producto real** | **Remotion** (o una plantilla fija mientras tanto) | Es código: sale idéntico siempre. Y **compone en vez de inventar**, así que la regla 2 se cumple sola |
+
+Así la cuadrícula es consistente porque la capa que se repite es la
+determinista, y el fondo es un activo fijo, no una tirada nueva cada vez.
+
+**Qué hacer esta semana, sin esperar a nadie:** generar las **cuatro o cinco
+planchas** en Flow (gratis) y montar la capa de tipografía en una plantilla fija
+de CapCut o Canva. Remotion todavía necesita host propio con Chromium y FFmpeg,
+se está explorando en otra sesión y **Netlify no sirve** para renderizarlo
+(`CLAUDE.md`). Cuando esté listo, la capa de tipografía se migra y las planchas
+siguen siendo las mismas. **Las portadas no se bloquean esperando a Remotion.**
 
 ---
 
 ## Cómo se sabe que esta sesión sirvió
 
-No es «cuántos clips salieron». Es:
+No es «cuántos clips salieron» ni «cuántos créditos se gastaron». Es:
 
-- **Las 9 letras elegibles tienen foto individual** (o consta que en la carpeta
-  cruda no estaban, que también es una respuesta útil y decide si hay que
-  fotografiarlas).
-- **Doce clips de b-roll mudos** guardados y nombrados por bloque.
-- **La tabla de triaje** de la carpeta cruda: cada foto con su id y sus unidades.
-
-Con eso, los ocho guiones de `CALENDARIO-EDITORIAL.md` se pueden grabar y montar
-sin parar a buscar material.
+- **La tabla de triaje** de «fotos de pauta»: cada foto con su id de pieza y sus
+  unidades, y las de menos de 3 unidades apartadas.
+- **Saber si las 9 letras elegibles estaban en la carpeta** (A B D E K L O S V).
+  Si no estaban, eso también es una respuesta: significa que hay que
+  fotografiarlas.
+- **Las fotos que pasaron el triaje, recompuestas** sobre fondo de estilo de
+  vida y recortadas a 9:16, 4:5 y 1:1. Todo a coste cero.
+- **Seis fondos y cuatro planchas de portada** generados como imagen.
+- **`COSTOS-FLOW.md` empezado**, aunque sea con dos líneas.
+- **Cero o casi cero créditos gastados.** Esta primera tanda es de imagen. Si se
+  fueron cincuenta créditos en video de textura, la escalera de costo se saltó.
