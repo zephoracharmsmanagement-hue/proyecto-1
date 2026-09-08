@@ -99,6 +99,23 @@ la foto deja de enseñar cómo se engancha de verdad lo que se está vendiendo.
 **Lo que sí se puede cambiar:** el fondo, la luz, el contexto, el encuadre.
 **Lo que no se toca nunca:** los píxeles de la joya, su jump y el brazalete.
 
+> **Experimento del propietario, 2026-09-08 — no cambia esta regla, la
+> documenta.** Probó a propósito lo que este documento desaconseja: generar
+> video (no imagen) usando el modo "Ingredientes" de Flow, subiendo una foto
+> real de la pulsera para que apareciera en el plano de establecimiento de
+> Amor y Amistad. Con **Veo 3.1 Fast, 4 segundos**, el resultado salió bien a
+> su criterio — la joya no se distorsionó de forma visible. Con **Omni 1.1
+> Flash** también se probó, mismo plano, sin joya.
+>
+> Esto **no** revierte la regla de oro. Es una prueba, en un clip corto, con
+> un modelo y duración específicos, juzgada por una sola persona sin el tipo
+> de verificación cuadro a cuadro que se le hizo a los recortes de imagen. El
+> riesgo que describe esta sección —que el modelo reconstruya la pieza de
+> forma distinta entre fotogramas— no desaparece porque una prueba salga bien;
+> se vuelve más probable cuanto más largo o más movida sea la escena. Antes de
+> escalar esto a una tanda de video con joya, revisar cuadro por cuadro, no
+> solo el resultado final reproducido a velocidad normal.
+
 ### Y el audio
 
 `BRIEF.md` decisión 1: el audio en tendencia se elige **dentro** de TikTok o
@@ -257,7 +274,14 @@ Cuando toque gastar, se gasta al mínimo:
 ### El registro de costos — hay que llevarlo desde el primer día
 
 **No hay una tabla de costos escrita en este documento a propósito**, porque
-sería un supuesto. La interfaz de Flow muestra el costo antes de generar.
+sería un supuesto.
+
+> **Corregido 2026-09-08.** Aquí decía que *"la interfaz de Flow muestra el
+> costo antes de generar"*. Probado en la práctica: **no lo muestra.** El panel
+> de generación no anticipa créditos. Lo que funciona: pedirle un estimado al
+> asistente dentro de Flow, o —más confiable— anotar el saldo de créditos
+> (cuenta de Google, arriba a la derecha) antes de generar y volver a mirarlo
+> después. La diferencia es el número real.
 
 **Anotar ese número real** en `automatizaciones/contenido/COSTOS-FLOW.md`, una
 línea por generación: fecha · generador · duración · resolución · créditos ·
