@@ -96,100 +96,44 @@ foto propia y 9 no**. Las nueve son **exactamente las letras elegibles**:
 De letras solo existe `charms-de-letras-pave.webp`, que es una foto de grupo. No
 hay ni una sola foto individual de una inicial.
 
-**Y no están en la carpeta: el propietario confirmó (2026-09-07) que las nueve
-letras están llegando y todavía no se han fotografiado.** Así que esto no es una
-búsqueda, es **una sesión de fotos pendiente** — mesa, teléfono y media hora en
-cuanto lleguen. No hay nada que Flow pueda hacer al respecto.
+**No están en la carpeta, y no es un problema de inventario.** El propietario
+confirmó (2026-09-07) que **las nueve letras están físicamente en la tienda**;
+lo único que falta es fotografiarlas. `stock.json` es correcto y esas nueve
+piezas **se pueden vender esta quincena**.
 
-> **Y no se generan con IA, ni «solo para salir del paso».** Una letra generada
-> es una joya dibujada, que es exactamente lo que prohíbe la regla de oro. Sin
-> foto real, esas nueve piezas **no salen en cámara**.
+### Grabar no es lo mismo que tener foto de catálogo
 
-Importa porque las letras son el charm más vendible del catálogo —una inicial es
-el regalo personalizado por defecto— y salen en los guiones 5 y 7 de
-`CALENDARIO-EDITORIAL.md`. **Mientras no lleguen y no estén fotografiadas, esos
-dos guiones se graban con sustitutos:** en el guion 5, `sol-y-luna-con-cristales`
-(4 u) en lugar de `letra-e`; en el guion 7, `mariposas-tricolor-colgantes` (3 u)
-en lugar de `letra-o`. El guion no cambia en nada más — los precios de la § 1.1
-de `CALENDARIO-EDITORIAL.md` son los mismos, porque los tres charms cuestan
-igual o menos.
+La distinción importa porque decide qué está bloqueado y qué no:
 
-> **Las otras 14 letras (F G H I P Q R T U W X Y Z Ñ) no se fotografían ni se
-> generan: no existen.** Aparecen solo en la historia de sondeo del guion 8, que
-> **pregunta y no ofrece**. Una imagen que las haga parecer comprables es
-> justo el fallo que la regla 2 previene.
+| | ¿Necesita foto de archivo? | Estado |
+|---|---|---|
+| **Grabar un Reel** con la letra | **No.** Se apunta la cámara a la pieza real, que está en la mano | **Desbloqueado.** Los guiones 5 y 7 se graban tal como están escritos, con `letra-e` y `letra-o`. **No hacen falta sustitutos** |
+| **Recomponer fondo, carrusel, creativo de pauta, ficha de producto** | **Sí.** Hace falta un archivo limpio y recortable | **Bloqueado** hasta la sesión de fotos |
 
----
+Así que la sesión de fotos **no bloquea el rodaje**: bloquea toda la rama de
+trabajo con imagen, que es justo la que no cuesta créditos. Media hora de mesa y
+teléfono desbloquea semanas de trabajo gratuito sobre el charm más vendible del
+catálogo.
 
-## El presupuesto de créditos — la restricción que manda sobre todo lo demás
+> **Y siguen sin generarse con IA.** Una letra generada es una joya dibujada:
+> regla de oro. La foto es de la pieza real o no hay foto.
 
-**Plan Flow Pro: 250 créditos de tope, +50 que se recargan cada día.**
+**Cuándo:** el mismo domingo de rodaje de `CALENDARIO-EDITORIAL.md` § 2.1, con
+la cámara ya montada. Sacar de cada letra **dos tomas**: una sobre fondo blanco
+limpio —la de catálogo, recortable, la que va a `assets/`— y una sobre superficie
+de estilo de vida. La primera es la que desbloquea todo lo demás.
 
-Tres consecuencias, y la tercera es la que cambia el plan:
+### Y una regla de contenido que sale de aquí
 
-**1 · Las imágenes no gastan créditos. El video sí.** Y el costo de un video
-depende de tres cosas: **duración, resolución y qué generador se use**. Esa es
-toda la economía de esta herramienta.
+La ficha del sitio anuncia **«27 iniciales»**, pero **14 letras están en cero**
+(F G H I P Q R T U W X Y Z Ñ). La tienda está protegida —`index.html` tiene su
+`agotado(id)` y bloquea añadir lo que no hay—, así que no es un fallo del sitio.
 
-**2 · El tope de 250 significa que los créditos NO se acumulan indefinidamente.**
-Se pueden guardar como mucho **cinco días** (5 × 50 = 250). Estando en 250, la
-recarga del día siguiente **se pierde**. Así que: o se gasta con regularidad, o
-se ahorra a propósito durante cinco días justo antes de una tanda grande —nunca
-más de cinco—.
-
-**3 · Y la que de verdad importa: casi ningún b-roll de este proyecto necesita
-video generado.** Esto corrige la lista de doce clips que traía la versión
-anterior de este documento; se deja escrito el porqué para que nadie la
-reponga.
-
-### La escalera de costo — se baja hasta el escalón más barato que sirva
-
-Antes de gastar un crédito, la pregunta es siempre: **¿cuál es el escalón más
-barato que resuelve este plano?**
-
-| # | Cómo se consigue el plano | Costo | Cuándo |
-|---|---|---|---|
-| **1** | **Una foto que ya existe + zoom lento en CapCut** | **Cero** | Textura, producto, cualquier plano quieto. `BRIEF.md` § 2.2 ya lo dice: *«una imagen con zoom lento da 3 segundos de aire»* |
-| **2** | **Grabarlo con el teléfono** | **Cero, 2 minutos** | Manos, mesa, tela, luz de ventana. Todo lo que esté al alcance del brazo |
-| **3** | **Imagen generada en Flow + zoom en CapCut** | **Cero créditos** | Fondos y ambientes que no se pueden fotografiar |
-| **4** | **Video generado en Flow** | **Caro y limitado** | **Último recurso.** Solo lo que no se puede filmar ni fingir con un zoom |
-
-Los doce clips de la versión anterior de este documento —mármol con luz, lino
-arrugándose, manos envolviendo una cajita, tazas de café— **caen todos en los
-escalones 1, 2 o 3**. Unas manos envolviendo un regalo se graban con el teléfono
-en dos minutos y salen mejor que generadas, porque son las manos de verdad.
-Pedirle eso a Flow es gastar el recurso escaso en lo único que sobra.
-
-> **La regla, para no tener que releer la tabla:** un crédito de video se gasta
-> **solo cuando algo tiene que moverse y cambiar de forma en cuadro, y no está
-> al alcance de la cámara del teléfono.** Si el plano está quieto, es un zoom
-> sobre una imagen y es gratis.
-
-### Los ajustes que bajan el costo, y en qué orden se tocan
-
-Cuando toque gastar, se gasta al mínimo:
-
-1. **Duración: la más corta posible.** El b-roll está en pantalla 2–3 segundos.
-   Generar 8 para usar 3 es tirar la diferencia.
-2. **Generador: siempre el rápido/económico primero.** El de máxima calidad se
-   reserva para un plano que ya demostró que se usa.
-3. **Resolución: la menor que aguante el destino.** Un clip de 2 segundos entre
-   dos cortes, visto en un teléfono, no necesita la resolución máxima. El hero
-   del gancho sí.
-4. **Un boceto antes que una obra.** Generar barato, meterlo en el montaje, y
-   **solo si el video funciona** volver a generarlo en calidad. Al revés se
-   pagan cinco veces planos que no entran al corte final.
-
-### El registro de costos — hay que llevarlo desde el primer día
-
-**No hay una tabla de costos escrita en este documento a propósito**, porque
-sería un supuesto. La interfaz de Flow muestra el costo antes de generar.
-
-**Anotar ese número real** en `automatizaciones/contenido/COSTOS-FLOW.md`, una
-línea por generación: fecha · generador · duración · resolución · créditos ·
-para qué guion. En dos semanas eso deja de ser burocracia y se convierte en la
-tabla con la que se planea una tanda sin quedarse sin créditos a medias — que
-es exactamente lo que pasa la primera vez que alguien no la lleva.
+**Pero sí es una regla para el contenido:** un video que diga *«toca tu
+inicial»* o *«27 iniciales»* manda a **catorce de cada veintisiete**
+espectadores a un botón bloqueado. En cámara se enseñan **solo las nueve
+elegibles**; las catorce ausentes aparecen únicamente en la historia de sondeo
+del guion 8, que pregunta y no ofrece.
 
 ---
 
