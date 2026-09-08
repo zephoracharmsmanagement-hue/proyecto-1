@@ -5,6 +5,60 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🚧 Trabajo en curso — contenido orgánico · 2026-09-07
+
+**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
+trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
+
+**Rama:** `claude/zephora-charm-content-strategy-ktc7fi`
+**Alcance:** solo documentación de contenido y `netlify.toml`. **No toca
+`netlify/functions/`, ni el checkout, ni `index.html`.**
+
+Qué trae:
+
+| Archivo | Qué es |
+|---|---|
+| `automatizaciones/contenido/CALENDARIO-EDITORIAL.md` | Doctrina editorial: frecuencia por red, cuatro pilares, calendario quincenal de Amor y Amistad y ocho guiones listos para grabar |
+| `automatizaciones/contenido/BRIEF-FLOW.md` | Encargo acotado para la sesión que tiene Google Flow conectado: presupuesto de créditos, triaje de la carpeta «pauta meta 2026» y la frontera de qué no puede generar |
+| `CLAUDE.md` | Tres hallazgos enlazados desde la sección de contenido |
+| `netlify.toml` | Regla `ignore` para no desplegar cuando el push solo cambia `.md` |
+
+### ⛔ Esta rama NO se mezcla a `main` todavía — no hay créditos de Netlify
+
+**Estado al 2026-09-07: la cuenta no tiene créditos para ningún despliegue.**
+Como `main` es la rama que publica, **cualquier push a `main` intenta
+desplegar**. Así que mientras no haya créditos, `main` no se toca — y no hace
+falta, porque nada de esta rama es código de la tienda: no hay nada que
+publicar.
+
+**Las sesiones se sincronizan en la rama, no en `main`.** La sesión de la
+terminal y la de Google Flow trabajan directamente sobre
+`claude/zephora-charm-content-strategy-ktc7fi`:
+
+```bash
+git fetch --all
+git checkout claude/zephora-charm-content-strategy-ktc7fi
+```
+
+Netlify solo mira `main`, así que trabajar en esta rama **no dispara ningún
+despliegue ni gasta un crédito**.
+
+> **La contrapartida, y hay que vigilarla:** esto rompe a propósito la regla de
+> *ramas cortas* de `CLAUDE.md`, que existe para que dos sesiones no
+> reconstruyan lo mismo. La compensación es que **todas las sesiones trabajan
+> sobre esta misma rama**, no cada una sobre la suya. Si alguien abre otra rama
+> a partir de `main` para tocar contenido, vuelve el problema que la regla
+> previene.
+
+**Cuando haya créditos**, el orden importa: se mezcla y se empuja una sola vez.
+Ese despliegue **sí se hace** —`netlify.toml` no es `.md`— y es justo el que
+instala la regla `ignore`; a partir de ahí los pushes de solo documentación se
+saltan solos. Y hay que comprobarlo: si un commit que tocó `.html`,
+`netlify.toml` o `netlify/functions/` aparece como **saltado** en la lista de
+despliegues, la regla está mal y hay que revisarla.
+
+---
+
 ## ⚠️ Consolidación de ramas — 2026-08-20
 
 **El tronco es `main`.** Se creó consolidando las nueve ramas `claude/*` que
