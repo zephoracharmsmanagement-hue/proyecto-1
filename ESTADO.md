@@ -54,6 +54,38 @@ Y lee, en este orden: este bloque · `automatizaciones/contenido/BRIEF.md` ·
 2. **Recomponer el fondo del set `0bd627e3`** —manos orando, virgen María,
    trébol, herradura sobre Corazón Liso—: es el único con las cinco piezas
    elegibles, y el fondo es una caja Pandora, así que cambiarlo es obligatorio.
+
+   > **En curso 2026-09-08 — bloqueado en el paso de Flow, el resto ya está.**
+   > Sin acceso a Google Cloud (por decisión del propietario: Flow se usa
+   > desde su interfaz web, no por API), no se puede generar la plancha de
+   > fondo desde esta sesión. Se adelantó todo lo que no depende de eso:
+   >
+   > - **Recorte de la joya, verificado píxel a píxel.** `rembg` (local,
+   >   gratis, sin API) aisló la joya de `0bd627e3` sin tocar ningún jump —
+   >   confirmado con zoom en los 4 puntos de conexión.
+   > - **Segundo set recortado también** (`662562d4`, el de `letra-a` sobre
+   >   Corona Pavé): el primer intento dejó el interior del aro con el
+   >   logotipo Pandora todavía legible —fallo de `rembg` con formas
+   >   cerradas—; se corrigió con un umbral de color aplicado solo a esa
+   >   región interior, verificado que no erosionó ningún dije. Quedan
+   >   motas blancas cosméticas, sin riesgo de marca.
+   > - **Script de composición** (`componer_fondo.py`, en
+   >   `C:\Users\Martin\google-flow-auth\`) que compone cualquier recorte
+   >   sobre cualquier fondo y exporta 9:16/4:5/1:1 de una vez. Probado de
+   >   punta a punta con un fondo sintético.
+   > - **Prompt de Flow listo** para pegar en la interfaz web (tema
+   >   espiritual/rosa empolvado, coherente con la marca).
+   > - Los recortes finales viven en
+   >   `C:\Users\Martin\google-flow-auth\recortes\` (no en este repo — son
+   >   intermedios de trabajo).
+   >
+   > **Lo único que falta:** que el propietario genere la plancha en Flow y
+   > corra `componer_fondo.py`. Nada de esto gastó créditos de Flow.
+   >
+   > **Dos fotos que se pensaba que necesitaban este trabajo, y no:**
+   > `762070262` (manos orando sola) y `762650437` (bases de pulsera) ya
+   > están terminadas —cielo limpio y mármol con marca, respectivamente—,
+   > sin ninguna mención de Pandora. Publicables tal cual.
 3. **Sesión de fotos de las nueve letras**, dos tomas cada una: catálogo sobre
    blanco (recortable) y estilo de vida. Desbloquea toda la rama de imagen.
 

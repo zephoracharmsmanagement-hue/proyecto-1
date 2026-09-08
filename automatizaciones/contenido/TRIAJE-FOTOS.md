@@ -101,8 +101,8 @@ Elegibilidad recalculada con el contador correcto
 | `Modificar_el_formato_2K_2217.jpeg` | = set de `662562d4` (4:5) | 8·5·4·5·3 | **Trabajar** ⭐ |
 | `Modificar_formato_manteniendo_co…_2217.jpeg` | = set de `662562d4` (9:16) | 8·5·4·5·3 | **Trabajar** ⭐ |
 | `image_(5).jpg_2216.jpeg` | = set de `662562d4` (4:5) | 8·5·4·5·3 | **Trabajar** ⭐ |
-| `762070262_…_n.jpg` | **manos-orando-con-cruz** (pieza sola, aislable) | 4 | **Trabajar** ⭐⭐ |
-| `762650437_…_n.jpg` | pulsera-corona-pave · pulsera-corazon-pave-pequeno · pulsera-clasica-cierre-barril | 8·6·6 | **Trabajar** ⭐ |
+| `762070262_…_n.jpg` | **manos-orando-con-cruz** (pieza sola, aislable) | 4 | ~~Trabajar~~ **ya terminada** — cielo limpio, texto de marca puesto, sin Pandora. Publicable tal cual (verificado 2026-09-08) |
+| `762650437_…_n.jpg` | pulsera-corona-pave · pulsera-corazon-pave-pequeno · pulsera-clasica-cierre-barril | 8·6·6 | ~~Trabajar~~ **ya terminada** — mármol con marca Zephora Charms, sin Pandora. Publicable tal cual (verificado 2026-09-08) |
 | `762007110_1656…_n.jpg` | conejita-con-corazon-rosa · osito-pave-con-corazon | 4·3 | Trabajar (parcial) |
 | `WhatsApp … 10.25.12 PM.jpeg` | «Por qué las clientas aman» (9:16) | 4·3 | Trabajar (parcial) |
 | `Modificar_formato_2K_2217.jpeg` | set azul **con virgo** | incl. **2** | Quitar virgo |
