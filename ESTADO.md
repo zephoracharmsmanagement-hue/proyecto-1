@@ -18,8 +18,12 @@ Qué trae:
 
 | Archivo | Qué es |
 |---|---|
-| `automatizaciones/contenido/CALENDARIO-EDITORIAL.md` | Doctrina editorial: frecuencia por red, cuatro pilares, calendario quincenal de Amor y Amistad y ocho guiones listos para grabar |
-| `automatizaciones/contenido/BRIEF-FLOW.md` | Encargo acotado para la sesión que tiene Google Flow conectado: presupuesto de créditos, triaje de la carpeta «pauta meta 2026» y la frontera de qué no puede generar |
+| `automatizaciones/contenido/CALENDARIO-EDITORIAL.md` | Doctrina editorial: frecuencia por red, cuatro pilares, calendario quincenal de Amor y Amistad y ocho guiones listos para grabar. Precios del guion 5/6 corregidos y verificables |
+| `automatizaciones/contenido/BRIEF-FLOW.md` | Encargo para la sesión de Flow: presupuesto de créditos, triaje de «pauta meta 2026», las tres formas de hacer video, y la frontera de qué no puede generar |
+| `automatizaciones/contenido/TRIAJE-FOTOS.md` | Censo de las 35 fotos de la carpeta, con el hallazgo de riesgo de marca Pandora |
+| `automatizaciones/contenido/COSTOS-FLOW.md` | Registro real de créditos gastados en Flow, generación por generación |
+| `automatizaciones/contenido/ANALISIS-PLAN-GEMINI.md` | Contraste de un plan externo de contenido contra los datos reales del repo |
+| `automatizaciones/contenido/verificar-precios-guiones.js` | Corre cada precio de los guiones contra `calcular()`; falla nombrando el que se descuadre |
 | `CLAUDE.md` | Tres hallazgos enlazados desde la sección de contenido |
 | `netlify.toml` | Regla `ignore` para no desplegar cuando el push solo cambia `.md` |
 
@@ -51,41 +55,62 @@ Y lee, en este orden: este bloque · `automatizaciones/contenido/BRIEF.md` ·
    2026-09-08.** Movido (no borrado, por si hace falta de referencia) a
    `pauta meta 2026/NO USAR - riesgo de marca/`, fuera de la carpeta de
    trabajo. No vuelve a aparecer en ningún triaje futuro de esa carpeta.
-2. **Recomponer el fondo del set `0bd627e3`** —manos orando, virgen María,
-   trébol, herradura sobre Corazón Liso—: es el único con las cinco piezas
-   elegibles, y el fondo es una caja Pandora, así que cambiarlo es obligatorio.
+2. ~~Recomponer el fondo del set `0bd627e3`~~ — **hecho, pero por un método
+   distinto al planeado.** El recorte-y-pegado (`rembg` + `componer_fondo.py`,
+   descrito en versiones anteriores de este punto) quedó **superado**: se veía
+   antinatural, sin interacción real de luz entre la joya y el fondo. El
+   propietario corrigió el alcance de la regla de oro — no es que la foto no
+   se pueda tocar, es que **la forma y el diseño de la joya deben quedar
+   idénticos**, la foto sí puede regenerarse.
 
-   > **En curso 2026-09-08 — bloqueado en el paso de Flow, el resto ya está.**
-   > Sin acceso a Google Cloud (por decisión del propietario: Flow se usa
-   > desde su interfaz web, no por API), no se puede generar la plancha de
-   > fondo desde esta sesión. Se adelantó todo lo que no depende de eso:
+   > **Método vigente desde 2026-09-08: imagen de referencia en Flow.** Se sube
+   > la foto real de la pieza (ej. `662562d4-...jfif`) como referencia y se le
+   > pide a Flow una fotografía profesional nueva, con instrucción explícita de
+   > mantener diseño/forma/conteo de piedras idénticos. Resultado: fotos con
+   > luz y sombra reales, publicables tal cual. Dos sets ya terminados y
+   > aceptados por el propietario:
+   > - **Set "fe y suerte"** (manos orando + virgen María + trébol + herradura
+   >   / Corazón Liso) — 3 formatos en `pauta meta 2026/recompuestos/`.
+   > - **Set "letra-a"** (esfera azul + flor azul + atrapasueños + letra-a /
+   >   Corona Pavé) — resolución completa en `pauta meta 2026/fondos/`.
    >
-   > - **Recorte de la joya, verificado píxel a píxel.** `rembg` (local,
-   >   gratis, sin API) aisló la joya de `0bd627e3` sin tocar ningún jump —
-   >   confirmado con zoom en los 4 puntos de conexión.
-   > - **Segundo set recortado también** (`662562d4`, el de `letra-a` sobre
-   >   Corona Pavé): el primer intento dejó el interior del aro con el
-   >   logotipo Pandora todavía legible —fallo de `rembg` con formas
-   >   cerradas—; se corrigió con un umbral de color aplicado solo a esa
-   >   región interior, verificado que no erosionó ningún dije. Quedan
-   >   motas blancas cosméticas, sin riesgo de marca.
-   > - **Script de composición** (`componer_fondo.py`, en
-   >   `C:\Users\Martin\google-flow-auth\`) que compone cualquier recorte
-   >   sobre cualquier fondo y exporta 9:16/4:5/1:1 de una vez. Probado de
-   >   punta a punta con un fondo sintético.
-   > - **Prompt de Flow listo** para pegar en la interfaz web (tema
-   >   espiritual/rosa empolvado, coherente con la marca).
-   > - Los recortes finales viven en
-   >   `C:\Users\Martin\google-flow-auth\recortes\` (no en este repo — son
-   >   intermedios de trabajo).
+   > Prompts usados y plantilla completa: ver el chat de la sesión de Flow o
+   > pedir que se reconstruyan — misma estructura para cualquier set nuevo:
+   > *"usa esta imagen de referencia... mantén diseño/forma/piedras idénticos
+   > ... cambia el entorno a [fondo de marca]... NO incluir texto/logotipos/
+   > otra marca."*
    >
-   > **Lo único que falta:** que el propietario genere la plancha en Flow y
-   > corra `componer_fondo.py`. Nada de esto gastó créditos de Flow.
+   > **Pendiente con este método:** set "hamsa + gatito" (prompt ya escrito,
+   > más delicado — pide excluir 2 de los 4 dijes de la referencia, revisar
+   > con cuidado) y las 4-5 planchas de portada, una por pilar de contenido.
    >
-   > **Dos fotos que se pensaba que necesitaban este trabajo, y no:**
-   > `762070262` (manos orando sola) y `762650437` (bases de pulsera) ya
-   > están terminadas —cielo limpio y mármol con marca, respectivamente—,
-   > sin ninguna mención de Pandora. Publicables tal cual.
+   > Dos fotos que parecían necesitar trabajo y no: `762070262` (manos orando
+   > sola) y `762650437` (bases de pulsera) ya estaban terminadas, sin Pandora.
+
+2b. **Nuevo, no estaba en el plan original: video con joya en Flow —
+   funciona, pero solo con un modelo específico.** El propietario probó subir
+   la foto de referencia también en modo video ("Ingredientes"):
+
+   | Modelo | Resultado con la pulsera de referencia |
+   |---|---|
+   | **Veo 3.1 Fast** | **Sostiene el diseño intacto.** Probado dos veces (acercamiento + cenital, 8s fijos, ~18-20 créditos c/u). Es el **único** autorizado para clips con joya |
+   | Omni 1.1 Flash | **La desfiguró visiblemente.** Descartado para cualquier plano con producto — sigue sirviendo para b-roll sin joya, y es el único que permite bajar a 4s |
+
+   Con esto quedan **tres formas de hacer video** fijadas en `BRIEF-FLOW.md`
+   § *Las tres formas de hacer video*: (1) imagen en Flow, gratis; (2) video
+   en Flow con Veo 3.1 Fast + referencia, con joya, ~20 créditos/clip; (3)
+   grabación real del propietario, para TikTok. Detalle y créditos gastados
+   (saldo verificado: 206 de 250) en `COSTOS-FLOW.md`.
+
+   **Ya hecho con este método:** el plano de establecimiento de Amor y
+   Amistad (prioridad 1 de `BRIEF-FLOW.md` § Tarea 2b), dos cortes, **con la
+   pulsera incluida** — mejor de lo planeado originalmente (iba a ser solo
+   ambiente vacío).
+
+   **Siguiente pendiente, prompt ya escrito y listo para pegar:** el
+   creativo de pauta con movimiento (prioridad 2 de Tarea 2b) — la pulsera
+   girando sobre sí misma, estilo publicitario. Falta que el propietario lo
+   genere en Flow (Ingredientes, Veo 3.1 Fast, 8s) y lo revise.
 3. **Sesión de fotos de las nueve letras**, dos tomas cada una: catálogo sobre
    blanco (recortable) y estilo de vida. Desbloquea toda la rama de imagen.
 
