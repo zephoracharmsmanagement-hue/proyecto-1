@@ -374,14 +374,39 @@ aprovechando que la cámara ya está montada.
 
 ---
 
+## Las tres formas de hacer video — marco fijado el 2026-09-08
+
+Después de las pruebas de esta sesión (detalle y créditos en
+`COSTOS-FLOW.md`), el trabajo de video se reparte en tres caminos, y no se
+mezclan:
+
+| # | Cómo | Costo | Para qué sirve | Lleva joya |
+|---|---|---|---|---|
+| **1** | **Imagen en Flow** (cualquier modelo, foto fija) | **Gratis** | Fondos, planchas de portada, fotos de producto (joya real recortada o por referencia + fondo generado) | Sí, y es el método más barato y más probado para eso |
+| **2** | **Video en Flow con Veo 3.1 Fast**, modo Ingredientes, 8s fijos | **18-20 créditos por clip** | Planos de ambiente o de producto en movimiento que la cámara del teléfono no puede lograr | **Sí, autorizado** — es el único generador de video validado para joya (ver abajo) |
+| **3** | **Grabación real** con la cámara del propietario, joya en la mano | **Gratis** | El contenido principal: los 8 guiones de `CALENDARIO-EDITORIAL.md`, pensado sobre todo para TikTok | Sí, porque es la pieza real, no generada |
+
+**Sobre el método 2, la regla de modelo no se negocia:** `Veo 3.1 Fast` es el
+**único** generador de video autorizado para clips con la pulsera de
+referencia. `Omni 1.1 Flash` se probó con la misma referencia y **desfiguró
+la joya visiblemente** — queda descartado para cualquier plano con producto,
+aunque sea más barato y sí permita bajar a 4 segundos. Omni sigue sirviendo
+para b-roll **sin** joya (el plano de establecimiento vacío, por ejemplo).
+
+Esto no cambia la frontera del principio de este documento —generar joya en
+video sigue siendo el último recurso, no la opción por defecto—, pero cuando
+se decide gastar ahí, se hace con Fast y con nada más.
+
+---
+
 ## Tarea 2b — Dónde SÍ vale gastar créditos de video
 
 Solo cuando esté hecho todo lo anterior, y solo en esto:
 
 | Prioridad | Qué | Por qué vale el crédito |
 |---|---|---|
-| **1** | **Un plano de establecimiento de Amor y Amistad** que no se puede filmar: mesa vestida en luz dorada, profundidad, ambiente de celebración | Se reutiliza en los guiones 1, 2, 3 y 6 del lote. Un solo gasto, cuatro videos |
-| **2** | **Un creativo de pauta con movimiento**, mudo y vertical | Los anuncios se ven **en silencio**, así que aquí el video generado no pierde nada — es justo donde `BRIEF.md` dice que el render mudo encaja. Y la pauta ya está gastando dinero real todos los días |
+| **1** | ~~Un plano de establecimiento de Amor y Amistad~~ — **hecho 2026-09-08**, mejor de lo planeado: dos cortes (acercamiento + cenital) con Veo 3.1 Fast, **con la pulsera de referencia incluida**, no solo el ambiente vacío. 40 créditos en total. Reutilizables en los guiones 1, 2, 3 y 6 | Un solo gasto, varios videos |
+| **2** | **Un creativo de pauta con movimiento**, mudo y vertical | Los anuncios se ven **en silencio**, así que aquí el video generado no pierde nada. Ahora que Fast sostiene la joya, este creativo puede llevar producto real de referencia, no solo ambiente — es publicidad directa, no solo textura |
 | **3** | **Un ambiente aspiracional** fuera de alcance: una locación, una luz o una escena que la cámara del teléfono no puede conseguir | Es lo único que no tiene sustituto gratis |
 
 **Tres o cuatro generaciones bien elegidas, reutilizadas en todo el lote.** No
