@@ -22,12 +22,21 @@ trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
    "Compatible con charms Pandora" sigue sin resolver, no se tocó aquí.
 2. `#empaque-destacado` — sube el bloque de Empaque Premium (antes solo un
    checkbox de 46px dentro del carrito) a un bloque visual a mitad de página.
+3. `#promo` (descuento progresivo) — **se movió**, no se creó: antes iba
+   justo después de `#beneficios` (la segunda cosa que se veía en toda la
+   página); ahora va después de `#empaque-destacado`, tras las secciones de
+   confianza. El mecanismo de descuento no cambió, solo la posición.
+4. `.bens` (barra de beneficios) — de 6 bullets a 4. Se quitaron
+   "Compatibles con charms Pandora" (duplicado del hero) y "Envío a toda
+   Colombia" (duplicado del ticker superior `.ann`) — la info sigue en el
+   sitio, solo dejó de repetirse. Grid de desktop ajustado de 3 a 4 columnas
+   para que no quede una fila coja.
 
 No toca `netlify/functions/`, checkout, ni el checkbox real del carrito
 (`#pack`), que sigue siendo el mecanismo de compra.
 
-Quedan 2 de las 4 ideas de la crítica sin implementar: fotografía editorial
-(vía Flow) y reducir densidad de promos/descuentos en el hero.
+Queda 1 de las 4 ideas de la crítica sin implementar: fotografía editorial
+(vía Flow).
 
 **⚠️ NO fusionar a `main` todavía** — Netlify está sin créditos de despliegue
 (ver más abajo) y este cambio sí dispara un deploy real al tocar `.html`
