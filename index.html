@@ -340,6 +340,17 @@ section{scroll-margin-top:64px}
 .story p{color:#584a5c;margin:0 0 14px;max-width:52ch}
 .story p:last-of-type{margin-bottom:22px}
 
+/* 6a · autoridad plata 925 — mismo patrón que .story, columnas invertidas
+   (texto en la 1.1fr, foto en la .9fr) para que la imagen quede a la derecha
+   y alterne con .story, que la tiene a la izquierda. */
+.plata{padding:52px 0;border-top:1px solid var(--line)}
+.plata-in{display:grid;gap:26px}
+.plata h2{font-size:clamp(28px,7vw,42px);line-height:1.14;margin:8px 0 14px}
+.plata h2 i{font-style:italic;color:var(--plum)}
+.plata p{color:#584a5c;margin:0 0 14px;max-width:52ch}
+.plata p:last-of-type{margin-bottom:22px}
+.plata-img img{width:100%;border-radius:3px}
+
 /* 6b · empaque destacado — mismo patrón que .story pero con las columnas
    invertidas (texto en la 1.1fr, foto en la .9fr) para que la imagen quede
    a la derecha en desktop y alterne con .story en vez de repetir el layout. */
@@ -912,6 +923,7 @@ body.sheet-open{overflow:hidden}
   .steps{grid-template-columns:repeat(4,1fr)}
   .step+.step{border-top:0;border-left:1px solid var(--line)}
   .story-in{grid-template-columns:.9fr 1.1fr;gap:52px;align-items:center}
+  .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .pack-hero-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .revs{grid-template-columns:repeat(2,1fr);gap:20px}
   .case{grid-template-columns:240px 1fr;gap:28px;padding:24px;align-items:center}
@@ -1627,6 +1639,26 @@ body.sheet-open{overflow:hidden}
       <p>El charm del viaje que te cambió. El del signo de tu mamá. El de la carrera que te costó tanto. La patica del perro que te espera en casa.</p>
       <p>Una pulsera Zephora se arma pieza a pieza, como se arma una vida: con recuerdos, personas, sueños y momentos que merecen estar contigo todos los días. Por eso ninguna es igual a otra — porque ninguna historia lo es.</p>
       <a class="btn" href="#brazaletes">Empieza la tuya</a>
+    </div>
+  </div>
+</section>
+
+<!-- 6a · AUTORIDAD PLATA 925 — el bullet de "Plata Esterlina 925 verificada"
+     de la barra de beneficios (arriba, línea ~1030) se queda igual como
+     resumen rápido; esto es la versión desarrollada, más abajo. No compara
+     con Pandora ni nombra réplicas — la autoridad se construye en términos
+     propios (norma 925, sello, composición). -->
+<section class="plata" id="plata-925">
+  <div class="wrap plata-in">
+    <div>
+      <span class="eyebrow">Ley 925</span>
+      <h2>Los charms no son baño. <i>Son plata esterlina real.</i></h2>
+      <p>Cada charm Zephora lleva el sello 925 grabado: la marca que certifica que el 92,5% es plata pura, con una pequeña aleación que le da resistencia sin sacrificar el brillo. Es la misma norma que usa la joyería fina — no un baño delgado que se despinta.</p>
+      <p>Libres de níquel y plomo, aptos para piel sensible, y sin el verdín ni la opacidad rápida de las piezas bañadas. Busca el sello grabado en cada charm: ahí está la diferencia.</p>
+      <a class="btn" href="#charms">Ver charms en Plata 925</a>
+    </div>
+    <div class="plata-img">
+      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp?v=20260822" alt="Pulsera Zephora armada con charms en Plata 925, sello grabado" width="502" height="900" loading="lazy" decoding="async">
     </div>
   </div>
 </section>
