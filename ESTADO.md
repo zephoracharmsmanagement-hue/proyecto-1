@@ -5,6 +5,24 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🚧 Trabajo en curso — rediseño empaque premium en landing · 2026-09-10
+
+**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
+trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
+
+**Rama:** `claude/zephora-empaque-hero`
+**Alcance:** solo `index.html` — nueva sección `#empaque-destacado` entre
+`#historia` y `#reseñas` que sube el bloque de Empaque Premium (antes solo un
+checkbox de 46px dentro del carrito) a un bloque visual a mitad de página.
+No toca `netlify/functions/`, checkout, ni el checkbox real del carrito
+(`#pack`), que sigue siendo el mecanismo de compra.
+
+**⚠️ NO fusionar a `main` todavía** — Netlify está sin créditos de despliegue
+(ver más abajo) y este cambio sí dispara un deploy real al tocar `.html`
+(la regla `ignore` de `netlify.toml` solo salta despliegues cuando el push es
+puro `.md`). Rama commiteada y empujada, lista para revisión visual, en espera
+de que se confirmen créditos antes de mezclar.
+
 ## 🚧 Trabajo en curso — contenido orgánico · 2026-09-07
 
 **Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
