@@ -12,13 +12,16 @@ Claude Code en varias sesiones/terminales a la vez.
 
 ## Meta Ads — estado de la automatización
 
-> ⚠️ **Hay un plan sin ejecutar:**
+> **Estado al 2026-09-10:** Ventas activa con $20.000 COP/día y 4 anuncios,
+> a **$931 por checkout** — el mejor registro de la cuenta. Retargeting
+> **pausado** tras cerrar su experimento en $17.487 sin un solo pedido.
+>
 > [`automatizaciones/meta-ads/PLAN-2026-09-02.md`](automatizaciones/meta-ads/PLAN-2026-09-02.md)
-> — cambio de público (18-44), estados de anuncios y copys de los 4 creativos
-> nuevos. Lo escribió una sesión web, que no puede escribir a Meta. Si esta
-> sesión sí puede, **ese archivo es la tarea**; verificar el estado real antes
-> de ejecutar, porque el propietario puede haber aplicado parte a mano.
-> Borrar la nota cuando quede aplicado.
+> quedó **aplicado**, salvo el recorte de edad a 18-44: **Meta lo rechaza**
+> mientras Advantage+ Audience esté encendido (error 1870189). Sigue siendo
+> el cambio de mayor impacto pendiente —los tramos 45-64 se llevaban $72.331
+> al mes a $2.893 por checkout— y la vía segura es duplicar el conjunto con
+> Advantage+ apagado, no editar el que ya rinde.
 
 
 ### Campañas en producción (cuenta `1583713932705268`)
@@ -54,14 +57,69 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
   pedidos de algo inexistente. Reactivar cuando llegue la mercancía — era el
   mejor anuncio de la cuenta.
 
-  **Techo de anuncios simultáneos: 4-5.** Con $15.000 COP/día, repartir entre
-  ocho deja ~$1.900/día por anuncio y ninguno sale de fase de aprendizaje.
+  **Techo de anuncios simultáneos: 4-5.** Repartir entre ocho deja migajas por
+  anuncio y ninguno sale de fase de aprendizaje.
+
+  **Presupuesto subido a $20.000 COP/día el 2026-09-10**, con los $5.000 que
+  liberó el retargeting al pausarse. Es el mismo gasto total de cuenta, movido
+  a lo que sí convierte.
+
+  **Estado al 2026-09-10 — el mejor momento medido de la cuenta: $931 por
+  checkout** (contra $1.222 del mejor tramo previo y $1.623 del promedio de 30
+  días). Los creativos de temporada "Amor y Amistad" son los que lo lograron:
+
+  | Anuncio | Costo/checkout | Frecuencia |
+  |---|---|---|
+  | `mármol · Amor y Amistad` | **$827** | 1,28 |
+  | `basic · regalo 09-02` | $905 | 1,18 |
+  | `azul · Amor y Amistad` | $974 | 1,21 |
+  | `basic · Amor y Amistad` | $1.208 | 1,32 |
+
+  Confirma la hipótesis del ángulo regalo: los hombres de 18-44 convierten
+  mejor que las mujeres del mismo tramo, y la lectura era que compran para
+  regalar. **Hay más temporadas donde eso aplica** (Navidad, Día de la Madre) y
+  la economía aguanta mucho más presupuesto del que se corre.
+
+  **Con más presupuesto, vigilar el inventario antes que el costo.** 33% más
+  tráfico acelera el agotamiento de la pieza que muestre el anuncio ganador —
+  es exactamente lo que pasó con Copia 3. Revisar el stock de la referencia de
+  `mármol` antes de que la pauta venda algo que no existe.
 
 - **"Retargeting · Recuperación de checkout"** (`120247672148980534`) —
-  **ACTIVA desde el 2026-09-06** como prueba controlada: $5.000 COP/día,
-  público de 180 días, expansión apagada. Estuvo pausada meses sin entregar
-  por un error de segmentación (#1870194): `location_types` estaba en
-  `["home"]`, una opción que Meta descontinuó. Corregido a `["home","recent"]`.
+  **PAUSADA el 2026-09-10. El experimento terminó y la respuesta fue que no.**
+  Corrió del 09-06 al 09-10 con $5.000 COP/día, público de 180 días y
+  expansión apagada. Antes estuvo pausada meses por un error de segmentación
+  (#1870194): `location_types` en `["home"]`, opción que Meta descontinuó;
+  corregido a `["home","recent"]`.
+
+  **Resultado: $17.487 COP en 3 días de entrega, 0 pedidos.** Se cortó antes
+  del umbral de $35.000 porque las tres señales empeoraban a la vez:
+
+  | Señal | Valor | Umbral |
+  |---|---|---|
+  | CTR | 3,36% → 2,19% → 1,57% (3 días seguidos) | −20% |
+  | Frecuencia | **3,52** | > 3 |
+  | CPM | **$39.121** vs ~$8.125 de la cuenta | 4,8x |
+  | Alcance total | **127 personas** | — |
+
+  **La lección, que no era la que se buscaba:** el freno nunca fue la ventana
+  del público ni el evento de optimización. Es que **el sitio todavía no tiene
+  tráfico suficiente para sostener un retargeting**. Aun con 180 días y
+  `AddToCart` incluido (1.081 eventos/mes), el público real alcanzable fueron
+  127 personas. A ese tamaño Meta cobra 4,8 veces más por llegar a la misma
+  gente que la campaña de Ventas alcanza barato — y esas personas ya están
+  dentro del universo abierto de Ventas, así que se pagaba dos veces por el
+  mismo par de ojos.
+
+  **No reactivarla hasta que el tráfico crezca de verdad.** Señal para volver
+  a intentarlo: que el público de 180 días pase de unos cientos a varios miles.
+  Reactivarla antes es repetir el mismo gasto con el mismo cero.
+
+  Si se retoma: sigue optimizando por **`Purchase`** y eso es deliberado.
+  `INITIATE_CHECKOUT` **falla siempre** en `promoted_object.custom_event_type`
+  para este píxel, con error interno de Meta. Se aisló con prueba de control
+  —un conjunto idéntico con `PURCHASE` se crea a la primera—, así que es
+  restricción de Meta, no del payload. No insistir por esa vía.
 
   Sigue optimizando por **`Purchase`** y eso es deliberado, no un pendiente:
   `INITIATE_CHECKOUT` **falla siempre** en `promoted_object.custom_event_type`
@@ -69,12 +127,13 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
   control —un conjunto idéntico con `PURCHASE` se crea a la primera— así que
   es restricción de Meta, no del payload. No insistir por esa vía.
 
-  **Criterio de salida, para que nadie la deje correr por inercia:** 7 días o
-  $35.000 COP. Se juzga por **pedidos reales**, no por las métricas de Meta —
-  con 26 `Purchase` mensuales de señal, lo que reporte es ruido. Si gasta $0
-  en 2-3 días, Meta no entrega con `Purchase` y toca conversión personalizada.
-  Detalle completo en
+  Diagnóstico y plan originales en
   [`automatizaciones/meta-ads/RETARGETING.md`](automatizaciones/meta-ads/RETARGETING.md).
+
+  **Lo que sí funcionó del método:** fijar un criterio de salida por escrito
+  *antes* de activar (7 días o $35.000, medido en pedidos reales) es lo que
+  permitió cortar en 3 días sin discusión. Repetirlo en cualquier experimento
+  de pauta futuro.
 
 ### Públicos
 
@@ -466,6 +525,23 @@ en centavos, mostraría $150.
 Regla operativa: **después de tocar un presupuesto, releerlo de la API y
 confirmar el número formateado antes de activar nada.** Un cero de más en un
 presupuesto no se nota hasta que ya gastó.
+
+## ⚠️ Editar una campaña por API la PAUSA sola
+
+`ads_update_entity` sobre una campaña activa devuelve
+`status_forced_to_paused: true` y mete un `"status":"PAUSED"` que nadie pidió.
+Es un seguro del conector: toda edición deja la campaña apagada esperando
+confirmación humana.
+
+Pasó el 2026-09-10 al subir el presupuesto de Ventas de $15.000 a $20.000: la
+campaña que genera todos los checkouts quedó detenida por el propio cambio que
+buscaba escalarla. Se detectó porque la respuesta trae la bandera, y se
+reactivó con `ads_activate_entity` en el acto.
+
+**Regla: toda edición de campaña son dos llamadas, no una** — el
+`ads_update_entity` y después el `ads_activate_entity`. Y una lectura final
+que confirme `effective_status: ACTIVE`. Editar sin releer deja la campaña
+apagada sin que nada avise.
 
 ## Seguridad — recordatorios permanentes
 
