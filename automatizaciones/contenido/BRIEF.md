@@ -9,6 +9,14 @@ de software y, sobre todo, el registro de **qué se decidió no construir y por
 qué**. La segunda parte importa más que la primera, porque las decisiones de no
 construir son las que una sesión nueva deshace sin darse cuenta.
 
+> **2026-09-07 — hay un análisis de un plan alternativo.** El propietario
+> trajo un borrador de plan de contenido hecho con Gemini (3 videos diarios,
+> render por API, publicación automática). El contraste contra este brief y
+> contra los datos reales está en
+> [`ANALISIS-PLAN-GEMINI.md`](ANALISIS-PLAN-GEMINI.md), con la cadencia
+> reencuadrada (3 publicaciones al día, **una sola con cámara**) y el reparto
+> Data Table / Google Sheets que ese plan sí mejora.
+
 ---
 
 ## Qué es, en una frase
@@ -141,9 +149,15 @@ referencias:
 
 | Estado | Referencias |
 |---|---|
-| En cero | 24 |
-| 1–2 unidades | 59 |
+| En cero | 25 |
+| 1–2 unidades | 58 |
 | **3 o más — pool elegible** | **46** |
+
+> **Corregido el 2026-09-08.** Esta tabla decía 24/59/46. Dos recuentos
+> independientes —`CALENDARIO-EDITORIAL.md` § 1.5 y `ANALISIS-PLAN-GEMINI.md`
+> § 2— dieron 25/58/46 y coincidieron entre sí; recontado una tercera vez aquí
+> mismo con el mismo contador da lo mismo. El pool elegible (46), que es lo
+> único que decide qué se graba, nunca cambió.
 
 46 referencias son meses de calendario a un video por pieza. **El limitante del
 contenido no es el inventario; es el tiempo de grabación.**

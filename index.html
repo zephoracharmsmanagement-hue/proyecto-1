@@ -175,27 +175,47 @@ button{font-family:inherit}
 .btn--big{width:100%;padding:17px 22px;font-size:14px}
 @media(min-width:700px){.btn--big{width:auto}}
 
-/* 1 · hero
-   En móvil el titular y el botón de WhatsApp van primero y la foto debajo, acotada:
-   la foto es 502x900 y ella sola empujaba el <h1> a y=884px, o sea fuera de la
-   primera pantalla de un iPhone. Quien llega de la pauta ve la promesa y el CTA sin scroll. */
-.hero{padding:22px 0 34px}
-.hero-in{display:grid;gap:22px}
-/* El encuadre baja al 72%: la foto trae quemado "La pulsera que todas quieren /
-   Personalízala con tus charms favoritos" en su tercio superior, que repite en otras
-   palabras la promesa del <h1>. Recortándolo, la foto muestra la pulsera y punto. */
-.hero-img img{width:100%;max-height:46dvh;object-fit:cover;object-position:center 72%;border-radius:3px}
-.hero h1{font-size:clamp(34px,8.8vw,64px);line-height:1.06;margin:10px 0 14px}
-.hero h1 i{font-style:italic;color:var(--plum)}
-.hero-sub{max-width:48ch;color:#584a5c;margin:0 0 14px;font-size:16.5px}
-.hero-badges{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 22px;font-size:13.5px}
-.hero-badges .stars{margin:0}
-.hero-badges .dot{color:var(--silver)}
-.hero-badge-n{color:#6d6070}
-.hero-badges a{text-decoration:none;font-weight:400}
-.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.hero-hint{font-size:13px;color:#6d6070;margin:0}
-.hero-hint a{color:var(--plum)}
+/* 1 · hero banner — reemplaza el layout de dos columnas por un banner de
+   ancho completo con foto de fondo. Rotación (cuando haya 2+ slides) usa
+   el mismo truco 100% CSS que .ann: grid-area:1/1 + keyframes de opacity.
+   Con un solo slide no hace falta animación. */
+.hbanner{position:relative;overflow:hidden;height:56dvh;min-height:340px}
+.hbanner-track{display:grid;height:100%}
+.hbanner-slide{grid-area:1/1;position:relative}
+.hbanner-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+.hbanner-copy{position:relative;z-index:1;max-width:var(--w);margin:0 auto;padding:28px 16px 0}
+.hbanner-copy .eyebrow{color:#fff}
+.hbanner-copy h1,.hbanner-copy h2{font-size:clamp(30px,8vw,52px);line-height:1.08;margin:8px 0 10px;color:#fff}
+.hbanner-copy h1 i,.hbanner-copy h2 i{font-style:italic;color:var(--rose-soft)}
+.hbanner-sub{max-width:40ch;color:#f0e8ef;margin:0;font-size:14.5px}
+.hbanner-fixed{position:absolute;left:0;right:0;bottom:0;z-index:2;
+  background:linear-gradient(to top, rgba(42,31,46,.82), rgba(42,31,46,0) 85%);
+  padding:40px 16px 18px}
+.hbanner-fixed-in{max-width:var(--w);margin:0 auto}
+.hbanner-fixed .hero-badges{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 16px;font-size:13.5px;color:#fff}
+.hbanner-fixed .hero-badges .stars{margin:0}
+.hbanner-fixed .hero-badges .dot{color:#cbb9c9}
+.hbanner-fixed .hero-badge-n{color:#e7dfe4}
+.hbanner-fixed .hero-badges a{text-decoration:none;font-weight:400;color:#fff}
+.hbanner-fixed .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.hbanner-fixed .hero-hint{font-size:13px;color:#e7dfe4;margin:0}
+.hbanner-fixed .hero-hint a{color:#fff;text-decoration:underline}
+/* Rotación 100% CSS, mismo mecanismo que .ann/.ann-slide. Los porcentajes
+   de abajo están calculados a mano para 2 slides (5s cada uno, 10s de
+   ciclo total). Si se agrega un tercer slide, hay que recalcular: ciclo
+   pasa a 15s, cada tramo a 1/3 del keyframe, y sumar un tercer
+   animation-delay — no se ajusta solo. */
+.hbanner-slide{opacity:0;animation:hbf 10s infinite}
+.hbanner-slide:nth-child(1){animation-delay:0s}
+.hbanner-slide:nth-child(2){animation-delay:-5s}
+@keyframes hbf{0%{opacity:0}4%,46%{opacity:1}50%,100%{opacity:0}}
+.hbanner-track.paused .hbanner-slide{animation-play-state:paused}
+.hbanner-pause{position:absolute;top:14px;right:16px;z-index:3;width:34px;height:34px;
+  border-radius:50%;border:1px solid rgba(255,255,255,.5);background:rgba(42,31,46,.45);
+  color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hbanner-pause .ico-play{display:none}
+.hbanner-pause[aria-pressed="true"] .ico-pause{display:none}
+.hbanner-pause[aria-pressed="true"] .ico-play{display:block}
 
 /* 2 · beneficios */
 .bens{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--white)}
@@ -339,6 +359,30 @@ section{scroll-margin-top:64px}
 .story h2 i{font-style:italic;color:var(--plum)}
 .story p{color:#584a5c;margin:0 0 14px;max-width:52ch}
 .story p:last-of-type{margin-bottom:22px}
+
+/* 6a · autoridad plata 925 — mismo patrón que .story, columnas invertidas
+   (texto en la 1.1fr, foto en la .9fr) para que la imagen quede a la derecha
+   y alterne con .story, que la tiene a la izquierda. */
+.plata{padding:52px 0;border-top:1px solid var(--line)}
+.plata-in{display:grid;gap:26px}
+.plata h2{font-size:clamp(28px,7vw,42px);line-height:1.14;margin:8px 0 14px}
+.plata h2 i{font-style:italic;color:var(--plum)}
+.plata p{color:#584a5c;margin:0 0 14px;max-width:52ch}
+.plata p:last-of-type{margin-bottom:22px}
+.plata-img img{width:100%;border-radius:3px}
+
+/* 6b · empaque destacado — mismo patrón que .story pero con las columnas
+   invertidas (texto en la 1.1fr, foto en la .9fr) para que la imagen quede
+   a la derecha en desktop y alterne con .story en vez de repetir el layout. */
+.pack-hero{padding:52px 0;border-top:1px solid var(--line)}
+.pack-hero-in{display:grid;gap:26px}
+.pack-hero h2{font-size:clamp(28px,7vw,42px);line-height:1.14;margin:8px 0 14px}
+.pack-hero h2 i{font-style:italic;color:var(--plum)}
+.pack-hero p{color:#584a5c;margin:0 0 14px;max-width:52ch}
+.pack-hero p:last-of-type{margin-bottom:22px}
+.pack-hero-ph{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pack-hero-ph img{width:100%;border-radius:3px}
+.pack-hero-price{color:var(--ink);font-weight:600}
 
 /* 7 · prueba social */
 .social{padding:44px 0;border-top:1px solid var(--line)}
@@ -883,12 +927,10 @@ body.sheet-open{overflow:hidden}
      repartiría entre las dos y el menú quedaría flotando en el medio. */
   .top-lupa{margin-left:0}
   .grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:16px}
-  .hero{padding:52px 0}
-  .hero-in{grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
-  .hero-img{order:2}
-  .bens-in{grid-template-columns:repeat(3,1fr);gap:0 26px;padding:6px 24px}
+  .hbanner{height:78dvh}
+  .hbanner-copy{padding:48px 16px 0}
+  .bens-in{grid-template-columns:repeat(4,1fr);gap:0 26px;padding:6px 24px}
   .ben+.ben{border-top:0}
-  .ben:nth-child(n+4){border-top:1px solid var(--line)}
   .esc{grid-template-columns:repeat(4,1fr);gap:12px}
   /* El hilo solo aparece con los cuatro tramos en una fila: en 2×2
      cruzaría en diagonal y dejaría de leerse como una pulsera. */
@@ -899,6 +941,8 @@ body.sheet-open{overflow:hidden}
   .steps{grid-template-columns:repeat(4,1fr)}
   .step+.step{border-top:0;border-left:1px solid var(--line)}
   .story-in{grid-template-columns:.9fr 1.1fr;gap:52px;align-items:center}
+  .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
+  .pack-hero-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .revs{grid-template-columns:repeat(2,1fr);gap:20px}
   .case{grid-template-columns:240px 1fr;gap:28px;padding:24px;align-items:center}
   .trust{grid-template-columns:repeat(3,1fr)}
@@ -907,7 +951,6 @@ body.sheet-open{overflow:hidden}
   .trust div:nth-child(4){border-left:0}
   .sec,.how,.social,.trust-sec,.cats{padding:60px 0}
   .story{padding:68px 0}
-  .hero-img img{max-height:72dvh}
   .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
   .talla-sec,.pe{padding:60px 0}
   .calc{grid-template-columns:300px 1fr;gap:26px;align-items:start;max-width:none}
@@ -940,6 +983,8 @@ body.sheet-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;
     scroll-behavior:auto!important}
+  .hbanner-slide{animation:none;opacity:0}
+  .hbanner-slide:first-child{opacity:1}
 }
 </style>
 </head>
@@ -986,15 +1031,40 @@ body.sheet-open{overflow:hidden}
 
 <main id="top">
 
-<!-- 1 · HERO -->
-<section class="hero wrap">
-  <div class="hero-in">
-    <div>
-      <span class="eyebrow">Joyería con significado · Colombia</span>
-      <h1>Diseña una historia<br><i>tan única como tú</i></h1>
-      <p class="hero-sub">Joyería personalizada con charms elaborados en Plata Esterlina 925 verificada y brazaletes con acabado de alta calidad en baño de plata, compatibles con Pandora.</p>
+<!-- 1 · HERO BANNER — antes esto era un layout fijo de dos columnas con una
+     sola foto vertical. Ahora es un banner de ancho completo con 2 fotos
+     rotando cada 5s (ver @keyframes hbf más abajo). El CTA, el sello de
+     Instagram/estrellas y la línea de precio están en .hbanner-fixed, fuera
+     de las fotos, para que no desaparezcan según cuál slide esté activo. -->
+<section class="hbanner">
+  <div class="hbanner-track">
+    <div class="hbanner-slide">
+      <img class="hbanner-img" src="assets/avengers-marmol.webp" alt="Pulsera Zephora con charms de la colección Avengers sobre mármol negro" width="2752" height="1536" fetchpriority="high" decoding="async">
+      <div class="hbanner-copy">
+        <span class="eyebrow">Colección nueva</span>
+        <h1>Llegó la colección<br><i>de los Avengers</i></h1>
+        <p class="hbanner-sub">Lleva el poder de tus héroes favoritos contigo.</p>
+      </div>
+    </div>
+    <div class="hbanner-slide">
+      <img class="hbanner-img" src="assets/hero-marca-ancho.webp" alt="Pulsera Zephora armada con charms en Plata 925" width="2752" height="1536" decoding="async">
+      <div class="hbanner-copy">
+        <span class="eyebrow">Joyería con significado · Colombia</span>
+        <h2>Diseña una historia<br><i>tan única como tú</i></h2>
+        <p class="hbanner-sub">Joyería personalizada con charms elaborados en Plata Esterlina 925 verificada y brazaletes con acabado de alta calidad en baño de plata, compatibles con Pandora.</p>
+      </div>
+    </div>
+  </div>
+
+  <button class="hbanner-pause" type="button" aria-label="Pausar rotación de fotos" aria-pressed="false">
+    <svg class="ico-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    <svg class="ico-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+  </button>
+
+  <div class="hbanner-fixed">
+    <div class="hbanner-fixed-in">
       <p class="hero-badges"><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="dot">·</span><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span><span class="hero-badge-n">+2.400 pulseras creadas</span></p>
-            <!-- Un solo CTA, y lleva al armador. WhatsApp salió de aquí: como
+      <!-- Un solo CTA, y lleva al armador. WhatsApp salió de aquí: como
            botón junto al principal traía sobre todo preguntas de cosas que la
            página ya responde —material, tallas, envíos—, consultas que hay que
            atender a mano y que no terminaban en pedido. Sigue en el pie, con
@@ -1003,9 +1073,6 @@ body.sheet-open{overflow:hidden}
         <a class="btn btn--pagar btn--big" href="#brazaletes">Armar mi pulsera</a>
       </div>
       <p class="hero-hint">El precio se calcula solo mientras eliges, con la promo ya incluida. Pagas aquí mismo con Nequi, PSE, Bancolombia o tarjeta.</p>
-    </div>
-    <div class="hero-img">
-      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp?v=20260822" alt="Pulsera Zephora armada con charms en plata 925" width="502" height="900" fetchpriority="high" decoding="async">
     </div>
   </div>
 </section>
@@ -1016,59 +1083,9 @@ body.sheet-open{overflow:hidden}
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5.3 5.5.6-4.2 3.8 1.2 5.6L12 14.5 7 17.3l1.2-5.6L4 7.9l5.5-.6z"/></svg><span><b>Charms en Plata Esterlina 925</b> verificada, con sello grabado</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Libres de níquel y plomo</b> — aptos para pieles sensibles</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Brazaletes</b> en latón de calidad joyería con baño de plata certificado y capa protectora e-coating</span></div>
-    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4.5"/><circle cx="16" cy="12" r="4.5"/></svg><span><b>Compatibles con charms Pandora</b> — combina con los que ya tienes</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9.5A4 4 0 0112 8a4 4 0 017 2.5C19 15.7 12 20 12 20z"/></svg><span><b>Personalización total:</b> tú eliges cada pieza de tu historia</span></div>
-    <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h13v10H3zM16 10h3l2 3v4h-5z"/><circle cx="7" cy="17" r="1.6"/><circle cx="18" cy="17" r="1.6"/></svg><span><b>Envío a toda Colombia:</b> $15.000 anticipado o $25.000 contraentrega — gratis desde $180.000</span></div>
   </div>
 </div>
-
-<!-- 3 · PROMO -->
-<section class="promo wrap" id="promo">
-  <div class="promo-head">
-    <span class="eyebrow">Descuento progresivo</span>
-    <h2>Cuantos más charms, más ahorras</h2>
-    <p>Aplica sobre cualquier combinación del catálogo y se calcula solo mientras armas tu pulsera. Sin códigos ni letra pequeña.</p>
-  </div>
-
-  <ol class="esc" id="esc">
-    <li class="esc-t" data-n="1">
-      <span class="esc-b" aria-hidden="true"><i></i></span>
-      <span class="esc-n">1</span>
-      <span class="esc-u">charm</span>
-      <span class="esc-p">Precio normal</span>
-      <span class="esc-x">Sin mínimo de compra.</span>
-    </li>
-    <li class="esc-t esc-t--off" data-n="2">
-      <span class="esc-b" aria-hidden="true"><i></i><i></i></span>
-      <span class="esc-n">2</span>
-      <span class="esc-u">charms</span>
-      <span class="esc-p">8% OFF</span>
-      <span class="esc-x">El descuento baja <b>los dos</b>, no solo el segundo.</span>
-    </li>
-    <li class="esc-t esc-t--off" data-n="3">
-      <span class="esc-b" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="esc-n">3</span>
-      <span class="esc-u">charms</span>
-      <span class="esc-p">15% OFF</span>
-      <span class="esc-x">Aquí se activa el <b>−30% del brazalete</b>.</span>
-    </li>
-    <li class="esc-t esc-t--top" data-n="4">
-      <span class="esc-tag">El mejor trato</span>
-      <span class="esc-b" aria-hidden="true"><i></i><i></i><i></i><i class="free"></i></span>
-      <span class="esc-n">4</span>
-      <span class="esc-u">charms o más</span>
-      <span class="esc-p">Lleva 4, paga 3</span>
-      <span class="esc-x"><b>25% OFF</b> sobre el total: el cuarto va por nuestra cuenta.</span>
-    </li>
-  </ol>
-
-  <div class="promo-card">
-    <span class="promo-tag">Promo de la semana</span>
-    <h2>Con 3 charms, el brazalete baja 30%</h2>
-    <p>Este descuento se suma al de arriba: los charms bajan por cantidad y el brazalete baja 30%. Desde <b>$180.000</b> el envío también va por nuestra cuenta.</p>
-    <a class="btn btn--wa" href="#armar">Armar la mía con descuento</a>
-  </div>
-</section>
 
 <!-- 3b · COMPRA POR CATEGORÍA -->
 <section class="cats wrap" id="categorias">
@@ -1617,6 +1634,97 @@ body.sheet-open{overflow:hidden}
   </div>
 </section>
 
+<!-- 6a · AUTORIDAD PLATA 925 — el bullet de "Plata Esterlina 925 verificada"
+     de la barra de beneficios (arriba, línea ~1030) se queda igual como
+     resumen rápido; esto es la versión desarrollada, más abajo. No compara
+     con Pandora ni nombra réplicas — la autoridad se construye en términos
+     propios (norma 925, sello, composición). -->
+<section class="plata" id="plata-925">
+  <div class="wrap plata-in">
+    <div>
+      <span class="eyebrow">Ley 925</span>
+      <h2>Los charms no son baño. <i>Son plata esterlina real.</i></h2>
+      <p>Cada charm Zephora lleva el sello 925 grabado: la marca que certifica que el 92,5% es plata pura, con una pequeña aleación que le da resistencia sin sacrificar el brillo. Es la misma norma que usa la joyería fina — no un baño delgado que se despinta.</p>
+      <p>Libres de níquel y plomo, aptos para piel sensible, y sin el verdín ni la opacidad rápida de las piezas bañadas. Busca el sello grabado en cada charm: ahí está la diferencia.</p>
+      <a class="btn" href="#charms">Ver charms en Plata 925</a>
+    </div>
+    <div class="plata-img">
+      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp?v=20260822" alt="Pulsera Zephora armada con charms en Plata 925, sello grabado" width="502" height="900" loading="lazy" decoding="async">
+    </div>
+  </div>
+</section>
+
+<!-- 6b · EMPAQUE DESTACADO — antes esto era un checkbox de 46 px dentro del
+     carrito, invisible hasta que la clienta ya estaba pagando. Se sube acá
+     para que el empaque venda antes de llegar al carrito, no solo ahí. -->
+<section class="pack-hero" id="empaque-destacado">
+  <div class="wrap pack-hero-in">
+    <div>
+      <span class="eyebrow">El detalle final</span>
+      <h2>Cada pulsera <i>llega lista para regalar</i>.</h2>
+      <p>Caja, bolsa y tarjeta con tu dedicatoria — pensadas para que lo único que tengas que hacer sea entregarla. El Empaque Premium de Regalo se elige al armar tu pulsera.</p>
+      <p class="pack-hero-price">Empaque Premium de Regalo · +$40.000</p>
+      <a class="btn" href="#brazaletes">Empieza tu pulsera</a>
+    </div>
+    <div class="pack-hero-ph">
+      <img src="assets/empaque.webp?v=20260822" alt="Empaque Premium de Zephora: caja y bolsa de regalo" width="440" height="440" loading="lazy" decoding="async">
+      <img src="assets/empaque-charm.webp?v=20260822" alt="Empaque Premium de Zephora: detalle de la tarjeta con dedicatoria" width="440" height="440" loading="lazy" decoding="async">
+    </div>
+  </div>
+</section>
+
+<!-- 6c · PROMO — bajada del tope de página (antes iba justo después de
+     #beneficios, la segunda cosa que se veía). El argumento de descuento
+     llega ahora después de las secciones de confianza (historia, plata 925,
+     empaque), no antes de que el cliente sepa algo de la marca. El mecanismo
+     no cambia, solo la posición — sigue arriba del catálogo. -->
+<section class="promo wrap" id="promo">
+  <div class="promo-head">
+    <span class="eyebrow">Descuento progresivo</span>
+    <h2>Cuantos más charms, más ahorras</h2>
+    <p>Aplica sobre cualquier combinación del catálogo y se calcula solo mientras armas tu pulsera. Sin códigos ni letra pequeña.</p>
+  </div>
+
+  <ol class="esc" id="esc">
+    <li class="esc-t" data-n="1">
+      <span class="esc-b" aria-hidden="true"><i></i></span>
+      <span class="esc-n">1</span>
+      <span class="esc-u">charm</span>
+      <span class="esc-p">Precio normal</span>
+      <span class="esc-x">Sin mínimo de compra.</span>
+    </li>
+    <li class="esc-t esc-t--off" data-n="2">
+      <span class="esc-b" aria-hidden="true"><i></i><i></i></span>
+      <span class="esc-n">2</span>
+      <span class="esc-u">charms</span>
+      <span class="esc-p">8% OFF</span>
+      <span class="esc-x">El descuento baja <b>los dos</b>, no solo el segundo.</span>
+    </li>
+    <li class="esc-t esc-t--off" data-n="3">
+      <span class="esc-b" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="esc-n">3</span>
+      <span class="esc-u">charms</span>
+      <span class="esc-p">15% OFF</span>
+      <span class="esc-x">Aquí se activa el <b>−30% del brazalete</b>.</span>
+    </li>
+    <li class="esc-t esc-t--top" data-n="4">
+      <span class="esc-tag">El mejor trato</span>
+      <span class="esc-b" aria-hidden="true"><i></i><i></i><i></i><i class="free"></i></span>
+      <span class="esc-n">4</span>
+      <span class="esc-u">charms o más</span>
+      <span class="esc-p">Lleva 4, paga 3</span>
+      <span class="esc-x"><b>25% OFF</b> sobre el total: el cuarto va por nuestra cuenta.</span>
+    </li>
+  </ol>
+
+  <div class="promo-card">
+    <span class="promo-tag">Promo de la semana</span>
+    <h2>Con 3 charms, el brazalete baja 30%</h2>
+    <p>Este descuento se suma al de arriba: los charms bajan por cantidad y el brazalete baja 30%. Desde <b>$180.000</b> el envío también va por nuestra cuenta.</p>
+    <a class="btn btn--wa" href="#armar">Armar la mía con descuento</a>
+  </div>
+</section>
+
 <!-- 7 · PRUEBA SOCIAL -->
 <section class="social" id="reseñas">
   <div class="wrap">
@@ -1910,6 +2018,12 @@ const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 const ESC=[0,0,.08,.15,.25];
 const escala=n=>n<=0?0:ESC[Math.min(n,4)];
 const $=s=>document.querySelector(s);
+const hbTrack=$('.hbanner-track');
+const hbPause=$('.hbanner-pause');
+hbPause.addEventListener('click',()=>{
+  const paused=hbTrack.classList.toggle('paused');
+  hbPause.setAttribute('aria-pressed', paused ? 'true' : 'false');
+});
 
 /* Vistas adicionales por pieza, en orden: la principal es la de la tarjeta y
  * estas van detrás. Se declara a mano y no por convención de nombres porque el

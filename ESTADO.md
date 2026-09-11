@@ -85,7 +85,228 @@ queda listo y se suelta con un clic. Es lo que conviene mientras haya varias
 sesiones abiertas —protege del push accidental sin dejar `main` y producción
 separados en silencio—. Quitar el candado publica lo último que haya quedado
 esperando, así que se quita cuando se ha decidido publicar, no antes.
+## 🚧 Trabajo en curso — rediseño landing inspirado en crítica de competidor · 2026-09-10
 
+**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
+trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
+
+**Rama:** `claude/zephora-empaque-hero`
+**Alcance:** solo `index.html` — dos secciones nuevas entre `#historia` y
+`#reseñas`, en este orden:
+1. `#plata-925` — desarrolla el bullet de "Plata Esterlina 925 verificada"
+   (que se queda igual en la barra de beneficios) en una sección de
+   autoridad técnica. Habla solo de **charms** (plata esterlina sólida),
+   nunca de brazaletes (que son latón con baño de plata — línea ~1032 de
+   `index.html`, no confundir los dos). No compara con Pandora ni nombra
+   réplicas — ver `automatizaciones/contenido/TRIAJE-FOTOS.md` línea 211,
+   "Compatible con charms Pandora" sigue sin resolver, no se tocó aquí.
+2. `#empaque-destacado` — sube el bloque de Empaque Premium (antes solo un
+   checkbox de 46px dentro del carrito) a un bloque visual a mitad de página.
+3. `#promo` (descuento progresivo) — **se movió**, no se creó: antes iba
+   justo después de `#beneficios` (la segunda cosa que se veía en toda la
+   página); ahora va después de `#empaque-destacado`, tras las secciones de
+   confianza. El mecanismo de descuento no cambió, solo la posición.
+4. `.bens` (barra de beneficios) — de 6 bullets a 4. Se quitaron
+   "Compatibles con charms Pandora" (duplicado del hero) y "Envío a toda
+   Colombia" (duplicado del ticker superior `.ann`) — la info sigue en el
+   sitio, solo dejó de repetirse. Grid de desktop ajustado de 3 a 4 columnas
+   para que no quede una fila coja.
+5. `#hero` (antes dos columnas) — ahora banner panorámico de ancho completo
+   con 2 fotos (Avengers + marca) rotando cada 5s, mismo mecanismo 100% CSS
+   que `.ann`, con botón de pausa. Spec y plan en
+   `docs/superpowers/specs/2026-09-10-hero-carousel-design.md` y
+   `docs/superpowers/plans/2026-09-10-hero-carousel.md`. El asset viejo
+   (`pulsera-zephora-armada-con-charms-en-plata-925.webp`, vertical 502×900)
+   ya no se usa en el hero, pero **sigue en uso en `#plata-925`** — no
+   borrarlo.
+
+No toca `netlify/functions/`, checkout, ni el checkbox real del carrito
+(`#pack`), que sigue siendo el mecanismo de compra.
+
+**Las 4 ideas de la crítica de Juli & Co ya están implementadas** en esta
+rama (empaque, autoridad Plata 925, densidad, y ahora el hero). Falta
+revisión visual del usuario antes de considerar la fusión a `main`.
+
+**⚠️ Esta sesión NO fusiona a `main`.** Los créditos de Netlify se recargaron
+el 2026-09-11 y el auto-publish sigue encendido — cualquier push a `main`
+ahora sí publica solo. Hay otra sesión trabajando en paralelo en
+`claude/charming-sagan-l4q2eq` (mercancía nueva: `assets/stock.json`,
+`assets/*.webp`, `herramientas/entrada/`); el reparto es por archivo, no por
+tema, y la mezcla a `main` la hace esa sesión, en un solo paso, cuando ambas
+ramas estén listas. Esta rama queda commiteada, empujada y actualizada contra
+`main` (`git merge origin/main`, sin conflictos), lista para esa mezcla —
+pero sin empujar más desde aquí.
+
+## 🚧 Trabajo en curso — contenido orgánico · 2026-09-07
+
+**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
+trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
+
+**Rama:** `claude/zephora-charm-content-strategy-ktc7fi`
+**Alcance:** solo documentación de contenido y `netlify.toml`. **No toca
+`netlify/functions/`, ni el checkout, ni `index.html`.**
+
+Qué trae:
+
+| Archivo | Qué es |
+|---|---|
+| `automatizaciones/contenido/CALENDARIO-EDITORIAL.md` | Doctrina editorial: frecuencia por red, cuatro pilares, calendario quincenal de Amor y Amistad y ocho guiones listos para grabar. Precios del guion 5/6 corregidos y verificables |
+| `automatizaciones/contenido/BRIEF-FLOW.md` | Encargo para la sesión de Flow: presupuesto de créditos, triaje de «pauta meta 2026», las tres formas de hacer video, y la frontera de qué no puede generar |
+| `automatizaciones/contenido/TRIAJE-FOTOS.md` | Censo de las 35 fotos de la carpeta, con el hallazgo de riesgo de marca Pandora |
+| `automatizaciones/contenido/COSTOS-FLOW.md` | Registro real de créditos gastados en Flow, generación por generación |
+| `automatizaciones/contenido/ANALISIS-PLAN-GEMINI.md` | Contraste de un plan externo de contenido contra los datos reales del repo |
+| `automatizaciones/contenido/verificar-precios-guiones.js` | Corre cada precio de los guiones contra `calcular()`; falla nombrando el que se descuadre |
+| `CLAUDE.md` | Tres hallazgos enlazados desde la sección de contenido |
+| `netlify.toml` | Regla `ignore` para no desplegar cuando el push solo cambia `.md` |
+
+### La sesión de estrategia se cierra — el trabajo sigue desde la terminal
+
+**2026-09-08.** La sesión de estrategia (en la nube, Opus) **termina aquí**. Todo
+lo que decidió está escrito en esta rama; **nada quedó solo en un chat**. No hay
+que reabrirla: cuesta más que la sesión local y no sabe nada que no esté en
+estos archivos.
+
+Lo demostró el propio flujo: la sesión de Flow leyó estos documentos, hizo el
+triaje **y encontró un error de precios en el calendario**, sin que las dos
+sesiones se hablaran ni una vez. **El repo ya es el canal; funciona.**
+
+**Desde ahora, una sola sesión lleva contenido** —la de la terminal—, que es
+además lo que pide la regla 1 de `CLAUDE.md`. Arranca así:
+
+```bash
+git fetch --all
+git checkout claude/zephora-charm-content-strategy-ktc7fi
+```
+
+Y lee, en este orden: este bloque · `automatizaciones/contenido/BRIEF.md` ·
+`CALENDARIO-EDITORIAL.md` · `BRIEF-FLOW.md` · `TRIAJE-FOTOS.md`.
+
+**Lo siguiente que hay que hacer, por orden y sin gastar un crédito:**
+
+1. ~~**Borrar el creativo «No es Pandora… pero todos creen que sí»**~~ — **hecho
+   2026-09-08.** Movido (no borrado, por si hace falta de referencia) a
+   `pauta meta 2026/NO USAR - riesgo de marca/`, fuera de la carpeta de
+   trabajo. No vuelve a aparecer en ningún triaje futuro de esa carpeta.
+2. ~~Recomponer el fondo del set `0bd627e3`~~ — **hecho, pero por un método
+   distinto al planeado.** El recorte-y-pegado (`rembg` + `componer_fondo.py`,
+   descrito en versiones anteriores de este punto) quedó **superado**: se veía
+   antinatural, sin interacción real de luz entre la joya y el fondo. El
+   propietario corrigió el alcance de la regla de oro — no es que la foto no
+   se pueda tocar, es que **la forma y el diseño de la joya deben quedar
+   idénticos**, la foto sí puede regenerarse.
+
+   > **Método vigente desde 2026-09-08: imagen de referencia en Flow.** Se sube
+   > la foto real de la pieza (ej. `662562d4-...jfif`) como referencia y se le
+   > pide a Flow una fotografía profesional nueva, con instrucción explícita de
+   > mantener diseño/forma/conteo de piedras idénticos. Resultado: fotos con
+   > luz y sombra reales, publicables tal cual. Dos sets ya terminados y
+   > aceptados por el propietario:
+   > - **Set "fe y suerte"** (manos orando + virgen María + trébol + herradura
+   >   / Corazón Liso) — 3 formatos en `pauta meta 2026/recompuestos/`.
+   > - **Set "letra-a"** (esfera azul + flor azul + atrapasueños + letra-a /
+   >   Corona Pavé) — resolución completa en `pauta meta 2026/fondos/`.
+   >
+   > Prompts usados y plantilla completa: ver el chat de la sesión de Flow o
+   > pedir que se reconstruyan — misma estructura para cualquier set nuevo:
+   > *"usa esta imagen de referencia... mantén diseño/forma/piedras idénticos
+   > ... cambia el entorno a [fondo de marca]... NO incluir texto/logotipos/
+   > otra marca."*
+   >
+   > **Pendiente con este método:** set "hamsa + gatito" (prompt ya escrito,
+   > más delicado — pide excluir 2 de los 4 dijes de la referencia, revisar
+   > con cuidado) y las 4-5 planchas de portada, una por pilar de contenido.
+   >
+   > Dos fotos que parecían necesitar trabajo y no: `762070262` (manos orando
+   > sola) y `762650437` (bases de pulsera) ya estaban terminadas, sin Pandora.
+
+2b. **Nuevo, no estaba en el plan original: video con joya en Flow —
+   funciona, pero solo con un modelo específico.** El propietario probó subir
+   la foto de referencia también en modo video ("Ingredientes"):
+
+   | Modelo | Resultado con la pulsera de referencia |
+   |---|---|
+   | **Veo 3.1 Fast** | **Sostiene el diseño intacto.** Probado dos veces (acercamiento + cenital, 8s fijos, ~18-20 créditos c/u). Es el **único** autorizado para clips con joya |
+   | Omni 1.1 Flash | **La desfiguró visiblemente.** Descartado para cualquier plano con producto — sigue sirviendo para b-roll sin joya, y es el único que permite bajar a 4s |
+
+   Con esto quedan **tres formas de hacer video** fijadas en `BRIEF-FLOW.md`
+   § *Las tres formas de hacer video*: (1) imagen en Flow, gratis; (2) video
+   en Flow con Veo 3.1 Fast + referencia, con joya, ~20 créditos/clip; (3)
+   grabación real del propietario, para TikTok. Detalle y créditos gastados
+   (saldo verificado: 206 de 250) en `COSTOS-FLOW.md`.
+
+   **Ya hecho con este método:** el plano de establecimiento de Amor y
+   Amistad (prioridad 1 de `BRIEF-FLOW.md` § Tarea 2b), dos cortes, **con la
+   pulsera incluida** — mejor de lo planeado originalmente (iba a ser solo
+   ambiente vacío).
+
+   **Siguiente pendiente, prompt ya escrito y listo para pegar:** el
+   creativo de pauta con movimiento (prioridad 2 de Tarea 2b) — la pulsera
+   girando sobre sí misma, estilo publicitario. Falta que el propietario lo
+   genere en Flow (Ingredientes, Veo 3.1 Fast, 8s) y lo revise.
+3. **Sesión de fotos de las nueve letras**, dos tomas cada una: catálogo sobre
+   blanco (recortable) y estilo de vida. Desbloquea toda la rama de imagen.
+
+   > **Resuelto 2026-09-08.** El propietario confirmó que la `letra-a` de
+   > `662562d4` (y sus tres composiciones) **sigue siendo stock vigente**, no
+   > un lote anterior. No cambia el plan: esa foto no sirve como catálogo
+   > (ángulo, sobre la caja Pandora, parcialmente ocluida), así que **las
+   > nueve letras siguen necesitando su sesión de fotos igual**. Lo único que
+   > cambia es que ya hay una foto de contexto usable de `letra-a` mientras
+   > tanto — no de catálogo, pero sí de «se ve así».
+4. **Grabar los guiones 1 a 4**, y el 5 con los precios ya corregidos.
+5. **Guion 8, la historia de sondeo de las 14 letras**, el viernes 19.
+
+**Fechas que no se mueven:** Amor y Amistad es el **sábado 19 de septiembre**, y
+las fechas límite de pedido son **10 sept** (resto del país), **14** (ciudades
+principales) y **16** (Bogotá).
+
+---
+
+### Hay tres sesiones en contenido, y no pueden hablarse
+
+Comprobado el 2026-09-08: **las sesiones no se alcanzan entre sí.** La de
+estrategia corre en la nube y las otras en la máquina del propietario; el canal
+entre sesiones no las conecta. Se intentó y falló. **El único canal compartido
+es el repo**, que es justo lo que dice la regla 4 de `CLAUDE.md`.
+
+| Sesión | Rama | Qué hace |
+|---|---|---|
+| Estrategia de contenido | `claude/zephora-charm-content-strategy-ktc7fi` | Doctrina editorial, guiones, encargo de Flow |
+| Google Flow | trabaja sobre la rama de arriba | Triaje de «pauta meta 2026» e imagen |
+| Automatización de contenido | `claude/social-content-automation-n1rh2j` | `ANALISIS-PLAN-GEMINI.md` + 8 líneas a `BRIEF.md` |
+
+Las dos ramas **no chocan** —archivos distintos, merge limpio— y sus
+conclusiones coinciden: la tercera sesión recontó el inventario por su cuenta y
+le dio **25/58/46**, los mismos números que `CALENDARIO-EDITORIAL.md`. Eso
+confirma que el **24/59/46 del `BRIEF.md` § 1.1 está desactualizado** y hay que
+corregirlo al reconciliar.
+
+Pero que no choquen es lo peligroso, no lo tranquilizador: es literalmente el
+patrón que `CLAUDE.md` describe —«git no ve nada raro ahí»—. **Antes de escribir
+en `automatizaciones/contenido/`, leer las dos ramas.**
+
+### Resuelto el 2026-09-11 — esta rama sí se mezcla
+
+Aquí decía que la rama no se mezclaba porque la cuenta no tenía créditos de
+Netlify y cualquier push a `main` intentaba desplegar. **Las dos mitades de esa
+frase cambiaron el 2026-09-11:** los créditos se recargaron, y el auto-publish
+quedó bloqueado en el panel (`Lock to stop auto publishing`), así que un push a
+`main` construye y **espera** en vez de publicar.
+
+El plan que dejó escrito se cumplió tal cual: **se mezcla todo de una vez y sale
+un único despliegue** —esta rama, la de la mercancía nueva y los dos commits de
+septiembre que Netlify saltó por falta de créditos—. Ese despliegue sí se
+construye (`netlify.toml` no es `.md`) y es justo el que instala la regla
+`ignore`; desde ahí, los pushes de solo documentación se saltan solos.
+
+**Queda una comprobación para después de publicar**, que es la delación que la
+propia regla pide: si un commit que tocó `.html`, `netlify.toml` o
+`netlify/functions/` aparece como **saltado** en la lista de despliegues, la
+regla `ignore` está mal y hay que revisarla.
+
+La sincronización entre sesiones de contenido sigue siendo sobre la rama
+compartida, no sobre `main`, por lo que explica el párrafo de arriba.
+---
 ## ⚠️ Consolidación de ramas — 2026-08-20
 
 **El tronco es `main`.** Se creó consolidando las nueve ramas `claude/*` que

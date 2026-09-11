@@ -10,6 +10,57 @@ alimentar). Este documento no los repite: dice **qué le toca a Flow y qué no**
 
 ---
 
+## Cómo trabajamos en conjunto — el repo es el canal
+
+Las sesiones **no pueden hablarse directamente**. Se comprobó el 2026-09-08: la
+sesión de estrategia corre en la nube y la de Flow en la máquina del
+propietario, y el canal entre sesiones no las alcanza. Así que el propietario
+no debería quedarse de mensajero: **la rama es el canal**.
+
+```bash
+git fetch --all
+git checkout claude/zephora-charm-content-strategy-ktc7fi
+```
+
+**No se mezcla a `main`.** No hay créditos de Netlify y `main` es la rama que
+publica, así que cualquier push a `main` intenta desplegar. Trabajar en esta
+rama no dispara ningún despliegue.
+
+### Dónde escribe cada quien
+
+| Documento | Lo escribe | Lo lee |
+|---|---|---|
+| `BRIEF-FLOW.md` (este) | La sesión de estrategia | La sesión de Flow |
+| `CALENDARIO-EDITORIAL.md` | La sesión de estrategia | Todas |
+| **`TRIAJE-PAUTA-META-2026.md`** | **La sesión de Flow** | La sesión de estrategia |
+| **`COSTOS-FLOW.md`** | **La sesión de Flow** | Todas |
+| `ESTADO.md` § *Trabajo en curso* | Quien empiece algo | Todas |
+
+**La sesión de Flow contesta escribiendo y commiteando, no respondiendo en su
+chat.** El resultado del triaje va a `TRIAJE-PAUTA-META-2026.md` en esta misma
+rama, con la tabla completa y el resumen. Así la sesión de estrategia lo lee
+directamente y planea la tanda siguiente sin que nadie transcriba nada.
+
+### Hay una tercera sesión en contenido — reconciliar antes de ampliar
+
+Rama `claude/social-content-automation-n1rh2j`. Analizó un plan de contenido
+externo (de Gemini) y llegó por su cuenta a las mismas conclusiones: 46
+referencias elegibles, el audio en tendencia como límite real y el tiempo de
+cámara como cuello de botella. **Recontó el inventario y le dio 25/58/46, los
+mismos números que el recuento de `CALENDARIO-EDITORIAL.md` § 1**, lo que
+confirma que el 24/59/46 del `BRIEF.md` § 1.1 está desactualizado.
+
+No es duplicación —ese documento critica un plan externo, el calendario escribe
+la doctrina— y da la casualidad de que **no chocan**: esa rama añade
+`ANALISIS-PLAN-GEMINI.md` y ocho líneas a `BRIEF.md`; esta no toca `BRIEF.md`.
+
+**Pero es exactamente el escenario que `CLAUDE.md` marca como peligroso:** dos
+ramas tocando `automatizaciones/contenido/`, con archivos distintos y merge
+limpio, sin que git avise de nada. Antes de escribir nada nuevo en esa carpeta,
+leer las dos.
+
+---
+
 ## La frontera, en una frase
 
 **Flow hace movimiento y ambiente. Flow no hace producto.**
@@ -47,6 +98,23 @@ la foto deja de enseñar cómo se engancha de verdad lo que se está vendiendo.
 
 **Lo que sí se puede cambiar:** el fondo, la luz, el contexto, el encuadre.
 **Lo que no se toca nunca:** los píxeles de la joya, su jump y el brazalete.
+
+> **Experimento del propietario, 2026-09-08 — no cambia esta regla, la
+> documenta.** Probó a propósito lo que este documento desaconseja: generar
+> video (no imagen) usando el modo "Ingredientes" de Flow, subiendo una foto
+> real de la pulsera para que apareciera en el plano de establecimiento de
+> Amor y Amistad. Con **Veo 3.1 Fast, 4 segundos**, el resultado salió bien a
+> su criterio — la joya no se distorsionó de forma visible. Con **Omni 1.1
+> Flash** también se probó, mismo plano, sin joya.
+>
+> Esto **no** revierte la regla de oro. Es una prueba, en un clip corto, con
+> un modelo y duración específicos, juzgada por una sola persona sin el tipo
+> de verificación cuadro a cuadro que se le hizo a los recortes de imagen. El
+> riesgo que describe esta sección —que el modelo reconstruya la pieza de
+> forma distinta entre fotogramas— no desaparece porque una prueba salga bien;
+> se vuelve más probable cuanto más largo o más movida sea la escena. Antes de
+> escalar esto a una tanda de video con joya, revisar cuadro por cuadro, no
+> solo el resultado final reproducido a velocidad normal.
 
 ### Y el audio
 
@@ -137,6 +205,92 @@ del guion 8, que pregunta y no ofrece.
 
 ---
 
+## El presupuesto de créditos — la restricción que manda sobre todo lo demás
+
+**Plan Flow Pro: 250 créditos de tope, +50 que se recargan cada día.**
+
+**Se trabaja desde la interfaz web de Flow, con los créditos del plan. No se usa
+la API de pago de Google Cloud** (decisión del propietario, 2026-09-07). Es
+coherente con todo lo demás: no hay integración que construir ni facturación por
+uso que vigilar, y el único recurso a administrar son estos créditos. Que nadie
+proponga «automatizarlo con la API» sin decidirlo antes — sería cambiar un costo
+de cero por uno variable.
+
+Tres consecuencias, y la tercera es la que cambia el plan:
+
+**1 · Las imágenes no gastan créditos. El video sí.** Y el costo de un video
+depende de tres cosas: **duración, resolución y qué generador se use**. Esa es
+toda la economía de esta herramienta.
+
+**2 · El tope de 250 significa que los créditos NO se acumulan indefinidamente.**
+Se pueden guardar como mucho **cinco días** (5 × 50 = 250). Estando en 250, la
+recarga del día siguiente **se pierde**. Así que: o se gasta con regularidad, o
+se ahorra a propósito durante cinco días justo antes de una tanda grande —nunca
+más de cinco—.
+
+**3 · Y la que de verdad importa: casi ningún b-roll de este proyecto necesita
+video generado.** Esto corrige la lista de doce clips que traía la versión
+anterior de este documento; se deja escrito el porqué para que nadie la
+reponga.
+
+### La escalera de costo — se baja hasta el escalón más barato que sirva
+
+Antes de gastar un crédito, la pregunta es siempre: **¿cuál es el escalón más
+barato que resuelve este plano?**
+
+| # | Cómo se consigue el plano | Costo | Cuándo |
+|---|---|---|---|
+| **1** | **Una foto que ya existe + zoom lento en CapCut** | **Cero** | Textura, producto, cualquier plano quieto. `BRIEF.md` § 2.2 ya lo dice: *«una imagen con zoom lento da 3 segundos de aire»* |
+| **2** | **Grabarlo con el teléfono** | **Cero, 2 minutos** | Manos, mesa, tela, luz de ventana. Todo lo que esté al alcance del brazo |
+| **3** | **Imagen generada en Flow + zoom en CapCut** | **Cero créditos** | Fondos y ambientes que no se pueden fotografiar |
+| **4** | **Video generado en Flow** | **Caro y limitado** | **Último recurso.** Solo lo que no se puede filmar ni fingir con un zoom |
+
+Los doce clips de la versión anterior de este documento —mármol con luz, lino
+arrugándose, manos envolviendo una cajita, tazas de café— **caen todos en los
+escalones 1, 2 o 3**. Unas manos envolviendo un regalo se graban con el teléfono
+en dos minutos y salen mejor que generadas, porque son las manos de verdad.
+Pedirle eso a Flow es gastar el recurso escaso en lo único que sobra.
+
+> **La regla, para no tener que releer la tabla:** un crédito de video se gasta
+> **solo cuando algo tiene que moverse y cambiar de forma en cuadro, y no está
+> al alcance de la cámara del teléfono.** Si el plano está quieto, es un zoom
+> sobre una imagen y es gratis.
+
+### Los ajustes que bajan el costo, y en qué orden se tocan
+
+Cuando toque gastar, se gasta al mínimo:
+
+1. **Duración: la más corta posible.** El b-roll está en pantalla 2–3 segundos.
+   Generar 8 para usar 3 es tirar la diferencia.
+2. **Generador: siempre el rápido/económico primero.** El de máxima calidad se
+   reserva para un plano que ya demostró que se usa.
+3. **Resolución: la menor que aguante el destino.** Un clip de 2 segundos entre
+   dos cortes, visto en un teléfono, no necesita la resolución máxima. El hero
+   del gancho sí.
+4. **Un boceto antes que una obra.** Generar barato, meterlo en el montaje, y
+   **solo si el video funciona** volver a generarlo en calidad. Al revés se
+   pagan cinco veces planos que no entran al corte final.
+
+### El registro de costos — hay que llevarlo desde el primer día
+
+**No hay una tabla de costos escrita en este documento a propósito**, porque
+sería un supuesto.
+
+> **Corregido 2026-09-08.** Aquí decía que *"la interfaz de Flow muestra el
+> costo antes de generar"*. Probado en la práctica: **no lo muestra.** El panel
+> de generación no anticipa créditos. Lo que funciona: pedirle un estimado al
+> asistente dentro de Flow, o —más confiable— anotar el saldo de créditos
+> (cuenta de Google, arriba a la derecha) antes de generar y volver a mirarlo
+> después. La diferencia es el número real.
+
+**Anotar ese número real** en `automatizaciones/contenido/COSTOS-FLOW.md`, una
+línea por generación: fecha · generador · duración · resolución · créditos ·
+para qué guion. En dos semanas eso deja de ser burocracia y se convierte en la
+tabla con la que se planea una tanda sin quedarse sin créditos a medias — que
+es exactamente lo que pasa la primera vez que alguien no la lleva.
+
+---
+
 ## Tarea 2 — Primero todo lo que es gratis
 
 **El orden es este y no otro: agotar lo gratuito antes de tocar un crédito.**
@@ -210,6 +364,39 @@ minutos de grabación y quedan mejor que generadas, porque son reales.
 **Se hacen el mismo domingo de rodaje** de `CALENDARIO-EDITORIAL.md` § 2.1,
 aprovechando que la cámara ya está montada.
 
+> **Excepción decidida por el propietario, 2026-09-08: estos cinco se generan
+> en Flow como video, no con el teléfono.** Es lo contrario de lo que dice este
+> párrafo, y se decide así a sabiendas del costo — no es un descuido de una
+> sesión que no leyó esto. Gastan crédito de video de verdad, así que van con
+> la escalera de § *Los ajustes que bajan el costo* (duración mínima, generador
+> económico primero, boceto antes que obra) y se anotan en `COSTOS-FLOW.md` uno
+> por uno. Si una sesión futura ve este gasto y no encuentra por qué, es esto.
+
+---
+
+## Las tres formas de hacer video — marco fijado el 2026-09-08
+
+Después de las pruebas de esta sesión (detalle y créditos en
+`COSTOS-FLOW.md`), el trabajo de video se reparte en tres caminos, y no se
+mezclan:
+
+| # | Cómo | Costo | Para qué sirve | Lleva joya |
+|---|---|---|---|---|
+| **1** | **Imagen en Flow** (cualquier modelo, foto fija) | **Gratis** | Fondos, planchas de portada, fotos de producto (joya real recortada o por referencia + fondo generado) | Sí, y es el método más barato y más probado para eso |
+| **2** | **Video en Flow con Veo 3.1 Fast**, modo Ingredientes, 8s fijos | **18-20 créditos por clip** | Planos de ambiente o de producto en movimiento que la cámara del teléfono no puede lograr | **Sí, autorizado** — es el único generador de video validado para joya (ver abajo) |
+| **3** | **Grabación real** con la cámara del propietario, joya en la mano | **Gratis** | El contenido principal: los 8 guiones de `CALENDARIO-EDITORIAL.md`, pensado sobre todo para TikTok | Sí, porque es la pieza real, no generada |
+
+**Sobre el método 2, la regla de modelo no se negocia:** `Veo 3.1 Fast` es el
+**único** generador de video autorizado para clips con la pulsera de
+referencia. `Omni 1.1 Flash` se probó con la misma referencia y **desfiguró
+la joya visiblemente** — queda descartado para cualquier plano con producto,
+aunque sea más barato y sí permita bajar a 4 segundos. Omni sigue sirviendo
+para b-roll **sin** joya (el plano de establecimiento vacío, por ejemplo).
+
+Esto no cambia la frontera del principio de este documento —generar joya en
+video sigue siendo el último recurso, no la opción por defecto—, pero cuando
+se decide gastar ahí, se hace con Fast y con nada más.
+
 ---
 
 ## Tarea 2b — Dónde SÍ vale gastar créditos de video
@@ -218,8 +405,8 @@ Solo cuando esté hecho todo lo anterior, y solo en esto:
 
 | Prioridad | Qué | Por qué vale el crédito |
 |---|---|---|
-| **1** | **Un plano de establecimiento de Amor y Amistad** que no se puede filmar: mesa vestida en luz dorada, profundidad, ambiente de celebración | Se reutiliza en los guiones 1, 2, 3 y 6 del lote. Un solo gasto, cuatro videos |
-| **2** | **Un creativo de pauta con movimiento**, mudo y vertical | Los anuncios se ven **en silencio**, así que aquí el video generado no pierde nada — es justo donde `BRIEF.md` dice que el render mudo encaja. Y la pauta ya está gastando dinero real todos los días |
+| **1** | ~~Un plano de establecimiento de Amor y Amistad~~ — **hecho 2026-09-08**, mejor de lo planeado: dos cortes (acercamiento + cenital) con Veo 3.1 Fast, **con la pulsera de referencia incluida**, no solo el ambiente vacío. 40 créditos en total. Reutilizables en los guiones 1, 2, 3 y 6 | Un solo gasto, varios videos |
+| **2** | **Un creativo de pauta con movimiento**, mudo y vertical | Los anuncios se ven **en silencio**, así que aquí el video generado no pierde nada. Ahora que Fast sostiene la joya, este creativo puede llevar producto real de referencia, no solo ambiente — es publicidad directa, no solo textura |
 | **3** | **Un ambiente aspiracional** fuera de alcance: una locación, una luz o una escena que la cámara del teléfono no puede conseguir | Es lo único que no tiene sustituto gratis |
 
 **Tres o cuatro generaciones bien elegidas, reutilizadas en todo el lote.** No
