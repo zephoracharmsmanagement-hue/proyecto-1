@@ -49,6 +49,7 @@ Por:
       <div class="hbanner-copy">
         <span class="eyebrow">Joyería con significado · Colombia</span>
         <h1>Diseña una historia<br><i>tan única como tú</i></h1>
+        <p class="hbanner-sub">Joyería personalizada con charms elaborados en Plata Esterlina 925 verificada y brazaletes con acabado de alta calidad en baño de plata, compatibles con Pandora.</p>
       </div>
     </div>
     <div class="hbanner-slide">
@@ -80,6 +81,13 @@ el badge de Instagram/estrellas/contador, la línea de ayuda de precio — todo
 vive en `.hbanner-fixed`, fuera de las slides, visible sin importar cuál foto
 esté activa. Esto fue una decisión explícita del usuario para no duplicar
 CTAs por slide.
+
+**Corrección sobre `.hero-sub`**: el hero actual tiene un párrafo de
+descripción (materiales, compatibilidad con Pandora) entre el `h1` y los
+badges — se omitió en un primer borrador de este spec. Cada slide lleva su
+propio `.hbanner-sub` dentro de `.hbanner-copy`, junto al eyebrow y el `h1`:
+el slide 1 recicla el texto actual tal cual, el slide 2 usa el subtítulo de
+Avengers ya definido más abajo.
 
 **Slide 1** reusa el copy de marca actual tal cual, **pero necesita foto
 nueva**: el asset actual del hero (`pulsera-zephora-armada-con-charms-en-plata-925.webp`)
