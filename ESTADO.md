@@ -5,6 +5,39 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Segunda tanda de la landing — publicado el 2026-09-11
+
+Despliegue `6aa47c76f24f7a000822ee58`, commit `3459846`. Verificado contra el
+sitio vivo: los dos `fbq('init')` intactos, y checkout, `stock.json` y la
+página de gracias responden 200.
+
+- **Se corrigió un desborde horizontal en celular** que hacía que la página se
+  deslizara a la derecha hacia un vacío blanco. **La causa fue un arreglo mal
+  colocado:** el `min-width:0` de `.plata-in` había quedado dentro de
+  `@media(min-width:700px)`, así que solo aplicaba en escritorio. En celular la
+  rejilla seguía dimensionándose al ancho mínimo del carrusel (~814px). Ahora
+  está en la regla base. **Lección: los arreglos de este tipo van en la regla
+  base salvo que haya una razón para lo contrario** — el bug de rejilla existe
+  en todos los anchos, no solo donde se vio primero.
+- **La calculadora de talla es desplegable.** Buena parte de las clientas ya
+  sabe su talla. El menú y dos enlaces más apuntan a `#talla`, así que un
+  script corto la abre al llegar por ahí: caer en una calculadora cerrada
+  después de pedir «Tallas» sería peor que no tener el enlace.
+- **La franja que decía «Armar mi pulsera» ahora ofrece el agente con IA por
+  WhatsApp**, y el botón flotante quedó solo con el ícono. Quitar ese botón no
+  dejó huérfano el catálogo: hay otros 20 enlaces a brazaletes y charms.
+
+**El cambio con más consecuencia no se ve:** los clics a WhatsApp ya no cuentan
+todos como `InitiateCheckout`. El evento se declara por enlace con
+`data-wa-evento`: el banner del agente y el botón flotante mandan `Contact`,
+y sin ese atributo se conserva `InitiateCheckout` para los enlaces de compra
+real —carrito y encargos—. **Por qué importa:** `InitiateCheckout` es el evento
+con el que optimiza la pauta. Contar consultas ahí le enseña a Meta a buscar
+gente que pregunta en vez de gente que compra, y con WhatsApp en el lugar del
+botón principal eso habría pasado con casi todos los clics de la página.
+**Al agregar un enlace nuevo a `wa.me`, decidir cuál de los dos eventos le
+corresponde.**
+
 ## Poda de la landing — publicado el 2026-09-11
 
 **Está en el aire.** Despliegue `6aa427aa9dde3c0009facc35`, commit `975ee38`,
