@@ -17,7 +17,7 @@
   "letra-c": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 2,
+   "stock": 3,
    "familia": "pasador"
   },
   "letra-d": {
@@ -35,7 +35,7 @@
   "letra-j": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 2,
+   "stock": 3,
    "familia": "pasador"
   },
   "letra-k": {
@@ -53,13 +53,13 @@
   "letra-m": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 2,
+   "stock": 3,
    "familia": "pasador"
   },
   "letra-n": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 1,
+   "stock": 3,
    "familia": "pasador"
   },
   "letra-o": {
@@ -704,31 +704,31 @@
   "letra-f": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-g": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-h": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-i": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-p": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-q": {
@@ -740,43 +740,43 @@
   "letra-r": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-t": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-u": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-w": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-x": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-y": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-z": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "letra-ñ": {
