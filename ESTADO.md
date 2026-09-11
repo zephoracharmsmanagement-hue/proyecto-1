@@ -71,11 +71,14 @@ que salió de un punto viejo arrastra versiones anteriores de `ESTADO.md`,
 trabajo **sin dar ningún conflicto ni error**. Es el fallo que este repo ya pagó
 tres veces.
 
-**Y el candado del panel.** Hoy no hay ninguno puesto: `Auto publishing is on`.
-El botón que lo cambia está en la misma página de Deploys y se llama **`Lock to
-stop auto publishing`** — cuando está puesto, el mismo botón pasa a decir
-`Unlock deploys`, que es la forma rápida de saber en cuál de los dos estados se
-está.
+**Y el candado del panel: puesto el 2026-09-11.** Hasta esa fecha no había
+ninguno —`Auto publishing is on`— y con los créditos recién recargados eso
+significaba que cualquier push a `main` salía al aire sin preguntar.
+El botón está en la misma página de Deploys: **`Lock to stop auto publishing`**
+cuando no lo está, y **`Unlock deploys`** cuando sí. Ese texto es la forma rápida
+de saber en qué estado se está —y la única, porque **el conector de Netlify no
+expone este dato**: devuelve el despliegue vivo y las URL, no el auto-publish.
+Una sesión no puede comprobarlo por su cuenta; hay que mirar el panel.
 
 Con el candado, un push a `main` **sí construye** pero no publica: el despliegue
 queda listo y se suelta con un clic. Es lo que conviene mientras haya varias
