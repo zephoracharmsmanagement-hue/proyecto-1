@@ -22,11 +22,23 @@ entrada en `DATA`, dentro de `index.html`. Por eso quedan **preparadas y sin
 aplicar** en `herramientas/entrada/nuevas-referencias.json` hasta que
 `claude/zephora-empaque-hero` se mezcle a `main`.
 
-**Sin desplegar a propósito.** El despliegue vivo sigue siendo el commit
-`df87a91` del 2026-08-28, con `main` varios commits por delante: las
-publicaciones están detenidas en el panel. Empujar a una rama `claude/*` no
-publica nada en ningún caso —solo `main` publica—, pero mientras eso siga así,
-ni siquiera mezclar a `main` saca nada al aire.
+**Sin desplegar todavía, pero sin red.** El despliegue vivo es el commit
+`df87a91` del 2026-08-28 y `main` va por delante — y la causa **no** es que las
+publicaciones estén paradas. El panel dice `Auto publishing is on` y los deploys
+de `main@104a2f3` (1 sep) y `main@110209d` (7 sep) aparecen como **Skipped —
+due to account credit usage exceeded**: se acabaron los créditos y Netlify saltó
+las construcciones.
+
+Los créditos se recargaron el 2026-09-11 y el auto-publish sigue **encendido**,
+así que **el próximo push a `main` publica solo**. Empujar a una rama `claude/*`
+sigue sin costar nada; lo que ya no existe es el colchón que hacía inofensiva
+una mezcla prematura.
+
+> **Diagnóstico que costó una ronda:** que producción vaya por detrás de `main`
+> parece «deploys pausados», y no lo era. La diferencia importa porque lleva a
+> la conclusión opuesta —creer que hay freno cuando no lo hay—. El estado real
+> está escrito en la página de Deploys, en dos sitios: la línea de auto
+> publishing y el motivo de cada deploy saltado. Mirarlo antes de deducirlo.
 
 ### El deploy no lo hace una sesión — lo hace `main`
 
@@ -59,16 +71,17 @@ que salió de un punto viejo arrastra versiones anteriores de `ESTADO.md`,
 trabajo **sin dar ningún conflicto ni error**. Es el fallo que este repo ya pagó
 tres veces.
 
-**Y el candado del panel.** Mientras las publicaciones estén detenidas, conviene
-saber cuál de los dos interruptores está puesto, porque no hacen lo mismo:
+**Y el candado del panel.** Hoy no hay ninguno puesto: `Auto publishing is on`.
+El botón que lo cambia está en la misma página de Deploys y se llama **`Lock to
+stop auto publishing`** — cuando está puesto, el mismo botón pasa a decir
+`Unlock deploys`, que es la forma rápida de saber en cuál de los dos estados se
+está.
 
-| | Qué hace al llegar algo a `main` |
-|---|---|
-| **Stop builds** | No construye nada. Hay que acordarse de reactivarlo, y hasta entonces `main` y producción van separados sin que nada avise |
-| **Locked deploys** | Construye y deja el despliegue listo, sin publicarlo. Se suelta con un clic cuando se decide |
-
-Para publicar solo cuando se decide —que es lo que se quiere— **el candado es
-`Locked deploys`**, no `Stop builds`.
+Con el candado, un push a `main` **sí construye** pero no publica: el despliegue
+queda listo y se suelta con un clic. Es lo que conviene mientras haya varias
+sesiones abiertas —protege del push accidental sin dejar `main` y producción
+separados en silencio—. Quitar el candado publica lo último que haya quedado
+esperando, así que se quita cuando se ha decidido publicar, no antes.
 
 ## ⚠️ Consolidación de ramas — 2026-08-20
 
