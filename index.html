@@ -764,20 +764,15 @@ section{scroll-margin-top:64px}
 /* Botón flotante de WhatsApp. z-index por debajo del dock (80) y del visor de
    fotos (120) a propósito: si alguna vez se solapan, el que manda es el que
    cobra. El bottom se calcula sobre --dock para que suba si el dock crece. */
+/* Solo el icono, sin texto: el banner del agente, mas arriba, ya explica para
+   que sirve. Al no haber texto visible, el aria-label del enlace deja de ser
+   un extra y pasa a ser la unica forma de saber que hace este boton con un
+   lector de pantalla. */
 .wa-float{position:fixed;right:14px;bottom:calc(var(--dock) + 14px);z-index:70;
-  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
-  background:var(--wa);color:#fff;border-radius:999px;padding:11px 16px 11px 13px;
-  box-shadow:0 6px 20px rgba(42,31,46,.22);line-height:1.15}
-.wa-float svg{flex:0 0 auto}
-.wa-float-tx{display:flex;flex-direction:column;font-size:11px;letter-spacing:.02em;opacity:.92}
-.wa-float-tx b{font-weight:500;font-size:13px;letter-spacing:.03em;opacity:1}
+  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;
+  background:var(--wa);color:#fff;border-radius:50%;width:52px;height:52px;
+  box-shadow:0 6px 20px rgba(42,31,46,.22)}
 @media(hover:hover){.wa-float:hover{background:#1e6b58}}
-/* En pantallas muy angostas se queda solo el icono: con el texto, la burbuja
-   se comía casi medio ancho de pantalla. */
-@media(max-width:400px){
-  .wa-float{padding:13px;gap:0}
-  .wa-float-tx{display:none}
-}
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:var(--bone);
   border-top:1px solid rgba(255,255,255,.14);height:var(--dock);
   display:flex;align-items:center;gap:10px;padding:0 12px;cursor:pointer}
@@ -2052,8 +2047,7 @@ body.sheet-open{overflow:hidden}
 <a class="wa-float" data-wa="flotante" data-wa-evento="Contact"
    href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20y%20tengo%20una%20duda."
    aria-label="Escríbenos por WhatsApp si tienes dudas">
-  <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.17c-.25.69-1.44 1.32-1.99 1.4-.53.08-1.2.11-1.94-.12-.45-.14-1.02-.33-1.76-.65-3.1-1.34-5.12-4.46-5.28-4.67-.15-.21-1.26-1.67-1.26-3.19s.8-2.27 1.08-2.58c.28-.31.61-.39.82-.39.2 0 .41 0 .59.01.19.01.44-.07.69.53.25.6.86 2.12.94 2.27.08.15.13.33.03.54-.1.21-.15.33-.29.51-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.73-.85.92-1.15.19-.29.39-.24.65-.15.26.1 1.66.78 1.94.93.29.15.48.22.55.34.07.13.07.72-.18 1.41z"/></svg>
-  <span class="wa-float-tx">¿Tienes dudas?<b>Escríbenos</b></span>
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.17c-.25.69-1.44 1.32-1.99 1.4-.53.08-1.2.11-1.94-.12-.45-.14-1.02-.33-1.76-.65-3.1-1.34-5.12-4.46-5.28-4.67-.15-.21-1.26-1.67-1.26-3.19s.8-2.27 1.08-2.58c.28-.31.61-.39.82-.39.2 0 .41 0 .59.01.19.01.44-.07.69.53.25.6.86 2.12.94 2.27.08.15.13.33.03.54-.1.21-.15.33-.29.51-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.73-.85.92-1.15.19-.29.39-.24.65-.15.26.1 1.66.78 1.94.93.29.15.48.22.55.34.07.13.07.72-.18 1.41z"/></svg>
 </a>
 
 <div class="dock" id="dock" role="button" tabindex="0" aria-label="Ver tu selección">
