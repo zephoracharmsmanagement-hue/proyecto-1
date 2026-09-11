@@ -5,41 +5,50 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## 🔒 Trabajo reclamado ahora mismo — 2026-09-11
+## Mercancía nueva y rediseño del hero — cerrado el 2026-09-11
 
-Hay **dos sesiones abiertas a la vez**. Esto se borra cuando cada una cierre.
+Las dos sesiones que trabajaban en paralelo cerraron y todo está en `main`.
+El reclamo que vivía aquí se borra; queda el resultado y la regla que salió de
+la jornada, más abajo.
 
-| Sesión | Rama | Qué toca | Qué NO toca |
-|---|---|---|---|
-| Mercancía nueva (esta) | `claude/charming-sagan-l4q2eq` | `assets/stock.json`, `assets/*.webp`, `herramientas/entrada/` | **`index.html`**, `netlify.toml`, `netlify/functions/` |
-| «website modifications» (terminal) | `claude/zephora-empaque-hero` | `index.html`, `netlify.toml` | `assets/stock.json` |
+**Lo que entró:**
 
-El reparto no es cortesía: el catálogo (`const DATA=…`, `index.html:1860`) y el
-inventario (`assets/stock.json`) son **archivos distintos**, y por eso reponer
-unidades y cambiar la página pueden ir en paralelo sin tocarse. Lo que sí
-choca son las **referencias nuevas**: una pieza que hoy no existe necesita una
-entrada en `DATA`, dentro de `index.html`. Por eso quedan **preparadas y sin
-aplicar** en `herramientas/entrada/nuevas-referencias.json` hasta que
-`claude/zephora-empaque-hero` se mezcle a `main`.
+- **29 unidades de letra.** Doce iniciales que nunca se habían comprado pasan de
+  cero a dos —F G H I P R T U W X Y Z— y C, J, M y N suben a tres. **Ñ y Q son
+  las únicas que siguen en cero**: no entraron en el pedido.
+- **La pulsera Avengers vuelve** con 8 unidades en cada talla (18, 19, 20). Es
+  además la base que le faltaba al set de Marvel: la otra clásica solo existe en
+  20 y 21.
+- **22 charms de reposición** y **seis referencias nuevas** —Groot Bebé, Casco
+  Iron Man, Máscara Un Gran Poder, Esfera Telaraña Spider-Man, Spider-Man Pavé y
+  Máscara Spider-Man Roja—, todas a $85.000, con foto.
+- **El rediseño del hero** de la otra sesión, con su carrusel panorámico y la
+  regla `ignore` de `netlify.toml` que se salta el despliegue cuando el push solo
+  cambia documentación.
 
-**Sin desplegar todavía, pero sin red.** El despliegue vivo es el commit
-`df87a91` del 2026-08-28 y `main` va por delante — y la causa **no** es que las
-publicaciones estén paradas. El panel dice `Auto publishing is on` y los deploys
-de `main@104a2f3` (1 sep) y `main@110209d` (7 sep) aparecen como **Skipped —
-due to account credit usage exceeded**: se acabaron los créditos y Netlify saltó
-las construcciones.
+**Tres cosas que se aprendieron y no hay que volver a descubrir:**
 
-Los créditos se recargaron el 2026-09-11 y el auto-publish sigue **encendido**,
-así que **el próximo push a `main` publica solo**. Empujar a una rama `claude/*`
-sigue sin costar nada; lo que ya no existe es el colchón que hacía inofensiva
-una mezcla prematura.
+1. **`generado` de `stock.json` no es una fecha, es un interruptor.** Cambiarlo
+   pone a cero el contador de lo vendido de *todo* el catálogo, porque
+   `_inventario.mjs` asume que un `generado` nuevo es un recuento físico que ya
+   descuenta lo vendido. Para **sumar** mercancía no se toca. Solo se cambia
+   cuando de verdad se recuenta todo.
+2. **La rejilla del catálogo está escrita a mano.** Son 82 `<article class="pc">`
+   en `index.html`; `DATA` solo lleva los precios. Una pieza añadida solo a `DATA`
+   tiene precio y **no existe para la clienta**. Cada alta son tres sitios: `DATA`,
+   la tarjeta y `stock.json` — y después `extraer_catalogo.py`, o el servidor cobra
+   sin ella.
+3. **Una foto de hero pesa lo que se le deje pesar.** El carrusel llegó con 922 KB
+   a 2752 px de ancho, con `fetchpriority="high"`, para pintarse a 390 px en el
+   móvil por donde entra casi toda la venta. A 1600 px y calidad 84 son 295 KB sin
+   diferencia visible en escritorio.
 
-> **Diagnóstico que costó una ronda:** que producción vaya por detrás de `main`
-> parece «deploys pausados», y no lo era. La diferencia importa porque lleva a
-> la conclusión opuesta —creer que hay freno cuando no lo hay—. El estado real
-> está escrito en la página de Deploys, en dos sitios: la línea de auto
-> publishing y el motivo de cada deploy saltado. Mirarlo antes de deducirlo.
-
+**Pendiente inmediato:** el despliegue está construido y **esperando tras el
+candado** (`Unlock deploys` en el panel). Cuando se suelte, publica de una vez
+esto, el rediseño del hero y los dos commits de septiembre que Netlify saltó por
+falta de créditos. Justo después hay que mirar la lista de despliegues: si un
+commit que tocó `.html`, `netlify.toml` o `netlify/functions/` sale como
+**saltado**, la regla `ignore` está mal.
 ### El deploy no lo hace una sesión — lo hace `main`
 
 Esta confusión ya costó créditos, así que queda escrita. **Netlify no sabe qué
