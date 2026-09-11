@@ -203,8 +203,10 @@ button{font-family:inherit}
 .hbanner-fixed .hero-badges a{text-decoration:none;font-weight:400;color:#fff}
 .cta-strip{background:var(--bone);border-bottom:1px solid var(--line);padding:20px 0 22px}
 .cta-strip-in{text-align:center}
-.cta-strip .hero-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:0 0 12px}
-.cta-strip .hero-hint{font-size:13px;color:#6d6070;margin:0 auto;max-width:52ch}
+.cta-strip-t{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(21px,5vw,26px);
+  margin:0 0 6px;color:var(--ink)}
+.cta-strip .hero-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:0}
+.cta-strip .hero-hint{font-size:13px;color:#6d6070;margin:0 auto 14px;max-width:52ch}
 .cta-strip .hero-hint a{color:var(--plum)}
 /* Rotación 100% CSS, mismo mecanismo que .ann/.ann-slide. Los porcentajes
    de abajo están calculados a mano para 2 slides (5s cada uno, 10s de
@@ -348,7 +350,12 @@ section{scroll-margin-top:64px}
    (texto en la 1.1fr, foto en la .9fr) para que la imagen quede a la derecha
    y alterne con .story, que la tiene a la izquierda. */
 .plata{padding:40px 0;border-top:1px solid var(--line)}
+/* El min-width:0 va en la regla base, no solo en escritorio: un hijo de
+   rejilla no baja de su ancho mínimo de contenido, y el carrusel mide lo que
+   suman sus cinco tarjetas (~814px). Sin esto, en celular la columna desborda
+   la pantalla y la página se desliza a la derecha hacia un vacío blanco. */
 .plata-in{display:grid;gap:26px}
+.plata-in>*{min-width:0}
 .plata h2{font-size:clamp(28px,7vw,42px);line-height:1.14;margin:8px 0 14px}
 .plata h2 i{font-style:italic;color:var(--plum)}
 .plata p{color:#584a5c;margin:0 0 14px;max-width:52ch}
@@ -511,6 +518,19 @@ section{scroll-margin-top:64px}
 
 /* ——— calculadora de talla ——— */
 .talla-sec{padding:34px 0;border-top:1px solid var(--line);background:var(--white)}
+/* Calculadora plegable. Mismo marcador +/− que los desplegables de pagos, en
+   vez del triangulo nativo, que se desalinea con un resumen de dos lineas. */
+.talla-des{max-width:760px;margin:0 auto;border:1px solid var(--line);
+  border-radius:3px;background:var(--bone);padding:16px 18px}
+.talla-des>summary{cursor:pointer;list-style:none;display:grid;
+  grid-template-columns:1fr auto;align-items:center;gap:2px 14px}
+.talla-des>summary::-webkit-details-marker{display:none}
+.talla-des>summary::after{content:'+';grid-column:2;grid-row:1/span 2;
+  font-size:22px;line-height:1;color:var(--plum)}
+.talla-des[open]>summary::after{content:'–'}
+.talla-des-t{grid-column:1;font-family:'Cormorant Garamond',Georgia,serif;font-size:20px}
+.talla-des-r{grid-column:1;font-size:13px;color:#6d6070;line-height:1.45}
+.talla-des-in{padding-top:18px;margin-top:16px;border-top:1px solid var(--line)}
 .calc{display:grid;gap:20px;max-width:760px;margin:0 auto}
 .calc-in{background:var(--rose-soft);border:1px solid #e9d3dc;border-radius:3px;padding:18px 20px}
 .calc-in label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
@@ -744,20 +764,15 @@ section{scroll-margin-top:64px}
 /* Botón flotante de WhatsApp. z-index por debajo del dock (80) y del visor de
    fotos (120) a propósito: si alguna vez se solapan, el que manda es el que
    cobra. El bottom se calcula sobre --dock para que suba si el dock crece. */
+/* Solo el icono, sin texto: el banner del agente, mas arriba, ya explica para
+   que sirve. Al no haber texto visible, el aria-label del enlace deja de ser
+   un extra y pasa a ser la unica forma de saber que hace este boton con un
+   lector de pantalla. */
 .wa-float{position:fixed;right:14px;bottom:calc(var(--dock) + 14px);z-index:70;
-  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
-  background:var(--wa);color:#fff;border-radius:999px;padding:11px 16px 11px 13px;
-  box-shadow:0 6px 20px rgba(42,31,46,.22);line-height:1.15}
-.wa-float svg{flex:0 0 auto}
-.wa-float-tx{display:flex;flex-direction:column;font-size:11px;letter-spacing:.02em;opacity:.92}
-.wa-float-tx b{font-weight:500;font-size:13px;letter-spacing:.03em;opacity:1}
+  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;
+  background:var(--wa);color:#fff;border-radius:50%;width:52px;height:52px;
+  box-shadow:0 6px 20px rgba(42,31,46,.22)}
 @media(hover:hover){.wa-float:hover{background:#1e6b58}}
-/* En pantallas muy angostas se queda solo el icono: con el texto, la burbuja
-   se comía casi medio ancho de pantalla. */
-@media(max-width:400px){
-  .wa-float{padding:13px;gap:0}
-  .wa-float-tx{display:none}
-}
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:var(--bone);
   border-top:1px solid rgba(255,255,255,.14);height:var(--dock);
   display:flex;align-items:center;gap:10px;padding:0 12px;cursor:pointer}
@@ -971,11 +986,6 @@ body.sheet-open{overflow:hidden}
     height:1px;background:var(--line);z-index:1}
   .esc-t{padding:22px 14px 16px}
   .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
-  /* Sin esto el carrusel aplasta la columna de texto: un hijo de rejilla no
-     baja de su ancho mínimo de contenido, y el .rail mide lo que suman sus
-     cinco tarjetas (~800px). Con min-width:0 puede encogerse y desplazarse
-     por dentro, que es justo lo que hace un carrusel. */
-  .plata-in>*{min-width:0}
   /* El .rail sangra 16px a cada lado para llegar al borde de la pantalla en
      celular. Dentro de una columna de escritorio eso se sale del contenedor,
      así que ahí se cancela. */
@@ -1126,10 +1136,12 @@ body.sheet-open{overflow:hidden}
      de verdad quiera escribir. -->
 <div class="cta-strip">
   <div class="wrap cta-strip-in">
+    <p class="cta-strip-t">¿Tienes alguna duda?</p>
+    <p class="hero-hint">Nuestro agente con inteligencia artificial te atiende por WhatsApp: tallas, materiales, envíos o ayuda para elegir tus charms.</p>
     <div class="hero-cta">
-      <a class="btn btn--pagar btn--big" href="#brazaletes">Armar mi pulsera</a>
+      <a class="btn btn--wa btn--big" data-wa="banner-ia" data-wa-evento="Contact"
+         href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20y%20tengo%20una%20duda.">Escribir por WhatsApp</a>
     </div>
-    <p class="hero-hint">El precio se calcula solo mientras eliges, con la promo ya incluida. Pagas aquí mismo con Nequi, PSE, Bancolombia o tarjeta.</p>
   </div>
 </div>
 
@@ -1219,25 +1231,38 @@ body.sheet-open{overflow:hidden}
     <div class="sec-head sec-head--c">
       <span class="eyebrow">Guía de tallas</span>
       <h2>¿Qué talla es la mía?</h2>
-      <p>Mide tu muñeca ajustada con un metro de costura o una tira de papel, escríbela aquí y te decimos qué talla pedir y cuántos charms te caben en cada una.</p>
     </div>
-    <div class="calc">
-      <div class="calc-in">
-        <label for="muneca">Medida de tu muñeca</label>
-        <div class="calc-campo">
-          <input type="number" id="muneca" min="10" max="26" step="0.5" inputmode="decimal" placeholder="17" aria-describedby="calc-hint">
-          <span>cm</span>
+    <!-- La calculadora va plegada: buena parte de las clientas ya sabe su
+         talla y no necesita medirse otra vez. El titulo de la seccion se queda
+         fuera para que la sección siga anunciándose sola al pasar.
+         El menu superior enlaza aquí, asi que el script de mas abajo la abre
+         cuando se llega por #talla: caer en una calculadora cerrada despues de
+         pedir "Tallas" seria peor que no tener el enlace. -->
+    <details class="talla-des" id="talla-des">
+      <summary>
+        <span class="talla-des-t">Calcular mi talla</span>
+        <span class="talla-des-r">Mide tu muñeca ajustada y te decimos cuál pedir y cuántos charms caben.</span>
+      </summary>
+      <div class="talla-des-in">
+        <div class="calc">
+          <div class="calc-in">
+            <label for="muneca">Medida de tu muñeca</label>
+            <div class="calc-campo">
+              <input type="number" id="muneca" min="10" max="26" step="0.5" inputmode="decimal" placeholder="17" aria-describedby="calc-hint">
+              <span>cm</span>
+            </div>
+            <p class="calc-hint" id="calc-hint">Ajustada, sin apretar. Acepta medios centímetros: 16,5</p>
+          </div>
+          <div class="calc-out" id="calc-out" aria-live="polite">
+            <p class="calc-vacia">Escribe tu medida y te mostramos las cinco tallas con lo que cabe en cada una.</p>
+          </div>
         </div>
-        <p class="calc-hint" id="calc-hint">Ajustada, sin apretar. Acepta medios centímetros: 16,5</p>
+        <div class="porque">
+          <h3>¿Por qué se le suman 2 cm?</h3>
+          <p>No es sobrante vacío. Cuando la pulsera se llena de charms, el grosor de las piezas se come el diámetro interior útil de la cadena —unos 2 cm—. Esos 2 cm son justo el espacio que van a ocupar tus charms para que la pulsera cierre cómoda en tu muñeca real.</p>
+        </div>
       </div>
-      <div class="calc-out" id="calc-out" aria-live="polite">
-        <p class="calc-vacia">Escribe tu medida y te mostramos las cinco tallas con lo que cabe en cada una.</p>
-      </div>
-    </div>
-    <div class="porque">
-      <h3>¿Por qué se le suman 2 cm?</h3>
-      <p>No es sobrante vacío. Cuando la pulsera se llena de charms, el grosor de las piezas se come el diámetro interior útil de la cadena —unos 2 cm—. Esos 2 cm son justo el espacio que van a ocupar tus charms para que la pulsera cierre cómoda en tu muñeca real.</p>
-    </div>
+    </details>
   </div>
 </section>
 
@@ -2019,11 +2044,10 @@ body.sheet-open{overflow:hidden}
      como InitiateCheckout, porque el checkout de verdad pasa en el chat. Este
      botón se toca de forma casual, así que va etiquetado como "flotante" para
      poder separarlo en Meta si empieza a ensuciar la señal de la pauta. -->
-<a class="wa-float" data-wa="flotante"
+<a class="wa-float" data-wa="flotante" data-wa-evento="Contact"
    href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20y%20tengo%20una%20duda."
    aria-label="Escríbenos por WhatsApp si tienes dudas">
-  <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.17c-.25.69-1.44 1.32-1.99 1.4-.53.08-1.2.11-1.94-.12-.45-.14-1.02-.33-1.76-.65-3.1-1.34-5.12-4.46-5.28-4.67-.15-.21-1.26-1.67-1.26-3.19s.8-2.27 1.08-2.58c.28-.31.61-.39.82-.39.2 0 .41 0 .59.01.19.01.44-.07.69.53.25.6.86 2.12.94 2.27.08.15.13.33.03.54-.1.21-.15.33-.29.51-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.73-.85.92-1.15.19-.29.39-.24.65-.15.26.1 1.66.78 1.94.93.29.15.48.22.55.34.07.13.07.72-.18 1.41z"/></svg>
-  <span class="wa-float-tx">¿Tienes dudas?<b>Escríbenos</b></span>
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.17c-.25.69-1.44 1.32-1.99 1.4-.53.08-1.2.11-1.94-.12-.45-.14-1.02-.33-1.76-.65-3.1-1.34-5.12-4.46-5.28-4.67-.15-.21-1.26-1.67-1.26-3.19s.8-2.27 1.08-2.58c.28-.31.61-.39.82-.39.2 0 .41 0 .59.01.19.01.44-.07.69.53.25.6.86 2.12.94 2.27.08.15.13.33.03.54-.1.21-.15.33-.29.51-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.73-.85.92-1.15.19-.29.39-.24.65-.15.26.1 1.66.78 1.94.93.29.15.48.22.55.34.07.13.07.72-.18 1.41z"/></svg>
 </a>
 
 <div class="dock" id="dock" role="button" tabindex="0" aria-label="Ver tu selección">
@@ -2133,6 +2157,14 @@ hbPause.addEventListener('click',()=>{
   const paused=hbTrack.classList.toggle('paused');
   hbPause.setAttribute('aria-pressed', paused ? 'true' : 'false');
 });
+
+/* La calculadora de talla esta plegada, pero el menu superior y dos enlaces
+   mas apuntan a #talla. Caer ahi y encontrarla cerrada, justo despues de pedir
+   "Tallas", seria peor que no tener el enlace: se abre sola al llegar. */
+const tallaDes=$('#talla-des');
+const abrirTalla=()=>{ if(location.hash==='#talla') tallaDes.open=true; };
+abrirTalla();
+addEventListener('hashchange',abrirTalla);
 
 /* Vistas adicionales por pieza, en orden: la principal es la de la tarjeta y
  * estas van detrás. Se declara a mano y no por convención de nombres porque el
@@ -3266,10 +3298,21 @@ document.addEventListener('click', e => {
   if (!busq.hidden && !e.target.closest('#busq') && !e.target.closest('#lupa')) abrirBusqueda(false);
 });
 
-/* Todo clic que lleve a WhatsApp cuenta como inicio de compra:
-   el checkout ocurre en el chat, fuera del sitio. */
+/* Los clics a WhatsApp no valen todos lo mismo, y mezclarlos sale caro.
+ *
+ * Quien escribe desde el carrito o desde un encargo va a comprar, y ahi el
+ * checkout ocurre en el chat: eso es InitiateCheckout, que es el evento con el
+ * que optimiza la pauta. Pero el boton flotante y el banner del agente son
+ * consultas —tallas, materiales, envios—, y se tocan de forma casual. Contarlos
+ * como inicio de compra le ensena a Meta a buscar gente que pregunta en vez de
+ * gente que compra.
+ *
+ * Por eso el evento se declara en el enlace con data-wa-evento. Sin ese
+ * atributo se mantiene el comportamiento de siempre, que es el correcto para
+ * los enlaces de compra. */
 document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
-  a.addEventListener('click',()=>track('InitiateCheckout',{
+  const evento=a.dataset.waEvento||'InitiateCheckout';
+  a.addEventListener('click',()=>track(evento,{
     content_name:'WhatsApp · '+(a.dataset.wa||a.closest('section')?.id||'general')
   }));
 });
