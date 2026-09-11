@@ -314,6 +314,42 @@
    "stock": 5,
    "familia": "pasador"
   },
+  "groot-bebe": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "casco-iron-man": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "mascara-un-gran-poder": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "esfera-telarana-spider-man": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 4,
+   "familia": "pasador"
+  },
+  "spider-man-pave": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 4,
+   "familia": "colgante"
+  },
+  "mascara-spider-man-roja": {
+   "tipo": "charm",
+   "precio": 85000,
+   "stock": 4,
+   "familia": "pasador"
+  },
   "corazon-de-filigrana": {
    "tipo": "charm",
    "precio": 78000,
