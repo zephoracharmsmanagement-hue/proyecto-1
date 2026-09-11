@@ -1,6 +1,6 @@
 {
   "_": "Las seis piezas que llegaron y NO existen en el catálogo. No están aplicadas: entrar en la tienda exige tocar `const DATA=` dentro de index.html, que es de la sesión «website modifications». Cuando esa rama se mezcle a main, de aquí salen tres cosas: la entrada en DATA (id, n, p), la entrada en assets/stock.json (tipo, precio, stock, familia) y el nombre del archivo de foto, que es el id + .webp.",
-  "_pendiente": "Ninguna tiene foto todavía. Sin assets/<id>.webp la tarjeta sale diciendo «Foto en camino».",
+  "_fotos": "Ya están las seis en assets/<id>.webp, a 440x440. Lo único que falta es la entrada en DATA.",
   "piezas": [
     {
       "id": "groot-bebe",
