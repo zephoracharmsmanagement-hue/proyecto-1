@@ -5,6 +5,64 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Poda de la landing — publicado el 2026-09-11
+
+**Está en el aire.** Despliegue `6aa427aa9dde3c0009facc35`, commit `975ee38`,
+publicado 16:09 UTC. Verificado contra el sitio vivo, no solo contra el panel:
+los dos `fbq('init')` siguen ahí, el checkout responde 200 y `stock.json`
+carga. Solo cambió `index.html`.
+
+El origen fue una crítica de un competidor de joyería fina (Juli & Co) y,
+después, la conducta real de compra. Lo que se hizo, y el porqué, para que
+nadie lo deshaga sin saber:
+
+- **El banner del hero solo lleva prueba social encima de la foto.** El botón
+  y la línea de medios de pago bajaron a una franja propia después de los
+  beneficios: encima de la imagen obligaban a un degradado que se comía media
+  foto en celular, que es por donde más se compra.
+- **Fuera «Cómo funciona».** No por estética: la clienta no sigue el paso a
+  paso, compra el charm suelto o el brazalete suelto. En su lugar subió el
+  descuento progresivo, que explica el precio justo antes de los catálogos.
+- **Fuera la tarjeta «Promo de la semana».** Repetía lo que la escalera ya
+  dice —el nivel 3 anuncia el −30% del brazalete— y el envío gratis ya vive en
+  el ticker superior.
+- **Brazaletes en carrusel.** Eran 18 modelos en tres parrillas apiladas y es
+  la categoría que menos se vende. Los filtros siguen funcionando: esconden
+  tarjetas y el carrusel deja de darles columna.
+- **El catálogo completo de charms arranca cerrado.** Son 86 piezas.
+- **En Plata 925, un carrusel con las cinco piezas que tienen segunda vista**
+  (las declaradas en `FOTOS`). Se cruza a la segunda foto al pasar el cursor.
+  **Si se quiere ampliar, el cuello de botella es fotográfico, no de código:**
+  solo esas cinco tienen segunda toma.
+
+**Tres trampas que costaron una ronda cada una y no hay que redescubrir:**
+
+1. **Un hijo de rejilla no baja de su ancho mínimo de contenido.** El carrusel
+   de Plata 925 aplastó la columna de texto hasta partir el título palabra por
+   palabra, en escritorio. Se arregla con `min-width:0` en los hijos de
+   `.plata-in`. Apareció en una captura del propietario, no en las
+   comprobaciones estructurales — que no ven nada renderizado.
+2. **El `.rail` sangra 16px a cada lado** para llegar al borde de la pantalla
+   en celular. Dentro de una columna de escritorio eso se sale del contenedor;
+   ahí hay que cancelarlo.
+3. **Las flechas del carrusel estaban atadas por `id`** a una sola instancia.
+   Ahora recorren cada `.rail-wrap`. Al agregar un carrusel nuevo, no hacen
+   falta ids.
+
+**Dos cosas pendientes, a propósito:**
+
+- El hueco donde iba la foto de «Guardamos momentos» está reservado para un
+  **carrusel de video UGC**; hasta que exista el material, la sección va solo
+  con texto.
+- **El botón flotante de WhatsApp lleva `data-wa="flotante"`** por una razón
+  concreta: el listener cuenta *todo* clic a `wa.me` como `InitiateCheckout`,
+  que es el evento con el que optimiza la pauta. Un botón siempre visible se
+  toca de forma casual. Si la señal se ensucia, la etiqueta permite separarlo
+  en Meta o excluirlo del tracking con una línea. Nota aparte: el repo ya
+  documentaba que WhatsApp salió del hero porque traía preguntas que la página
+  responde y no terminaban en pedido — se repone por decisión del propietario,
+  sabiendo eso.
+
 ## Mercancía nueva y rediseño del hero — cerrado el 2026-09-11
 
 Las dos sesiones que trabajaban en paralelo cerraron y todo está en `main`.
