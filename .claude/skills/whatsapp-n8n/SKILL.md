@@ -202,8 +202,67 @@ Dos advertencias que se pagaron caro:
   `Wrong type: '' is a string but was expecting a boolean` no aparece hasta que
   llega un mensaje real.
 
-Regla general de esto: **el ruido en el historial es cosmético; un filtro roto
-es pérdida de ventas.** Ante la duda, deja el ruido.
+Regla general mientras el flujo sea simple: **el ruido en el historial es
+cosmético; un filtro roto es pérdida de ventas.** Ante la duda, deja el ruido.
+
+**Esa regla se invierte en cuanto el flujo guarda estado.** Si agregas el
+buffer de la sección siguiente, los avisos de estado dejan de ser cosméticos:
+sin `messages`, el teléfono sale `null`, escriben `"null\nnull\nnull"` en la
+tabla, y cada tanto uno sobrevive al filtro de tiempo y **le manda `null` al
+modelo** — una llamada pagada para no responderle a nadie. Ahí el filtro pasa
+de opcional a obligatorio.
+
+La condición que funciona, con un IF justo después del trigger, sin depender de
+operadores raros:
+
+```
+leftValue:  {{ $json.messages ? 1 : 0 }}
+rightValue: {{ 1 }}
+operator:   number / equals
+```
+
+Convertir la pregunta a número evita el `Wrong type: '' is a string but was
+expecting a boolean` que tumba las condiciones booleanas mal armadas. Salida
+`true` al flujo normal; la `false` se deja sin conectar.
+
+## Agrupar los mensajes de una ráfaga
+
+La gente escribe en pedazos: «hola», «tienen la letra A?», «en talla 17?».
+Contestar cada uno por separado se lee robótico y, desde que Meta cobra por
+token las respuestas de un agente, cuesta el triple.
+
+Lo obvio —un nodo Wait— **empeora la cosa**: cada mensaje abre su propia
+ejecución, así que salen tres esperas y tres respuestas tardías. Hace falta un
+buffer compartido entre ejecuciones:
+
+```
+Trigger → Solo mensajes de clientas (IF)
+        → Preparar: telefono, texto_nuevo, ts_este = ahora
+        → Leer buffer anterior (Data Table, por telefono)
+        → Combinar: buffer + '\n' + texto_nuevo
+        → Guardar buffer (upsert: telefono, buffer, last_ts = ts_este)
+        → Wait 30 s
+        → Releer buffer
+        → IF last_ts == mi ts_este ?  → sí: al agente, con el buffer completo
+                                       → no: NoOp, esta ejecución está vieja
+Agente → Responder → Limpiar buffer
+```
+
+La llave está en el segundo IF: si llegó otro mensaje durante la espera, el
+`last_ts` guardado ya no es el tuyo y esta ejecución se retira en silencio.
+Solo sobrevive la última, y contesta con todo junto.
+
+Tres cosas que ahorran un rodeo:
+
+- **`$getWorkflowStaticData` no sirve de buffer.** n8n solo lo persiste al
+  terminar la ejecución, y esta duerme 30 segundos: la siguiente leería vacío y
+  el filtro no filtraría nada. Tiene que ser una Data Table.
+- **El nodo de leer el buffer necesita `alwaysOutputData`**, o el primer
+  mensaje de una conversación nueva —cuando todavía no hay fila— corta el flujo
+  antes de empezar.
+- **30 segundos, no 60.** Un minuto de silencio después de «hola» se parece a
+  un número muerto y la gente se va. Media un minuto alcanza de sobra: las
+  ráfagas se escriben en segundos.
 
 ## Mensajes que no son texto
 
