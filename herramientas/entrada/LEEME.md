@@ -4,10 +4,18 @@ Aquí se dejan las fotos **en bruto**, tal como salieron de la cámara o del
 chat. Nada de esto es el sitio: `netlify.toml` ya manda `/herramientas/*` a un
 404, así que aunque se desplegara por accidente no queda servido en el dominio.
 
+## Dos carpetas, y no da igual cuál
+
+- **`fotos/`** — las fotos de producto. `entrar_fotos.py` recorre la carpeta
+  entera y trata cada imagen como una pieza del catálogo: un pantallazo suelto
+  ahí dentro lo intentaría emparejar con un charm.
+- **`pantallazos/`** — capturas de precios, unidades, facturas. Datos, no
+  producto. Nunca entran a `assets/`.
+
 ## Cómo entregar
 
-1. Dejar los archivos aquí dentro (`herramientas/entrada/`), con el nombre que
-   traigan. No hace falta renombrarlos ni recortarlos.
+1. Dejar los archivos en la carpeta que toque, con el nombre que traigan. No
+   hace falta renombrarlos ni recortarlos.
 2. Commit y push a la rama de trabajo de esta sesión.
 3. En el chat: cuántas unidades llegaron de cada referencia y a qué precio.
 
@@ -17,8 +25,14 @@ chat. Nada de esto es el sitio: `netlify.toml` ya manda `/herramientas/*` a un
 440x440 / ~13 KB y las escribe en `assets/<id>.webp`. Primero sin `--aplicar`
 —enseña la comparación y para—, y solo después de revisarla se escribe.
 
-Cuando las fotos ya estén en `assets/`, **esta carpeta se vacía en el mismo
-commit**: el material en bruto no vive en el repo.
+Cuando las fotos ya estén en `assets/`, **las dos carpetas se vacían en el
+mismo commit**: el material en bruto no vive en el repo.
+
+El repositorio es **privado** desde el 2026-09-11 —antes era público, con los
+márgenes por pieza y la utilidad por venta a la vista de cualquiera—. Los
+pantallazos pueden entrar aquí precisamente por eso. **Si alguna vez vuelve a
+ser público, esto deja de valer**: git se queda con los archivos aunque se
+borren después, y limpiarlos exige reescribir historia.
 
 ## Nombres
 
