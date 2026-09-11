@@ -28,6 +28,48 @@ publicaciones están detenidas en el panel. Empujar a una rama `claude/*` no
 publica nada en ningún caso —solo `main` publica—, pero mientras eso siga así,
 ni siquiera mezclar a `main` saca nada al aire.
 
+### El deploy no lo hace una sesión — lo hace `main`
+
+Esta confusión ya costó créditos, así que queda escrita. **Netlify no sabe qué
+sesión, terminal o computador empujó.** Está conectado al repositorio y publica
+cuando algo llega a `main`. No existe «desplegar desde este chat»: existe
+«llegó algo a `main`».
+
+De ahí sale la única regla que controla el gasto:
+
+> **Empujar a una rama `claude/*` cuesta cero. Solo llegar a `main` publica, y
+> cada publicación son ~15 créditos.**
+
+Con eso, dos sesiones en paralelo no cuestan más que una. Pueden trabajar y
+empujar cuanto quieran a sus ramas; lo que se junta es **la mezcla**, que se
+hace una sola vez, cuando todas las ramas vivas están listas, y sale en un
+único deploy. Lo caro nunca fue trabajar en paralelo: fue mezclar de a poco.
+
+**Repartir por archivo, no por tema.** Dos tareas que suenan distintas acaban
+en el mismo archivo —ver la sección de reparto entre sesiones, más abajo—. El
+reparto de esta jornada salió de mirar *dónde vive cada cosa*: el inventario
+está en `assets/stock.json` y el catálogo en `const DATA=` dentro de
+`index.html`, así que reponer unidades y rehacer la página no se pisan aunque
+ambas suenen a «tocar la tienda».
+
+**Antes de cerrar una rama, actualizarla contra `main`.** `git fetch --all` y
+`git merge origin/main` **dentro de la rama propia**, nunca al revés. Una rama
+que salió de un punto viejo arrastra versiones anteriores de `ESTADO.md`,
+`CLAUDE.md` y del `<head>` con el doble píxel; mezclarla sin actualizar revierte
+trabajo **sin dar ningún conflicto ni error**. Es el fallo que este repo ya pagó
+tres veces.
+
+**Y el candado del panel.** Mientras las publicaciones estén detenidas, conviene
+saber cuál de los dos interruptores está puesto, porque no hacen lo mismo:
+
+| | Qué hace al llegar algo a `main` |
+|---|---|
+| **Stop builds** | No construye nada. Hay que acordarse de reactivarlo, y hasta entonces `main` y producción van separados sin que nada avise |
+| **Locked deploys** | Construye y deja el despliegue listo, sin publicarlo. Se suelta con un clic cuando se decide |
+
+Para publicar solo cuando se decide —que es lo que se quiere— **el candado es
+`Locked deploys`**, no `Stop builds`.
+
 ## ⚠️ Consolidación de ramas — 2026-08-20
 
 **El tronco es `main`.** Se creó consolidando las nueve ramas `claude/*` que
