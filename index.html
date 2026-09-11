@@ -348,7 +348,12 @@ section{scroll-margin-top:64px}
    (texto en la 1.1fr, foto en la .9fr) para que la imagen quede a la derecha
    y alterne con .story, que la tiene a la izquierda. */
 .plata{padding:40px 0;border-top:1px solid var(--line)}
+/* El min-width:0 va en la regla base, no solo en escritorio: un hijo de
+   rejilla no baja de su ancho mínimo de contenido, y el carrusel mide lo que
+   suman sus cinco tarjetas (~814px). Sin esto, en celular la columna desborda
+   la pantalla y la página se desliza a la derecha hacia un vacío blanco. */
 .plata-in{display:grid;gap:26px}
+.plata-in>*{min-width:0}
 .plata h2{font-size:clamp(28px,7vw,42px);line-height:1.14;margin:8px 0 14px}
 .plata h2 i{font-style:italic;color:var(--plum)}
 .plata p{color:#584a5c;margin:0 0 14px;max-width:52ch}
@@ -971,11 +976,6 @@ body.sheet-open{overflow:hidden}
     height:1px;background:var(--line);z-index:1}
   .esc-t{padding:22px 14px 16px}
   .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
-  /* Sin esto el carrusel aplasta la columna de texto: un hijo de rejilla no
-     baja de su ancho mínimo de contenido, y el .rail mide lo que suman sus
-     cinco tarjetas (~800px). Con min-width:0 puede encogerse y desplazarse
-     por dentro, que es justo lo que hace un carrusel. */
-  .plata-in>*{min-width:0}
   /* El .rail sangra 16px a cada lado para llegar al borde de la pantalla en
      celular. Dentro de una columna de escritorio eso se sale del contenedor,
      así que ahí se cancela. */
