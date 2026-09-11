@@ -280,17 +280,6 @@ button{font-family:inherit}
   background:var(--ink);color:var(--bone);font-size:9.5px;letter-spacing:.14em;
   text-transform:uppercase;padding:4px 9px;border-radius:1px;white-space:nowrap}
 
-/* 4 · como funciona */
-.how{padding:34px 0;border-top:1px solid var(--line)}
-.steps{display:grid;grid-template-columns:1fr;border:1px solid var(--line);
-  background:var(--white);border-radius:3px;counter-reset:paso}
-.step{padding:22px 20px;position:relative}
-.step+.step{border-top:1px solid var(--line)}
-.step-n{font-family:'Cormorant Garamond',serif;font-size:15px;color:var(--rose);
-  letter-spacing:.16em;text-transform:uppercase}
-.step b{display:block;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin:7px 0 5px}
-.step p{margin:0;font-size:14px;color:#6d6070;line-height:1.55}
-
 /* secciones producto */
 section{scroll-margin-top:64px}
 .sec{padding:34px 0;border-top:1px solid var(--line)}
@@ -364,7 +353,16 @@ section{scroll-margin-top:64px}
 .plata h2 i{font-style:italic;color:var(--plum)}
 .plata p{color:#584a5c;margin:0 0 14px;max-width:52ch}
 .plata p:last-of-type{margin-bottom:22px}
-.plata-img img{width:100%;border-radius:3px}
+/* Carrusel de piezas con segunda vista. Usa el mismo .rail de los otros
+   carruseles; lo propio de acá es la tarjeta .cv, que cruza las dos fotos. */
+.cv{text-decoration:none;color:inherit;display:block}
+.cv-ph{position:relative;display:block;border:1px solid var(--line);background:var(--white);
+  border-radius:3px;overflow:hidden}
+.cv-ph img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+.cv-b{position:absolute;inset:0;opacity:0;transition:opacity .45s ease}
+@media(hover:hover){.cv:hover .cv-b{opacity:1}}
+.cv-n{display:block;margin-top:8px;font-size:12.5px;color:#6d6070;text-align:center;line-height:1.35}
+.rail>.cv{scroll-snap-align:start}
 
 /* 6b · empaque destacado — mismo patrón que .story pero con las columnas
    invertidas (texto en la 1.1fr, foto en la .9fr) para que la imagen quede
@@ -706,6 +704,11 @@ section{scroll-margin-top:64px}
 .rail-btn[disabled]{opacity:.28;cursor:default}
 .rail-btn--prev{left:-8px}
 .rail-btn--next{right:-8px}
+/* En la sección de Plata 925 el carrusel vive en la columna angosta de una
+   rejilla de dos: con las flechas 8px por fuera se montarían sobre el texto
+   de al lado, así que ahí van por dentro. */
+.plata-rail .rail-btn--prev{left:4px}
+.plata-rail .rail-btn--next{right:4px}
 .rail-hint{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);
   margin:4px 0 0;text-align:center}
 
@@ -950,8 +953,6 @@ body.sheet-open{overflow:hidden}
   .esc::before{content:'';position:absolute;left:14px;right:14px;top:30px;
     height:1px;background:var(--line);z-index:1}
   .esc-t{padding:22px 14px 16px}
-  .steps{grid-template-columns:repeat(4,1fr)}
-  .step+.step{border-top:0;border-left:1px solid var(--line)}
   .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .pack-hero-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .revs{grid-template-columns:repeat(2,1fr);gap:20px}
@@ -960,7 +961,7 @@ body.sheet-open{overflow:hidden}
   .trust div+div{border-top:0;border-left:1px solid var(--line)}
   .trust div:nth-child(n+4){border-top:1px solid var(--line)}
   .trust div:nth-child(4){border-left:0}
-  .sec,.how,.social,.trust-sec,.cats{padding:46px 0}
+  .sec,.social,.trust-sec,.cats,.promo{padding:46px 0}
   .story,.plata,.pack-hero{padding:52px 0}
   .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
   .talla-sec,.pe{padding:46px 0}
@@ -1141,22 +1142,49 @@ body.sheet-open{overflow:hidden}
   </div>
 </section>
 
-<!-- 4 · CÓMO FUNCIONA -->
-<section class="how wrap" id="armar">
-  <div class="sec-head">
-    <span class="eyebrow">Así de simple</span>
-    <h2>Cómo funciona</h2>
+<!-- 4 · PROMO — acá vivía «Cómo funciona», un paso a paso de cuatro casillas
+     que se quitó por conducta de compra observada: la clienta no lo sigue,
+     compra el charm suelto o el brazalete suelto. En su lugar queda el
+     descuento progresivo, que explica el precio justo antes de los catálogos,
+     que es donde la cuenta importa. -->
+<section class="promo wrap" id="promo">
+  <div class="promo-head">
+    <span class="eyebrow">Descuento progresivo</span>
+    <h2>Cuantos más charms, más ahorras</h2>
+    <p>Aplica sobre cualquier combinación del catálogo y se calcula solo mientras armas tu pulsera. Sin códigos ni letra pequeña.</p>
   </div>
-  <div class="steps">
-    <div class="step"><span class="step-n">Paso 1</span><b>Elige tu brazalete</b>
-      <p>Tres niveles de precio según cierre y cadena. Toca "Elegir" en tu favorito.</p></div>
-    <div class="step"><span class="step-n">Paso 2</span><b>Escoge tus charms en Plata 925</b>
-      <p>Los que cuenten tu historia. El precio se actualiza en la barra inferior.</p></div>
-    <div class="step"><span class="step-n">Paso 3</span><b>Te asesoramos con la talla</b>
-      <p>Mide tu muñeca, súmale 2 cm y listo. La calculadora de talla te dice cuál pedir.</p></div>
-    <div class="step"><span class="step-n">Paso 4</span><b>Recibe y paga en casa</b>
-      <p>En cualquier ciudad de Colombia, con opción de pago contraentrega.</p></div>
-  </div>
+
+  <ol class="esc" id="esc">
+    <li class="esc-t" data-n="1">
+      <span class="esc-b" aria-hidden="true"><i></i></span>
+      <span class="esc-n">1</span>
+      <span class="esc-u">charm</span>
+      <span class="esc-p">Precio normal</span>
+      <span class="esc-x">Sin mínimo de compra.</span>
+    </li>
+    <li class="esc-t esc-t--off" data-n="2">
+      <span class="esc-b" aria-hidden="true"><i></i><i></i></span>
+      <span class="esc-n">2</span>
+      <span class="esc-u">charms</span>
+      <span class="esc-p">8% OFF</span>
+      <span class="esc-x">El descuento baja <b>los dos</b>, no solo el segundo.</span>
+    </li>
+    <li class="esc-t esc-t--off" data-n="3">
+      <span class="esc-b" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="esc-n">3</span>
+      <span class="esc-u">charms</span>
+      <span class="esc-p">15% OFF</span>
+      <span class="esc-x">Aquí se activa el <b>−30% del brazalete</b>.</span>
+    </li>
+    <li class="esc-t esc-t--top" data-n="4">
+      <span class="esc-tag">El mejor trato</span>
+      <span class="esc-b" aria-hidden="true"><i></i><i></i><i></i><i class="free"></i></span>
+      <span class="esc-n">4</span>
+      <span class="esc-u">charms o más</span>
+      <span class="esc-p">Lleva 4, paga 3</span>
+      <span class="esc-x"><b>25% OFF</b> sobre el total: el cuarto va por nuestra cuenta.</span>
+    </li>
+  </ol>
 </section>
 
 <!-- 4b · CALCULADORA DE TALLA -->
@@ -1203,7 +1231,10 @@ body.sheet-open{overflow:hidden}
       <button class="fbtn" type="button" data-cf="cadena">Con cadena de seguridad</button>
     </div>
     <div class="tier"><div class="tier-head"><span class="eyebrow">Nivel</span><span class="tier-price">$58.000</span><span class="tier-count">8 modelos</span></div>
-<div class="grid"><article class="pc pc--b" data-id="pulsera-avengers" data-cg="clasico">
+<div class="rail-wrap">
+<button class="rail-btn rail-btn--prev" type="button" aria-label="Modelos anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="rail-btn rail-btn--next" type="button" aria-label="Más modelos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+<div class="rail"><article class="pc pc--b" data-id="pulsera-avengers" data-cg="clasico">
 <div class="pc-img"><img src="assets/pulsera-avengers.webp?v=20260822" alt="Pulsera Avengers" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
 <div class="pc-body"><h3 class="pc-name">Avengers</h3><p class="pc-meta">Edición Marvel</p>
 <div class="pc-foot"><span class="pc-price">$58.000</span><button class="pc-add" type="button" data-base="pulsera-avengers" aria-label="Elegir Pulsera Avengers">Elegir</button></div></div></article><article class="pc pc--b" data-id="pulsera-corazon-con-diamante" data-cg="corazon">
@@ -1227,8 +1258,12 @@ body.sheet-open{overflow:hidden}
 <div class="pc-foot"><span class="pc-price">$58.000</span><button class="pc-add" type="button" data-base="pulsera-trebol-verde" aria-label="Elegir Pulsera Trébol Verde">Elegir</button></div></div></article><article class="pc pc--b" data-id="pulsera-rosa-clasica" data-cg="clasico">
 <div class="pc-img"><img src="assets/pulsera-rosa-clasica.webp?v=20260822" alt="Pulsera Rosa Clásica" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
 <div class="pc-body"><h3 class="pc-name">Rosa Clásica</h3><p class="pc-meta">Cierre rosa</p>
-<div class="pc-foot"><span class="pc-price">$58.000</span><button class="pc-add" type="button" data-base="pulsera-rosa-clasica" aria-label="Elegir Pulsera Rosa Clásica">Elegir</button></div></div></article></div></div><div class="tier"><div class="tier-head"><span class="eyebrow">Nivel</span><span class="tier-price">$68.000</span><span class="tier-count">6 modelos</span></div>
-<div class="grid"><article class="pc pc--b" data-id="pulsera-corona-con-cristales" data-cg="corona">
+<div class="pc-foot"><span class="pc-price">$58.000</span><button class="pc-add" type="button" data-base="pulsera-rosa-clasica" aria-label="Elegir Pulsera Rosa Clásica">Elegir</button></div></div></article></div></div>
+<p class="rail-hint">Desliza para ver más &rarr;</p></div><div class="tier"><div class="tier-head"><span class="eyebrow">Nivel</span><span class="tier-price">$68.000</span><span class="tier-count">6 modelos</span></div>
+<div class="rail-wrap">
+<button class="rail-btn rail-btn--prev" type="button" aria-label="Modelos anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="rail-btn rail-btn--next" type="button" aria-label="Más modelos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+<div class="rail"><article class="pc pc--b" data-id="pulsera-corona-con-cristales" data-cg="corona">
 <div class="pc-img"><img src="assets/pulsera-corona-con-cristales.webp?v=20260822" alt="Pulsera Corona con Cristales" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
 <div class="pc-body"><h3 class="pc-name">Corona con Cristales</h3><p class="pc-meta">Cierre corona</p>
 <div class="pc-foot"><span class="pc-price">$68.000</span><button class="pc-add" type="button" data-base="pulsera-corona-con-cristales" aria-label="Elegir Pulsera Corona con Cristales">Elegir</button></div></div></article><article class="pc pc--b" data-id="pulsera-corazon-pave" data-cg="corazon">
@@ -1246,8 +1281,12 @@ body.sheet-open{overflow:hidden}
 <div class="pc-foot"><span class="pc-price">$68.000</span><button class="pc-add" type="button" data-base="pulsera-corazon-luminoso" aria-label="Elegir Pulsera Corazón Luminoso">Elegir</button></div></div></article><article class="pc pc--b" data-id="pulsera-mickey-mouse-pave" data-cg="clasico">
 <div class="pc-img"><img src="assets/pulsera-mickey-mouse-pave.webp?v=20260822" alt="Pulsera Mickey Mouse Pavé" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
 <div class="pc-body"><h3 class="pc-name">Mickey Mouse Pavé</h3><p class="pc-meta">Edición Disney</p>
-<div class="pc-foot"><span class="pc-price">$68.000</span><button class="pc-add" type="button" data-base="pulsera-mickey-mouse-pave" aria-label="Elegir Pulsera Mickey Mouse Pavé">Elegir</button></div></div></article></div></div><div class="tier"><div class="tier-head"><span class="eyebrow">Nivel</span><span class="tier-price">$78.000</span><span class="tier-count">4 modelos</span></div>
-<div class="grid"><article class="pc pc--b" data-id="pulsera-sol-con-cadena-seguridad" data-cg="cadena">
+<div class="pc-foot"><span class="pc-price">$68.000</span><button class="pc-add" type="button" data-base="pulsera-mickey-mouse-pave" aria-label="Elegir Pulsera Mickey Mouse Pavé">Elegir</button></div></div></article></div></div>
+<p class="rail-hint">Desliza para ver más &rarr;</p></div><div class="tier"><div class="tier-head"><span class="eyebrow">Nivel</span><span class="tier-price">$78.000</span><span class="tier-count">4 modelos</span></div>
+<div class="rail-wrap">
+<button class="rail-btn rail-btn--prev" type="button" aria-label="Modelos anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="rail-btn rail-btn--next" type="button" aria-label="Más modelos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+<div class="rail"><article class="pc pc--b" data-id="pulsera-sol-con-cadena-seguridad" data-cg="cadena">
 <div class="pc-img"><img src="assets/pulsera-sol-con-cadena-seguridad.webp?v=20260822" alt="Pulsera Sol con Cadena Seguridad" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
 <div class="pc-body"><h3 class="pc-name">Sol con Cadena Seguridad</h3><p class="pc-meta">Cadena seguridad</p>
 <div class="pc-foot"><span class="pc-price">$78.000</span><button class="pc-add" type="button" data-base="pulsera-sol-con-cadena-seguridad" aria-label="Elegir Pulsera Sol con Cadena Seguridad">Elegir</button></div></div></article><article class="pc pc--b" data-id="pulsera-corazon-rosado-con-cadena" data-cg="corazon">
@@ -1260,6 +1299,7 @@ body.sheet-open{overflow:hidden}
 <div class="pc-img"><img src="assets/pulsera-mono-rosa-con-cadena.webp?v=20260822" alt="Pulsera Moño Rosa con Cadena" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
 <div class="pc-body"><h3 class="pc-name">Moño Rosa con Cadena</h3><p class="pc-meta">Cadena seguridad</p>
 <div class="pc-foot"><span class="pc-price">$78.000</span><button class="pc-add" type="button" data-base="pulsera-mono-rosa-con-cadena" aria-label="Elegir Pulsera Moño Rosa con Cadena">Elegir</button></div></div></article></div></div>
+<p class="rail-hint">Desliza para ver más &rarr;</p></div>
   </div>
 </section>
 
@@ -1692,8 +1732,25 @@ body.sheet-open{overflow:hidden}
       <p>Libres de níquel y plomo, aptos para piel sensible, y sin el verdín ni la opacidad rápida de las piezas bañadas. Busca el sello grabado en cada charm: ahí está la diferencia.</p>
       <a class="btn" href="#charms">Ver charms en Plata 925</a>
     </div>
-    <div class="plata-img">
-      <img src="assets/pulsera-zephora-armada-con-charms-en-plata-925.webp?v=20260822" alt="Pulsera Zephora armada con charms en Plata 925, sello grabado" width="502" height="900" loading="lazy" decoding="async">
+    <!-- Carrusel de piezas con segunda vista. Solo van las cinco que tienen
+         una segunda foto declarada en FOTOS (más abajo, en el script): el
+         efecto de cambiar de imagen no se puede fingir con las demás, y una
+         tarjeta que no cambia al lado de otras que sí parece rota.
+         El cambio de foto va detrás de hover:hover porque en táctil no hay
+         cursor; ahí la segunda vista se ve entrando a la ficha de la pieza. -->
+    <div class="plata-rail">
+      <div class="rail-wrap">
+        <button class="rail-btn rail-btn--prev" type="button" aria-label="Piezas anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button class="rail-btn rail-btn--next" type="button" aria-label="Más piezas"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+        <div class="rail">
+          <a class="cv" href="#charms"><span class="cv-ph"><img class="cv-a" src="assets/guantelete-del-infinito.webp?v=20260822" alt="Charm Guantelete del Infinito en Plata 925" width="440" height="440" loading="lazy" decoding="async"><img class="cv-b" src="assets/guantelete-del-infinito-2.webp" alt="" aria-hidden="true" width="440" height="440" loading="lazy" decoding="async"></span><span class="cv-n">Guantelete del Infinito</span></a>
+          <a class="cv" href="#charms"><span class="cv-ph"><img class="cv-a" src="assets/hulk.webp?v=20260822" alt="Charm Hulk en Plata 925" width="440" height="440" loading="lazy" decoding="async"><img class="cv-b" src="assets/hulk-2.webp" alt="" aria-hidden="true" width="440" height="440" loading="lazy" decoding="async"></span><span class="cv-n">Hulk</span></a>
+          <a class="cv" href="#charms"><span class="cv-ph"><img class="cv-a" src="assets/mjolnir-martillo-de-thor.webp?v=20260822" alt="Charm Mjolnir, el martillo de Thor, en Plata 925" width="440" height="440" loading="lazy" decoding="async"><img class="cv-b" src="assets/mjolnir-martillo-de-thor-2.webp" alt="" aria-hidden="true" width="440" height="440" loading="lazy" decoding="async"></span><span class="cv-n">Mjolnir · Martillo de Thor</span></a>
+          <a class="cv" href="#charms"><span class="cv-ph"><img class="cv-a" src="assets/spider-man.webp?v=20260822" alt="Charm Spider-Man en Plata 925" width="440" height="440" loading="lazy" decoding="async"><img class="cv-b" src="assets/spider-man-2.webp" alt="" aria-hidden="true" width="440" height="440" loading="lazy" decoding="async"></span><span class="cv-n">Spider-Man</span></a>
+          <a class="cv" href="#charms"><span class="cv-ph"><img class="cv-a" src="assets/dalmata.webp?v=20260822" alt="Charm Dálmata en Plata 925" width="440" height="440" loading="lazy" decoding="async"><img class="cv-b" src="assets/dalmata-2.webp" alt="" aria-hidden="true" width="440" height="440" loading="lazy" decoding="async"></span><span class="cv-n">Dálmata</span></a>
+        </div>
+      </div>
+      <p class="rail-hint">Desliza para ver más &rarr;</p>
     </div>
   </div>
 </section>
@@ -1715,51 +1772,6 @@ body.sheet-open{overflow:hidden}
       <img src="assets/empaque-charm.webp?v=20260822" alt="Empaque Premium de Zephora: detalle de la tarjeta con dedicatoria" width="440" height="440" loading="lazy" decoding="async">
     </div>
   </div>
-</section>
-
-<!-- 6c · PROMO — bajada del tope de página (antes iba justo después de
-     #beneficios, la segunda cosa que se veía). El argumento de descuento
-     llega ahora después de las secciones de confianza (historia, plata 925,
-     empaque), no antes de que el cliente sepa algo de la marca. El mecanismo
-     no cambia, solo la posición — sigue arriba del catálogo. -->
-<section class="promo wrap" id="promo">
-  <div class="promo-head">
-    <span class="eyebrow">Descuento progresivo</span>
-    <h2>Cuantos más charms, más ahorras</h2>
-    <p>Aplica sobre cualquier combinación del catálogo y se calcula solo mientras armas tu pulsera. Sin códigos ni letra pequeña.</p>
-  </div>
-
-  <ol class="esc" id="esc">
-    <li class="esc-t" data-n="1">
-      <span class="esc-b" aria-hidden="true"><i></i></span>
-      <span class="esc-n">1</span>
-      <span class="esc-u">charm</span>
-      <span class="esc-p">Precio normal</span>
-      <span class="esc-x">Sin mínimo de compra.</span>
-    </li>
-    <li class="esc-t esc-t--off" data-n="2">
-      <span class="esc-b" aria-hidden="true"><i></i><i></i></span>
-      <span class="esc-n">2</span>
-      <span class="esc-u">charms</span>
-      <span class="esc-p">8% OFF</span>
-      <span class="esc-x">El descuento baja <b>los dos</b>, no solo el segundo.</span>
-    </li>
-    <li class="esc-t esc-t--off" data-n="3">
-      <span class="esc-b" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span class="esc-n">3</span>
-      <span class="esc-u">charms</span>
-      <span class="esc-p">15% OFF</span>
-      <span class="esc-x">Aquí se activa el <b>−30% del brazalete</b>.</span>
-    </li>
-    <li class="esc-t esc-t--top" data-n="4">
-      <span class="esc-tag">El mejor trato</span>
-      <span class="esc-b" aria-hidden="true"><i></i><i></i><i></i><i class="free"></i></span>
-      <span class="esc-n">4</span>
-      <span class="esc-u">charms o más</span>
-      <span class="esc-p">Lleva 4, paga 3</span>
-      <span class="esc-x"><b>25% OFF</b> sobre el total: el cuarto va por nuestra cuenta.</span>
-    </li>
-  </ol>
 </section>
 
 <!-- 7 · PRUEBA SOCIAL -->
@@ -3055,10 +3067,17 @@ document.querySelectorAll('.cat[data-cat]').forEach(a=>{
   });
 });
 
-/* flechas del carrusel de destacados */
-(function(){
-  const rail=document.getElementById('rail-top');
-  const prev=document.getElementById('rail-prev'), next=document.getElementById('rail-next');
+/* Flechas de los carruseles.
+ *
+ * Antes esto estaba atado por id a un solo carrusel, el de charms destacados.
+ * Ahora recorre cada .rail-wrap y engancha los botones que viven dentro de ese
+ * mismo bloque: los tres niveles de brazaletes y el carrusel de charms con
+ * segunda foto son carruseles también, y con la versión por id se habrían
+ * quedado con flechas muertas en escritorio. */
+document.querySelectorAll('.rail-wrap').forEach(caja=>{
+  const rail=caja.querySelector('.rail');
+  const prev=caja.querySelector('.rail-btn--prev'), next=caja.querySelector('.rail-btn--next');
+  if(!rail||!prev||!next) return;
   const paso=()=>Math.max(200,rail.clientWidth*.8);
   const estado=()=>{
     prev.disabled = rail.scrollLeft<8;
@@ -3069,7 +3088,7 @@ document.querySelectorAll('.cat[data-cat]').forEach(a=>{
   rail.addEventListener('scroll',estado,{passive:true});
   addEventListener('resize',estado);
   estado();
-})();
+});
 
 /* Búsqueda de la cabecera.
  *
