@@ -1,0 +1,69 @@
+{
+  "_": "Las seis piezas que llegaron y NO existen en el catálogo. No están aplicadas: entrar en la tienda exige tocar `const DATA=` dentro de index.html, que es de la sesión «website modifications». Cuando esa rama se mezcle a main, de aquí salen tres cosas: la entrada en DATA (id, n, p), la entrada en assets/stock.json (tipo, precio, stock, familia) y el nombre del archivo de foto, que es el id + .webp.",
+  "_pendiente": "Ninguna tiene foto todavía. Sin assets/<id>.webp la tarjeta sale diciendo «Foto en camino».",
+  "piezas": [
+    {
+      "id": "groot-bebe",
+      "n": "Groot Bebé",
+      "p": 85000,
+      "tipo": "charm",
+      "familia": "pasador",
+      "stock": 4,
+      "sku_proveedor": "PAC1041",
+      "costo": 16083
+    },
+    {
+      "id": "casco-iron-man",
+      "n": "Casco Iron Man",
+      "p": 85000,
+      "tipo": "charm",
+      "familia": "pasador",
+      "stock": 4,
+      "sku_proveedor": "M30",
+      "costo": 14719
+    },
+    {
+      "id": "mascara-un-gran-poder",
+      "n": "Máscara Un Gran Poder",
+      "p": 85000,
+      "tipo": "charm",
+      "familia": "pasador",
+      "stock": 4,
+      "sku_proveedor": "M17",
+      "costo": 14224,
+      "nota": "Esfera calada en plata: el texto «with great power comes great responsibility» dibuja la máscara. Se llamaba «Esfera Un Gran Poder» y el propietario la corrigió a Máscara el 2026-09-11."
+    },
+    {
+      "id": "esfera-telarana-spider-man",
+      "n": "Esfera Telaraña Spider-Man",
+      "p": 85000,
+      "tipo": "charm",
+      "familia": "pasador",
+      "stock": 4,
+      "sku_proveedor": "M16",
+      "costo": 14224,
+      "nota": "El id va sin eñe a propósito: se convierte en nombre de archivo (esfera-telarana-spider-man.webp) y una eñe servida por web rompe en unos servidores y no en otros. El nombre visible sí la lleva."
+    },
+    {
+      "id": "spider-man-pave",
+      "n": "Spider-Man Pavé",
+      "p": 85000,
+      "tipo": "charm",
+      "familia": "colgante",
+      "stock": 4,
+      "sku_proveedor": "M15",
+      "costo": 15707
+    },
+    {
+      "id": "mascara-spider-man-roja",
+      "n": "Máscara Spider-Man Roja",
+      "p": 85000,
+      "tipo": "charm",
+      "familia": "pasador",
+      "stock": 4,
+      "sku_proveedor": "BMT1289",
+      "costo": 14838,
+      "nota": "Era «Máscara Spider-Man». Al pasar M17 de Esfera a Máscara quedaban dos máscaras, así que esta añade el color, que es lo que de verdad las separa a simple vista: esta es roja esmaltada con ojos de cristal, la otra es plata calada."
+    }
+  ]
+}
