@@ -31,12 +31,21 @@ trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
    Colombia" (duplicado del ticker superior `.ann`) — la info sigue en el
    sitio, solo dejó de repetirse. Grid de desktop ajustado de 3 a 4 columnas
    para que no quede una fila coja.
+5. `#hero` (antes dos columnas) — ahora banner panorámico de ancho completo
+   con 2 fotos (Avengers + marca) rotando cada 5s, mismo mecanismo 100% CSS
+   que `.ann`, con botón de pausa. Spec y plan en
+   `docs/superpowers/specs/2026-09-10-hero-carousel-design.md` y
+   `docs/superpowers/plans/2026-09-10-hero-carousel.md`. El asset viejo
+   (`pulsera-zephora-armada-con-charms-en-plata-925.webp`, vertical 502×900)
+   ya no se usa en el hero, pero **sigue en uso en `#plata-925`** — no
+   borrarlo.
 
 No toca `netlify/functions/`, checkout, ni el checkbox real del carrito
 (`#pack`), que sigue siendo el mecanismo de compra.
 
-Queda 1 de las 4 ideas de la crítica sin implementar: fotografía editorial
-(vía Flow).
+**Las 4 ideas de la crítica de Juli & Co ya están implementadas** en esta
+rama (empaque, autoridad Plata 925, densidad, y ahora el hero). Falta
+revisión visual del usuario antes de considerar la fusión a `main`.
 
 **⚠️ NO fusionar a `main` todavía** — Netlify está sin créditos de despliegue
 (ver más abajo) y este cambio sí dispara un deploy real al tocar `.html`
