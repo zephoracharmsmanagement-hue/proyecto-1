@@ -188,18 +188,24 @@ button{font-family:inherit}
 .hbanner-copy h1,.hbanner-copy h2{font-size:clamp(30px,8vw,52px);line-height:1.08;margin:8px 0 10px;color:#fff}
 .hbanner-copy h1 i,.hbanner-copy h2 i{font-style:italic;color:var(--rose-soft)}
 .hbanner-sub{max-width:40ch;color:#f0e8ef;margin:0;font-size:14.5px}
+/* Sobre la foto queda solo la prueba social. El botón y la línea de medios de
+   pago viven en .cta-strip, debajo de los beneficios: encima de la imagen
+   sumaban tres bloques de texto y obligaban a un degradado que se comía media
+   foto en celular, que es justo donde más se compra. */
 .hbanner-fixed{position:absolute;left:0;right:0;bottom:0;z-index:2;
-  background:linear-gradient(to top, rgba(42,31,46,.82), rgba(42,31,46,0) 85%);
-  padding:40px 16px 18px}
+  background:linear-gradient(to top, rgba(42,31,46,.78), rgba(42,31,46,0) 92%);
+  padding:26px 16px 14px}
 .hbanner-fixed-in{max-width:var(--w);margin:0 auto}
-.hbanner-fixed .hero-badges{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 16px;font-size:13.5px;color:#fff}
+.hbanner-fixed .hero-badges{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0;font-size:13.5px;color:#fff}
 .hbanner-fixed .hero-badges .stars{margin:0}
 .hbanner-fixed .hero-badges .dot{color:#cbb9c9}
 .hbanner-fixed .hero-badge-n{color:#e7dfe4}
 .hbanner-fixed .hero-badges a{text-decoration:none;font-weight:400;color:#fff}
-.hbanner-fixed .hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.hbanner-fixed .hero-hint{font-size:13px;color:#e7dfe4;margin:0}
-.hbanner-fixed .hero-hint a{color:#fff;text-decoration:underline}
+.cta-strip{background:var(--bone);border-bottom:1px solid var(--line);padding:20px 0 22px}
+.cta-strip-in{text-align:center}
+.cta-strip .hero-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:0 0 12px}
+.cta-strip .hero-hint{font-size:13px;color:#6d6070;margin:0 auto;max-width:52ch}
+.cta-strip .hero-hint a{color:var(--plum)}
 /* Rotación 100% CSS, mismo mecanismo que .ann/.ann-slide. Los porcentajes
    de abajo están calculados a mano para 2 slides (5s cada uno, 10s de
    ciclo total). Si se agrega un tercer slide, hay que recalcular: ciclo
@@ -274,19 +280,6 @@ button{font-family:inherit}
   background:var(--ink);color:var(--bone);font-size:9.5px;letter-spacing:.14em;
   text-transform:uppercase;padding:4px 9px;border-radius:1px;white-space:nowrap}
 
-.promo-card{background:linear-gradient(135deg,#4a2f52,#2A1F2E);color:var(--bone);
-  border-radius:4px;padding:26px 22px;position:relative;overflow:hidden}
-.promo-card::after{content:'';position:absolute;right:-70px;top:-70px;width:230px;height:230px;
-  border:1px solid rgba(255,255,255,.12);border-radius:50%}
-.promo-card::before{content:'';position:absolute;right:-30px;top:-30px;width:230px;height:230px;
-  border:1px solid rgba(255,255,255,.08);border-radius:50%}
-.promo-tag{display:inline-block;background:var(--rose);color:#fff;font-size:11px;
-  letter-spacing:.18em;text-transform:uppercase;padding:6px 12px;border-radius:1px;margin-bottom:12px}
-.promo-card h2{font-size:clamp(23px,5.6vw,32px);line-height:1.18;margin:0 0 9px;color:#fff}
-.promo-card p{margin:0 0 20px;color:#cfc0d2;max-width:52ch;font-size:14.5px}
-.promo-card p b{color:#fff;font-weight:500}
-.promo-card .btn{position:relative;z-index:1}
-
 /* 4 · como funciona */
 .how{padding:34px 0;border-top:1px solid var(--line)}
 .steps{display:grid;grid-template-columns:1fr;border:1px solid var(--line);
@@ -353,11 +346,13 @@ section{scroll-margin-top:64px}
 
 /* 6 · historia */
 .story{padding:40px 0;border-top:1px solid var(--line)}
-.story-in{display:grid;gap:26px}
-.story-img img{width:100%;border-radius:3px}
+/* Sin foto al lado, el texto se lee como bloque centrado y no estirado de
+   borde a borde: de ahí el max-width y el centrado, en vez de las dos
+   columnas que tenía cuando había imagen. */
+.story-in{display:grid;gap:26px;max-width:62ch;margin-inline:auto;text-align:center}
 .story h2{font-size:clamp(28px,7vw,42px);line-height:1.14;margin:8px 0 14px}
 .story h2 i{font-style:italic;color:var(--plum)}
-.story p{color:#584a5c;margin:0 0 14px;max-width:52ch}
+.story p{color:#584a5c;margin:0 auto 14px;max-width:52ch}
 .story p:last-of-type{margin-bottom:22px}
 
 /* 6a · autoridad plata 925 — mismo patrón que .story, columnas invertidas
@@ -406,16 +401,23 @@ section{scroll-margin-top:64px}
 .shot-b{display:block;width:100%;padding:0;border:0;background:none;line-height:0;
   border-radius:3px;overflow:hidden;cursor:zoom-in}
 .shot-b img{width:100%;object-fit:cover;border-radius:3px;transition:transform .5s ease}
-.shot-b:hover img{transform:scale(1.045)}
+/* El zoom al pasar el cursor va detrás de hover:hover a propósito: en táctil
+   no hay cursor y el navegador lo dispararía al tocar, dejando la foto
+   agrandada de forma pegajosa. En celular el camino es tocar y abrir el visor. */
+@media(hover:hover){.shot-b:hover img{transform:scale(1.06)}}
 .ph-tag{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--silver);
   margin:7px 0 0;display:flex;align-items:center;gap:5px;line-height:1.4}
 .ph-tag svg{flex:0 0 auto}
 
-.case{display:grid;grid-template-columns:1fr;gap:18px;padding:18px}
-.case .shot-b img{aspect-ratio:4/5}
+/* Las fotos de clienta van en miniatura. A ancho completo cada reseña se comía
+   una pantalla entera en celular; el visor de ampliar (.lb) ya existía, así
+   que la miniatura no esconde nada: se toca y se ve grande. */
+.case{display:grid;grid-template-columns:104px 1fr;gap:14px;padding:18px;align-items:start}
+.case .shot-b img{aspect-ratio:1}
 .case-tx{display:flex;flex-direction:column;justify-content:center}
-.rev .shot-b img{aspect-ratio:4/3}
-.rev-ph{margin:0 0 14px}
+.rev .shot-b img{aspect-ratio:1}
+.rev-ph{float:left;width:92px;margin:0 14px 10px 0}
+.rev figcaption{clear:both}
 
 /* visor de foto */
 .lb{position:fixed;inset:0;z-index:120;background:rgba(42,31,46,.93);
@@ -641,7 +643,18 @@ section{scroll-margin-top:64px}
 .pe-grid{display:grid;gap:16px}
 .pe-caja{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:20px 20px 22px}
 .pe-caja h3{font-size:22px;margin:0 0 4px}
-.pe-caja>p{font-size:13.5px;color:#6d6070;margin:0 0 16px}
+.pe-caja p{font-size:13.5px;color:#6d6070;margin:0 0 16px}
+/* El marcador propio del navegador se oculta y se pone un +/− alineado a la
+   derecha: el triángulo nativo se desalinea con un título de dos líneas. */
+.pe-caja>summary{cursor:pointer;list-style:none;display:grid;
+  grid-template-columns:1fr auto;align-items:center;gap:4px 14px}
+.pe-caja>summary::-webkit-details-marker{display:none}
+.pe-caja>summary::after{content:'+';grid-column:2;grid-row:1/span 2;
+  font-size:22px;line-height:1;color:var(--plum)}
+.pe-caja[open]>summary::after{content:'–'}
+.pe-resumen{grid-column:1;font-size:13.5px;color:#6d6070}
+.pe-detalle{padding-top:16px;margin-top:14px;border-top:1px solid var(--line)}
+.pe-detalle>p:first-child{margin-top:0}
 .pe-lista{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:7px}
 .pe-lista li{font-size:12px;letter-spacing:.04em;border:1px solid var(--line);border-radius:2px;
   padding:8px 11px;color:#4a3d4e;background:var(--bone)}
@@ -937,14 +950,12 @@ body.sheet-open{overflow:hidden}
   .esc::before{content:'';position:absolute;left:14px;right:14px;top:30px;
     height:1px;background:var(--line);z-index:1}
   .esc-t{padding:22px 14px 16px}
-  .promo-card{padding:34px 46px}
   .steps{grid-template-columns:repeat(4,1fr)}
   .step+.step{border-top:0;border-left:1px solid var(--line)}
-  .story-in{grid-template-columns:.9fr 1.1fr;gap:52px;align-items:center}
   .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .pack-hero-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .revs{grid-template-columns:repeat(2,1fr);gap:20px}
-  .case{grid-template-columns:240px 1fr;gap:28px;padding:24px;align-items:center}
+  .case{grid-template-columns:150px 1fr;gap:24px;padding:22px;align-items:center}
   .trust{grid-template-columns:repeat(3,1fr)}
   .trust div+div{border-top:0;border-left:1px solid var(--line)}
   .trust div:nth-child(n+4){border-top:1px solid var(--line)}
@@ -1064,15 +1075,6 @@ body.sheet-open{overflow:hidden}
   <div class="hbanner-fixed">
     <div class="hbanner-fixed-in">
       <p class="hero-badges"><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="dot">·</span><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span><span class="hero-badge-n">+2.400 pulseras creadas</span></p>
-      <!-- Un solo CTA, y lleva al armador. WhatsApp salió de aquí: como
-           botón junto al principal traía sobre todo preguntas de cosas que la
-           página ya responde —material, tallas, envíos—, consultas que hay que
-           atender a mano y que no terminaban en pedido. Sigue en el pie, con
-           el horario al lado, para quien de verdad quiera escribir. -->
-      <div class="hero-cta">
-        <a class="btn btn--pagar btn--big" href="#brazaletes">Armar mi pulsera</a>
-      </div>
-      <p class="hero-hint">El precio se calcula solo mientras eliges, con la promo ya incluida. Pagas aquí mismo con Nequi, PSE, Bancolombia o tarjeta.</p>
     </div>
   </div>
 </section>
@@ -1084,6 +1086,23 @@ body.sheet-open{overflow:hidden}
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Libres de níquel y plomo</b> — aptos para pieles sensibles</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17M3.5 12h17" opacity=".35"/><path d="M8 12a4 4 0 018 0"/></svg><span><b>Brazaletes</b> en latón de calidad joyería con baño de plata certificado y capa protectora e-coating</span></div>
     <div class="ben"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.3-7-9.5A4 4 0 0112 8a4 4 0 017 2.5C19 15.7 12 20 12 20z"/></svg><span><b>Personalización total:</b> tú eliges cada pieza de tu historia</span></div>
+  </div>
+</div>
+
+<!-- 2b · LLAMADA A LA ACCIÓN — vivía superpuesta sobre la foto del banner y se
+     comía la imagen en celular. Acá abajo la clienta ya leyó de qué está hecha
+     la pieza, que es lo que hace que el botón tenga sentido.
+     Un solo CTA, y lleva al armador. WhatsApp salió de aquí: como botón junto
+     al principal traía sobre todo preguntas de cosas que la página ya responde
+     —material, tallas, envíos—, consultas que hay que atender a mano y que no
+     terminaban en pedido. Sigue en el pie, con el horario al lado, para quien
+     de verdad quiera escribir. -->
+<div class="cta-strip">
+  <div class="wrap cta-strip-in">
+    <div class="hero-cta">
+      <a class="btn btn--pagar btn--big" href="#brazaletes">Armar mi pulsera</a>
+    </div>
+    <p class="hero-hint">El precio se calcula solo mientras eliges, con la promo ya incluida. Pagas aquí mismo con Nequi, PSE, Bancolombia o tarjeta.</p>
   </div>
 </div>
 
@@ -1645,9 +1664,10 @@ body.sheet-open{overflow:hidden}
 <!-- 6 · HISTORIA -->
 <section class="story" id="historia">
   <div class="wrap story-in">
-    <div class="story-img">
-      <img src="assets/pulsera-zephora-con-charms-elegidos-con-significad.webp?v=20260822" alt="Pulsera Zephora con charms elegidos con significado" width="502" height="900" loading="lazy" decoding="async">
-    </div>
+    <!-- Acá iba una foto de producto de catálogo. Se quitó: esta sección es la
+         emocional y la foto no decía nada que el texto no diga mejor. El lugar
+         está reservado para un carrusel de video de clientas (UGC) cuando
+         exista el material; hasta entonces la sección va solo con texto. -->
     <div>
       <span class="eyebrow">Por qué charms</span>
       <h2>No vendemos joyas.<br><i>Guardamos momentos.</i></h2>
@@ -1740,13 +1760,6 @@ body.sheet-open{overflow:hidden}
       <span class="esc-x"><b>25% OFF</b> sobre el total: el cuarto va por nuestra cuenta.</span>
     </li>
   </ol>
-
-  <div class="promo-card">
-    <span class="promo-tag">Promo de la semana</span>
-    <h2>Con 3 charms, el brazalete baja 30%</h2>
-    <p>Este descuento se suma al de arriba: los charms bajan por cantidad y el brazalete baja 30%. Desde <b>$180.000</b> el envío también va por nuestra cuenta.</p>
-    <a class="btn btn--wa" href="#armar">Armar la mía con descuento</a>
-  </div>
 </section>
 
 <!-- 7 · PRUEBA SOCIAL -->
@@ -1776,34 +1789,49 @@ body.sheet-open{overflow:hidden}
     <h2>Cómo pagas y cuándo llega</h2>
   </div>
   <div class="pe-grid">
-    <div class="pe-caja">
-      <h3>Medios de pago</h3>
-      <p>Elige el que te quede cómodo. Lo confirmamos por chat antes de que pagues.</p>
-      <!-- Los siete primeros se pagan en la web. Addi va aparte: la cuenta es
-           nuestra pero no está habilitada dentro de la pasarela, así que se
-           coordina por chat. Se dice cuál es cuál en vez de mezclarlos: una
-           clienta que elige Addi esperando pagarlo aquí y no lo encuentra es
-           una venta perdida en el último paso. -->
-      <ul class="pe-lista">
-        <li>Bancolombia</li><li>Nequi</li><li>Daviplata</li><li>PSE</li>
-        <li>Tarjeta de crédito</li><li>Tarjeta débito</li><li>Hasta 36 cuotas</li>
-        <li>Contraentrega</li>
-      </ul>
-      <p class="pe-pie"><b>¿Prefieres Addi?</b> También trabajamos con Addi a cuotas;
-        ese se coordina por <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">WhatsApp</a> y no desde el botón de pago.</p>
-      <p class="pe-pie">No emitimos factura electrónica; con tu pedido va el comprobante digital de compra.</p>
-    </div>
-    <div class="pe-caja">
-      <h3>Tiempos de entrega</h3>
-      <p>Enviamos por <b>Inter Rapidísimo</b> a todo el país, con número de guía.</p>
-      <table class="pe-tabla">
-        <tr><th>Destino</th><th>Llega en</th></tr>
-        <tr><td>Bogotá y municipios cercanos</td><td>1 – 2 días hábiles</td></tr>
-        <tr><td>Ciudades principales<br>Medellín, Cali, Barranquilla…</td><td>2 – 4 días hábiles</td></tr>
-        <tr><td>Resto del país y reexpedidos</td><td>3 – 6 días hábiles</td></tr>
-      </table>
-      <p class="pe-pie">Días hábiles contados desde el despacho. Te mandamos la guía por WhatsApp o correo para que sigas tu pedido.</p>
-    </div>
+    <!-- Desplegables con <details> nativo: cero JavaScript y accesible de
+         fábrica. Lo que resuelve la objeción de compra —con qué se paga y en
+         cuántos días llega— se queda afuera, a la vista; adentro va el detalle
+         que solo se consulta si hace falta. Esconder la respuesta corta sería
+         enterrar justo lo que la clienta viene a preguntar. -->
+    <details class="pe-caja">
+      <summary>
+        <h3>Medios de pago</h3>
+        <span class="pe-resumen">Nequi, PSE, Bancolombia, tarjeta, contraentrega y hasta 36 cuotas.</span>
+      </summary>
+      <div class="pe-detalle">
+        <p>Elige el que te quede cómodo. Lo confirmamos por chat antes de que pagues.</p>
+        <!-- Los siete primeros se pagan en la web. Addi va aparte: la cuenta es
+             nuestra pero no está habilitada dentro de la pasarela, así que se
+             coordina por chat. Se dice cuál es cuál en vez de mezclarlos: una
+             clienta que elige Addi esperando pagarlo aquí y no lo encuentra es
+             una venta perdida en el último paso. -->
+        <ul class="pe-lista">
+          <li>Bancolombia</li><li>Nequi</li><li>Daviplata</li><li>PSE</li>
+          <li>Tarjeta de crédito</li><li>Tarjeta débito</li><li>Hasta 36 cuotas</li>
+          <li>Contraentrega</li>
+        </ul>
+        <p class="pe-pie"><b>¿Prefieres Addi?</b> También trabajamos con Addi a cuotas;
+          ese se coordina por <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">WhatsApp</a> y no desde el botón de pago.</p>
+        <p class="pe-pie">No emitimos factura electrónica; con tu pedido va el comprobante digital de compra.</p>
+      </div>
+    </details>
+    <details class="pe-caja">
+      <summary>
+        <h3>Tiempos de entrega</h3>
+        <span class="pe-resumen">Llega en 1 a 6 días hábiles con Inter Rapidísimo, con número de guía.</span>
+      </summary>
+      <div class="pe-detalle">
+        <p>Enviamos por <b>Inter Rapidísimo</b> a todo el país, con número de guía.</p>
+        <table class="pe-tabla">
+          <tr><th>Destino</th><th>Llega en</th></tr>
+          <tr><td>Bogotá y municipios cercanos</td><td>1 – 2 días hábiles</td></tr>
+          <tr><td>Ciudades principales<br>Medellín, Cali, Barranquilla…</td><td>2 – 4 días hábiles</td></tr>
+          <tr><td>Resto del país y reexpedidos</td><td>3 – 6 días hábiles</td></tr>
+        </table>
+        <p class="pe-pie">Días hábiles contados desde el despacho. Te mandamos la guía por WhatsApp o correo para que sigas tu pedido.</p>
+      </div>
+    </details>
   </div>
 </section>
 
