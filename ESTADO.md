@@ -47,11 +47,15 @@ No toca `netlify/functions/`, checkout, ni el checkbox real del carrito
 rama (empaque, autoridad Plata 925, densidad, y ahora el hero). Falta
 revisión visual del usuario antes de considerar la fusión a `main`.
 
-**⚠️ NO fusionar a `main` todavía** — Netlify está sin créditos de despliegue
-(ver más abajo) y este cambio sí dispara un deploy real al tocar `.html`
-(la regla `ignore` de `netlify.toml` solo salta despliegues cuando el push es
-puro `.md`). Rama commiteada y empujada, lista para revisión visual, en espera
-de que se confirmen créditos antes de mezclar.
+**⚠️ Esta sesión NO fusiona a `main`.** Los créditos de Netlify se recargaron
+el 2026-09-11 y el auto-publish sigue encendido — cualquier push a `main`
+ahora sí publica solo. Hay otra sesión trabajando en paralelo en
+`claude/charming-sagan-l4q2eq` (mercancía nueva: `assets/stock.json`,
+`assets/*.webp`, `herramientas/entrada/`); el reparto es por archivo, no por
+tema, y la mezcla a `main` la hace esa sesión, en un solo paso, cuando ambas
+ramas estén listas. Esta rama queda commiteada, empujada y actualizada contra
+`main` (`git merge origin/main`, sin conflictos), lista para esa mezcla —
+pero sin empujar más desde aquí.
 
 ## 🚧 Trabajo en curso — contenido orgánico · 2026-09-07
 
