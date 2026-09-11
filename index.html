@@ -741,6 +741,23 @@ section{scroll-margin-top:64px}
 .foot-ig{display:inline-flex;align-items:center;gap:2px;text-decoration:none}
 
 /* barra fija + hoja */
+/* Botón flotante de WhatsApp. z-index por debajo del dock (80) y del visor de
+   fotos (120) a propósito: si alguna vez se solapan, el que manda es el que
+   cobra. El bottom se calcula sobre --dock para que suba si el dock crece. */
+.wa-float{position:fixed;right:14px;bottom:calc(var(--dock) + 14px);z-index:70;
+  display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  background:var(--wa);color:#fff;border-radius:999px;padding:11px 16px 11px 13px;
+  box-shadow:0 6px 20px rgba(42,31,46,.22);line-height:1.15}
+.wa-float svg{flex:0 0 auto}
+.wa-float-tx{display:flex;flex-direction:column;font-size:11px;letter-spacing:.02em;opacity:.92}
+.wa-float-tx b{font-weight:500;font-size:13px;letter-spacing:.03em;opacity:1}
+@media(hover:hover){.wa-float:hover{background:#1e6b58}}
+/* En pantallas muy angostas se queda solo el icono: con el texto, la burbuja
+   se comía casi medio ancho de pantalla. */
+@media(max-width:400px){
+  .wa-float{padding:13px;gap:0}
+  .wa-float-tx{display:none}
+}
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:var(--bone);
   border-top:1px solid rgba(255,255,255,.14);height:var(--dock);
   display:flex;align-items:center;gap:10px;padding:0 12px;cursor:pointer}
@@ -954,6 +971,15 @@ body.sheet-open{overflow:hidden}
     height:1px;background:var(--line);z-index:1}
   .esc-t{padding:22px 14px 16px}
   .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
+  /* Sin esto el carrusel aplasta la columna de texto: un hijo de rejilla no
+     baja de su ancho mínimo de contenido, y el .rail mide lo que suman sus
+     cinco tarjetas (~800px). Con min-width:0 puede encogerse y desplazarse
+     por dentro, que es justo lo que hace un carrusel. */
+  .plata-in>*{min-width:0}
+  /* El .rail sangra 16px a cada lado para llegar al borde de la pantalla en
+     celular. Dentro de una columna de escritorio eso se sale del contenedor,
+     así que ahí se cancela. */
+  .plata-rail .rail{margin:0;padding-left:0;padding-right:0}
   .pack-hero-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .revs{grid-template-columns:repeat(2,1fr);gap:20px}
   .case{grid-template-columns:150px 1fr;gap:24px;padding:22px;align-items:center}
@@ -1351,10 +1377,16 @@ body.sheet-open{overflow:hidden}
 <div class="pc-foot"><span class="pc-price">$80.000</span><button class="pc-add" type="button" data-add="osito-pave-con-corazon" aria-label="Agregar Osito Pavé con Corazón">Agregar</button></div></div></article></div>
     </div>
     <p class="rail-hint">Desliza para ver más →</p>
+    <!-- El catálogo completo arranca cerrado: son 86 piezas y desplegadas de
+         entrada convertían la página en una parrilla interminable. El carrusel
+         de destacados de arriba y las tarjetas de categoría son la puerta de
+         entrada; quien quiera verlo todo lo abre acá. El texto del botón y el
+         aria-expanded tienen que arrancar coherentes con hidden, o el lector
+         de pantalla anuncia lo contrario de lo que se ve. -->
     <div class="more-wrap">
-      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="true">Ocultar catálogo completo</button>
+      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver el catálogo completo · 86 charms</button>
     </div>
-    <div id="full-cat">
+    <div id="full-cat" hidden>
       <div class="buscar">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
         <input type="search" id="q" placeholder="Buscar un charm por nombre…" aria-label="Buscar un charm por nombre" autocomplete="off">
@@ -1980,6 +2012,19 @@ body.sheet-open{overflow:hidden}
   <a class="btn btn--pagar xs-go" href="#charms" id="xs-go">Ver charms</a>
   <button class="xs-x" type="button" id="xs-x" aria-label="Cerrar aviso">✕</button>
 </div>
+
+<!-- Botón flotante de WhatsApp. Va por encima del dock, nunca encima: el dock
+     lleva el precio y el botón de comprar, y taparlo costaría ventas.
+     Ojo con la medición: el listener de más abajo cuenta todo clic a wa.me
+     como InitiateCheckout, porque el checkout de verdad pasa en el chat. Este
+     botón se toca de forma casual, así que va etiquetado como "flotante" para
+     poder separarlo en Meta si empieza a ensuciar la señal de la pauta. -->
+<a class="wa-float" data-wa="flotante"
+   href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Estoy%20en%20la%20p%C3%A1gina%20y%20tengo%20una%20duda."
+   aria-label="Escríbenos por WhatsApp si tienes dudas">
+  <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.17c-.25.69-1.44 1.32-1.99 1.4-.53.08-1.2.11-1.94-.12-.45-.14-1.02-.33-1.76-.65-3.1-1.34-5.12-4.46-5.28-4.67-.15-.21-1.26-1.67-1.26-3.19s.8-2.27 1.08-2.58c.28-.31.61-.39.82-.39.2 0 .41 0 .59.01.19.01.44-.07.69.53.25.6.86 2.12.94 2.27.08.15.13.33.03.54-.1.21-.15.33-.29.51-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.73-.85.92-1.15.19-.29.39-.24.65-.15.26.1 1.66.78 1.94.93.29.15.48.22.55.34.07.13.07.72-.18 1.41z"/></svg>
+  <span class="wa-float-tx">¿Tienes dudas?<b>Escríbenos</b></span>
+</a>
 
 <div class="dock" id="dock" role="button" tabindex="0" aria-label="Ver tu selección">
   <div class="dock-bar" id="dock-bar" aria-hidden="true"><i></i></div>
