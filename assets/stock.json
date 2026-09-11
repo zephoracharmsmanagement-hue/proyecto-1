@@ -269,7 +269,7 @@
   "iron-man": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 3,
+   "stock": 5,
    "familia": "pasador"
   },
   "mjolnir-martillo-de-thor": {
@@ -287,13 +287,13 @@
   "deadpool": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 1,
+   "stock": 5,
    "familia": "pasador"
   },
   "spider-man": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 2,
+   "stock": 4,
    "familia": "colgante"
   },
   "guantelete-del-infinito": {
@@ -305,13 +305,13 @@
   "capitan-america": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 1,
+   "stock": 5,
    "familia": "pasador"
   },
   "wolverine": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 3,
+   "stock": 5,
    "familia": "pasador"
   },
   "corazon-de-filigrana": {
@@ -521,7 +521,7 @@
   "angel-guardian": {
    "tipo": "charm",
    "precio": 76000,
-   "stock": 2,
+   "stock": 3,
    "familia": "colgante"
   },
   "pulsera-copo-de-nieve": {
@@ -637,7 +637,11 @@
   "pulsera-avengers": {
    "tipo": "pulsera",
    "precio": 58000,
-   "tallas": {}
+   "tallas": {
+    "18": 8,
+    "19": 8,
+    "20": 8
+   }
   },
   "pulsera-mono-rosa-con-cadena": {
    "tipo": "pulsera",
@@ -662,7 +666,7 @@
   "casa-de-los-globos": {
    "tipo": "charm",
    "precio": 85000,
-   "stock": 0,
+   "stock": 2,
    "familia": "pasador"
   },
   "walle": {
@@ -686,7 +690,7 @@
   "luciernaga-you-are-my-light": {
    "tipo": "charm",
    "precio": 72000,
-   "stock": 0,
+   "stock": 5,
    "familia": "colgante"
   },
   "cancer": {

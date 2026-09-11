@@ -64,12 +64,24 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   const desp = await p.evaluate(() => document.querySelectorAll('#sheet-body .srow').length);
   ok(antes === desp, 'tocar un agotado no lo agrega al carrito');
 
-  console.log('4 · letras: A se agrega, F agotada');
+  /* La letra agotada sale del inventario, no escrita a mano: aquí decía «F», y
+     al entrar mercancía la F pasó a tener unidades y esta comprobación empezó a
+     fallar con el sitio en lo cierto. Es el mismo tropiezo que ya documenta el
+     paso 3 unas líneas más arriba. Si algún día no queda ninguna inicial
+     agotada, no hay nada que comprobar y se dice, en vez de fallar. */
+  const SIN = Object.keys(INV).find(k => k.startsWith('letra-') && INV[k].stock === 0);
+  const letraSin = SIN && SIN.slice('letra-'.length);
+  console.log(`4 · letras: A se agrega, ${letraSin ? letraSin.toUpperCase() + ' agotada' : 'ninguna agotada'}`);
   ok(await p.locator('.lbtn').count() === 27, 'hay 27 iniciales');
   await p.click('.lbtn[data-letra="a"]');
   await p.waitForTimeout(150);
   ok(await p.evaluate(() => [...document.querySelectorAll('#sheet-body .srow-n')].some(e => e.textContent.includes('Letra A'))), 'Letra A entra al carrito');
-  ok(await p.evaluate(() => document.querySelector('.lbtn[data-letra="f"]').getAttribute('aria-disabled') === 'true'), 'Letra F sale agotada');
+  if (letraSin) {
+    ok(await p.evaluate(l => document.querySelector(`.lbtn[data-letra="${l}"]`).getAttribute('aria-disabled') === 'true',
+      letraSin), `Letra ${letraSin.toUpperCase()} sale agotada`);
+  } else {
+    console.log('  · no hay ninguna inicial en cero: nada que comprobar');
+  }
 
   console.log('5 · descuentos intactos: 30% brazalete, 15% charms');
   /* Desde que el carrito persiste en localStorage, recargar ya no lo vacía:
