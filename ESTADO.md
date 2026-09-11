@@ -5,6 +5,29 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🔒 Trabajo reclamado ahora mismo — 2026-09-11
+
+Hay **dos sesiones abiertas a la vez**. Esto se borra cuando cada una cierre.
+
+| Sesión | Rama | Qué toca | Qué NO toca |
+|---|---|---|---|
+| Mercancía nueva (esta) | `claude/charming-sagan-l4q2eq` | `assets/stock.json`, `assets/*.webp`, `herramientas/entrada/` | **`index.html`**, `netlify.toml`, `netlify/functions/` |
+| «website modifications» (terminal) | `claude/zephora-empaque-hero` | `index.html`, `netlify.toml` | `assets/stock.json` |
+
+El reparto no es cortesía: el catálogo (`const DATA=…`, `index.html:1860`) y el
+inventario (`assets/stock.json`) son **archivos distintos**, y por eso reponer
+unidades y cambiar la página pueden ir en paralelo sin tocarse. Lo que sí
+choca son las **referencias nuevas**: una pieza que hoy no existe necesita una
+entrada en `DATA`, dentro de `index.html`. Por eso quedan **preparadas y sin
+aplicar** en `herramientas/entrada/nuevas-referencias.json` hasta que
+`claude/zephora-empaque-hero` se mezcle a `main`.
+
+**Sin desplegar a propósito.** El despliegue vivo sigue siendo el commit
+`df87a91` del 2026-08-28, con `main` varios commits por delante: las
+publicaciones están detenidas en el panel. Empujar a una rama `claude/*` no
+publica nada en ningún caso —solo `main` publica—, pero mientras eso siga así,
+ni siquiera mezclar a `main` saca nada al aire.
+
 ## ⚠️ Consolidación de ramas — 2026-08-20
 
 **El tronco es `main`.** Se creó consolidando las nueve ramas `claude/*` que
