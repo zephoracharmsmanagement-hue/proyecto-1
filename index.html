@@ -348,9 +348,16 @@ section{scroll-margin-top:64px}
 /* Carrusel de videos de clientas. Va fuera de .story-in a proposito: el texto
    se lee mejor en una columna angosta, pero los videos piden todo el ancho. */
 .ugc-rail{margin-top:30px}
-.ugc-rail .rail{grid-auto-columns:minmax(180px,220px);align-items:start}
-.ugc-v{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:4px;
-  background:var(--ink);display:block;scroll-snap-align:start}
+/* Un video por pantalla en celular, no tres miniaturas: a 220px el texto que
+   viene quemado en el video no se leia y las tarjetas del borde quedaban
+   cortadas. El 78vw deja asomar la siguiente, que es lo que le dice a la
+   clienta que puede deslizar. El encaje pasa a mandatory para que cada
+   deslizada caiga en un video completo y no a medias. */
+.ugc-rail .rail{grid-auto-columns:78vw;align-items:start;scroll-snap-type:x mandatory}
+/* contain y no cover: con cover, cualquier diferencia de proporcion recorta
+   imagen, y estos videos llevan texto pegado a los bordes. */
+.ugc-v{width:100%;aspect-ratio:9/16;object-fit:contain;border-radius:4px;
+  background:var(--ink);display:block;scroll-snap-align:center}
 
 /* 6a · autoridad plata 925 — mismo patrón que .story, columnas invertidas
    (texto en la 1.1fr, foto en la .9fr) para que la imagen quede a la derecha
@@ -996,6 +1003,9 @@ body.sheet-open{overflow:hidden}
      celular. Dentro de una columna de escritorio eso se sale del contenedor,
      así que ahí se cancela. */
   .plata-rail .rail{margin:0;padding-left:0;padding-right:0}
+  /* En escritorio caben tres videos completos sin encogerlos: el 78vw de
+     celular aqui daria un video gigante y ridiculo. */
+  .ugc-rail .rail{grid-auto-columns:300px;justify-content:center}
   .pack-hero-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .revs{grid-template-columns:repeat(2,1fr);gap:20px}
   .case{grid-template-columns:150px 1fr;gap:24px;padding:22px;align-items:center}
@@ -1101,7 +1111,7 @@ body.sheet-open{overflow:hidden}
       </div>
     </div>
     <div class="hbanner-slide">
-      <img class="hbanner-img" src="assets/hero-marca-ancho.webp" alt="Pulsera Zephora armada con charms en Plata 925" width="1600" height="893" decoding="async">
+      <img class="hbanner-img" src="assets/hero-marca-ancho.webp?v=20260912" alt="Pulsera Zephora armada con charms en Plata 925, sobre lino con luz natural" width="1280" height="714" decoding="async">
       <div class="hbanner-copy">
         <span class="eyebrow">Joyería con significado · Colombia</span>
         <h2>Diseña una historia<br><i>tan única como tú</i></h2>
