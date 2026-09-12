@@ -355,8 +355,14 @@ section{scroll-margin-top:64px}
    deslizada caiga en un video completo y no a medias. */
 .ugc-rail .rail{grid-auto-columns:78vw;align-items:start;scroll-snap-type:x mandatory}
 /* contain y no cover: con cover, cualquier diferencia de proporcion recorta
-   imagen, y estos videos llevan texto pegado a los bordes. */
-.ugc-v{width:100%;aspect-ratio:9/16;object-fit:contain;border-radius:4px;
+   imagen, y estos videos llevan texto pegado a los bordes.
+   El height:auto NO es decorativo. Los atributos width/height del <video>
+   valen como estilo implicito, asi que sin esto el alto se queda clavado en
+   los 1280px del atributo; aspect-ratio solo actua cuando una de las dos
+   medidas es automatica, y el video quedaba pintado arriba con media pantalla
+   de fondo debajo. El sitio ya tiene img{height:auto} global por lo mismo,
+   pero esa regla no cubre a los <video>. */
+.ugc-v{width:100%;height:auto;aspect-ratio:9/16;object-fit:contain;border-radius:4px;
   background:var(--ink);display:block;scroll-snap-align:center}
 
 /* 6a · autoridad plata 925 — mismo patrón que .story, columnas invertidas
