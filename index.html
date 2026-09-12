@@ -345,6 +345,12 @@ section{scroll-margin-top:64px}
 .story h2 i{font-style:italic;color:var(--plum)}
 .story p{color:#584a5c;margin:0 auto 14px;max-width:52ch}
 .story p:last-of-type{margin-bottom:22px}
+/* Carrusel de videos de clientas. Va fuera de .story-in a proposito: el texto
+   se lee mejor en una columna angosta, pero los videos piden todo el ancho. */
+.ugc-rail{margin-top:30px}
+.ugc-rail .rail{grid-auto-columns:minmax(180px,220px);align-items:start}
+.ugc-v{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:4px;
+  background:var(--ink);display:block;scroll-snap-align:start}
 
 /* 6a · autoridad plata 925 — mismo patrón que .story, columnas invertidas
    (texto en la 1.1fr, foto en la .9fr) para que la imagen quede a la derecha
@@ -1761,10 +1767,6 @@ body.sheet-open{overflow:hidden}
 <!-- 6 · HISTORIA -->
 <section class="story" id="historia">
   <div class="wrap story-in">
-    <!-- Acá iba una foto de producto de catálogo. Se quitó: esta sección es la
-         emocional y la foto no decía nada que el texto no diga mejor. El lugar
-         está reservado para un carrusel de video de clientas (UGC) cuando
-         exista el material; hasta entonces la sección va solo con texto. -->
     <div>
       <span class="eyebrow">Por qué charms</span>
       <h2>No vendemos joyas.<br><i>Guardamos momentos.</i></h2>
@@ -1772,6 +1774,41 @@ body.sheet-open{overflow:hidden}
       <p>Una pulsera Zephora se arma pieza a pieza, como se arma una vida: con recuerdos, personas, sueños y momentos que merecen estar contigo todos los días. Por eso ninguna es igual a otra — porque ninguna historia lo es.</p>
       <a class="btn" href="#brazaletes">Empieza la tuya</a>
     </div>
+  </div>
+
+  <!-- Videos de clientas. Tres decisiones que no son de estilo:
+       1. Sin atributo autoplay y con preload="none". Los tres videos suman
+          5,4 MB, dieciocho veces lo que pesa el resto de la pagina: cargarlos
+          al abrir castigaria a quien entra con datos, que es por donde mas se
+          compra. Solo se ve la portada (185 KB los tres) hasta que la seccion
+          entra en pantalla, y ahi el script los arranca.
+       2. muted y playsinline no son opcionales: los navegadores de celular
+          solo reproducen solos los videos silenciados, y sin playsinline iOS
+          abre el video a pantalla completa. Los archivos ademas van sin pista
+          de audio, asi que no hay nada que silenciar.
+       3. Sin controls: llevan solo musica de fondo, se ven en bucle y cortos.
+          Quien tenga activado "reducir movimiento" no los ve moverse — el
+          script se lo respeta y le deja los controles. -->
+  <div class="wrap ugc-rail">
+    <div class="rail-wrap">
+      <button class="rail-btn rail-btn--prev" type="button" aria-label="Videos anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="rail-btn rail-btn--next" type="button" aria-label="Más videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      <div class="rail">
+        <video class="ugc-v" poster="assets/historia-1-portada.webp" muted loop playsinline preload="none"
+               width="720" height="1280" aria-label="Clienta abre un regalo con un brazalete Zephora y se lo pone en la muñeca">
+          <source src="assets/historia-1.mp4" type="video/mp4">
+        </video>
+        <video class="ugc-v" poster="assets/historia-2-portada.webp" muted loop playsinline preload="none"
+               width="720" height="1280" aria-label="Una clienta le pone a su novio un brazalete con sus charms favoritos">
+          <source src="assets/historia-2.mp4" type="video/mp4">
+        </video>
+        <video class="ugc-v" poster="assets/historia-3-portada.webp" muted loop playsinline preload="none"
+               width="720" height="1280" aria-label="Un charm azul en su caja de regalo Zephora, listo para entregar">
+          <source src="assets/historia-3.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+    <p class="rail-hint">Desliza para ver más &rarr;</p>
   </div>
 </section>
 
@@ -2157,6 +2194,31 @@ hbPause.addEventListener('click',()=>{
   const paused=hbTrack.classList.toggle('paused');
   hbPause.setAttribute('aria-pressed', paused ? 'true' : 'false');
 });
+
+/* Videos de clientas: no se descargan hasta que la seccion entra en pantalla.
+ *
+ * Los tres suman 5,4 MB contra los 300 KB del resto de la pagina, asi que
+ * arrancarlos al cargar castigaria a quien entra con datos moviles. Con
+ * preload="none" solo viaja la portada; el observer pide el video cuando la
+ * pieza se ve, y lo pausa al salir para no gastar bateria ni datos de fondo.
+ *
+ * A quien pidio "reducir movimiento" no se le reproduce nada: se le dejan los
+ * controles para que decida. Es la misma regla que ya respetan el banner y el
+ * ticker de avisos. */
+const quietoPorPreferencia = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ugcVideos = document.querySelectorAll('.ugc-v');
+if (quietoPorPreferencia) {
+  ugcVideos.forEach(v => { v.controls = true; v.preload = 'metadata'; });
+} else if (ugcVideos.length) {
+  const ojo = new IntersectionObserver(entradas => {
+    entradas.forEach(e => {
+      const v = e.target;
+      if (e.isIntersecting) { v.play().catch(()=>{ v.controls = true; }); }
+      else { v.pause(); }
+    });
+  }, { threshold: 0.4 });
+  ugcVideos.forEach(v => ojo.observe(v));
+}
 
 /* La calculadora de talla esta plegada, pero el menu superior y dos enlaces
    mas apuntan a #talla. Caer ahi y encontrarla cerrada, justo despues de pedir
