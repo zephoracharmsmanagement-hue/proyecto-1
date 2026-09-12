@@ -1,0 +1,5 @@
+Deja aqui los videos tal como salen del celular.
+
+Esta carpeta es un buzon temporal: los originales NO se publican.
+Se recomprimen a una version web y esa es la que va a assets/.
+Cuando la version web este lista, esta carpeta se borra.
