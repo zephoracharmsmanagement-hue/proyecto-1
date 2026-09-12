@@ -264,6 +264,29 @@ Tres cosas que ahorran un rodeo:
   un número muerto y la gente se va. Media un minuto alcanza de sobra: las
   ráfagas se escriben en segundos.
 
+### `.item` se rompe después del Wait — usa `.first()`
+
+El error más caro de este patrón, y el más difícil de ver. `$('Nodo').item`
+resuelve por la cadena de trazabilidad entre items, y **el nodo Wait y los de
+Data Table la rompen**: a partir de ahí devuelve vacío en vez de fallar.
+
+Las consecuencias no se parecen a la causa. El teléfono sale `null`, así que
+**todas las conversaciones se escriben en la misma fila** y los buffers de
+distintas clientas se mezclan; la memoria revienta con `Key parameter is
+empty`; y el nodo de envío no sabe a quién responder. El síntoma que ve el
+dueño es «a esta clienta no le contestó», y parece un problema de la ráfaga.
+
+En una ejecución que atiende un mensaje, **`$('Nodo').first()` hace lo mismo
+sin depender de nada**. Úsalo en toda la cadena posterior al Wait, y saca el
+teléfono del nodo que lo calculó, no del trigger:
+
+```
+sessionKey de la memoria   →  {{ $('Combinar buffer').first().json.telefono }}
+destinatario del envío     →  {{ $('Combinar buffer').first().json.telefono }}
+```
+
+Regla corta: **en cuanto el flujo tenga un Wait, `.item` deja de ser de fiar.**
+
 ## Mensajes que no son texto
 
 Alguien manda una nota de voz, un sticker o una reacción, y `messages[0].text`
