@@ -5,10 +5,13 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## 🚧 Trabajo en curso — videos de clientas · 2026-09-12
+## Videos de clientas — publicado el 2026-09-12
 
-**Rama `claude/videos-ugc`, tres commits, SIN publicar.** Llena el hueco que
-había quedado reservado en «Guardamos momentos».
+**Está en el aire.** Despliegue `6aa5dafe092f3b00082bd52f`, commit `1ac3445`.
+Verificado contra el sitio vivo: los tres `.mp4` y sus portadas responden 200
+con el tipo correcto, los dos `fbq('init')` siguen ahí, y checkout y la página
+de gracias responden 200. Llena el hueco que había quedado reservado en
+«Guardamos momentos».
 
 **Qué trae:** carrusel de tres videos verticales de clientas en `#historia`,
 más el reemplazo de la foto del banner de marca (la anterior tenía errores de
@@ -64,7 +67,8 @@ a pantalla completa.
 
 ### Pendiente
 
-- Publicar la rama (merge a `main` → despliegue, ~15 créditos).
+- **Antes del 19 de septiembre:** sacar o reemplazar el primer video, por la
+  fecha quemada. Es lo único con vencimiento de toda esta tanda.
 - Los textos de Instagram para estos tres videos se redactaron en sesión y
   **no están en el repo**. Los tres son **pilar 1** del
   `CALENDARIO-EDITORIAL.md` —POV, alcance, cierre en perfil— así que van sin
