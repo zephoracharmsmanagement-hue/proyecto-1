@@ -5,6 +5,72 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🚧 Trabajo en curso — videos de clientas · 2026-09-12
+
+**Rama `claude/videos-ugc`, tres commits, SIN publicar.** Llena el hueco que
+había quedado reservado en «Guardamos momentos».
+
+**Qué trae:** carrusel de tres videos verticales de clientas en `#historia`,
+más el reemplazo de la foto del banner de marca (la anterior tenía errores de
+producto) y del video del novio (versión con cierre de logo).
+
+### Cómo se preparan los videos — receta, no improvisación
+
+Los originales del celular pesaban 16–22 MB cada uno (1080×1920, más de 1 MB
+por segundo). **No se suben así.** FFmpeg no está instalado en el sistema; se
+usa aislado sin tocar Windows:
+
+```bash
+npm install ffmpeg-static      # dentro de una carpeta temporal, no del repo
+node -e "console.log(require('ffmpeg-static'))"   # da la ruta al binario
+```
+
+Y por cada video:
+
+```bash
+ffmpeg -i ORIGEN.mov -vf scale=720:-2 -c:v libx264 -preset slow -crf 30 \
+  -profile:v main -pix_fmt yuv420p -movflags +faststart -an assets/NOMBRE.mp4
+ffmpeg -ss 1 -i ORIGEN.mov -frames:v 1 -vf scale=720:-2 assets/NOMBRE-portada.webp
+```
+
+`-an` quita la pista de audio: los videos llevan solo música de fondo y se
+reproducen silenciados, así que el audio era peso muerto. Resultado: **57,7 MB
+→ 5,4 MB los tres**, con portadas de 185 KB en total.
+
+**Por qué no hay `autoplay` en el HTML.** Aun comprimidos, los videos pesan
+dieciocho veces el resto de la página. Con `preload="none"` solo viaja la
+portada; un `IntersectionObserver` los arranca cuando la sección entra en
+pantalla y los pausa al salir. Quien nunca baje hasta ahí no gasta un byte en
+video. **Si alguien agrega `autoplay` al `<video>`, deshace esto sin que se
+note**, porque en escritorio con buena conexión se ve igual.
+
+`muted` y `playsinline` tampoco son estilo: los navegadores de celular solo
+reproducen solos los videos silenciados, y sin `playsinline` iOS abre el video
+a pantalla completa.
+
+### Dos decisiones del propietario, tomadas con la información delante
+
+1. **El primer video muestra una caja de Pandora**, abierta en el segundo 3 con
+   un brazalete de Zephora dentro, mientras el texto dice «sorpréndela con un
+   brazalete de Zephora Charms». Se advirtió el riesgo de marca —es más visible
+   que las fotos que `TRIAJE-FOTOS.md` obligó a recomponer— y **el propietario
+   decidió publicarlo completo el 2026-09-12**. No es un descuido: no lo
+   "arregles" por tu cuenta. Si se quiere revertir, la versión limpia se saca
+   cortando los primeros 4,8 segundos:
+   `ffmpeg -ss 4.8 -i ORIGEN.mov ...` (mismos parámetros de arriba) → 10,8 s.
+2. **Ese mismo video lleva quemado «Éste 19 de Septiembre».** Caduca. Después
+   del 19 hay que sacarlo o reemplazarlo, o la página de inicio queda anunciando
+   una fecha pasada.
+
+### Pendiente
+
+- Publicar la rama (merge a `main` → despliegue, ~15 créditos).
+- Los textos de Instagram para estos tres videos se redactaron en sesión y
+  **no están en el repo**. Los tres son **pilar 1** del
+  `CALENDARIO-EDITORIAL.md` —POV, alcance, cierre en perfil— así que van sin
+  escalera de precios y con comentario disparador. No publicarlos seguidos:
+  la doctrina prohíbe rachas de un solo pilar en las dos direcciones.
+
 ## Segunda tanda de la landing — publicado el 2026-09-11
 
 Despliegue `6aa47c76f24f7a000822ee58`, commit `3459846`. Verificado contra el
@@ -84,9 +150,9 @@ nadie lo deshaga sin saber:
 
 **Dos cosas pendientes, a propósito:**
 
-- El hueco donde iba la foto de «Guardamos momentos» está reservado para un
-  **carrusel de video UGC**; hasta que exista el material, la sección va solo
-  con texto.
+- ~~El hueco donde iba la foto de «Guardamos momentos» está reservado para un
+  **carrusel de video UGC**~~ — **hecho el 2026-09-12**, ver el bloque de
+  trabajo en curso al principio de este documento.
 - **El botón flotante de WhatsApp lleva `data-wa="flotante"`** por una razón
   concreta: el listener cuenta *todo* clic a `wa.me` como `InitiateCheckout`,
   que es el evento con el que optimiza la pauta. Un botón siempre visible se
