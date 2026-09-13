@@ -102,13 +102,21 @@ Tarifa plana nacional, sin cotizar por ciudad:
 
 | Forma de pago | Envío |
 |---|---|
-| Anticipado | $15.000 |
-| Contraentrega | $25.000 — la transportadora cobra por recaudar |
-| Cualquiera, desde $180.000 de mercancía | Gratis |
+| Anticipado | **Gratis**, sin monto mínimo |
+| Contraentrega | $20.000 — la transportadora cobra por recaudar |
 
 El costo **se suma al total** que ve la clienta, así que lo que muestra la página
-es lo que paga. El umbral de envío gratis se mide sobre la mercancía y no sobre el
-total: si contara el total, el propio envío ayudaría a alcanzarlo.
+es lo que paga.
+
+Hasta el 13 de septiembre de 2026 el envío anticipado costaba $15.000 y solo era
+gratis desde $180.000 de mercancía. Se quitó el umbral porque el carrito típico
+se quedaba en ~$152.000: nadie lo alcanzaba y el envío aparecía como sorpresa en
+el último paso —el checkout perdía el 89% entre `InitiateCheckout` y
+`AddPaymentInfo`—. El costo real del envío no desapareció: se absorbió subiendo
+$10.000 todas las piezas, que con márgenes del 88% en charms y del 71% en
+pulseras cabe de sobra. `reglas.envioGratisDesde` sigue existiendo en
+`catalogo.json` y vale 0; si algún día vuelve un umbral, basta con subirlo ahí y
+la barra de progreso reaparece sola.
 
 Al cambiar estas tarifas hay que tocar `ENVIO` en `index.html` **y** la copia en
 tres sitios que las repiten: la barra de avisos, la franja de beneficios y la de
@@ -280,15 +288,17 @@ porque el proveedor de correo estaba lento, no se perdona.
 
 La contraentrega le cuesta a la tienda la comisión de recaudo de la
 transportadora y el riesgo de que el paquete se devuelva sin cobrar, así que
-ahí el envío se cobra siempre, pase de $180.000 o no.
+ahí el envío se cobra siempre, sea cual sea el tamaño del carrito.
 
 Lo delicado no es la regla, es **no prometerla y quitarla al final**. Por eso:
 
 - Cada forma de pago muestra lo que le costaría el envío a *ese* carrito, antes
   de elegir.
-- Quien ya pasó el umbral con contraentrega ve por qué su envío no es gratis,
-  con el ahorro en pesos y un botón que aplica el cambio.
-- Quien no ha llegado lee «con pago anticipado» en el mensaje de progreso.
+- Quien elige contraentrega ve por qué su envío no es gratis, con el ahorro en
+  pesos y un botón que aplica el cambio.
+- La barra de progreso hacia el envío gratis se esconde mientras el umbral sea
+  0: medir el avance hacia cero no es informar, es inventar una condición que
+  ya no existe (y dividir por cero, un NaN en mitad del checkout).
 
 La regla sale de `LIBRE_SOLO_ANTICIPADO` en `index.html`, la copia el extractor
 y la aplican las tres calculadoras.

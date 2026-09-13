@@ -30,11 +30,18 @@ function exigir(v, queHaceFalta) {
   return v;
 }
 
-/* El brazalete de cada día: con unidades y a $58.000, que es el precio sobre el
-   que están escritos los totales de las aserciones del checkout. */
+/* El brazalete de cada día: el más barato que todavía tenga unidades.
+ *
+ * Estuvo clavado a $58.000 —el precio que tenía la gama baja— y era la misma
+ * falta que este archivo denuncia arriba: el 13 de septiembre subió toda la
+ * tabla $10.000 y la batería del checkout se puso roja sin que el sitio
+ * tuviera nada mal. El precio se lee de la pieza elegida, así que las
+ * aserciones que lo usan siguen cuadrando cualquiera que sea la tabla. */
 function brazalete() {
-  const hit = pulseras().find(([, v]) => v.precio === 58000 && conUnidades(v.tallas).length);
-  exigir(hit, 'ningún brazalete de $58.000 con unidades');
+  const hit = pulseras()
+    .filter(([, v]) => conUnidades(v.tallas).length)
+    .sort((a, b) => a[1].precio - b[1].precio)[0];
+  exigir(hit, 'ningún brazalete con unidades');
   return { id: hit[0], talla: conUnidades(hit[1].tallas)[0][0], precio: hit[1].precio,
     nombre: NOMBRES[hit[0]] };
 }

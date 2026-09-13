@@ -105,10 +105,22 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
     total: document.getElementById('v-tot').textContent,
     lb: document.getElementById('l-b').textContent,
   }));
-  // brazalete 58.000 → -30% = 17.400 ; charms 85+85+85=255.000 → -15% = 38.250 ; ahorro 55.650
+  /* Las cifras salen del mismo `calcular()` que cobra el servidor, no escritas
+     a mano: estaban clavadas a la tabla de precios de agosto y el 13 de
+     septiembre, al subir todo $10.000, este paso se puso rojo con el sitio
+     perfectamente sano. Lo que se comprueba es que los dos descuentos sigan
+     aplicándose y que pantalla y servidor digan lo mismo. */
+  const { leerPedido, calcular, cop } = require(
+    path.join(__dirname, '..', 'netlify', 'functions', '_precios.js'));
+  const esperado = calcular(leerPedido({
+    base: { id: 'pulsera-corazon-liso', talla: '18' },
+    charms: ['mickey-mouse', 'ariel', 'hulk'], pago: 'anticipado' }));
   console.log('   ', JSON.stringify(tot));
-  ok(tot.save.replace(/\D/g, '') === '55650', 'ahorro = 17.400 (30% brazalete) + 38.250 (15% charms)');
-  ok(tot.total.replace(/\D/g, '') === '257350', 'total 257.350');
+  ok(tot.save.replace(/\D/g, '') === String(esperado.descuento),
+    'ahorro = 30% del brazalete + 15% de los charms: ' + cop(esperado.descuento));
+  ok(esperado.descuento > 0, 'y los dos descuentos de verdad se aplicaron');
+  ok(tot.total.replace(/\D/g, '') === String(esperado.total),
+    'el total de la pantalla es el que cobraría el servidor: ' + cop(esperado.total));
   ok(tot.lb.includes('18 cm'), 'el resumen muestra la talla');
 
   console.log('5b · «Te puede interesar» dentro de la hoja');
@@ -172,7 +184,7 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
       f.querySelector('.srow-x').click();
     });
     await p.waitForTimeout(200);
-    ok((await p.locator('#v-tot').textContent()).replace(/\D/g, '') === '257350',
+    ok((await p.locator('#v-tot').textContent()).replace(/\D/g, '') === String(esperado.total),
       'y quitarla devuelve el total de antes', puesto);
     /* Se cierra: los pasos siguientes trabajan con la tienda a la vista. */
     await p.evaluate(() => {

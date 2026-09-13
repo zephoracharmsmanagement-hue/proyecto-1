@@ -208,12 +208,22 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     ok(con.total - ant.total === R.envio.contraentrega,
       'la diferencia entre ambos es exactamente el envío de contraentrega');
 
-    /* Y por debajo del umbral cada uno paga su tarifa, como siempre. */
+    /* El carrito más chico posible: un solo charm. Con umbral 0 ya no existe
+       el «por debajo del mínimo», y eso es justo lo que hay que comprobar —el
+       envío gratis del prepago no puede depender del tamaño del carrito—. Si
+       algún día vuelve un umbral, este bloque lo detecta solo. */
     const flaco = { charms: ['mickey-mouse'] };
     const fa = calcular(leerPedido(Object.assign({}, flaco, { pago: 'anticipado' })));
     const fc = calcular(leerPedido(Object.assign({}, flaco, { pago: 'contraentrega' })));
-    ok(fa.envio === R.envio.anticipado && fc.envio === R.envio.contraentrega,
-      'por debajo del umbral cada forma de pago paga su tarifa');
+    const bajoUmbral = fa.subtotal < R.envioGratisDesde;
+    ok(fa.envio === (bajoUmbral ? R.envio.anticipado : 0),
+      bajoUmbral
+        ? 'por debajo del umbral el anticipado paga su tarifa'
+        : 'sin umbral, el carrito más chico también lleva envío gratis anticipado',
+      cop(fa.envio));
+    ok(fc.envio === R.envio.contraentrega,
+      'la contraentrega paga su tarifa sin importar el tamaño del carrito',
+      cop(fc.envio));
   }
 
   /* La escalera de la portada es HTML escrito a mano: los porcentajes no salen

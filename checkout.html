@@ -798,37 +798,45 @@ function pintarResumen(){
    * `calcular()` que pinta el total, así que no puede discrepar de lo que se
    * cobra.
    *
-   * Con carrito vacío no se dice nada: «te faltan $180.000» a quien no lleva
-   * nada no es un empujón, es una cifra intimidante. */
+   * Con carrito vacío no se dice nada: una cifra que falta, a quien no lleva
+   * nada, no es un empujón sino algo intimidante. Y desde el 13 de septiembre
+   * el umbral es 0 —envío gratis siempre con pago anticipado—, así que lo que
+   * queda por decir no es cuánto falta sino a qué forma de pago le toca. */
   const bar=$('#env-bar'), nota=$('#env-nota');
-  const falta=Math.max(0, CAT.reglas.envioGratisDesde - t.subtotal);
-  if(t.subtotal<=0){
-    bar.hidden=true; nota.textContent=''; nota.className='env-nota';
+  /* Con umbral 0 no hay progreso que medir: `t.subtotal/0` es Infinity y, si
+     el carrito llegara vacío, NaN — un ancho roto justo en el checkout. La
+     barra solo existe mientras exista un mínimo que alcanzar. */
+  const umbral=CAT.reglas.envioGratisDesde;
+  const falta=Math.max(0, umbral - t.subtotal);
+  if(t.subtotal<=0 || umbral<=0){
+    bar.hidden=true;
     bar.firstElementChild.style.width='0';
   }else{
     bar.hidden=false;
     bar.classList.toggle('is-ok', t.gratis);
-    bar.firstElementChild.style.width=
-      Math.min(100, t.subtotal/CAT.reglas.envioGratisDesde*100)+'%';
-    if(t.gratis){
-      nota.textContent='✓ Tu pedido lleva envío gratis';
-      nota.className='env-nota is-ok';
-    }else if(t.alcanza){
-      /* Alcanzó el monto pero eligió contraentrega. Se le dice aquí, con el
-         ahorro en pesos, en vez de dejar que lo descubra en el total. */
-      nota.textContent='Ya pasas de '+cop(CAT.reglas.envioGratisDesde)
-        +'. Pagando por adelantado el envío te sale gratis: '+cop(t.envio)+' menos.';
-      nota.className='env-nota';
-    }else{
-      nota.textContent='Te faltan '+cop(falta)+' para el envío gratis'
-        +(CAT.reglas.envioGratisSoloAnticipado?' con pago anticipado':'')+'.';
-      nota.className='env-nota';
-    }
+    bar.firstElementChild.style.width=Math.min(100, t.subtotal/umbral*100)+'%';
+  }
+  if(t.subtotal<=0){
+    nota.textContent=''; nota.className='env-nota';
+  }else if(t.gratis){
+    nota.textContent='✓ Tu pedido lleva envío gratis';
+    nota.className='env-nota is-ok';
+  }else if(t.alcanza){
+    /* Le corresponde por monto pero eligió contraentrega. Se le dice aquí,
+       con el ahorro en pesos, en vez de dejar que lo descubra en el total. */
+    nota.textContent=(umbral>0?'Ya pasas de '+cop(umbral)+'. ':'')
+      +'Pagando por adelantado el envío te sale gratis: '+cop(t.envio)+' menos.';
+    nota.className='env-nota';
+  }else{
+    nota.textContent='Te faltan '+cop(falta)+' para el envío gratis'
+      +(CAT.reglas.envioGratisSoloAnticipado?' con pago anticipado':'')+'.';
+    nota.className='env-nota';
   }
 
   $('#p-envio').textContent=t.gratis?'Gratis':cop(t.envio);
   $('#d-envio').textContent=t.gratis
-    ? 'Inter Rapidísimo con número de guía. Tu pedido pasó de '+cop(CAT.reglas.envioGratisDesde)+', así que el envío va gratis.'
+    ? 'Inter Rapidísimo con número de guía. Con pago anticipado el envío va gratis'
+      +(umbral>0?', porque tu pedido pasó de '+cop(umbral):'')+'.'
     : 'Inter Rapidísimo con número de guía. 1 a 6 días hábiles según el destino.';
 
   /* Los dos precios del paso 3 se calculan con su propia forma de pago, para
@@ -846,8 +854,8 @@ function pintarResumen(){
   const base='Pagas en efectivo cuando el mensajero te entregue el paquete. '
     +'El recaudo lo cobra la transportadora, por eso el envío cuesta más.';
   dc.textContent=(t.alcanza&&CAT.reglas.envioGratisSoloAnticipado)
-    ? base+' Tu pedido ya pasa de '+cop(CAT.reglas.envioGratisDesde)
-      +', pero el envío gratis aplica solo al pagar por adelantado.'
+    ? base+(umbral>0?' Tu pedido ya pasa de '+cop(umbral)+', pero el':' El')
+      +' envío gratis aplica solo al pagar por adelantado.'
     : base;
 
   $('#campo-dedicatoria').hidden=!c.empaque;
