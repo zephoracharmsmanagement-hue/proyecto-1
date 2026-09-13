@@ -5,10 +5,42 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## Precios, envío gratis y tanda nueva de videos — 2026-09-13, sin desplegar
+## Precios, envío gratis y tanda nueva de videos — 2026-09-13
 
-Preparado en la rama `claude/pricing-shipping-checkout-mu6tey`. **Todavía no
-está en el aire**: falta la aprobación del propietario y el despliegue.
+Aprobado por el propietario y mezclado a `main` el 2026-09-13.
+
+### La mezcla con lo de la otra sesión, que salió limpia y no lo era
+
+Mientras esto se preparaba, otra sesión metió **ocho commits en `main`**: el
+mapa de fotos por pieza para que el bot de WhatsApp mande la imagen en el chat.
+Tocaron tres de los archivos de aquí —`catalogo.json`, el extractor y
+`_precios.js`— y **git mezcló sin un solo conflicto**. Eso no significa que
+estuviera bien, que es justo lo que avisa `CLAUDE.md`.
+
+Lo que había que comprobar a mano, y se comprobó:
+
+- El extractor conserva las dos cosas: saca el mapa de fotos **y** ya no busca
+  el precio del empaque. Corre y da 135 piezas con precio y foto.
+- `_precios.js` exporta `fotos` (lo necesita `disponibilidad.mjs`) y sigue
+  forzando `empaque` a `false`.
+- **Los dos `fbq('init', …)` siguen en los tres HTML.** Es la comprobación que
+  `CLAUDE.md` pide explícitamente: una mezcla descuidada borra el píxel nuevo
+  —y con él el `Purchase` de servidor— sin que nada dé error.
+- El `catalogo.json` que produjo el merge textual **no era el que sale del
+  extractor**. Regenerado, cambiaban 40 líneas.
+
+### Un defecto que salió de ahí y se arregló
+
+Esas 40 líneas no eran un dato distinto: eran las 27 letras en otro orden. El
+código nuevo recorría un `set` de Python, y el orden de un `set` cambia entre
+ejecuciones. O sea que **regenerar el catálogo sin tocar nada producía un diff
+de 40 líneas**.
+
+No es cosmético: el extractor pisa ese archivo cada vez que se mueve un precio,
+y si su salida no es reproducible, ese ruido tapa el cambio de verdad —que es
+exactamente el cambio que hay que poder revisar antes de cobrar—. Ahora recorre
+`data['charms']` en su orden, y dos corridas seguidas, o con otra
+`PYTHONHASHSEED`, dan el mismo archivo byte a byte.
 
 ### Por qué se tocó el precio
 

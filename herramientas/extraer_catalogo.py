@@ -96,9 +96,14 @@ def main():
                   r'<div class="pc-img"><img src="assets/([^"?]+)', html,
                   'la foto de la tarjeta de letras')
 
-    for pieza in {c['id'] for c in data['charms']}:
-        if pieza.startswith('letra-'):
-            fotos[pieza] = letras
+    # En el orden de DATA, no sobre un set: el orden de un set de Python cambia
+    # entre ejecuciones, así que regenerar el catálogo sin tocar nada movía las
+    # 27 letras de sitio y dejaba un diff de 40 líneas que no cambia ni un dato.
+    # El extractor pisa este archivo cada vez que se toca un precio; si su
+    # salida no es reproducible, ese ruido tapa el cambio de verdad.
+    for c in data['charms']:
+        if c['id'].startswith('letra-'):
+            fotos[c['id']] = letras
 
     catalogo = {
         '_': ('Generado por herramientas/extraer_catalogo.py desde index.html. '
