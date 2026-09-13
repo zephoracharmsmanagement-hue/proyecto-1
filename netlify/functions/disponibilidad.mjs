@@ -40,8 +40,32 @@
 /* Se leen a través de _precios.js y no con un import de JSON: ese módulo ya los
    carga con require, es la fuente que usa el checkout para cobrar, y así no
    dependemos de que el empaquetador de Netlify soporte import attributes. */
-import { reglas, nombres, inventario as stock } from './_precios.js';
+import { reglas, nombres, fotos, inventario as stock } from './_precios.js';
 import { disponibles } from './_inventario.mjs';
+
+/* ── La foto, y por qué pasa por el CDN de imágenes ──
+ *
+ * Las 113 fotos del sitio son `.webp`, y la Cloud API de WhatsApp **no acepta
+ * webp** en un mensaje de imagen: solo JPEG y PNG (el webp le sirve únicamente
+ * para stickers). Mandarle la URL cruda devuelve un error y la clienta se
+ * queda sin ver nada.
+ *
+ * `/.netlify/images` convierte al vuelo. Así no hay una segunda copia en JPEG
+ * de cada pieza que haya que acordarse de regenerar cuando se cambie una foto
+ * —que es justo la clase de paso olvidable que deja al bot mandando la imagen
+ * vieja—.
+ *
+ * 800 px es de sobra para el chat y deja el archivo en decenas de KB, no en
+ * cientos.
+ */
+const ORIGEN_POR_DEFECTO = 'https://zephoracharms.com';
+
+function fotoDe(id, origen) {
+  const archivo = fotos && fotos[id];
+  if (!archivo) return null;
+  return `${origen}/.netlify/images`
+    + `?url=${encodeURIComponent('/assets/' + archivo)}&fm=jpg&w=800`;
+}
 
 const CABECERAS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -51,7 +75,12 @@ const CABECERAS = {
   'Cache-Control': 'public, max-age=60',
 };
 
-export default async () => {
+export default async (req) => {
+  /* El origen sale de la petición y no de una constante para que esto siga
+     funcionando en un deploy de vista previa, donde el dominio es otro. */
+  let origen = ORIGEN_POR_DEFECTO;
+  try { origen = new URL(req.url).origin; } catch { /* se queda el de siempre */ }
+
   const items = (stock && stock.items) || {};
 
   /* Un brazalete se cuenta por talla y un charm por pieza: la clave que lleva
@@ -73,6 +102,10 @@ export default async () => {
       id,
       nombre: nombres[id] || id,
       precio: it.precio,
+      /* URL pública en JPEG, lista para mandarse por WhatsApp sin convertir
+         nada. Las 27 letras comparten la foto del grupo: no tienen una propia.
+         Ver `fotos` en catalogo.json. */
+      foto: fotoDe(id, origen),
     };
 
     if (it.tallas) {

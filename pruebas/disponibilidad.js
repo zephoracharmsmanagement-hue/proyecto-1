@@ -169,6 +169,36 @@ async function main() {
       'traen familia: es lo que distingue un pasador de un clip o una cadena');
   }
 
+  /* ── La foto que el bot de WhatsApp le manda a la clienta ──
+   *
+   * Dos formas de fallar, y ninguna da error hasta que la clienta pide ver la
+   * pieza:
+   *
+   *   · Una pieza sin foto deja al bot describiendo con palabras algo que la
+   *     clienta pidió ver. Se cuela solo con añadir una pieza nueva al catálogo
+   *     y olvidar la tarjeta en index.html.
+   *   · Una URL que termine en .webp la rechaza la Cloud API de WhatsApp, que
+   *     solo acepta JPEG y PNG. Basta con que alguien «simplifique» la URL
+   *     quitándole el paso por /.netlify/images.
+   */
+  {
+    const { d } = await pedir();
+    const todas = d.piezas.concat(d.brazaletes);
+
+    comprobar(todas.every(x => typeof x.foto === 'string' && x.foto),
+      `las ${todas.length} piezas traen foto`,
+      todas.filter(x => !x.foto).map(x => x.id).join(', ') || undefined);
+
+    comprobar(todas.every(x => !x.foto || /[?&]fm=jpg(&|$)/.test(x.foto)),
+      'la foto se pide en JPEG: WhatsApp rechaza webp en un mensaje de imagen');
+
+    comprobar(todas.every(x => !x.foto || !/\.webp(\?|$)/.test(x.foto)),
+      'y ninguna URL termina en .webp, que es lo que serviría el asset crudo');
+
+    comprobar(todas.every(x => !x.foto || /^https:\/\//.test(x.foto)),
+      'son URL absolutas y públicas: Meta las descarga desde sus servidores');
+  }
+
   inv._interno.usarAlmacen(null);
   console.log(fallos ? `\nDisponibilidad: ${fallos} en rojo` : '\nDisponibilidad en verde ✓');
 }
