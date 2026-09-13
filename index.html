@@ -1794,9 +1794,9 @@ body.sheet-open{overflow:hidden}
 
   <!-- Videos de clientas. Tres decisiones que no son de estilo:
        1. Sin atributo autoplay y con preload="none". Los tres videos suman
-          5,4 MB, dieciocho veces lo que pesa el resto de la pagina: cargarlos
+          4,5 MB, quince veces lo que pesa el resto de la pagina: cargarlos
           al abrir castigaria a quien entra con datos, que es por donde mas se
-          compra. Solo se ve la portada (185 KB los tres) hasta que la seccion
+          compra. Solo se ve la portada (137 KB las tres) hasta que la seccion
           entra en pantalla, y ahi el script los arranca.
        2. muted y playsinline no son opcionales: los navegadores de celular
           solo reproducen solos los videos silenciados, y sin playsinline iOS
@@ -1811,15 +1811,15 @@ body.sheet-open{overflow:hidden}
       <button class="rail-btn rail-btn--next" type="button" aria-label="Más videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
       <div class="rail">
         <video class="ugc-v" poster="assets/historia-1-portada.webp" muted loop playsinline preload="none"
-               width="720" height="1280" aria-label="Clienta abre un regalo con un brazalete Zephora y se lo pone en la muñeca">
+               width="720" height="1280" aria-label="Una clienta abre su regalo y luce el brazalete Zephora con charms de corazón, mariposa y piedra azul">
           <source src="assets/historia-1.mp4" type="video/mp4">
         </video>
         <video class="ugc-v" poster="assets/historia-2-portada.webp" muted loop playsinline preload="none"
-               width="720" height="1280" aria-label="Una clienta le pone a su novio un brazalete con sus charms favoritos">
+               width="720" height="1280" aria-label="Una clienta muestra su charm de cristal azul recién sacado de la caja y se lo monta en la pulsera">
           <source src="assets/historia-2.mp4" type="video/mp4">
         </video>
         <video class="ugc-v" poster="assets/historia-3-portada.webp" muted loop playsinline preload="none"
-               width="720" height="1280" aria-label="Un charm azul en su caja de regalo Zephora, listo para entregar">
+               width="720" height="1280" aria-label="Una clienta le pone a su novio un brazalete Zephora con charms de Spider-Man, Iron Man y Capitán América">
           <source src="assets/historia-3.mp4" type="video/mp4">
         </video>
       </div>
