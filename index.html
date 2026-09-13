@@ -705,6 +705,10 @@ section{scroll-margin-top:64px}
 .mp-n{display:block;font-size:13px;color:var(--ink);letter-spacing:.01em}
 .mp-d{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
   color:var(--silver);margin-top:2px}
+/* Addi va con su logotipo y no con una ficha de la rejilla de arriba, porque
+   no es lo mismo: los de arriba se pagan aquí, este se coordina por chat.
+   Mezclarlos prometería un botón que no existe. */
+.mp-addi{display:inline-block;height:19px;width:auto;vertical-align:-4px;margin:0 2px}
 .pe-tabla{width:100%;border-collapse:collapse;font-size:13.5px}
 .pe-tabla th,.pe-tabla td{text-align:left;padding:9px 0;border-bottom:1px solid var(--line);
   color:#4a3d4e;vertical-align:top}
@@ -1913,8 +1917,8 @@ body.sheet-open{overflow:hidden}
           <li><span class="mp-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></span><span class="mp-tx"><b class="mp-n">Hasta 36 cuotas</b><span class="mp-d">Con tu tarjeta</span></span></li>
           <li><span class="mp-ic" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="11" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01M18 12h.01"/></svg></span><span class="mp-tx"><b class="mp-n">Contraentrega</b><span class="mp-d">Efectivo al recibir</span></span></li>
         </ul>
-        <p class="pe-pie"><b>¿Prefieres Addi?</b> También trabajamos con Addi a cuotas;
-          ese se coordina por <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">WhatsApp</a> y no desde el botón de pago.</p>
+        <p class="pe-pie"><b>¿Prefieres <img class="mp-addi" src="assets/pagos/addi.webp" alt="Addi" width="183" height="70" loading="lazy" decoding="async">?</b>
+          También lo trabajamos a cuotas; ese se coordina por <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">WhatsApp</a> y no desde el botón de pago.</p>
         <p class="pe-pie">No emitimos factura electrónica; con tu pedido va el comprobante digital de compra.</p>
       </div>
     </details>
