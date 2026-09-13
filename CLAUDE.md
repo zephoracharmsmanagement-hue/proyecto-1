@@ -258,6 +258,36 @@ construir**. Aquí solo lo que hay que saber para no deshacerlo sin leerlo.
   manual: una app sin auditar no publica con difusión, y el audio se elige
   dentro de la app de todos modos.
 
+**La doctrina editorial vive aparte del motor**, en
+[`automatizaciones/contenido/CALENDARIO-EDITORIAL.md`](automatizaciones/contenido/CALENDARIO-EDITORIAL.md):
+frecuencia por red, los cuatro pilares, el calendario quincenal y el primer lote
+de ocho guiones listos para grabar. El BRIEF dice *cómo elegir la pieza*; ese
+documento dice *qué se graba con ella*. Tres cosas de ahí que cambian decisiones
+y que no estaban escritas en ningún sitio:
+
+- **El tercer dije cuesta $36.560, no $76.000 — menos de la mitad.**
+  `escalaCharms` (15% con tres) y `descuentoBrazalete` (30% a partir de tres) se
+  disparan juntos: sobre Corazón Liso con dijes de $76.000, pulsera + 2 dijes
+  son **$197.840** y + 3 son **$234.400**. Es el argumento de venta más fuerte
+  que la tienda ya tiene programado y **no aparece en ningún guion, historia ni
+  anuncio**.
+
+  > **Corregido el 2026-09-07.** Este párrafo decía $32.600 / $205.200 /
+  > $237.800 y afirmaba estar «verificado corriendo `calcular()`». No lo estaba:
+  > ninguno de los tres números se reproduce. Se detectó al correrlos de verdad,
+  > antes de grabar el guion 5, que los repetía en voz alta. **Un número de
+  > precio en cualquier documento de este repo tiene que poder reproducirse
+  > con `calcular()`; si no, no se escribe.**
+- **El zodiaco no puede ser pilar de contenido:** cero de doce signos llegan a 3
+  unidades y Cáncer y Acuario están en cero. Y `pulsera-avengers` está agotada,
+  así que el set Marvel —6 referencias elegibles, las más caras del catálogo— se
+  monta sobre `pulsera-clasica-cierre-barril`, que además solo existe en tallas
+  20 y 21: justo las de muñeca masculina.
+- **Amor y Amistad cae el sábado 19 de septiembre de 2026**, y de los tiempos de
+  `envios-y-devoluciones.html` salen fechas límite de pedido reales (10 sept
+  resto del país · 14 ciudades principales · 16 Bogotá). Urgencia que no cuesta
+  ni margen ni inventario.
+
 Lo de mayor retorno de todo el frente **no necesita el motor**: una historia con
 las iniciales preguntando *«¿cuál te falta?»* resuelve en 24 horas y gratis si
 comprar las 14 letras que faltan (~$73.000 de costo, ~$1.064.000 de utilidad

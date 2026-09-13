@@ -14,6 +14,44 @@
   # Sin comando de build a propósito. Si algún día hace falta, aquí va.
   command = ""
 
+  # No desplegar cuando el push solo cambia documentación.
+  #
+  # Netlify cobra ~15 créditos por despliegue de producción, dure lo que dure
+  # (ver ESTADO.md § Lo primero). Los documentos internos —ESTADO.md, CLAUDE.md,
+  # README.md y todo automatizaciones/*.md— no los sirve el sitio: están
+  # bloqueados con redirects a 404 más abajo. Publicar un despliegue entero
+  # porque alguien corrigió un párrafo es gastar el recurso escaso en cambiar
+  # nada.
+  #
+  # OJO CON LA LÓGICA, QUE ESTÁ INVERTIDA Y ES LA TRAMPA DE ESTE AJUSTE:
+  # Netlify SALTA el despliegue cuando este comando termina con código 0, y
+  # construye cuando termina distinto de 0. Al revés de lo que sugiere el
+  # sentido común. Por eso `git diff --quiet` encaja: da 0 cuando NO hay
+  # diferencias fuera de los .md, que es justo cuando no hay nada que publicar.
+  #
+  # Todo lo demás está escrito para fallar hacia CONSTRUIR, nunca hacia saltar:
+  # las dos comprobaciones `-n` cubren que CACHED_COMMIT_REF venga vacío —primer
+  # despliegue, caché limpiada, despliegue manual—, caso en el que el `git diff`
+  # a secas compararía contra el árbol de trabajo, no encontraría diferencias y
+  # saltaría un despliegue que sí hacía falta. Y si el ref no existe en el clon
+  # superficial, git sale distinto de 0 y también se construye. Ante la duda,
+  # se despliega: cuesta 15 créditos, contra dejar la tienda sin publicar.
+  #
+  # La exclusión es deliberadamente mínima —solo *.md— porque cada ruta que se
+  # añada aquí es una ruta que puede dejar de desplegarse en silencio. Si algún
+  # día conviene excluir más, se amplía con la misma batería de pruebas.
+  #
+  # CÓMO SE NOTA SI SE ROMPE (regla del repo: toda red de seguridad trae su
+  # delación). El fallo mudo sería saltarse un despliegue que sí tocaba: se
+  # empuja un arreglo del checkout y la tienda sigue con el código viejo, sin
+  # error en ningún sitio. La delación es la lista de despliegues de Netlify —
+  # un commit que tocó .html, netlify.toml o netlify/functions/ y aparece como
+  # saltado significa que esta regla está mal—. Después de tocar esta línea, el
+  # primer push que cambie el sitio se comprueba ahí antes de darlo por bueno.
+  # Para forzar un despliegue sin esperar: "Trigger deploy" desde el panel de
+  # Netlify.
+  ignore = "[ -n \"$CACHED_COMMIT_REF\" ] && [ -n \"$COMMIT_REF\" ] && git diff --quiet \"$CACHED_COMMIT_REF\" \"$COMMIT_REF\" -- . ':(exclude)*.md'"
+
 [functions]
   node_bundler = "esbuild"
   # _precios.js carga los dos por require —los precios para calcular el cobro y

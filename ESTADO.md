@@ -5,6 +5,478 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Videos de clientas — publicado el 2026-09-12
+
+**Está en el aire.** Despliegue `6aa5dafe092f3b00082bd52f`, commit `1ac3445`.
+Verificado contra el sitio vivo: los tres `.mp4` y sus portadas responden 200
+con el tipo correcto, los dos `fbq('init')` siguen ahí, y checkout y la página
+de gracias responden 200. Llena el hueco que había quedado reservado en
+«Guardamos momentos».
+
+**Qué trae:** carrusel de tres videos verticales de clientas en `#historia`,
+más el reemplazo de la foto del banner de marca (la anterior tenía errores de
+producto) y del video del novio (versión con cierre de logo).
+
+### Cómo se preparan los videos — receta, no improvisación
+
+Los originales del celular pesaban 16–22 MB cada uno (1080×1920, más de 1 MB
+por segundo). **No se suben así.** FFmpeg no está instalado en el sistema; se
+usa aislado sin tocar Windows:
+
+```bash
+npm install ffmpeg-static      # dentro de una carpeta temporal, no del repo
+node -e "console.log(require('ffmpeg-static'))"   # da la ruta al binario
+```
+
+Y por cada video:
+
+```bash
+ffmpeg -i ORIGEN.mov -vf scale=720:-2 -c:v libx264 -preset slow -crf 30 \
+  -profile:v main -pix_fmt yuv420p -movflags +faststart -an assets/NOMBRE.mp4
+ffmpeg -ss 1 -i ORIGEN.mov -frames:v 1 -vf scale=720:-2 assets/NOMBRE-portada.webp
+```
+
+`-an` quita la pista de audio: los videos llevan solo música de fondo y se
+reproducen silenciados, así que el audio era peso muerto. Resultado: **57,7 MB
+→ 5,4 MB los tres**, con portadas de 185 KB en total.
+
+**Por qué no hay `autoplay` en el HTML.** Aun comprimidos, los videos pesan
+dieciocho veces el resto de la página. Con `preload="none"` solo viaja la
+portada; un `IntersectionObserver` los arranca cuando la sección entra en
+pantalla y los pausa al salir. Quien nunca baje hasta ahí no gasta un byte en
+video. **Si alguien agrega `autoplay` al `<video>`, deshace esto sin que se
+note**, porque en escritorio con buena conexión se ve igual.
+
+`muted` y `playsinline` tampoco son estilo: los navegadores de celular solo
+reproducen solos los videos silenciados, y sin `playsinline` iOS abre el video
+a pantalla completa.
+
+### Dos decisiones del propietario, tomadas con la información delante
+
+1. **El primer video muestra una caja de Pandora**, abierta en el segundo 3 con
+   un brazalete de Zephora dentro, mientras el texto dice «sorpréndela con un
+   brazalete de Zephora Charms». Se advirtió el riesgo de marca —es más visible
+   que las fotos que `TRIAJE-FOTOS.md` obligó a recomponer— y **el propietario
+   decidió publicarlo completo el 2026-09-12**. No es un descuido: no lo
+   "arregles" por tu cuenta. Si se quiere revertir, la versión limpia se saca
+   cortando los primeros 4,8 segundos:
+   `ffmpeg -ss 4.8 -i ORIGEN.mov ...` (mismos parámetros de arriba) → 10,8 s.
+2. **Ese mismo video lleva quemado «Éste 19 de Septiembre».** Caduca. Después
+   del 19 hay que sacarlo o reemplazarlo, o la página de inicio queda anunciando
+   una fecha pasada.
+
+### Pendiente
+
+- **Antes del 19 de septiembre:** sacar o reemplazar el primer video, por la
+  fecha quemada. Es lo único con vencimiento de toda esta tanda.
+- Los textos de Instagram para estos tres videos se redactaron en sesión y
+  **no están en el repo**. Los tres son **pilar 1** del
+  `CALENDARIO-EDITORIAL.md` —POV, alcance, cierre en perfil— así que van sin
+  escalera de precios y con comentario disparador. No publicarlos seguidos:
+  la doctrina prohíbe rachas de un solo pilar en las dos direcciones.
+
+## Segunda tanda de la landing — publicado el 2026-09-11
+
+Despliegue `6aa47c76f24f7a000822ee58`, commit `3459846`. Verificado contra el
+sitio vivo: los dos `fbq('init')` intactos, y checkout, `stock.json` y la
+página de gracias responden 200.
+
+- **Se corrigió un desborde horizontal en celular** que hacía que la página se
+  deslizara a la derecha hacia un vacío blanco. **La causa fue un arreglo mal
+  colocado:** el `min-width:0` de `.plata-in` había quedado dentro de
+  `@media(min-width:700px)`, así que solo aplicaba en escritorio. En celular la
+  rejilla seguía dimensionándose al ancho mínimo del carrusel (~814px). Ahora
+  está en la regla base. **Lección: los arreglos de este tipo van en la regla
+  base salvo que haya una razón para lo contrario** — el bug de rejilla existe
+  en todos los anchos, no solo donde se vio primero.
+- **La calculadora de talla es desplegable.** Buena parte de las clientas ya
+  sabe su talla. El menú y dos enlaces más apuntan a `#talla`, así que un
+  script corto la abre al llegar por ahí: caer en una calculadora cerrada
+  después de pedir «Tallas» sería peor que no tener el enlace.
+- **La franja que decía «Armar mi pulsera» ahora ofrece el agente con IA por
+  WhatsApp**, y el botón flotante quedó solo con el ícono. Quitar ese botón no
+  dejó huérfano el catálogo: hay otros 20 enlaces a brazaletes y charms.
+
+**El cambio con más consecuencia no se ve:** los clics a WhatsApp ya no cuentan
+todos como `InitiateCheckout`. El evento se declara por enlace con
+`data-wa-evento`: el banner del agente y el botón flotante mandan `Contact`,
+y sin ese atributo se conserva `InitiateCheckout` para los enlaces de compra
+real —carrito y encargos—. **Por qué importa:** `InitiateCheckout` es el evento
+con el que optimiza la pauta. Contar consultas ahí le enseña a Meta a buscar
+gente que pregunta en vez de gente que compra, y con WhatsApp en el lugar del
+botón principal eso habría pasado con casi todos los clics de la página.
+**Al agregar un enlace nuevo a `wa.me`, decidir cuál de los dos eventos le
+corresponde.**
+
+## Poda de la landing — publicado el 2026-09-11
+
+**Está en el aire.** Despliegue `6aa427aa9dde3c0009facc35`, commit `975ee38`,
+publicado 16:09 UTC. Verificado contra el sitio vivo, no solo contra el panel:
+los dos `fbq('init')` siguen ahí, el checkout responde 200 y `stock.json`
+carga. Solo cambió `index.html`.
+
+El origen fue una crítica de un competidor de joyería fina (Juli & Co) y,
+después, la conducta real de compra. Lo que se hizo, y el porqué, para que
+nadie lo deshaga sin saber:
+
+- **El banner del hero solo lleva prueba social encima de la foto.** El botón
+  y la línea de medios de pago bajaron a una franja propia después de los
+  beneficios: encima de la imagen obligaban a un degradado que se comía media
+  foto en celular, que es por donde más se compra.
+- **Fuera «Cómo funciona».** No por estética: la clienta no sigue el paso a
+  paso, compra el charm suelto o el brazalete suelto. En su lugar subió el
+  descuento progresivo, que explica el precio justo antes de los catálogos.
+- **Fuera la tarjeta «Promo de la semana».** Repetía lo que la escalera ya
+  dice —el nivel 3 anuncia el −30% del brazalete— y el envío gratis ya vive en
+  el ticker superior.
+- **Brazaletes en carrusel.** Eran 18 modelos en tres parrillas apiladas y es
+  la categoría que menos se vende. Los filtros siguen funcionando: esconden
+  tarjetas y el carrusel deja de darles columna.
+- **El catálogo completo de charms arranca cerrado.** Son 86 piezas.
+- **En Plata 925, un carrusel con las cinco piezas que tienen segunda vista**
+  (las declaradas en `FOTOS`). Se cruza a la segunda foto al pasar el cursor.
+  **Si se quiere ampliar, el cuello de botella es fotográfico, no de código:**
+  solo esas cinco tienen segunda toma.
+
+**Tres trampas que costaron una ronda cada una y no hay que redescubrir:**
+
+1. **Un hijo de rejilla no baja de su ancho mínimo de contenido.** El carrusel
+   de Plata 925 aplastó la columna de texto hasta partir el título palabra por
+   palabra, en escritorio. Se arregla con `min-width:0` en los hijos de
+   `.plata-in`. Apareció en una captura del propietario, no en las
+   comprobaciones estructurales — que no ven nada renderizado.
+2. **El `.rail` sangra 16px a cada lado** para llegar al borde de la pantalla
+   en celular. Dentro de una columna de escritorio eso se sale del contenedor;
+   ahí hay que cancelarlo.
+3. **Las flechas del carrusel estaban atadas por `id`** a una sola instancia.
+   Ahora recorren cada `.rail-wrap`. Al agregar un carrusel nuevo, no hacen
+   falta ids.
+
+**Dos cosas pendientes, a propósito:**
+
+- ~~El hueco donde iba la foto de «Guardamos momentos» está reservado para un
+  **carrusel de video UGC**~~ — **hecho el 2026-09-12**, ver el bloque de
+  trabajo en curso al principio de este documento.
+- **El botón flotante de WhatsApp lleva `data-wa="flotante"`** por una razón
+  concreta: el listener cuenta *todo* clic a `wa.me` como `InitiateCheckout`,
+  que es el evento con el que optimiza la pauta. Un botón siempre visible se
+  toca de forma casual. Si la señal se ensucia, la etiqueta permite separarlo
+  en Meta o excluirlo del tracking con una línea. Nota aparte: el repo ya
+  documentaba que WhatsApp salió del hero porque traía preguntas que la página
+  responde y no terminaban en pedido — se repone por decisión del propietario,
+  sabiendo eso.
+
+## Mercancía nueva y rediseño del hero — cerrado el 2026-09-11
+
+Las dos sesiones que trabajaban en paralelo cerraron y todo está en `main`.
+El reclamo que vivía aquí se borra; queda el resultado y la regla que salió de
+la jornada, más abajo.
+
+**Lo que entró:**
+
+- **29 unidades de letra.** Doce iniciales que nunca se habían comprado pasan de
+  cero a dos —F G H I P R T U W X Y Z— y C, J, M y N suben a tres. **Ñ y Q son
+  las únicas que siguen en cero**: no entraron en el pedido.
+- **La pulsera Avengers vuelve** con 8 unidades en cada talla (18, 19, 20). Es
+  además la base que le faltaba al set de Marvel: la otra clásica solo existe en
+  20 y 21.
+- **22 charms de reposición** y **seis referencias nuevas** —Groot Bebé, Casco
+  Iron Man, Máscara Un Gran Poder, Esfera Telaraña Spider-Man, Spider-Man Pavé y
+  Máscara Spider-Man Roja—, todas a $85.000, con foto.
+- **El rediseño del hero** de la otra sesión, con su carrusel panorámico y la
+  regla `ignore` de `netlify.toml` que se salta el despliegue cuando el push solo
+  cambia documentación.
+
+**Tres cosas que se aprendieron y no hay que volver a descubrir:**
+
+1. **`generado` de `stock.json` no es una fecha, es un interruptor.** Cambiarlo
+   pone a cero el contador de lo vendido de *todo* el catálogo, porque
+   `_inventario.mjs` asume que un `generado` nuevo es un recuento físico que ya
+   descuenta lo vendido. Para **sumar** mercancía no se toca. Solo se cambia
+   cuando de verdad se recuenta todo.
+2. **La rejilla del catálogo está escrita a mano.** Son 82 `<article class="pc">`
+   en `index.html`; `DATA` solo lleva los precios. Una pieza añadida solo a `DATA`
+   tiene precio y **no existe para la clienta**. Cada alta son tres sitios: `DATA`,
+   la tarjeta y `stock.json` — y después `extraer_catalogo.py`, o el servidor cobra
+   sin ella.
+3. **Una foto de hero pesa lo que se le deje pesar.** El carrusel llegó con 922 KB
+   a 2752 px de ancho, con `fetchpriority="high"`, para pintarse a 390 px en el
+   móvil por donde entra casi toda la venta. A 1600 px y calidad 84 son 295 KB sin
+   diferencia visible en escritorio.
+
+**Pendiente inmediato:** el despliegue está construido y **esperando tras el
+candado** (`Unlock deploys` en el panel). Cuando se suelte, publica de una vez
+esto, el rediseño del hero y los dos commits de septiembre que Netlify saltó por
+falta de créditos. Justo después hay que mirar la lista de despliegues: si un
+commit que tocó `.html`, `netlify.toml` o `netlify/functions/` sale como
+**saltado**, la regla `ignore` está mal.
+### El deploy no lo hace una sesión — lo hace `main`
+
+Esta confusión ya costó créditos, así que queda escrita. **Netlify no sabe qué
+sesión, terminal o computador empujó.** Está conectado al repositorio y publica
+cuando algo llega a `main`. No existe «desplegar desde este chat»: existe
+«llegó algo a `main`».
+
+De ahí sale la única regla que controla el gasto:
+
+> **Empujar a una rama `claude/*` cuesta cero. Solo llegar a `main` publica, y
+> cada publicación son ~15 créditos.**
+
+Con eso, dos sesiones en paralelo no cuestan más que una. Pueden trabajar y
+empujar cuanto quieran a sus ramas; lo que se junta es **la mezcla**, que se
+hace una sola vez, cuando todas las ramas vivas están listas, y sale en un
+único deploy. Lo caro nunca fue trabajar en paralelo: fue mezclar de a poco.
+
+**Repartir por archivo, no por tema.** Dos tareas que suenan distintas acaban
+en el mismo archivo —ver la sección de reparto entre sesiones, más abajo—. El
+reparto de esta jornada salió de mirar *dónde vive cada cosa*: el inventario
+está en `assets/stock.json` y el catálogo en `const DATA=` dentro de
+`index.html`, así que reponer unidades y rehacer la página no se pisan aunque
+ambas suenen a «tocar la tienda».
+
+**Antes de cerrar una rama, actualizarla contra `main`.** `git fetch --all` y
+`git merge origin/main` **dentro de la rama propia**, nunca al revés. Una rama
+que salió de un punto viejo arrastra versiones anteriores de `ESTADO.md`,
+`CLAUDE.md` y del `<head>` con el doble píxel; mezclarla sin actualizar revierte
+trabajo **sin dar ningún conflicto ni error**. Es el fallo que este repo ya pagó
+tres veces.
+
+**Y el candado del panel: puesto el 2026-09-11.** Hasta esa fecha no había
+ninguno —`Auto publishing is on`— y con los créditos recién recargados eso
+significaba que cualquier push a `main` salía al aire sin preguntar.
+El botón está en la misma página de Deploys: **`Lock to stop auto publishing`**
+cuando no lo está, y **`Unlock deploys`** cuando sí. Ese texto es la forma rápida
+de saber en qué estado se está —y la única, porque **el conector de Netlify no
+expone este dato**: devuelve el despliegue vivo y las URL, no el auto-publish.
+Una sesión no puede comprobarlo por su cuenta; hay que mirar el panel.
+
+Con el candado, un push a `main` **sí construye** pero no publica: el despliegue
+queda listo y se suelta con un clic. Es lo que conviene mientras haya varias
+sesiones abiertas —protege del push accidental sin dejar `main` y producción
+separados en silencio—. Quitar el candado publica lo último que haya quedado
+esperando, así que se quita cuando se ha decidido publicar, no antes.
+## 🚧 Trabajo en curso — rediseño landing inspirado en crítica de competidor · 2026-09-10
+
+**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
+trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
+
+**Rama:** `claude/zephora-empaque-hero`
+**Alcance:** solo `index.html` — dos secciones nuevas entre `#historia` y
+`#reseñas`, en este orden:
+1. `#plata-925` — desarrolla el bullet de "Plata Esterlina 925 verificada"
+   (que se queda igual en la barra de beneficios) en una sección de
+   autoridad técnica. Habla solo de **charms** (plata esterlina sólida),
+   nunca de brazaletes (que son latón con baño de plata — línea ~1032 de
+   `index.html`, no confundir los dos). No compara con Pandora ni nombra
+   réplicas — ver `automatizaciones/contenido/TRIAJE-FOTOS.md` línea 211,
+   "Compatible con charms Pandora" sigue sin resolver, no se tocó aquí.
+2. `#empaque-destacado` — sube el bloque de Empaque Premium (antes solo un
+   checkbox de 46px dentro del carrito) a un bloque visual a mitad de página.
+3. `#promo` (descuento progresivo) — **se movió**, no se creó: antes iba
+   justo después de `#beneficios` (la segunda cosa que se veía en toda la
+   página); ahora va después de `#empaque-destacado`, tras las secciones de
+   confianza. El mecanismo de descuento no cambió, solo la posición.
+4. `.bens` (barra de beneficios) — de 6 bullets a 4. Se quitaron
+   "Compatibles con charms Pandora" (duplicado del hero) y "Envío a toda
+   Colombia" (duplicado del ticker superior `.ann`) — la info sigue en el
+   sitio, solo dejó de repetirse. Grid de desktop ajustado de 3 a 4 columnas
+   para que no quede una fila coja.
+5. `#hero` (antes dos columnas) — ahora banner panorámico de ancho completo
+   con 2 fotos (Avengers + marca) rotando cada 5s, mismo mecanismo 100% CSS
+   que `.ann`, con botón de pausa. Spec y plan en
+   `docs/superpowers/specs/2026-09-10-hero-carousel-design.md` y
+   `docs/superpowers/plans/2026-09-10-hero-carousel.md`. El asset viejo
+   (`pulsera-zephora-armada-con-charms-en-plata-925.webp`, vertical 502×900)
+   ya no se usa en el hero, pero **sigue en uso en `#plata-925`** — no
+   borrarlo.
+
+No toca `netlify/functions/`, checkout, ni el checkbox real del carrito
+(`#pack`), que sigue siendo el mecanismo de compra.
+
+**Las 4 ideas de la crítica de Juli & Co ya están implementadas** en esta
+rama (empaque, autoridad Plata 925, densidad, y ahora el hero). Falta
+revisión visual del usuario antes de considerar la fusión a `main`.
+
+**⚠️ Esta sesión NO fusiona a `main`.** Los créditos de Netlify se recargaron
+el 2026-09-11 y el auto-publish sigue encendido — cualquier push a `main`
+ahora sí publica solo. Hay otra sesión trabajando en paralelo en
+`claude/charming-sagan-l4q2eq` (mercancía nueva: `assets/stock.json`,
+`assets/*.webp`, `herramientas/entrada/`); el reparto es por archivo, no por
+tema, y la mezcla a `main` la hace esa sesión, en un solo paso, cuando ambas
+ramas estén listas. Esta rama queda commiteada, empujada y actualizada contra
+`main` (`git merge origin/main`, sin conflictos), lista para esa mezcla —
+pero sin empujar más desde aquí.
+
+## 🚧 Trabajo en curso — contenido orgánico · 2026-09-07
+
+**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
+trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
+
+**Rama:** `claude/zephora-charm-content-strategy-ktc7fi`
+**Alcance:** solo documentación de contenido y `netlify.toml`. **No toca
+`netlify/functions/`, ni el checkout, ni `index.html`.**
+
+Qué trae:
+
+| Archivo | Qué es |
+|---|---|
+| `automatizaciones/contenido/CALENDARIO-EDITORIAL.md` | Doctrina editorial: frecuencia por red, cuatro pilares, calendario quincenal de Amor y Amistad y ocho guiones listos para grabar. Precios del guion 5/6 corregidos y verificables |
+| `automatizaciones/contenido/BRIEF-FLOW.md` | Encargo para la sesión de Flow: presupuesto de créditos, triaje de «pauta meta 2026», las tres formas de hacer video, y la frontera de qué no puede generar |
+| `automatizaciones/contenido/TRIAJE-FOTOS.md` | Censo de las 35 fotos de la carpeta, con el hallazgo de riesgo de marca Pandora |
+| `automatizaciones/contenido/COSTOS-FLOW.md` | Registro real de créditos gastados en Flow, generación por generación |
+| `automatizaciones/contenido/ANALISIS-PLAN-GEMINI.md` | Contraste de un plan externo de contenido contra los datos reales del repo |
+| `automatizaciones/contenido/verificar-precios-guiones.js` | Corre cada precio de los guiones contra `calcular()`; falla nombrando el que se descuadre |
+| `CLAUDE.md` | Tres hallazgos enlazados desde la sección de contenido |
+| `netlify.toml` | Regla `ignore` para no desplegar cuando el push solo cambia `.md` |
+
+### La sesión de estrategia se cierra — el trabajo sigue desde la terminal
+
+**2026-09-08.** La sesión de estrategia (en la nube, Opus) **termina aquí**. Todo
+lo que decidió está escrito en esta rama; **nada quedó solo en un chat**. No hay
+que reabrirla: cuesta más que la sesión local y no sabe nada que no esté en
+estos archivos.
+
+Lo demostró el propio flujo: la sesión de Flow leyó estos documentos, hizo el
+triaje **y encontró un error de precios en el calendario**, sin que las dos
+sesiones se hablaran ni una vez. **El repo ya es el canal; funciona.**
+
+**Desde ahora, una sola sesión lleva contenido** —la de la terminal—, que es
+además lo que pide la regla 1 de `CLAUDE.md`. Arranca así:
+
+```bash
+git fetch --all
+git checkout claude/zephora-charm-content-strategy-ktc7fi
+```
+
+Y lee, en este orden: este bloque · `automatizaciones/contenido/BRIEF.md` ·
+`CALENDARIO-EDITORIAL.md` · `BRIEF-FLOW.md` · `TRIAJE-FOTOS.md`.
+
+**Lo siguiente que hay que hacer, por orden y sin gastar un crédito:**
+
+1. ~~**Borrar el creativo «No es Pandora… pero todos creen que sí»**~~ — **hecho
+   2026-09-08.** Movido (no borrado, por si hace falta de referencia) a
+   `pauta meta 2026/NO USAR - riesgo de marca/`, fuera de la carpeta de
+   trabajo. No vuelve a aparecer en ningún triaje futuro de esa carpeta.
+2. ~~Recomponer el fondo del set `0bd627e3`~~ — **hecho, pero por un método
+   distinto al planeado.** El recorte-y-pegado (`rembg` + `componer_fondo.py`,
+   descrito en versiones anteriores de este punto) quedó **superado**: se veía
+   antinatural, sin interacción real de luz entre la joya y el fondo. El
+   propietario corrigió el alcance de la regla de oro — no es que la foto no
+   se pueda tocar, es que **la forma y el diseño de la joya deben quedar
+   idénticos**, la foto sí puede regenerarse.
+
+   > **Método vigente desde 2026-09-08: imagen de referencia en Flow.** Se sube
+   > la foto real de la pieza (ej. `662562d4-...jfif`) como referencia y se le
+   > pide a Flow una fotografía profesional nueva, con instrucción explícita de
+   > mantener diseño/forma/conteo de piedras idénticos. Resultado: fotos con
+   > luz y sombra reales, publicables tal cual. Dos sets ya terminados y
+   > aceptados por el propietario:
+   > - **Set "fe y suerte"** (manos orando + virgen María + trébol + herradura
+   >   / Corazón Liso) — 3 formatos en `pauta meta 2026/recompuestos/`.
+   > - **Set "letra-a"** (esfera azul + flor azul + atrapasueños + letra-a /
+   >   Corona Pavé) — resolución completa en `pauta meta 2026/fondos/`.
+   >
+   > Prompts usados y plantilla completa: ver el chat de la sesión de Flow o
+   > pedir que se reconstruyan — misma estructura para cualquier set nuevo:
+   > *"usa esta imagen de referencia... mantén diseño/forma/piedras idénticos
+   > ... cambia el entorno a [fondo de marca]... NO incluir texto/logotipos/
+   > otra marca."*
+   >
+   > **Pendiente con este método:** set "hamsa + gatito" (prompt ya escrito,
+   > más delicado — pide excluir 2 de los 4 dijes de la referencia, revisar
+   > con cuidado) y las 4-5 planchas de portada, una por pilar de contenido.
+   >
+   > Dos fotos que parecían necesitar trabajo y no: `762070262` (manos orando
+   > sola) y `762650437` (bases de pulsera) ya estaban terminadas, sin Pandora.
+
+2b. **Nuevo, no estaba en el plan original: video con joya en Flow —
+   funciona, pero solo con un modelo específico.** El propietario probó subir
+   la foto de referencia también en modo video ("Ingredientes"):
+
+   | Modelo | Resultado con la pulsera de referencia |
+   |---|---|
+   | **Veo 3.1 Fast** | **Sostiene el diseño intacto.** Probado dos veces (acercamiento + cenital, 8s fijos, ~18-20 créditos c/u). Es el **único** autorizado para clips con joya |
+   | Omni 1.1 Flash | **La desfiguró visiblemente.** Descartado para cualquier plano con producto — sigue sirviendo para b-roll sin joya, y es el único que permite bajar a 4s |
+
+   Con esto quedan **tres formas de hacer video** fijadas en `BRIEF-FLOW.md`
+   § *Las tres formas de hacer video*: (1) imagen en Flow, gratis; (2) video
+   en Flow con Veo 3.1 Fast + referencia, con joya, ~20 créditos/clip; (3)
+   grabación real del propietario, para TikTok. Detalle y créditos gastados
+   (saldo verificado: 206 de 250) en `COSTOS-FLOW.md`.
+
+   **Ya hecho con este método:** el plano de establecimiento de Amor y
+   Amistad (prioridad 1 de `BRIEF-FLOW.md` § Tarea 2b), dos cortes, **con la
+   pulsera incluida** — mejor de lo planeado originalmente (iba a ser solo
+   ambiente vacío).
+
+   **Siguiente pendiente, prompt ya escrito y listo para pegar:** el
+   creativo de pauta con movimiento (prioridad 2 de Tarea 2b) — la pulsera
+   girando sobre sí misma, estilo publicitario. Falta que el propietario lo
+   genere en Flow (Ingredientes, Veo 3.1 Fast, 8s) y lo revise.
+3. **Sesión de fotos de las nueve letras**, dos tomas cada una: catálogo sobre
+   blanco (recortable) y estilo de vida. Desbloquea toda la rama de imagen.
+
+   > **Resuelto 2026-09-08.** El propietario confirmó que la `letra-a` de
+   > `662562d4` (y sus tres composiciones) **sigue siendo stock vigente**, no
+   > un lote anterior. No cambia el plan: esa foto no sirve como catálogo
+   > (ángulo, sobre la caja Pandora, parcialmente ocluida), así que **las
+   > nueve letras siguen necesitando su sesión de fotos igual**. Lo único que
+   > cambia es que ya hay una foto de contexto usable de `letra-a` mientras
+   > tanto — no de catálogo, pero sí de «se ve así».
+4. **Grabar los guiones 1 a 4**, y el 5 con los precios ya corregidos.
+5. **Guion 8, la historia de sondeo de las 14 letras**, el viernes 19.
+
+**Fechas que no se mueven:** Amor y Amistad es el **sábado 19 de septiembre**, y
+las fechas límite de pedido son **10 sept** (resto del país), **14** (ciudades
+principales) y **16** (Bogotá).
+
+---
+
+### Hay tres sesiones en contenido, y no pueden hablarse
+
+Comprobado el 2026-09-08: **las sesiones no se alcanzan entre sí.** La de
+estrategia corre en la nube y las otras en la máquina del propietario; el canal
+entre sesiones no las conecta. Se intentó y falló. **El único canal compartido
+es el repo**, que es justo lo que dice la regla 4 de `CLAUDE.md`.
+
+| Sesión | Rama | Qué hace |
+|---|---|---|
+| Estrategia de contenido | `claude/zephora-charm-content-strategy-ktc7fi` | Doctrina editorial, guiones, encargo de Flow |
+| Google Flow | trabaja sobre la rama de arriba | Triaje de «pauta meta 2026» e imagen |
+| Automatización de contenido | `claude/social-content-automation-n1rh2j` | `ANALISIS-PLAN-GEMINI.md` + 8 líneas a `BRIEF.md` |
+
+Las dos ramas **no chocan** —archivos distintos, merge limpio— y sus
+conclusiones coinciden: la tercera sesión recontó el inventario por su cuenta y
+le dio **25/58/46**, los mismos números que `CALENDARIO-EDITORIAL.md`. Eso
+confirma que el **24/59/46 del `BRIEF.md` § 1.1 está desactualizado** y hay que
+corregirlo al reconciliar.
+
+Pero que no choquen es lo peligroso, no lo tranquilizador: es literalmente el
+patrón que `CLAUDE.md` describe —«git no ve nada raro ahí»—. **Antes de escribir
+en `automatizaciones/contenido/`, leer las dos ramas.**
+
+### Resuelto el 2026-09-11 — esta rama sí se mezcla
+
+Aquí decía que la rama no se mezclaba porque la cuenta no tenía créditos de
+Netlify y cualquier push a `main` intentaba desplegar. **Las dos mitades de esa
+frase cambiaron el 2026-09-11:** los créditos se recargaron, y el auto-publish
+quedó bloqueado en el panel (`Lock to stop auto publishing`), así que un push a
+`main` construye y **espera** en vez de publicar.
+
+El plan que dejó escrito se cumplió tal cual: **se mezcla todo de una vez y sale
+un único despliegue** —esta rama, la de la mercancía nueva y los dos commits de
+septiembre que Netlify saltó por falta de créditos—. Ese despliegue sí se
+construye (`netlify.toml` no es `.md`) y es justo el que instala la regla
+`ignore`; desde ahí, los pushes de solo documentación se saltan solos.
+
+**Queda una comprobación para después de publicar**, que es la delación que la
+propia regla pide: si un commit que tocó `.html`, `netlify.toml` o
+`netlify/functions/` aparece como **saltado** en la lista de despliegues, la
+regla `ignore` está mal y hay que revisarla.
+
+La sincronización entre sesiones de contenido sigue siendo sobre la rama
+compartida, no sobre `main`, por lo que explica el párrafo de arriba.
+---
 ## ⚠️ Consolidación de ramas — 2026-08-20
 
 **El tronco es `main`.** Se creó consolidando las nueve ramas `claude/*` que

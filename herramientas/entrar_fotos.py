@@ -3,6 +3,7 @@
 
     python3 herramientas/entrar_fotos.py <carpeta-con-las-fotos-nuevas>
     python3 herramientas/entrar_fotos.py <carpeta> --aplicar
+    python3 herramientas/entrar_fotos.py <carpeta> --nuevas --aplicar
 
 Sin `--aplicar` no escribe nada: enseña la comparación y para. Es a propósito
 —una foto mal emparejada reemplaza en silencio a la buena, y el error solo se
@@ -26,6 +27,14 @@ Qué resuelve, en orden de veces que ya mordió:
    que ya está: si la nueva tiene menos resolución efectiva, avisa. Traer una
    foto peor es más fácil de lo que parece cuando el original vino de una
    captura.
+
+`--nuevas` da de alta piezas que aún no tienen foto. Sin ella, una imagen que no
+corresponde a ningún `assets/<id>.webp` existente se reporta y no entra —que es
+lo correcto por defecto: así es como se caza un nombre mal escrito—. Pero eso
+también dejaba fuera el caso legítimo de una referencia recién llegada, y
+obligaba a escribir un script aparte para meterla, que es justo lo que este
+archivo existe para evitar. La bandera hay que pedirla a propósito, y sigue
+haciendo falta `--aplicar` para escribir.
 
 Deja `herramientas/salida/comparacion.png` —antes y después, lado a lado— para
 mirar el resultado antes de hacer commit.
@@ -209,6 +218,7 @@ def main():
         sys.exit(__doc__)
     entrada = pathlib.Path(sys.argv[1])
     aplicar = "--aplicar" in sys.argv
+    nuevas = "--nuevas" in sys.argv
     if not entrada.is_dir():
         sys.exit(f"No es una carpeta: {entrada}")
 
@@ -218,16 +228,18 @@ def main():
     if not entrantes:
         sys.exit(f"No hay imágenes en {entrada}")
 
-    parejas, sueltas = [], []
+    parejas, altas, sueltas = [], [], []
     for p in entrantes:
         ident, avisos = limpia_nombre(p.name)
         if ident in conocidos:
             parejas.append((p, ident, conocidos[ident], avisos))
+        elif nuevas:
+            altas.append((p, ident, avisos))
         else:
             sueltas.append((p, ident, avisos))
 
     print(f"{len(entrantes)} imágenes entrantes · {len(parejas)} emparejadas "
-          f"· {len(sueltas)} sin pareja\n")
+          f"· {len(altas)} altas · {len(sueltas)} sin pareja\n")
 
     SALIDA.mkdir(exist_ok=True)
     filas = []
@@ -256,6 +268,26 @@ def main():
 
         if aplicar:
             shutil.copyfile(tmp, vieja)
+
+    for nueva, ident, avisos in altas:
+        lienzo = a_lienzo(nueva)
+        det_n = pixeles_de_producto(nueva)
+        tmp = SALIDA / f"{ident}.webp"
+        kb, q = comprime(lienzo, tmp)
+
+        # No hay foto anterior contra la que comparar, así que el único aviso
+        # posible es el absoluto: una fuente que no da para pintar el cuadro.
+        nota = ""
+        if det_n < LADO:
+            nota = f"  <-- el producto trae solo {det_n} px para pintar {LADO}"
+        for a in avisos:
+            nota += f"  <-- {a}"
+        print(f"  {ident:<42} ALTA           ->  {LADO}x{LADO} "
+              f"{kb:5.1f}KB q{q}{nota}")
+        filas.append((ident, Image.new("RGB", (LADO, LADO), (250, 250, 252)), lienzo))
+
+        if aplicar:
+            shutil.copyfile(tmp, ASSETS / f"{ident}.webp")
 
     if sueltas:
         print("\nSin pareja en el catálogo — no entran hasta resolver el nombre:")
