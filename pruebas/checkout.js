@@ -201,8 +201,8 @@ async function llenarPaso1(p, d) {
       const nav = document.querySelector('#panel-1 .nav');
       return document.querySelector('#sug').compareDocumentPosition(nav) & Node.DOCUMENT_POSITION_FOLLOWING;
     }), 'va después del formulario y antes del botón de continuar');
-    ok(!(await p.locator('#bump').isVisible()),
-      'el bump del empaque sigue sin aparecer aquí: eso se decide al pagar');
+    ok(await p.evaluate(() => !document.querySelector('#bump')),
+      'el order bump del Empaque Premium ya no existe en ninguna parte');
     const porQue = (await p.locator('#sug-por').textContent()).trim();
     ok(/marvel/i.test(porQue), 'y explica por qué son esas: van por la categoría de lo que ya lleva', porQue);
 
@@ -272,45 +272,62 @@ async function llenarPaso1(p, d) {
     ok(/2\.400/.test(aval) && /verificad/i.test(aval),
       'con el dato real de la tienda, no una frase de relleno', aval.slice(0, 60) + '…');
 
-    /* El order bump del Empaque Premium.
-     *
-     * Lo que se vigila no es que exista, sino dónde: va ANTES de la casilla de
-     * términos. Una oferta metida entre el consentimiento y el botón de pagar
-     * añade un artículo al pedido después de que la clienta ya aceptó, y eso no
-     * es un detalle de diseño. */
-    ok(await p.locator('#bump').isVisible(), 'el bump del Empaque Premium se ofrece en el paso de pago');
+    /* El Empaque Premium se retiró el 2026-09-13. Lo que se vigila ahora es que
+       no vuelva por descuido, y que los términos sigan siendo la última puerta
+       antes del botón —ese invariante no era del bump, era del paso—. */
+    ok(await p.evaluate(() => !document.querySelector('#bump') && !document.querySelector('#bump-chk')),
+      'no hay order bump en el paso de pago');
+    ok(!/empaque premium/i.test(await p.locator('#panel-3').textContent()),
+      'ni se nombra el Empaque Premium en ninguna parte del paso');
     const orden = await p.evaluate(() => {
-      const b = document.querySelector('#bump');
       const t = document.querySelector('[data-c="acepta"]');
       const pagar = document.querySelector('#confirmar');
-      if (!b || !t || !pagar) return null;
-      return { bumpAntesDeTerminos: !!(b.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_FOLLOWING),
-               terminosAntesDePagar: !!(t.compareDocumentPosition(pagar) & Node.DOCUMENT_POSITION_FOLLOWING) };
+      if (!t || !pagar) return null;
+      return { terminosAntesDePagar: !!(t.compareDocumentPosition(pagar) & Node.DOCUMENT_POSITION_FOLLOWING) };
     });
-    ok(orden && orden.bumpAntesDeTerminos, 'y va antes de aceptar los términos, no entre el sí y el pago');
     ok(orden && orden.terminosAntesDePagar, 'con los términos como última puerta antes del botón');
-
-    /* El texto del bump tiene que decir la caja que de verdad va a llegar: la
-       del brazalete y la del charm no son la misma pieza, y prometer la que no
-       es se descubre al abrir el paquete. Este carrito lleva brazalete. */
-    const dice = (await p.locator('#bump-d').textContent()).trim();
-    ok(/caja grande de dos piezas/i.test(dice) && /guardapolvo/i.test(dice),
-      'el bump enumera la caja del brazalete, que es la que lleva este pedido');
-    ok(/sin costo/i.test(dice), 'y sigue diciendo que el empaque normal ya va incluido');
-    ok(!/caja peque/i.test(dice), 'sin prometer de paso la caja del charm');
-
-    const sinBump = (await p.locator('#res-total').textContent()).trim();
-    await p.click('#bump-chk');
-    await p.waitForTimeout(300);
-    const conBump = (await p.locator('#res-total').textContent()).trim();
-    ok(sinBump !== conBump, 'marcarlo mueve el total del resumen', `${sinBump} → ${conBump}`);
-    ok(!(await p.locator('#bump').isVisible()) && await p.locator('#bump-ya').isVisible(),
-      'y una vez puesto deja de ofrecerse: la casilla no puede quitarlo sin querer al pagar');
     await p.close();
   }
 
-  // ——— 2bb · el mismo bump, con un carrito sin brazalete ———
-  out.push('\n2bb · El Empaque Premium de un pedido de solo charms');
+  // ——— 2bb · un carrito guardado de antes no puede cobrar el empaque ———
+  out.push('\n2bb · El empaque retirado no se cuela por un carrito guardado');
+  {
+    /* El caso peligroso del retiro: una clienta que marcó el Empaque Premium
+       la semana pasada tiene `empaque:true` en su localStorage. Ya no hay
+       casilla que lo enseñe ni que lo quite, así que si el checkout lo
+       heredara le cobraría $40.000 invisibles. Tiene que valer exactamente lo
+       mismo que el carrito equivalente sin empaque. */
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    const piezas = { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse', 'stitch'] };
+
+    await ponerCarrito(p, Object.assign({}, piezas, { empaque: false, pago: 'anticipado' }));
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(500);
+    const limpio = (await p.locator('#res-total').textContent()).trim();
+
+    await ponerCarrito(p, Object.assign({}, piezas, { empaque: true, pago: 'anticipado' }));
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(500);
+    const heredado = (await p.locator('#res-total').textContent()).trim();
+
+    ok(limpio === heredado,
+      'un carrito guardado con empaque:true cobra lo mismo que uno sin él',
+      `${limpio} vs ${heredado}`);
+    ok(!/empaque/i.test(await p.locator('#res-lineas').textContent()),
+      'y no le aparece ninguna línea de empaque en el resumen');
+
+    /* Y lo mismo por la otra puerta: el «e=1» de los correos ya enviados. */
+    await p.goto(BASE + `/checkout.html?p=${BRZ.id}@${BRZ.talla},mickey-mouse,stitch&e=1`,
+      { waitUntil: 'networkidle' });
+    await p.waitForTimeout(600);
+    ok((await p.locator('#res-total').textContent()).trim() === limpio,
+      'y un enlace viejo con «e=1» tampoco lo resucita');
+    await p.close();
+  }
+
+  // ——— 2bc · la dedicatoria dejó de costar ———
+  out.push('\n2bc · La dedicatoria va incluida y se ve siempre');
   {
     const p = await b.newPage({ viewport: { width: 390, height: 844 } });
     p.on('pageerror', e => errores.push(e.message));
@@ -319,13 +336,11 @@ async function llenarPaso1(p, d) {
     await p.waitForTimeout(500);
     await llenarPaso1(p, DATOS);
     await p.click('#ir-2');
-    await p.click('#ir-3');
     await p.waitForTimeout(300);
-
-    const dice = (await p.locator('#bump-d').textContent()).trim();
-    ok(/caja peque/i.test(dice), 'sin brazalete, el bump ofrece la caja del charm', dice.slice(0, 70) + '…');
-    ok(!/brazalete/i.test(dice), 'y no nombra una caja de brazalete que este pedido no lleva');
-    ok(/dedicatoria/i.test(dice), 'la tarjeta con la dedicatoria va en las dos');
+    ok(await p.locator('#campo-dedicatoria').isVisible(),
+      'el campo de dedicatoria se ve sin haber comprado nada extra');
+    const pista = (await p.locator('#campo-dedicatoria .pista').textContent()).trim();
+    ok(!/premium/i.test(pista), 'y su pista ya no manda a comprar el Premium', pista);
     await p.close();
   }
 

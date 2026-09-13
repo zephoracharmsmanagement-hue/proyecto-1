@@ -407,7 +407,6 @@
   ],
   "descuentoBrazalete": 0.3,
   "minCharmsParaDescuento": 3,
-  "empaque": 40000,
   "envioGratisDesde": 0,
   "envioGratisSoloAnticipado": true,
   "envio": {

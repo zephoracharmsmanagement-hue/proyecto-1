@@ -65,11 +65,13 @@ function carritoDe(registro) {
   const items = (stock && stock.items) || {};
   let base = null;
   const charms = [];
-  let empaque = false;
 
   (registro.lineas || []).forEach(l => {
     if (!l || !l.id) return;
-    if (l.id === 'empaque') { empaque = true; return; }
+    /* Los pedidos anteriores al 2026-09-13 pueden traer la línea del Empaque
+       Premium. Se ignora: la pieza ya no se vende y reanudar con ella sería
+       cobrar algo que el checkout ni enseña ni deja quitar. */
+    if (l.id === 'empaque') return;
     const it = items[l.id];
     if (!it) return;                      /* pieza retirada del catálogo */
     if (it.tipo === 'pulsera') {
@@ -79,7 +81,7 @@ function carritoDe(registro) {
     for (let i = 0; i < (l.unidades || 1); i++) charms.push(l.id);
   });
 
-  return { base, charms, empaque,
+  return { base, charms,
     pago: registro.pago === 'contraentrega' ? 'contraentrega' : 'anticipado' };
 }
 

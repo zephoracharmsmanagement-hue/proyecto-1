@@ -315,6 +315,28 @@ python3 herramientas/extraer_catalogo.py
 Si se olvida, `pruebas/precios.js` lo detecta: compara el total que muestra la
 página contra el que cobraría el servidor en 40 carritos al azar.
 
+### Al retirar algo que se cobraba
+
+Quitar la interfaz no basta, y esto costó entenderlo una vez. El **Empaque
+Premium de Regalo** ($40.000) se retiró el 2026-09-13 por decisión del
+propietario: confundía por precio y nunca lo pidió nadie.
+
+El problema no es borrarlo de la página, es que el dato **sobrevive donde no
+llega ningún despliegue**: el `localStorage` de quien lo marcó (el carrito dura
+una semana), los enlaces de recuperación ya enviados con `&e=1`, y los pedidos
+pendientes que `reanudar.mjs` reconstruye desde sus líneas guardadas. Heredar
+ese `empaque:true` sin interfaz que lo muestre ni casilla que lo quite sería
+cobrar $40.000 invisibles.
+
+Por eso el campo **no se borró: se fuerza a `false` en cada puerta de entrada**
+—las dos lecturas del checkout, la de `index.html`, `reanudar.mjs` y, la que de
+verdad manda, `leerPedido()` en `_precios.js`—. Un cuerpo manipulado que mande
+`empaque:true` cobra exactamente lo mismo. `pruebas/checkout.js § 2bb` lo
+vigila y no se borra.
+
+La regla, para el próximo retiro: **cerrar las puertas por las que el dato viejo
+todavía puede llegar**, no solo la pantalla donde se elegía.
+
 ## Despliegue
 
 > Desde que existen las funciones, **el despliegue va por Git**, no arrastrando

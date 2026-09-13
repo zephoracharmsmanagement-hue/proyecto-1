@@ -390,19 +390,6 @@ section{scroll-margin-top:64px}
 .cv-n{display:block;margin-top:8px;font-size:12.5px;color:#6d6070;text-align:center;line-height:1.35}
 .rail>.cv{scroll-snap-align:start}
 
-/* 6b · empaque destacado — mismo patrón que .story pero con las columnas
-   invertidas (texto en la 1.1fr, foto en la .9fr) para que la imagen quede
-   a la derecha en desktop y alterne con .story en vez de repetir el layout. */
-.pack-hero{padding:40px 0;border-top:1px solid var(--line)}
-.pack-hero-in{display:grid;gap:26px}
-.pack-hero h2{font-size:clamp(28px,7vw,42px);line-height:1.14;margin:8px 0 14px}
-.pack-hero h2 i{font-style:italic;color:var(--plum)}
-.pack-hero p{color:#584a5c;margin:0 0 14px;max-width:52ch}
-.pack-hero p:last-of-type{margin-bottom:22px}
-.pack-hero-ph{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.pack-hero-ph img{width:100%;border-radius:3px}
-.pack-hero-price{color:var(--ink);font-weight:600}
-
 /* 7 · prueba social */
 .social{padding:34px 0;border-top:1px solid var(--line)}
 .case{background:var(--white);border:1px solid var(--line);border-left:3px solid var(--rose);
@@ -853,7 +840,7 @@ body.sheet-open{overflow:hidden}
   border-radius:50%;background:none;color:var(--bone);font-size:17px;cursor:pointer;line-height:1}
 .sheet-grab{width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);
   margin:9px auto 0;flex:0 0 auto}
-/* La zona que rueda: piezas, empaque, forma de pago y desglose. Se le da un
+/* La zona que rueda: piezas, forma de pago y desglose. Se le da un
    mínimo para que siempre se vean tres piezas aunque el resto crezca. */
 .sheet-scroll{overflow-y:auto;flex:1 1 auto;min-height:0;
   scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.22) transparent}
@@ -864,9 +851,9 @@ body.sheet-open{overflow:hidden}
 .sheet-extras{padding:0 18px 8px}
 /* «Te puede interesar», dentro de la hoja.
  *
- * Va entre las piezas y el empaque, que es donde encaja en la frase que la
- * clienta está leyendo: esto llevas → esto le pega → así lo envuelves → así lo
- * pagas. Más abajo no puede ir: pegado al botón de pagar, elegir pieza es
+ * Va entre las piezas y la forma de pago, que es donde encaja en la frase que
+ * la clienta está leyendo: esto llevas → esto le pega → así lo pagas. Más
+ * abajo no puede ir: pegado al botón de pagar, elegir pieza es
  * navegar, y navegar al pagar se come checkouts terminados.
  *
  * La tarjeta entera es el botón. En una hoja que se usa con el pulgar, un
@@ -956,21 +943,6 @@ body.sheet-open{overflow:hidden}
   font-size:11.5px;color:#8d7f92;margin:10px 0 0}
 .sheet-seguro svg{flex:0 0 auto;opacity:.8}
 .sheet-seguro + .sheet-note{margin-top:5px}
-/* El empaque se enseña con la misma gramática que una pieza —foto de 46 px a
-   la izquierda, igual que .srow— porque es lo que es: algo más que va en la
-   caja. Como casilla de texto suelta no se entendía qué se estaba comprando.
-   La foto es del empaque real; poner una de catálogo sería vender otra cosa. */
-.pack{display:flex;gap:11px;align-items:center;font-size:13px;color:#c3b4c6;
-  padding:9px 0 11px;cursor:pointer}
-.pack input{width:17px;height:17px;accent-color:var(--rose);flex:0 0 auto}
-.pack img{width:46px;height:46px;border-radius:2px;background:#fff;object-fit:cover;
-  flex:0 0 auto}
-.pack-t{min-width:0;line-height:1.35}
-.pack b{color:var(--bone);font-weight:400}
-.pack small{display:block;font-size:11.5px;color:#a495a8;margin-top:1px}
-.pack-tag{display:inline-block;font-size:10.5px;letter-spacing:.04em;color:#e8bfcd;
-  border:1px solid rgba(232,191,205,.42);border-radius:2px;padding:1px 5px;margin-left:6px;
-  vertical-align:1px}
 .pago{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
 .pbtn{font:400 12.5px/1.3 Jost;text-align:left;padding:10px 12px;cursor:pointer;
   border:1px solid rgba(255,255,255,.22);background:transparent;color:#c3b4c6;
@@ -1012,7 +984,6 @@ body.sheet-open{overflow:hidden}
   /* En escritorio caben tres videos completos sin encogerlos: el 78vw de
      celular aqui daria un video gigante y ridiculo. */
   .ugc-rail .rail{grid-auto-columns:300px;justify-content:center}
-  .pack-hero-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   .revs{grid-template-columns:repeat(2,1fr);gap:20px}
   .case{grid-template-columns:150px 1fr;gap:24px;padding:22px;align-items:center}
   .trust{grid-template-columns:repeat(3,1fr)}
@@ -1020,7 +991,7 @@ body.sheet-open{overflow:hidden}
   .trust div:nth-child(n+4){border-top:1px solid var(--line)}
   .trust div:nth-child(4){border-left:0}
   .sec,.social,.trust-sec,.cats,.promo{padding:46px 0}
-  .story,.plata,.pack-hero{padding:52px 0}
+  .story,.plata{padding:52px 0}
   .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
   .talla-sec,.pe{padding:46px 0}
   .calc{grid-template-columns:300px 1fr;gap:26px;align-items:start;max-width:none}
@@ -1865,25 +1836,6 @@ body.sheet-open{overflow:hidden}
   </div>
 </section>
 
-<!-- 6b · EMPAQUE DESTACADO — antes esto era un checkbox de 46 px dentro del
-     carrito, invisible hasta que la clienta ya estaba pagando. Se sube acá
-     para que el empaque venda antes de llegar al carrito, no solo ahí. -->
-<section class="pack-hero" id="empaque-destacado">
-  <div class="wrap pack-hero-in">
-    <div>
-      <span class="eyebrow">El detalle final</span>
-      <h2>Cada pulsera <i>llega lista para regalar</i>.</h2>
-      <p>Caja, bolsa y tarjeta con tu dedicatoria — pensadas para que lo único que tengas que hacer sea entregarla. El Empaque Premium de Regalo se elige al armar tu pulsera.</p>
-      <p class="pack-hero-price">Empaque Premium de Regalo · +$40.000</p>
-      <a class="btn" href="#brazaletes">Empieza tu pulsera</a>
-    </div>
-    <div class="pack-hero-ph">
-      <img src="assets/empaque.webp?v=20260822" alt="Empaque Premium de Zephora: caja y bolsa de regalo" width="440" height="440" loading="lazy" decoding="async">
-      <img src="assets/empaque-charm.webp?v=20260822" alt="Empaque Premium de Zephora: detalle de la tarjeta con dedicatoria" width="440" height="440" loading="lazy" decoding="async">
-    </div>
-  </div>
-</section>
-
 <!-- 7 · PRUEBA SOCIAL -->
 <section class="social" id="reseñas">
   <div class="wrap">
@@ -1969,7 +1921,7 @@ body.sheet-open{overflow:hidden}
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-4h12l2 4M12 12v4M9.5 14.5h5"/></svg><span><b>Pago contraentrega disponible:</b> pagas cuando la tengas en tus manos</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span><b>Paga como prefieras:</b> Nequi, Bancolombia, tarjetas o Addi a cuotas — confirmamos todo antes por chat</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5.3 5.5.6-4.2 3.8 1.2 5.6L12 14.5 7 17.3l1.2-5.6L4 7.9l5.5-.6z"/></svg><span><b>Materiales claramente especificados</b> en cada pieza: Plata 925 en charms, baño de plata en brazaletes</span></div>
-      <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 12h16M12 9v11M12 9c-3 0-4.5-1.5-4.5-3S9 3.5 10.5 4.5 12 9 12 9zm0 0c3 0 4.5-1.5 4.5-3S15 3.5 13.5 4.5 12 9 12 9z"/></svg><span><b>Empaque de regalo incluido</b> — y si quieres sorprender, Empaque Premium de Regalo por $40.000</span></div>
+      <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 12h16M12 9v11M12 9c-3 0-4.5-1.5-4.5-3S9 3.5 10.5 4.5 12 9 12 9zm0 0c3 0 4.5-1.5 4.5-3S15 3.5 13.5 4.5 12 9 12 9z"/></svg><span><b>Empaque de regalo incluido</b> — caja, bolsa y tarjeta con tu dedicatoria, sin costo</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></svg><span><b>Garantía de 30 días</b> por defectos de fábrica</span></div>
     </div>
   </div>
@@ -2049,9 +2001,6 @@ body.sheet-open{overflow:hidden}
     <div class="sug-tira" id="sug-tira"></div>
   </section>
   <div class="sheet-extras">
-    <label class="pack"><input type="checkbox" id="pack">
-      <img src="assets/empaque.webp?v=20260822" alt="Empaque Premium: bolsa, caja y tarjeta" width="46" height="46" loading="lazy" decoding="async">
-      <span class="pack-t">Empaque Premium de Regalo <b>+$40.000</b><span class="pack-tag">Recomendado para regalo</span><small>Caja, bolsa y tarjeta con tu dedicatoria</small></span></label>
     <div class="pago" id="pago" role="radiogroup" aria-label="Forma de pago">
       <!-- El costo de envío de cada opción lo escribe render(): el anticipado
            dice «GRATIS» y la contraentrega mantiene su tarifa. Fijarlos en el
@@ -2589,10 +2538,9 @@ function render(){
   const descC=brutoC*escala(nC);
   const brutoB=base?PU[base.id].p:0;
   const descB=(base&&nC>=3)?brutoB*.30:0;
-  const pack=document.getElementById('pack').checked?40000:0;
   /* El umbral de envío gratis se mide sobre la mercancía, no sobre el total:
      de lo contrario el propio envío ayudaría a alcanzarlo. */
-  const subtotal=brutoC-descC+brutoB-descB+pack;
+  const subtotal=brutoC-descC+brutoB-descB;
   const ahorro=descC+descB;
   /* alcanza: llegó al umbral. libre: además le corresponde el beneficio.
      Se separan para poder decirle a quien eligió contraentrega que ya alcanzó
@@ -2761,8 +2709,8 @@ function pintarSug(){
   const { ids, categorias } = sugeridos();
   if(ids.length<3){ caja.hidden=true; return; }
   caja.hidden=false;
-  /* render() corre en cada cambio —también al elegir forma de pago o marcar el
-     empaque—. Si la lista no cambió, no se toca: repintar reiniciaría el
+  /* render() corre en cada cambio —también al elegir forma de pago—. Si la
+     lista no cambió, no se toca: repintar reiniciaría el
      desplazamiento de la tira justo mientras la clienta la recorre. */
   if(tira.dataset.ids===ids.join(',')) return;
 
@@ -2908,7 +2856,11 @@ function guardar(){
   try{
     localStorage.setItem(LLAVE,JSON.stringify({
       v:1, base:base, charms:sel,
-      empaque:document.getElementById('pack').checked,
+      /* Siempre false. El Empaque Premium se retiró el 2026-09-13 y este
+         campo se mantiene para pisar lo que quedó guardado de antes: un
+         carrito de ayer trae empaque:true y, sin interfaz que lo muestre,
+         cobraría $40.000 que nadie puede ver ni quitar. */
+      empaque:false,
       pago:pago, cuando:Date.now()
     }));
   }catch(_){}
@@ -2954,7 +2906,8 @@ function delEnlace(){
   });
   if(!b&&!s.length) return false;
   base=b; sel=s; tocado=true;
-  if(q.get('e')==='1'){ var pk=document.getElementById('pack'); if(pk) pk.checked=true; }
+  /* El parámetro «e» (empaque) se ignora desde que se retiró el Premium.
+     Los correos de recuperación enviados antes siguen trayéndolo. */
   if(q.get('pago')==='contraentrega'){
     var btn=document.querySelector('.pbtn[data-pago="contraentrega"]');
     if(btn) btn.click();
@@ -2984,7 +2937,6 @@ function recuperar(){
   if(!d.cuando||Date.now()-d.cuando>7*24*3600*1000) return;
   if(d.base&&d.base.id&&PU[d.base.id]) base={id:d.base.id,talla:d.base.talla||null};
   if(Array.isArray(d.charms)) sel=d.charms.filter(id=>CH[id]);
-  if(d.empaque) document.getElementById('pack').checked=true;
   if(d.pago==='contraentrega'){
     const b=document.querySelector('.pbtn[data-pago="contraentrega"]');
     if(b) b.click();          // click para que el grupo de radio quede coherente
@@ -3009,7 +2961,6 @@ function comprar(){
    se retiró: los enlaces de asesoría del resto de la página siguen ahí. */
 $('#send').onclick=comprar;
 $('#dock-send').onclick=comprar;
-document.getElementById('pack').addEventListener('change',render);
 /* El atajo del aviso de envío: aplica el pago anticipado sin que la clienta
    tenga que buscar el botón. Delegado porque el aviso se repinta en cada render. */
 document.getElementById('ship-note').addEventListener('click',e=>{

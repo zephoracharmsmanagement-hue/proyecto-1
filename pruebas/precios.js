@@ -90,10 +90,9 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       }
     }
     if (!base && charms.length === 0) charms.push(disponibles.charms[0]);
-    const empaque = azar() < 0.4;
     const pago = azar() < 0.5 ? 'contraentrega' : 'anticipado';
 
-    const enPantalla = await p.evaluate(async ({ base, charms, empaque, pago }) => {
+    const enPantalla = await p.evaluate(async ({ base, charms, pago }) => {
       const esperar = () => new Promise(r => setTimeout(r, 30));
       const boton = id => {
         const c = document.querySelector(`.pc[data-id="${CSS.escape(id)}"]`);
@@ -123,8 +122,6 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       }
       for (const id of charms) { boton(id).click(); await esperar(); }
 
-      const pk = document.getElementById('pack');
-      if (pk.checked !== empaque) { pk.click(); await esperar(); }
       document.querySelector(`.pbtn[data-pago="${pago}"]`).click();
       await esperar();
 
@@ -137,10 +134,10 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
         /* El aviso del siguiente tramo de descuento: null si no se muestra. */
         descNota: dn.hidden ? null : dn.textContent.trim(),
       };
-    }, { base, charms, empaque, pago });
+    }, { base, charms, pago });
 
     const servidor = calcular(leerPedido({
-      base: base ? { id: base, talla: enPantalla.talla } : null, charms, empaque, pago,
+      base: base ? { id: base, talla: enPantalla.talla } : null, charms, pago,
     }));
 
     const esperado = cop(servidor.total);
@@ -179,7 +176,7 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     }
 
     const resumen = `${base ? base.replace('pulsera-', 'brz:') : 'sin brazalete'}` +
-      ` + ${charms.length} charms${empaque ? ' + empaque' : ''} · ${pago}`;
+      ` + ${charms.length} charms · ${pago}`;
     if (igual) {
       console.log(`  ✓ ${resumen} → ${esperado}`);
     } else {

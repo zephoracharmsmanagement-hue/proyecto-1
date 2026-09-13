@@ -134,31 +134,6 @@ button{font-family:inherit}
 .sug-b:hover{background:var(--pagar);color:#fff}
 .sug-b.is-puesto{background:var(--bien);border-color:var(--bien);color:#fff;cursor:default}
 
-/* Order bump del Empaque Premium.
- *
- * Va en el paso de pago, justo antes del botón: la decisión de comprar ya está
- * tomada y esto es un sí o un no de un toque. La tira de sugerencias vive en el
- * primer paso y no aquí —elegir pieza es navegar, y navegar al pagar distrae—
- * pero una casilla con su precio sí cabe.
- *
- * Borde discontinuo para separarlo de las formas de pago: no es una y no puede
- * parecerlo. */
-.bump{margin:0 0 14px;padding:13px 14px;border:1px dashed var(--pagar);border-radius:3px;
-  background:#fdf7f9;display:flex;gap:11px;align-items:flex-start;cursor:pointer}
-.bump input{margin:2px 0 0;width:19px;height:19px;accent-color:var(--pagar);flex:0 0 auto;cursor:pointer}
-/* La foto del empaque real. Aquí importa más que en el carrito: esto se lee con
-   la decisión de pagar ya tomada, y ver qué es «Premium» decide el sí o el no
-   mejor que la palabra. Es la misma imagen que la miniatura del carrito. */
-.bump-img{width:56px;height:56px;border-radius:3px;object-fit:cover;flex:0 0 auto;
-  background:#fff;border:1px solid rgba(0,0,0,.07)}
-.bump-tx{min-width:0}
-.bump-t{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14.5px}
-.bump-t b{font-weight:400}
-.bump-t .precio{color:var(--pagar)}
-.bump-d{margin:4px 0 0;font-size:12.5px;line-height:1.5;color:#6d6070}
-.bump:has(input:checked){border-style:solid;background:var(--rose-soft)}
-.bump-ya{margin:0 0 14px;padding:11px 13px;border-radius:3px;background:#E8F4EF;
-  font-size:13px;line-height:1.5;color:#1a6650}
 .res-editar{display:inline-block;margin-top:12px;font-size:12.5px}
 
 /* ——— pasos ——— */
@@ -511,10 +486,10 @@ button{font-family:inherit}
               <label for="notas">Indicaciones para la entrega</label>
               <textarea id="notas" name="notas" maxlength="400" placeholder="Portería, horario en que hay quien reciba, punto de referencia…"></textarea>
             </div>
-            <div class="campo" data-c="dedicatoria" id="campo-dedicatoria" hidden>
+            <div class="campo" data-c="dedicatoria" id="campo-dedicatoria">
               <label for="dedicatoria">Dedicatoria para la tarjeta</label>
-              <textarea id="dedicatoria" name="dedicatoria" maxlength="200" placeholder="Va escrita a mano en la tarjeta del empaque de regalo."></textarea>
-              <span class="pista">Elegiste Empaque Premium de Regalo: si escribes algo aquí, va en la tarjeta.</span>
+              <textarea id="dedicatoria" name="dedicatoria" maxlength="200" placeholder="«Para Ana, por todo lo que aguantaste este año.»"></textarea>
+              <span class="pista">Opcional. Todos los pedidos llevan tarjeta: si escribes algo aquí, va escrito a mano.</span>
             </div>
           </div>
 
@@ -563,16 +538,6 @@ button{font-family:inherit}
           <!-- Antes de la casilla de términos a propósito: aceptar es la última
                puerta antes de pagar, y una oferta entre el consentimiento y el
                botón añade un artículo al pedido después de haberlo aceptado. -->
-
-          <label class="bump" id="bump" hidden>
-            <input type="checkbox" id="bump-chk">
-            <img class="bump-img" id="bump-img" src="assets/empaque.webp?v=20260822" alt="Empaque Premium de Regalo" width="56" height="56" loading="lazy" decoding="async">
-            <span class="bump-tx">
-              <span class="bump-t"><b>Añade el Empaque Premium de Regalo</b><span class="precio">+$40.000</span></span>
-              <span class="bump-d" id="bump-d"></span>
-            </span>
-          </label>
-          <p class="bump-ya" id="bump-ya" hidden>✓ Tu pedido lleva Empaque Premium de Regalo. La dedicatoria para la tarjeta se escribe en el paso anterior.</p>
 
           <div class="campo" style="margin-top:18px" data-c="acepta">
             <label style="display:flex;gap:10px;align-items:flex-start;text-transform:none;
@@ -651,12 +616,16 @@ function leerCarrito(){
   const base=(d.base&&d.base.id&&CAT.precios[d.base.id])
     ? {id:d.base.id,talla:d.base.talla||null} : null;
   if(!base&&!charms.length) return null;
-  return {base:base,charms:charms,empaque:d.empaque===true,
+  /* empaque siempre false: el Empaque Premium se retiró el 2026-09-13 y hay
+     carritos guardados hasta una semana antes que todavía lo traen puesto. Sin
+     interfaz que lo muestre ni casilla que lo quite, heredarlo sería cobrar
+     $40.000 que la clienta no puede ver. Se pisa aquí, en la puerta. */
+  return {base:base,charms:charms,empaque:false,
     pago:d.pago==='contraentrega'?'contraentrega':'anticipado'};
 }
 /* ——— el carrito puede llegar en el enlace ———
  *
- * Misma forma que en index.html:  ?p=letra-e*2,pulsera-corazon-liso@19&e=1&pago=…
+ * Misma forma que en index.html:  ?p=letra-e*2,pulsera-corazon-liso@19&pago=…
  * (`*N` unidades de un charm, `@T` talla de un brazalete).
  *
  * Aquí importa más que en la tienda, porque este es el destino de los dos
@@ -692,7 +661,9 @@ function carritoDeUrl(){
     for(var i=0;i<n&&charms.length<60;i++) charms.push(id);
   });
   if(!base&&!charms.length) return null;
-  return {base:base,charms:charms,empaque:q.get('e')==='1',
+  /* Igual que arriba: el «e=1» de los correos de recuperación ya enviados se
+     lee y se descarta. */
+  return {base:base,charms:charms,empaque:false,
     pago:q.get('pago')==='contraentrega'?'contraentrega':'anticipado'};
 }
 
@@ -710,7 +681,7 @@ function limpiarUrl(){
 function guardarCarrito(){
   try{
     localStorage.setItem(LLAVE,JSON.stringify({v:1,base:carrito.base,charms:carrito.charms,
-      empaque:carrito.empaque,pago:carrito.pago,cuando:Date.now()}));
+      empaque:false,pago:carrito.pago,cuando:Date.now()}));
   }catch(_){}
 }
 
@@ -724,14 +695,13 @@ function calcular(c){
   const descC=brutoC*escala;
   const brutoB=c.base?CAT.precios[c.base.id]:0;
   const descB=(c.base&&nC>=R.minCharmsParaDescuento)?brutoB*R.descuentoBrazalete:0;
-  const empaque=c.empaque?R.empaque:0;
-  const subtotal=brutoC-descC+brutoB-descB+empaque;
+  const subtotal=brutoC-descC+brutoB-descB;
   /* El envío gratis es solo del pago anticipado; la contraentrega lo paga
      siempre. Misma regla que index.html y que _precios.js, que es quien cobra. */
   const alcanza=subtotal>=R.envioGratisDesde;
   const gratis=alcanza&&(!R.envioGratisSoloAnticipado||c.pago==='anticipado');
   const envio=(subtotal<=0||gratis)?0:R.envio[c.pago];
-  return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(descC+descB),empaque:empaque,
+  return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(descC+descB),
     subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,
     total:Math.round(subtotal+envio)};
 }
@@ -749,15 +719,6 @@ function lineas(c){
     out.push({id:id,n:CAT.nombres[id]+(n>1?' ×'+n:''),m:'Charm · Plata 925',
       p:CAT.precios[id]*n});
   });
-  /* Igual que el texto del bump: la caja del brazalete y la del charm no son la
-     misma pieza, así que ni el resumen ni su miniatura pueden ser fijos. Un
-     pedido de solo charms enseñaba aquí la bolsita guardapolvo y el brazalete
-     dentro de la caja, que es prometer lo que no llega. */
-  if(c.empaque) out.push({id:'empaque',n:'Empaque Premium de Regalo',
-    m:c.base?'Caja a la medida, bolsita, bolsa y tarjeta'
-            :'Caja pequeña, bolsa de regalo y tarjeta',
-    foto:c.base?'assets/empaque.webp':'assets/empaque-charm.webp',
-    p:CAT.reglas.empaque});
   return out;
 }
 
@@ -769,8 +730,7 @@ function pintarResumen(){
 
   $('#res-lineas').innerHTML=lineas(c).map(l=>{
     /* Los charms sin foto van con la inicial, igual que en el catálogo, en vez
-       de un <img> roto. El empaque era la otra excepción —no tenía foto— y ya
-       la tiene, así que entra por el camino normal. */
+       de un <img> roto. */
     const foto=(l.foto||('assets/'+l.id+'.webp'))+'?v=20260822';
     const ini=esc(l.n.trim().charAt(0).toUpperCase());
     const img=foto
@@ -782,7 +742,7 @@ function pintarResumen(){
   }).join('');
 
   let h='';
-  h+='<div class="tot-row"><span>Subtotal</span><b>'+cop(t.brutoC+t.brutoB+t.empaque)+'</b></div>';
+  h+='<div class="tot-row"><span>Subtotal</span><b>'+cop(t.brutoC+t.brutoB)+'</b></div>';
   if(t.descuento>0) h+='<div class="tot-row save"><span>Descuento promo</span><b>− '+cop(t.descuento)+'</b></div>';
   h+=t.gratis
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
@@ -858,7 +818,6 @@ function pintarResumen(){
       +' envío gratis aplica solo al pagar por adelantado.'
     : base;
 
-  $('#campo-dedicatoria').hidden=!c.empaque;
 }
 
 /* ——— «Te puede interesar» ———
@@ -975,51 +934,6 @@ function pintarSugeridos(){
   }).join('');
   caja.hidden=false;
 }
-
-/* El bump del Empaque Premium.
- *
- * Solo se ofrece si no lo lleva ya —el carrito puede traerlo puesto desde el
- * armador— y en ese caso se dice que lo lleva, en vez de dejar una casilla que
- * no hace nada o, peor, que al tocarla se lo quite sin querer en la pantalla
- * de pago. */
-/* Lo que trae el Premium depende de lo que va dentro: la caja del brazalete y
-   la del charm no son la misma pieza, y prometer la que no es se descubre al
-   abrir el paquete —el peor sitio para descubrirlo—. Por eso el texto se
-   escribe desde el carrito y no está fijo en el HTML. */
-const EMPAQUE={
-  base:'Tu pedido ya lleva empaque de regalo sin costo. El Premium suma la '
-    +'<b>caja grande de dos piezas hecha a la medida del brazalete</b>, la '
-    +'bolsita de tela guardapolvo, la bolsa de regalo con cinta, el folleto y '
-    +'la <b>tarjeta con tu dedicatoria escrita a mano</b>.',
-  charms:'Tu pedido ya lleva empaque de regalo sin costo. El Premium suma la '
-    +'<b>caja pequeña con su bolsa de regalo</b> y la <b>tarjeta con tu '
-    +'dedicatoria escrita a mano</b>, para que el charm llegue protegido y '
-    +'listo para entregar.'
-};
-
-function pintarBump(){
-  const caja=$('#bump'), ya=$('#bump-ya');
-  if(!carrito){ caja.hidden=true; ya.hidden=true; return; }
-  caja.hidden=carrito.empaque===true;
-  ya.hidden=carrito.empaque!==true;
-  $('#bump-chk').checked=carrito.empaque===true;
-  /* innerHTML sobre una constante escrita aquí al lado, sin nada de la
-     clienta en medio: lo único que entra es el <b> del texto de arriba. */
-  $('#bump-d').innerHTML=carrito.base?EMPAQUE.base:EMPAQUE.charms;
-  $('#bump-img').src=(carrito.base?'assets/empaque.webp':'assets/empaque-charm.webp')+'?v=20260822';
-}
-
-$('#bump-chk').addEventListener('change',e=>{
-  carrito.empaque=e.target.checked;
-  guardarCarrito();
-  pintarResumen();     /* mueve el total del resumen, que está a la vista */
-  pintarBump();
-  if(e.target.checked && typeof fbq==='function'){
-    fbq('track','AddToCart',{currency:'COP',content_type:'product',
-      content_ids:['empaque'],content_name:'Empaque Premium de Regalo',
-      value:CAT.reglas.empaque});
-  }
-});
 
 $('#sug-tira').addEventListener('click',e=>{
   const b=e.target.closest('[data-sug]'); if(!b) return;
@@ -1160,7 +1074,7 @@ function datos(){
     celular:val('celular').replace(/\D/g,''), correo:val('correo').toLowerCase(),
     depto:val('depto'), ciudad:ciu, direccion:val('direccion'),
     adicional:val('adicional'), barrio:val('barrio'),
-    notas:val('notas'), dedicatoria:carrito.empaque?val('dedicatoria'):'',
+    notas:val('notas'), dedicatoria:val('dedicatoria'),
     /* Autorización para escribirle por algo que no sea este pedido. Viaja con
        el resto y la guarda el registro: es lo que decide, más adelante, si un
        checkout sin pagar se puede recuperar escribiéndole a ella o solo
@@ -1223,7 +1137,7 @@ async function confirmar(){
   error(null);
 
   const cuerpo={
-    base:carrito.base, charms:carrito.charms, empaque:carrito.empaque,
+    base:carrito.base, charms:carrito.charms,
     pago:carrito.pago, cliente:datos(),
     fbp:cookie('_fbp'), fbc:cookie('_fbc')
   };
@@ -1383,7 +1297,6 @@ Promise.all([
   pintarDeptos();
   pintarResumen();
   pintarSugeridos();
-  pintarBump();
 
   /* El resumen es una barra plegable arriba en móvil y una columna fija al lado
      en escritorio. Es el mismo nodo movido, no dos copias que se desincronizan. */

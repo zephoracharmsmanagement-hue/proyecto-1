@@ -84,6 +84,54 @@ repetirlo:
 rompe el día que cambia un precio. La cifra se lee de `catalogo.json` o de
 `calcular()`, nunca se copia.
 
+### Se retiró el Empaque Premium de Regalo
+
+**Decisión del propietario (2026-09-13):** confunde por su precio y **nunca lo
+pidió nadie**. Confirma la hipótesis que este mismo documento dejó anotada hace
+semanas —«$40.000 sobre un brazalete de $58.000 son un 69% adicional; el bump no
+convierte por precio y no por diseño»—: no era un problema de diseño y no había
+que rediseñarlo otra vez.
+
+Se retiró de los seis sitios donde vivía: la sección `#empaque-destacado` de la
+portada (borrada entera, con su CSS), la casilla del carrito, el order bump del
+paso de pago, el renglón del resumen, el cálculo de las tres calculadoras y la
+respuesta de la FAQ. `reglas.empaque` ya no existe en `catalogo.json` y el
+extractor dejó de buscarlo.
+
+**Lo que se queda:** el empaque de regalo normal, que siempre fue gratis y sigue
+yendo en todos los pedidos. Y la **dedicatoria escrita a mano**, que estaba
+atada al Premium y ahora se ofrece a todo el mundo sin cobrar: no cuesta
+inventario ni logística —la tarjeta ya va en la caja— y es el dato que dice qué
+pedido es un regalo, que le sirve al bot de WhatsApp.
+
+#### La trampa del retiro, que es la parte que importa
+
+Quitar la interfaz no basta. `empaque:true` sobrevive en tres sitios que nadie
+controla desde el repo:
+
+1. El **localStorage** de cualquier clienta que lo marcó — el carrito se guarda
+   una semana.
+2. Los **enlaces de recuperación ya enviados**, que llevan `&e=1`.
+3. Los **pedidos pendientes** guardados con su línea de empaque, que
+   `reanudar.mjs` reconstruye.
+
+Sin interfaz que lo muestre ni casilla que lo quite, heredarlo sería **cobrar
+$40.000 que la clienta no puede ver en ninguna línea ni quitar de ninguna
+forma**. Así que no se borró el campo: se **fuerza a `false` en cada puerta de
+entrada** —las dos lecturas del checkout, la de `index.html`, `reanudar.mjs` y,
+la última y la que de verdad manda, `leerPedido()` en `_precios.js`—. Un cuerpo
+manipulado que mande `empaque:true` al servidor cobra exactamente lo mismo:
+comprobado.
+
+`pruebas/checkout.js § 2bb` existe para eso y no se borra: compara el total de
+un carrito guardado con `empaque:true` contra el mismo carrito sin él, y hace lo
+propio con un enlace `&e=1`.
+
+**Regla general, que vale para el próximo retiro:** quitar algo que se cobraba
+no es borrar su interfaz, es **cerrar todas las puertas por las que ese dato
+todavía puede llegar**. El dato viejo vive en navegadores y correos que ya
+salieron, y ahí no llega ningún despliegue.
+
 ### Tanda nueva de videos
 
 Los tres `.mov` del propietario reemplazan a los tres de la tanda del 12 de

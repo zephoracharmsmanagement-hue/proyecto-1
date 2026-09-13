@@ -24,14 +24,16 @@
  *   p=id*3               tres unidades
  *   p=id@19              brazalete de la talla 19
  *   p=a@19,b*2,c         todo junto, separado por comas
- *   e=1                  empaque de regalo
  *   pago=contraentrega   forma de pago
  *
  * Lo que está en su valor por defecto no se escribe: una URL que viaja en un
- * correo o en un WhatsApp se lee, y `&e=0&pago=anticipado` es ruido.
+ * correo o en un WhatsApp se lee, y `&pago=anticipado` es ruido.
+ *
+ * `e=1` (Empaque Premium) se retiró el 2026-09-13 y ya no se escribe. Los
+ * enlaces enviados antes lo siguen trayendo; el checkout los lee y lo descarta.
  */
 
-/* De carrito a parámetros. El carrito es `{base, charms, empaque, pago}`, la
+/* De carrito a parámetros. El carrito es `{base, charms, pago}`, la
    misma forma que guardan las páginas en localStorage y que acepta
    `leerPedido()` en _precios.js. */
 export function comoUrl(carrito) {
@@ -44,7 +46,6 @@ export function comoUrl(carrito) {
   Object.entries(cuenta).forEach(([id, n]) => trozos.push(n > 1 ? `${id}*${n}` : id));
   const q = new URLSearchParams();
   q.set('p', trozos.join(','));
-  if (carrito.empaque) q.set('e', '1');
   if (carrito.pago === 'contraentrega') q.set('pago', 'contraentrega');
   return q;
 }

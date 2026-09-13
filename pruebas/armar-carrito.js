@@ -73,14 +73,14 @@ async function main() {
 
   console.log('\n1 · El precio es el que va a cobrar el checkout');
   {
-    const pedido = { base: { id: pulsera, talla }, charms: [charm, charm], empaque: true };
+    const pedido = { base: { id: pulsera, talla }, charms: [charm, charm] };
     const { r, d } = await pedir(pedido);
     comprobar(r.status === 200, 'un carrito bueno responde 200', String(r.status));
 
     /* La comprobación que da sentido a toda la función: el número que el bot va
        a decir por WhatsApp sale del mismo cálculo que firma el cobro. */
     const esperado = calcular({ base: { id: pulsera, talla },
-      charms: [charm, charm], empaque: true, pago: 'anticipado' });
+      charms: [charm, charm], pago: 'anticipado' });
     comprobar(d.total === esperado.total,
       'el total es exactamente el de calcular(), no una aproximación',
       `${d.total} = ${esperado.total}`);
@@ -94,9 +94,9 @@ async function main() {
     /* La regla más fácil de que un modelo se salte: el envío gratis es **solo**
        del prepago (`envioGratisSoloAnticipado`), así que el mismo carrito vale
        distinto según cómo se pague. Un bot que dijera el precio del prepago a
-       quien va a pagar contraentrega se equivoca en $25.000 sin que nada falle.
+       quien va a pagar contraentrega se equivoca en el envío sin que nada falle.
        Se prueba por encima del umbral, que es donde las dos ramas divergen. */
-    const grande = { base: { id: pulsera, talla }, charms: tres, empaque: false };
+    const grande = { base: { id: pulsera, talla }, charms: tres };
     const a = await pedir(Object.assign({ pago: 'anticipado' }, grande));
     const b = await pedir(Object.assign({ pago: 'contraentrega' }, grande));
     comprobar(a.d.subtotal >= reglas.envioGratisDesde,
@@ -196,7 +196,7 @@ async function main() {
   console.log('\n5 · El enlace lleva al checkout, con todo puesto');
   {
     const { d } = await pedir({ base: { id: pulsera, talla },
-      charms: [charm, charm], empaque: true, pago: 'contraentrega' });
+      charms: [charm, charm], pago: 'contraentrega' });
     comprobar(/\/checkout\.html\?/.test(d.enlace),
       'apunta al checkout de siempre, no a una pasarela', d.enlace.replace(/^https?:\/\/[^/]*/, ''));
 
@@ -204,8 +204,9 @@ async function main() {
     const p = q.get('p');
     comprobar(p.includes(`${pulsera}@${talla}`), 'el brazalete va con @talla', p);
     comprobar(p.includes(`${charm}*2`), 'dos unidades se agrupan como *2');
-    comprobar(q.get('e') === '1' && q.get('pago') === 'contraentrega',
-      'el empaque y la forma de pago viajan');
+    comprobar(q.get('pago') === 'contraentrega', 'la forma de pago viaja');
+    comprobar(q.get('e') === null,
+      'y ya no se escribe «e=1»: el Empaque Premium se retiró el 2026-09-13');
     comprobar(q.get('via') === 'wa',
       'y queda de dónde vino, para poder medir el canal aparte');
 

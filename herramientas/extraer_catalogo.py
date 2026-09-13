@@ -62,10 +62,6 @@ def main():
         for k, v in (par.split(':') for par in envio_txt.split(','))
     }
 
-    # El empaque de regalo aparece en el cálculo como número suelto.
-    pack = int(saca(r"getElementById\('pack'\)\.checked\?(\d+):0", html,
-                    'el precio del empaque de regalo'))
-
     # El 30% del brazalete y el mínimo de charms que lo activa.
     desc_b = saca(r'const descB=\(base&&nC>=(\d+)\)\?brutoB\*\.(\d+):0', html,
                   'el descuento del brazalete')
@@ -105,7 +101,6 @@ def main():
             'escalaCharms': esc,
             'descuentoBrazalete': pct_b,
             'minCharmsParaDescuento': min_charms,
-            'empaque': pack,
             'envioGratisDesde': libre,
             'envioGratisSoloAnticipado': solo_ant,
             'envio': envio,
@@ -120,7 +115,7 @@ def main():
     print(f'{DESTINO.relative_to(RAIZ)}: {n} piezas con precio')
     print(f'  escala de charms {esc} · brazalete −{pct_b:.0%} desde {min_charms} charms')
     tarifas = ' · '.join(f'{k} ${v:,}'.replace(',', '.') for k, v in envio.items())
-    print(f'  empaque ${pack:,}'.replace(',', '.') + f' · envío {tarifas}'
+    print(f'  envío {tarifas}'
           + f' · gratis desde ${libre:,}'.replace(',', '.'))
 
 
