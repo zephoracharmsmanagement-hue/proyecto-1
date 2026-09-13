@@ -302,6 +302,56 @@ marca: pedir amablemente que lo escriban, **sin adivinar** qué pudo haber
 dicho. Es la diferencia entre un bot que responde algo razonable y uno que se
 inventa una conversación.
 
+## Mandar fotos: WhatsApp no acepta webp
+
+Es de las cosas que más piden los clientes —«¿me mandas una foto?»— y la
+respuesta perezosa es pasarles el enlace del catálogo. **Quien sale de WhatsApp
+casi nunca vuelve.** La foto tiene que ir dentro del chat.
+
+El bloqueo técnico llega sin aviso: **la Cloud API solo acepta JPEG y PNG** en
+un mensaje de imagen. El **webp le sirve únicamente para stickers**, y webp es
+justo el formato en el que hoy están casi todas las fotos de un sitio moderno,
+porque pesa menos. Mandar la URL del asset devuelve un error de media y la
+clienta se queda mirando nada.
+
+Antes de resolverlo a lo bruto —generar y subir una copia JPEG de cada foto—,
+mirar si el hosting convierte al vuelo. **Netlify lo hace** y viene activado
+por defecto:
+
+```
+https://<sitio>/.netlify/images?url=/assets/pieza.webp&fm=jpg&w=800
+```
+
+Sin archivos nuevos, sin duplicar nada y sin el paso olvidable de regenerar los
+JPEG cuando se cambie una foto. Cloudflare Images y Vercel tienen equivalente.
+Se comprueba abriendo esa URL en un navegador: si descarga un `.jpeg`, listo.
+
+### El modelo no construye la URL
+
+Misma regla que con el precio: **la URL sale del servidor, no del modelo.** El
+endpoint que ya devuelve catálogo y existencias devuelve también un campo
+`foto` con la URL completa y lista, y el prompt dice que se copia tal cual.
+
+No es paranoia. El nombre del archivo **no se puede deducir del id**: en este
+proyecto `lilo-stitch` se ilustra con `lilo-y-stitch.webp` y `walle` con
+`wall-e.webp`. Un modelo que arme la URL con `f'{id}.webp'` acierta en el 97%
+de las piezas y falla en silencio en el resto. Conviene además que el
+generador del catálogo **falle ruidosamente** si alguna pieza se queda sin
+foto, en vez de dejar el hueco para que lo descubra una clienta.
+
+### Cada foto es un mensaje facturado
+
+No es un adjunto de la respuesta: es un mensaje aparte. Poner un tope explícito
+en el prompt —dos o tres por respuesta— y no dejar que el modelo conteste un
+«muéstrame todo» con veinte imágenes.
+
+### Si varias piezas comparten una foto, hay que decirlo
+
+Aquí las 27 iniciales no tienen foto individual: todas devuelven la misma
+imagen del abecedario completo. El prompt obliga a decir «así se ven las
+letras» y prohíbe decir que esa foto **es** la inicial que pidió. Una foto que
+no es la pieza, presentada como si lo fuera, es una devolución esperando.
+
 ## Coexistencia: la comprobación que nadie hace y todos necesitan
 
 Si el número ya se usaba en la app de **WhatsApp Business** —que es como
@@ -377,6 +427,8 @@ WhatsApp Trigger → Agente (modelo + memoria + herramientas) → WhatsApp (env�
 - **Escribir primero** (recuperación de carrito, por ejemplo) exige plantilla
   aprobada y se cobra por conversación. Ronda los USD 0,04–0,09 según el país.
 - **El modelo**: unos centavos por conversación con Sonnet.
+- **Cada imagen que manda el bot es un mensaje**, no un adjunto de la
+  respuesta. Tres fotos son tres mensajes.
 - Lo que sí cuesta caro es la **calificación de calidad** de la cuenta: mandar
   plantillas de marketing a quien no las pidió la baja, y con ella el límite de
   mensajes. El filtro de consentimiento no es burocracia, es lo que protege el
