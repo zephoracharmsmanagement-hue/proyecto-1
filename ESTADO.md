@@ -7,7 +7,38 @@ deshacer sin querer**.
 
 ## Precios, envío gratis y tanda nueva de videos — 2026-09-13
 
-Aprobado por el propietario y mezclado a `main` el 2026-09-13.
+Aprobado por el propietario, mezclado a `main` (`522e375`, avance rápido) y
+**desplegado el 2026-09-13**.
+
+**Está en el aire.** Despliegue `6aa6ff72bdfc8c000871da6d`, publicado a las
+19:54:47 UTC, 20 segundos de construcción, sin errores. 32 archivos nuevos
+—4 páginas y 28 recursos—, 14 funciones desplegadas, 12 redirecciones y 5
+reglas de cabecera sin fallos. El escaneo de secretos revisó 256 archivos y no
+encontró ninguno.
+
+### Lo que se publicó, en once commits
+
+| | |
+|---|---|
+| `bdd498a` | Envío gratis siempre y +$10.000 en las 135 piezas |
+| `d8a26e1` | Tanda nueva de videos — cierra el vencimiento del 19-sep |
+| `f70e953` | Retirado el Empaque Premium de Regalo |
+| `af3c7e9` | El peso real en el comentario del observer de videos |
+| `6915850` | Reseñas reales de las clientas · medios de pago con ficha |
+| `5b30ce8` | Logotipo de Addi |
+| `aa2e564` | Nequi, Daviplata, PSE, Visa, Mastercard |
+| `28f3b8b` | Bancolombia — el cuadro de medios de pago queda completo |
+| `e9501a5`+`8d978a5` | Mezcla con el mapa de fotos de WhatsApp de la otra sesión |
+| `522e375` | Versiona portadas de video y logotipos contra la caché |
+
+Todo en un solo despliegue: son ~15 créditos cualquiera que sea el tamaño, así
+que juntarlos era lo correcto (§ *Al desplegar*).
+
+**La suite antes de mezclar: 551 comprobaciones en verde.** En rojo solo
+`regresion` y `dudas`, que fallan **igual en `main` sin tocar nada** —se
+comprobó con `git stash`— por elementos que no se hacen visibles en el entorno
+de ejecución remota, no por este cambio. `checkout` completo en verde, que era
+el que no se podía dar por bueno a ciegas.
 
 ### La mezcla con lo de la otra sesión, que salió limpia y no lo era
 
