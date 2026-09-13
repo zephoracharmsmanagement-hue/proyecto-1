@@ -23,6 +23,44 @@ queda en el historial de git para siempre.
 |---|---|---|
 | — | **Zephora · Hoja de Inventario** (`K1J4pHYfvd6QuAq8`) | **Activo en producción.** Sin exportar todavía |
 | — | **Zephora · Purchase a Meta (CAPI)** (`h5U0fGHrW4hekjtp`) | Construido, **sin publicar** y sin exportar todavía |
+| — | **Zephora · Asesora de WhatsApp** (`74TjEtDnn940jh9k`) | **Activo en producción** contra el número real (+57 301 899 0672). Sin exportar todavía |
+
+### Zephora · Asesora de WhatsApp
+
+Atiende WhatsApp con un agente de Claude (Sonnet). Consulta inventario real y
+arma el carrito llamando a `disponibilidad` y `armar-carrito` del sitio: el
+modelo conversa, pero **el precio y las existencias siempre salen del
+servidor**. Termina mandando el enlace al checkout de siempre, donde el cobro
+se recalcula.
+
+#### `enviar_foto` — la foto va dentro del chat
+
+Varias clientas pedían fotos y se las remitía a la página. **Ahí se perdían:**
+quien sale de WhatsApp casi nunca vuelve. Ahora el agente manda la imagen en la
+conversación.
+
+La URL no la construye el modelo, igual que no construye el precio: sale del
+campo `foto` que devuelve `disponibilidad`, y se copia tal cual. El nombre del
+archivo **no se deduce del id** —`lilo-stitch` se ilustra con
+`lilo-y-stitch.webp`, `walle` con `wall-e.webp`— así que un `${id}.webp` falla
+en silencio justo en esos tres.
+
+Esa URL pasa por `/.netlify/images?…&fm=jpg`: **la Cloud API de WhatsApp no
+acepta webp** para imágenes (solo para stickers) y las 113 fotos del sitio son
+webp. Convertir al vuelo evita una segunda copia en JPEG de cada pieza que
+alguien tendría que acordarse de regenerar.
+
+Tope de **3 fotos por respuesta**, escrito en el prompt: cada imagen es un
+mensaje facturado, no un adjunto de la respuesta.
+
+Las 27 iniciales comparten una sola foto —la del abecedario completo— y el
+prompt obliga a decirlo. Una foto que no es la pieza, presentada como si lo
+fuera, es una devolución esperando.
+
+Cómo se montó, qué falla y en qué orden se arma:
+[`.claude/skills/whatsapp-n8n/SKILL.md`](../../.claude/skills/whatsapp-n8n/SKILL.md).
+Léelo antes de tocar la configuración del webhook — la mitad de los errores de
+esta integración no dan ningún mensaje de error.
 
 ### Zephora · Hoja de Inventario
 

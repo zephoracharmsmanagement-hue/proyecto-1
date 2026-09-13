@@ -75,6 +75,31 @@ def main():
     }
     destacados = re.findall(r'<article class="pc pc--top[^"]*" data-id="([^"]+)"', html)
 
+    # La foto de cada pieza. El nombre del archivo NO se puede deducir del id:
+    # `lilo-stitch` se ilustra con `lilo-y-stitch.webp`, `walle` con
+    # `wall-e.webp` y `jack-sally` con `jack-y-sally.webp`. Un `f'{id}.webp'`
+    # da 404 en esos tres y nadie se entera hasta que el bot de WhatsApp
+    # intenta mandar la foto. Así que se lee del mismo sitio donde la tienda
+    # la muestra: el <img> de la tarjeta.
+    #
+    # Las 27 letras no tienen tarjeta propia —comparten una sola, con un
+    # selector de inicial dentro— así que todas heredan la foto del grupo.
+    fotos = {}
+    for m in re.finditer(
+            r'<article class="pc[^"]*" data-id="([^"]+)"[^>]*>\s*'
+            r'<div class="pc-img"><img src="assets/([^"?]+)', html):
+        pieza, archivo = m.group(1), m.group(2)
+        if pieza == 'letras':
+            continue
+        fotos[pieza] = archivo
+    letras = saca(r'<article class="pc pc--letras" data-id="letras"[^>]*>\s*'
+                  r'<div class="pc-img"><img src="assets/([^"?]+)', html,
+                  'la foto de la tarjeta de letras')
+
+    for pieza in {c['id'] for c in data['charms']}:
+        if pieza.startswith('letra-'):
+            fotos[pieza] = letras
+
     catalogo = {
         '_': ('Generado por herramientas/extraer_catalogo.py desde index.html. '
               'No editar a mano: el próximo extractor lo pisa. Lo leen '
@@ -97,6 +122,9 @@ def main():
         # que se desincroniza del catálogo real.
         'grupos': grupos,
         'destacados': destacados,
+        # id → nombre de archivo dentro de assets/. Lo lee disponibilidad.mjs
+        # para armar la URL que el bot de WhatsApp le manda a la clienta.
+        'fotos': fotos,
         'reglas': {
             'escalaCharms': esc,
             'descuentoBrazalete': pct_b,
@@ -111,8 +139,18 @@ def main():
     DESTINO.write_text(
         json.dumps(catalogo, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
 
+    sin_foto = sorted(set(catalogo['precios']) - set(fotos))
+    if sin_foto:
+        sys.exit(
+            'Estas piezas se quedaron sin foto: ' + ', '.join(sin_foto) + '\n'
+            '  El bot de WhatsApp manda la foto al responder, y una pieza sin '
+            'foto lo deja mudo justo cuando la clienta pidió verla.\n'
+            '  Revisar que la tarjeta de esa pieza en index.html tenga su '
+            '<img src="assets/...">.'
+        )
+
     n = len(catalogo['precios'])
-    print(f'{DESTINO.relative_to(RAIZ)}: {n} piezas con precio')
+    print(f'{DESTINO.relative_to(RAIZ)}: {n} piezas con precio y foto')
     print(f'  escala de charms {esc} · brazalete −{pct_b:.0%} desde {min_charms} charms')
     tarifas = ' · '.join(f'{k} ${v:,}'.replace(',', '.') for k, v in envio.items())
     print(f'  envío {tarifas}'
