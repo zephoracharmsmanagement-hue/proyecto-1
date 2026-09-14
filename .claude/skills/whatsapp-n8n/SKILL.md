@@ -366,6 +366,51 @@ entrega**. Una ejecución en verde solo dice que Meta aceptó la llamada. En el
 caso que destapó esto, la lista de chats mostraba el mensaje del cliente sin
 ningún saliente debajo, mientras n8n enseñaba la respuesta redactada y completa.
 
+## El prompt es una copia congelada del sitio, y el sitio se mueve
+
+Cargar las políticas de la tienda en el prompt del sistema es lo correcto —evita
+que el bot mande a la clienta a leer la web por cada pregunta— pero crea una
+**segunda copia de la verdad**, y las dos copias se separan sin que nada avise.
+
+Caso real, a los seis días de cargarlas: el prompt decía *envío 15.000 con pago
+anticipado, 25.000 contraentrega, gratis desde 180.000*. Para entonces la tienda
+ya cobraba **envío gratis con pago anticipado sin mínimo** y **20.000
+contraentrega**. Las tres cifras mal, y la peor en la dirección más cara: el bot
+le cobraba de palabra un envío que era gratis, y se inventaba un mínimo de
+compra que ya no existía. Nadie lo detectó porque no hay error: el bot responde
+con aplomo.
+
+Dos defensas:
+
+1. **Lo que se pueda leer del servidor, que se lea del servidor.** El endpoint
+   que ya sirve catálogo y existencias puede servir también las reglas de envío
+   y descuento, generadas del mismo sitio del que sale el cobro. Un número que
+   el prompt repite es un número que un día será falso.
+2. **Al tocar precios, envío o políticas, el prompt del bot entra en la lista
+   de sitios que hay que actualizar.** Junto al HTML y al extractor.
+
+### «No» también es inventar
+
+Regla que faltaba y costó una venta. A una clienta le preguntaron si aceptaban
+financiación a cuotas con **Addi**. No estaba en el prompt, así que el bot
+contestó **que no**. Sí se acepta — y el botón de Addi de la propia tienda lleva
+a esa misma conversación de WhatsApp, así que el bot estaba negando justo
+aquello para lo que la web lo había convocado.
+
+El prompt prohibía *inventar* políticas, y el modelo cumplió al pie de la letra:
+no inventó nada, negó. Pero **un «no» equivocado cierra la venta en el acto y no
+se puede desandar**, mientras que un «déjame confirmarlo» no cuesta nada.
+
+```
+- DECIR QUE NO A ALGO QUE NO CONOCES. Negar es tan grave como inventar.
+  Si te preguntan por un medio de pago, un servicio o una condición que no
+  aparece aquí, NO LO NIEGUES: di que lo confirmas y enseguida le cuentas.
+```
+
+Y al escribir el prompt, cubrir explícitamente **los medios de pago**. Es de lo
+que más se pregunta antes de comprar y de lo que más fácil se olvida, porque no
+va en la ficha del producto.
+
 ## Mensajes que no son texto
 
 Alguien manda una nota de voz, un sticker o una reacción, y `messages[0].text`
