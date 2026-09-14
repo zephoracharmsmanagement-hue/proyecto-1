@@ -24,3 +24,10 @@ __pycache__/
 
 # Material en bruto y capturas con datos de clientas: NO se publica.
 material-sin-publicar/
+
+# Salida del catálogo PDF. El HTML es intermedio, y el PDF pesa 2 MB que git se
+# quedaría para siempre en cada versión — la misma razón por la que no se
+# comitean los videos. Los dos se rehacen con:
+#   node herramientas/catalogo-pdf/generar.mjs
+herramientas/catalogo-pdf/catalogo.html
+Catalogo-Zephora-Charms.pdf
