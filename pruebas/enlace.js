@@ -129,7 +129,7 @@ async function main() {
     console.log('\n3 · El enlace gana sobre lo guardado');
     {
       const previo = { v: 1, base: null, charms: [charm, charm, charm],
-        empaque: true, pago: 'contraentrega', cuando: Date.now() };
+        pago: 'contraentrega', cuando: Date.now() };
       const { guardado } = await abrir(pagina, `?p=${charm}`, previo);
       comprobar(guardado && guardado.charms.length === 1,
         'quien llega por un enlace ve el enlace, no lo de su última visita',
@@ -152,7 +152,8 @@ async function main() {
     console.log('\n5 · Empaque y forma de pago');
     {
       const { guardado } = await abrir(pagina, `?p=${charm}&e=1&pago=contraentrega`);
-      comprobar(guardado && guardado.empaque === true, 'el empaque de regalo viaja en el enlace');
+      comprobar(guardado && guardado.empaque !== true,
+        'el «e=1» de un enlace viejo se lee y se descarta: el Empaque Premium se retiró');
       comprobar(guardado && guardado.pago === 'contraentrega', 'y la forma de pago también');
     }
   }

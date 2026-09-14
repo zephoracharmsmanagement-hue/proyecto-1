@@ -62,10 +62,6 @@ def main():
         for k, v in (par.split(':') for par in envio_txt.split(','))
     }
 
-    # El empaque de regalo aparece en el cálculo como número suelto.
-    pack = int(saca(r"getElementById\('pack'\)\.checked\?(\d+):0", html,
-                    'el precio del empaque de regalo'))
-
     # El 30% del brazalete y el mínimo de charms que lo activa.
     desc_b = saca(r'const descB=\(base&&nC>=(\d+)\)\?brutoB\*\.(\d+):0', html,
                   'el descuento del brazalete')
@@ -100,9 +96,14 @@ def main():
                   r'<div class="pc-img"><img src="assets/([^"?]+)', html,
                   'la foto de la tarjeta de letras')
 
-    for pieza in {c['id'] for c in data['charms']}:
-        if pieza.startswith('letra-'):
-            fotos[pieza] = letras
+    # En el orden de DATA, no sobre un set: el orden de un set de Python cambia
+    # entre ejecuciones, así que regenerar el catálogo sin tocar nada movía las
+    # 27 letras de sitio y dejaba un diff de 40 líneas que no cambia ni un dato.
+    # El extractor pisa este archivo cada vez que se toca un precio; si su
+    # salida no es reproducible, ese ruido tapa el cambio de verdad.
+    for c in data['charms']:
+        if c['id'].startswith('letra-'):
+            fotos[c['id']] = letras
 
     catalogo = {
         '_': ('Generado por herramientas/extraer_catalogo.py desde index.html. '
@@ -133,7 +134,6 @@ def main():
             'escalaCharms': esc,
             'descuentoBrazalete': pct_b,
             'minCharmsParaDescuento': min_charms,
-            'empaque': pack,
             'envioGratisDesde': libre,
             'envioGratisSoloAnticipado': solo_ant,
             'envio': envio,
@@ -158,7 +158,7 @@ def main():
     print(f'{DESTINO.relative_to(RAIZ)}: {n} piezas con precio y foto')
     print(f'  escala de charms {esc} · brazalete −{pct_b:.0%} desde {min_charms} charms')
     tarifas = ' · '.join(f'{k} ${v:,}'.replace(',', '.') for k, v in envio.items())
-    print(f'  empaque ${pack:,}'.replace(',', '.') + f' · envío {tarifas}'
+    print(f'  envío {tarifas}'
           + f' · gratis desde ${libre:,}'.replace(',', '.'))
 
 

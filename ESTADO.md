@@ -5,6 +5,221 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Precios, envío gratis y tanda nueva de videos — 2026-09-13
+
+Aprobado por el propietario, mezclado a `main` (`522e375`, avance rápido) y
+**desplegado el 2026-09-13**.
+
+**Está en el aire.** Despliegue `6aa6ff72bdfc8c000871da6d`, publicado a las
+19:54:47 UTC, 20 segundos de construcción, sin errores. 32 archivos nuevos
+—4 páginas y 28 recursos—, 14 funciones desplegadas, 12 redirecciones y 5
+reglas de cabecera sin fallos. El escaneo de secretos revisó 256 archivos y no
+encontró ninguno.
+
+### Lo que se publicó, en once commits
+
+| | |
+|---|---|
+| `bdd498a` | Envío gratis siempre y +$10.000 en las 135 piezas |
+| `d8a26e1` | Tanda nueva de videos — cierra el vencimiento del 19-sep |
+| `f70e953` | Retirado el Empaque Premium de Regalo |
+| `af3c7e9` | El peso real en el comentario del observer de videos |
+| `6915850` | Reseñas reales de las clientas · medios de pago con ficha |
+| `5b30ce8` | Logotipo de Addi |
+| `aa2e564` | Nequi, Daviplata, PSE, Visa, Mastercard |
+| `28f3b8b` | Bancolombia — el cuadro de medios de pago queda completo |
+| `e9501a5`+`8d978a5` | Mezcla con el mapa de fotos de WhatsApp de la otra sesión |
+| `522e375` | Versiona portadas de video y logotipos contra la caché |
+
+Todo en un solo despliegue: son ~15 créditos cualquiera que sea el tamaño, así
+que juntarlos era lo correcto (§ *Al desplegar*).
+
+**La suite antes de mezclar: 551 comprobaciones en verde.** En rojo solo
+`regresion` y `dudas`, que fallan **igual en `main` sin tocar nada** —se
+comprobó con `git stash`— por elementos que no se hacen visibles en el entorno
+de ejecución remota, no por este cambio. `checkout` completo en verde, que era
+el que no se podía dar por bueno a ciegas.
+
+### La mezcla con lo de la otra sesión, que salió limpia y no lo era
+
+Mientras esto se preparaba, otra sesión metió **ocho commits en `main`**: el
+mapa de fotos por pieza para que el bot de WhatsApp mande la imagen en el chat.
+Tocaron tres de los archivos de aquí —`catalogo.json`, el extractor y
+`_precios.js`— y **git mezcló sin un solo conflicto**. Eso no significa que
+estuviera bien, que es justo lo que avisa `CLAUDE.md`.
+
+Lo que había que comprobar a mano, y se comprobó:
+
+- El extractor conserva las dos cosas: saca el mapa de fotos **y** ya no busca
+  el precio del empaque. Corre y da 135 piezas con precio y foto.
+- `_precios.js` exporta `fotos` (lo necesita `disponibilidad.mjs`) y sigue
+  forzando `empaque` a `false`.
+- **Los dos `fbq('init', …)` siguen en los tres HTML.** Es la comprobación que
+  `CLAUDE.md` pide explícitamente: una mezcla descuidada borra el píxel nuevo
+  —y con él el `Purchase` de servidor— sin que nada dé error.
+- El `catalogo.json` que produjo el merge textual **no era el que sale del
+  extractor**. Regenerado, cambiaban 40 líneas.
+
+### Un defecto que salió de ahí y se arregló
+
+Esas 40 líneas no eran un dato distinto: eran las 27 letras en otro orden. El
+código nuevo recorría un `set` de Python, y el orden de un `set` cambia entre
+ejecuciones. O sea que **regenerar el catálogo sin tocar nada producía un diff
+de 40 líneas**.
+
+No es cosmético: el extractor pisa ese archivo cada vez que se mueve un precio,
+y si su salida no es reproducible, ese ruido tapa el cambio de verdad —que es
+exactamente el cambio que hay que poder revisar antes de cobrar—. Ahora recorre
+`data['charms']` en su orden, y dos corridas seguidas, o con otra
+`PYTHONHASHSEED`, dan el mismo archivo byte a byte.
+
+### Por qué se tocó el precio
+
+El checkout perdía el **89% entre `InitiateCheckout` y `AddPaymentInfo`** (360 →
+40 en 30 días). La causa no era el precio de la joya sino **el choque del envío
+en el último paso**: el carrito típico se quedaba en ~$152.000 y el envío gratis
+empezaba en $180.000, así que casi nadie lo alcanzaba y el total crecía
+$15.000–$25.000 justo al ir a pagar.
+
+Los tres cambios van juntos y no se pueden separar sin romper la cuenta:
+
+| Qué | Antes | Ahora |
+|---|---|---|
+| `reglas.envioGratisDesde` | 180000 | **0** — gratis siempre |
+| `reglas.envio.contraentrega` | 25000 | **20000** |
+| `reglas.envio.anticipado` | 15000 | 15000 — *ya no se cobra*, pero es el costo real que asume la tienda |
+| Precio de las 135 piezas | — | **+$10.000 cada una**, sin excepciones |
+
+`envioGratisSoloAnticipado` **sigue en `true`**: la contraentrega paga envío
+siempre, porque ahí la transportadora cobra el recaudo y el paquete puede
+devolverse sin cobrar.
+
+Los $10.000 absorben el envío que la tienda ahora regala. Con márgenes del 88%
+en charms y del 71% en pulseras cabe de sobra. Los precios se editan **en
+`index.html`** —única fuente— y de ahí los copia
+`herramientas/extraer_catalogo.py` a `assets/catalogo.json`; `assets/stock.json`
+se sincroniza aparte y quedó **135/135 cuadrado pieza por pieza**.
+
+### La trampa que había en el camino
+
+Con umbral 0, las dos barras de «cuánto te falta para el envío gratis»
+**dividían por cero**: `subtotal/0`. En `index.html` y en `checkout.html`. Con
+carrito vacío eso es `0/0` = `NaN` y el ancho de la barra queda roto en mitad
+del paso de pago. Las dos se esconden ahora mientras el umbral sea 0, y los
+textos que citaban «$180.000» solo aparecen si vuelve a haber umbral. **Si algún
+día se restablece un mínimo, basta con subir `envioGratisDesde` y la barra
+reaparece sola** — no hay nada más que tocar.
+
+### Qué se verificó antes de dar esto por bueno
+
+- **`netlify/functions/_precios.js` no tiene ningún número escrito a mano**: lee
+  precios, escalas y tarifas de `catalogo.json` por `require`. Si cliente y
+  servidor calcularan distinto, el checkout rechazaría el pedido sin avisar y la
+  venta se perdería en silencio.
+- **Los 6 casos de compra del encargo**, navegador contra servidor, idénticos:
+
+  | Carrito | Anticipado | Contraentrega |
+  |---|---|---|
+  | 1 charm | $95.000 | $115.000 |
+  | 1 pulsera sola | $68.000 | $88.000 |
+  | pulsera + 3 charms | $282.200 | $302.200 |
+
+- **Los 40 carritos al azar** de `pruebas/precios.js`, también idénticos.
+- **Las 16 baterías en verde**, con la salvedad de `dudas`, que ya fallaba
+  igual en `main` sin tocar nada (`fill` sobre un elemento invisible — no es de
+  este cambio).
+
+### Tres pruebas estaban clavadas a la tabla de precios vieja
+
+Se pusieron rojas **con el sitio perfectamente sano**, que es el peor tipo de
+rojo porque enseña a ignorarlo. Se arreglaron leyendo el dato en vez de
+repetirlo:
+
+- `pruebas/_pieza.js` buscaba «un brazalete de $58.000»; ahora coge el más
+  barato con unidades.
+- `pruebas/stock.js` comparaba contra `257350` y `55650` escritos a mano; ahora
+  contra lo que devuelve `calcular()`.
+- `pruebas/precios.js` afirmaba «por debajo del umbral cada forma de pago paga
+  su tarifa», que con umbral 0 ya no existe; ahora comprueba la regla de verdad
+  y **detecta sola** si algún día vuelve un umbral.
+
+**Regla que sale de aquí:** una prueba que repite una cifra del catálogo se
+rompe el día que cambia un precio. La cifra se lee de `catalogo.json` o de
+`calcular()`, nunca se copia.
+
+### Se retiró el Empaque Premium de Regalo
+
+**Decisión del propietario (2026-09-13):** confunde por su precio y **nunca lo
+pidió nadie**. Confirma la hipótesis que este mismo documento dejó anotada hace
+semanas —«$40.000 sobre un brazalete de $58.000 son un 69% adicional; el bump no
+convierte por precio y no por diseño»—: no era un problema de diseño y no había
+que rediseñarlo otra vez.
+
+Se retiró de los seis sitios donde vivía: la sección `#empaque-destacado` de la
+portada (borrada entera, con su CSS), la casilla del carrito, el order bump del
+paso de pago, el renglón del resumen, el cálculo de las tres calculadoras y la
+respuesta de la FAQ. `reglas.empaque` ya no existe en `catalogo.json` y el
+extractor dejó de buscarlo.
+
+**Lo que se queda:** el empaque de regalo normal, que siempre fue gratis y sigue
+yendo en todos los pedidos. Y la **dedicatoria escrita a mano**, que estaba
+atada al Premium y ahora se ofrece a todo el mundo sin cobrar: no cuesta
+inventario ni logística —la tarjeta ya va en la caja— y es el dato que dice qué
+pedido es un regalo, que le sirve al bot de WhatsApp.
+
+#### La trampa del retiro, que es la parte que importa
+
+Quitar la interfaz no basta. `empaque:true` sobrevive en tres sitios que nadie
+controla desde el repo:
+
+1. El **localStorage** de cualquier clienta que lo marcó — el carrito se guarda
+   una semana.
+2. Los **enlaces de recuperación ya enviados**, que llevan `&e=1`.
+3. Los **pedidos pendientes** guardados con su línea de empaque, que
+   `reanudar.mjs` reconstruye.
+
+Sin interfaz que lo muestre ni casilla que lo quite, heredarlo sería **cobrar
+$40.000 que la clienta no puede ver en ninguna línea ni quitar de ninguna
+forma**. Así que no se borró el campo: se **fuerza a `false` en cada puerta de
+entrada** —las dos lecturas del checkout, la de `index.html`, `reanudar.mjs` y,
+la última y la que de verdad manda, `leerPedido()` en `_precios.js`—. Un cuerpo
+manipulado que mande `empaque:true` al servidor cobra exactamente lo mismo:
+comprobado.
+
+`pruebas/checkout.js § 2bb` existe para eso y no se borra: compara el total de
+un carrito guardado con `empaque:true` contra el mismo carrito sin él, y hace lo
+propio con un enlace `&e=1`.
+
+**Regla general, que vale para el próximo retiro:** quitar algo que se cobraba
+no es borrar su interfaz, es **cerrar todas las puertas por las que ese dato
+todavía puede llegar**. El dato viejo vive en navegadores y correos que ya
+salieron, y ahí no llega ningún despliegue.
+
+### Tanda nueva de videos
+
+Los tres `.mov` del propietario reemplazan a los tres de la tanda del 12 de
+septiembre, con la misma receta de arriba (720px, CRF 30, `-an`, faststart):
+**47,6 MB → 4,5 MB**, 13,5 s · 11,6 s · 9,3 s.
+
+1. Clienta abre su regalo y luce el brazalete con charms de corazón, mariposa y
+   piedra azul.
+2. Charm de cristal azul recién sacado de la caja, montado en la pulsera.
+3. Brazalete Zephora con charms de Marvel en muñeca masculina.
+
+**Esto cierra el vencimiento del 19 de septiembre**: el video con la fecha
+quemada ya no está en el sitio.
+
+**El video 1 vuelve a abrir con una caja de Pandora**, igual que el anterior, y
+**el propietario decidió otra vez publicarlo completo (2026-09-13)**. No lo
+"arregles" por tu cuenta. Lo que sí se cambió, y es decisión de esta sesión: la
+**portada** ya no es el logo de Pandora a pantalla completa sino el brazalete
+Zephora en la muñeca —la portada es el fotograma que se ve sin que nadie le dé
+play, así que era la superficie más expuesta de todas—. Las portadas 1 y 3 se
+sacan del segundo 9,4 y del 6,5 respectivamente, no del segundo 1 de la receta:
+en esos videos el producto no aparece hasta después.
+
+**Los textos de Instagram de esta tanda no se han escrito.**
+
 ## Videos de clientas — publicado el 2026-09-12
 
 **Está en el aire.** Despliegue `6aa5dafe092f3b00082bd52f`, commit `1ac3445`.
@@ -67,8 +282,9 @@ a pantalla completa.
 
 ### Pendiente
 
-- **Antes del 19 de septiembre:** sacar o reemplazar el primer video, por la
-  fecha quemada. Es lo único con vencimiento de toda esta tanda.
+- ~~**Antes del 19 de septiembre:** sacar o reemplazar el primer video, por la
+  fecha quemada.~~ **Resuelto el 2026-09-13**: la tanda nueva reemplaza los tres
+  videos y ninguno lleva fecha quemada.
 - Los textos de Instagram para estos tres videos se redactaron en sesión y
   **no están en el repo**. Los tres son **pilar 1** del
   `CALENDARIO-EDITORIAL.md` —POV, alcance, cierre en perfil— así que van sin

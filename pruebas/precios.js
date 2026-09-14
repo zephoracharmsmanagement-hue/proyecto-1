@@ -90,10 +90,9 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       }
     }
     if (!base && charms.length === 0) charms.push(disponibles.charms[0]);
-    const empaque = azar() < 0.4;
     const pago = azar() < 0.5 ? 'contraentrega' : 'anticipado';
 
-    const enPantalla = await p.evaluate(async ({ base, charms, empaque, pago }) => {
+    const enPantalla = await p.evaluate(async ({ base, charms, pago }) => {
       const esperar = () => new Promise(r => setTimeout(r, 30));
       const boton = id => {
         const c = document.querySelector(`.pc[data-id="${CSS.escape(id)}"]`);
@@ -123,8 +122,6 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       }
       for (const id of charms) { boton(id).click(); await esperar(); }
 
-      const pk = document.getElementById('pack');
-      if (pk.checked !== empaque) { pk.click(); await esperar(); }
       document.querySelector(`.pbtn[data-pago="${pago}"]`).click();
       await esperar();
 
@@ -137,10 +134,10 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
         /* El aviso del siguiente tramo de descuento: null si no se muestra. */
         descNota: dn.hidden ? null : dn.textContent.trim(),
       };
-    }, { base, charms, empaque, pago });
+    }, { base, charms, pago });
 
     const servidor = calcular(leerPedido({
-      base: base ? { id: base, talla: enPantalla.talla } : null, charms, empaque, pago,
+      base: base ? { id: base, talla: enPantalla.talla } : null, charms, pago,
     }));
 
     const esperado = cop(servidor.total);
@@ -179,7 +176,7 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     }
 
     const resumen = `${base ? base.replace('pulsera-', 'brz:') : 'sin brazalete'}` +
-      ` + ${charms.length} charms${empaque ? ' + empaque' : ''} · ${pago}`;
+      ` + ${charms.length} charms · ${pago}`;
     if (igual) {
       console.log(`  ✓ ${resumen} → ${esperado}`);
     } else {
@@ -208,12 +205,22 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     ok(con.total - ant.total === R.envio.contraentrega,
       'la diferencia entre ambos es exactamente el envío de contraentrega');
 
-    /* Y por debajo del umbral cada uno paga su tarifa, como siempre. */
+    /* El carrito más chico posible: un solo charm. Con umbral 0 ya no existe
+       el «por debajo del mínimo», y eso es justo lo que hay que comprobar —el
+       envío gratis del prepago no puede depender del tamaño del carrito—. Si
+       algún día vuelve un umbral, este bloque lo detecta solo. */
     const flaco = { charms: ['mickey-mouse'] };
     const fa = calcular(leerPedido(Object.assign({}, flaco, { pago: 'anticipado' })));
     const fc = calcular(leerPedido(Object.assign({}, flaco, { pago: 'contraentrega' })));
-    ok(fa.envio === R.envio.anticipado && fc.envio === R.envio.contraentrega,
-      'por debajo del umbral cada forma de pago paga su tarifa');
+    const bajoUmbral = fa.subtotal < R.envioGratisDesde;
+    ok(fa.envio === (bajoUmbral ? R.envio.anticipado : 0),
+      bajoUmbral
+        ? 'por debajo del umbral el anticipado paga su tarifa'
+        : 'sin umbral, el carrito más chico también lleva envío gratis anticipado',
+      cop(fa.envio));
+    ok(fc.envio === R.envio.contraentrega,
+      'la contraentrega paga su tarifa sin importar el tamaño del carrito',
+      cop(fc.envio));
   }
 
   /* La escalera de la portada es HTML escrito a mano: los porcentajes no salen

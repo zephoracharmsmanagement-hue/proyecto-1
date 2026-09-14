@@ -38,14 +38,15 @@ async function main() {
   console.log('\n1 · Del registro guardado al carrito, sin perder nada');
   {
     /* Se parte de lo que de verdad guarda un pedido: la salida de detallar(). */
-    const pedido = { base: { id: pulsera, talla }, charms: [charm, charm], empaque: true };
+    const pedido = { base: { id: pulsera, talla }, charms: [charm, charm] };
     const registro = { lineas: detallar(pedido), pago: 'anticipado' };
     const c = carritoDe(registro);
     comprobar(c.base && c.base.id === pulsera && c.base.talla === talla,
       'el brazalete vuelve como base, con su talla', `${pulsera} talla ${talla}`);
     comprobar(c.charms.length === 2 && c.charms.every(x => x === charm),
       'una línea de 2 unidades vuelve a ser 2 charms', `${c.charms.length} charm(s)`);
-    comprobar(c.empaque === true, 'el empaque de regalo no se pierde por el camino');
+    comprobar(c.empaque !== true,
+      'no se reanuda con el Empaque Premium: se retiró el 2026-09-13');
   }
   {
     /* El brazalete se reconoce por su tipo, no por ir el primero: si mañana
@@ -108,13 +109,13 @@ async function main() {
 
   console.log('\n3 · El enlace que sale es el que las páginas entienden');
   {
-    const carrito = { base: { id: pulsera, talla }, charms: [charm, charm], empaque: true,
+    const carrito = { base: { id: pulsera, talla }, charms: [charm, charm],
       pago: 'contraentrega' };
     const q = comoUrl(carrito);
     const p = q.get('p');
     comprobar(p.includes(`${pulsera}@${talla}`), 'el brazalete va con @talla', p);
     comprobar(p.includes(`${charm}*2`), 'dos unidades se agrupan como *2');
-    comprobar(q.get('e') === '1', 'el empaque viaja');
+    comprobar(q.get('e') === null, 'ya no se escribe «e=1» en el enlace');
     comprobar(q.get('pago') === 'contraentrega', 'y la forma de pago');
 
     /* La forma tiene que ser exactamente la que aceptan index.html y

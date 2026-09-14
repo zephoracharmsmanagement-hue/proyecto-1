@@ -56,7 +56,13 @@ function leerPedido(cuerpo) {
   if (!base && charms.length === 0) throw new PedidoInvalido('El pedido no tiene piezas');
 
   const pago = cuerpo.pago === 'contraentrega' ? 'contraentrega' : 'anticipado';
-  return { base, charms, pago, empaque: cuerpo.empaque === true };
+  /* El Empaque Premium se retiró el 2026-09-13: ya no hay dónde elegirlo ni
+     dónde verlo en el resumen. El campo se sigue leyendo y se descarta, en vez
+     de borrarse: la página lo manda en false, pero un carrito guardado en el
+     navegador de una clienta o un enlace de recuperación de la semana pasada
+     todavía puede traerlo en true, y cobrar $40.000 por algo que no aparece en
+     ninguna línea del pedido es la clase de cargo que termina en reclamo. */
+  return { base, charms, pago, empaque: false };
 }
 
 /* ¿Hay de verdad lo que se está pidiendo?
@@ -128,13 +134,11 @@ function calcular(pedido) {
     ? brutoB * reglas.descuentoBrazalete
     : 0;
 
-  const empaque = pedido.empaque ? reglas.empaque : 0;
-
   /* El umbral de envío gratis mide mercancía, no total: si contara el envío,
      el propio envío ayudaría a alcanzarlo. Y el beneficio es solo del prepago:
      la contraentrega le cuesta a la tienda la comisión de recaudo y el riesgo
      de devolución, así que ahí el envío se cobra siempre. */
-  const subtotal = brutoC - descC + brutoB - descB + empaque;
+  const subtotal = brutoC - descC + brutoB - descB;
   const alcanza = subtotal >= reglas.envioGratisDesde;
   const gratis = alcanza
     && (!reglas.envioGratisSoloAnticipado || pedido.pago === 'anticipado');
@@ -149,7 +153,6 @@ function calcular(pedido) {
     brutoCharms: brutoC,
     brutoBrazalete: brutoB,
     descuento: Math.round(descC + descB),
-    empaque,
     subtotal: Math.round(subtotal),
     envio,
     envioGratis: gratis,
@@ -175,12 +178,6 @@ function detallar(pedido) {
   Object.entries(cuenta).forEach(([id, n]) => {
     lineas.push({ id, nombre: nombres[id], talla: null, unidades: n, precio: precios[id] * n });
   });
-  if (pedido.empaque) {
-    lineas.push({
-      id: 'empaque', nombre: 'Empaque Premium de Regalo',
-      talla: null, unidades: 1, precio: reglas.empaque,
-    });
-  }
   return lineas;
 }
 
