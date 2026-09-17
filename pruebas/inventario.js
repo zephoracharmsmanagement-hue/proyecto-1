@@ -112,6 +112,47 @@ async function main() {
       'confirmar dos veces no descuenta dos veces (Wompi reintenta sus avisos)');
   }
 
+  console.log('\n1b · Anular una venta ya confirmada');
+
+  {
+    /* El caso real que motivó esto: un contraentrega confirma al crearse —no
+       espera a Wompi—, y si la clienta cancela después, `liberar()` no sirve
+       porque la reserva ya no existe. `anular()` es lo que devuelve esas
+       unidades, y quien la llama tiene que traer qué había, porque ya no queda
+       registro de eso en el estado del inventario. */
+    const almacen = almacenFalso();
+    inventario._interno.usarAlmacen(almacen);
+
+    await inventario.reservar('ZC-9', pedidoDe([pieza]));
+    const confirmado = await inventario.confirmar('ZC-9');
+    comprobar(confirmado.modo === 'confirmado', 'se confirma como cualquier venta');
+    comprobar(almacen._estado().vendido[pieza] === 1, 'queda en vendido');
+
+    const anulado = await inventario.anular('ZC-9', confirmado.items);
+    comprobar(anulado.modo === 'anulada', 'anular la deshace', anulado.modo);
+    comprobar(almacen._estado().vendido[pieza] === 0,
+      'la unidad vuelve a estar libre —no como una reserva que caduca, ya de una vez');
+
+    const otra = await inventario.reservar('ZC-10', pedidoDe([pieza]));
+    comprobar(otra.modo === 'reservado',
+      'y con la unidad libre, se puede volver a vender');
+    await inventario.liberar('ZC-10');
+
+    const repetido = await inventario.anular('ZC-9', confirmado.items);
+    comprobar(repetido.modo === 'ya-anulada' && almacen._estado().vendido[pieza] === 0,
+      'anular la misma referencia dos veces no resta dos veces — es la sobreventa'
+      + ' al revés, y aquí no hay una reserva que la frene sola como en confirmar()');
+
+    /* `items` lo trae quien llama; no hay ninguna reserva que lo valide. Si
+       alguien restara de más por un error de digitación, `vendido` no puede
+       bajar de cero — negativo ahí volvería "libre" más grande de lo real. */
+    await inventario.reservar('ZC-11', pedidoDe([pieza]));
+    await inventario.confirmar('ZC-11');
+    await inventario.anular('ZC-cualquiera', { [pieza]: 5 });
+    comprobar(almacen._estado().vendido[pieza] === 0,
+      'anular más unidades de las que hay vendidas se detiene en cero, no en negativo');
+  }
+
   console.log('\n2 · La carrera: dos clientas, la última unidad');
 
   {

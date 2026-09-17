@@ -1490,6 +1490,40 @@ Tres decisiones de esa pieza que no conviene deshacer:
 - **Consistencia fuerte.** Con la eventual, una reserva recién escrita puede
   tardar hasta un minuto en verse — justo la ventana de la carrera.
 
+> **2026-09-17 · El hueco que quedaba: un pedido confirmado que se cancela
+> después.** `confirmar()` mueve las unidades a `vendido` y borra la reserva —
+> hasta ahí, perfecto. El problema aparece con un **contraentrega**: confirma
+> al crearse, no al entregarse, porque se trata como venta en firme desde el
+> primer momento (la alternativa, dejarlo caducando media hora como cualquier
+> reserva, congelaría una pieza cara en un pedido que ya es real). Si la
+> clienta cancela después de eso, `liberar()` no sirve — solo borra una
+> *reserva pendiente*, y a esta altura la reserva ya no existe. Pasó el
+> 2026-09-14: un contraentrega de 4 piezas (una pulsera Avengers y tres
+> charms) canceló después de confirmado, y las cuatro quedaron bloqueadas para
+> siempre — la tienda las tenía en la mano y las mostraba agotadas, entre ellas
+> Corazón Mamá e Hija, que se quedó en cero sin que faltara ninguna unidad
+> real.
+>
+> Se cierra con `anular(referencia, items)` en `_inventario.mjs`, simétrica a
+> `confirmar()` pero al revés: resta de `vendido` en vez de sumar. No puede
+> reconstruir sola qué había en el pedido —la reserva ya no está—, así que
+> quien la llama tiene que traerlo; en la práctica sale de `lineas` en el
+> registro de `_pedidos.mjs` (§ 4c), que ya es la fuente de qué llevaba un
+> pedido. Es idempotente por una razón distinta a `confirmar()`: sin una
+> reserva que la frene sola, correrla dos veces por error restaría dos veces
+> de `vendido` — la misma sobreventa que toda esta pieza existe para evitar,
+> por el lado de anular en vez de por el de vender. `estado.anuladas` es esa
+> memoria, y se limpia junto con `vendido` cuando `stock.json` trae un conteo
+> nuevo: pasado ese punto, ya no hay nada que esa marca deba seguir evitando.
+>
+> Se aplica con `herramientas/anular-venta.mjs <referencia> --aplicar` —mismo
+> criterio que `reponer.mjs`, dry-run por defecto—, corriendo en la máquina de
+> quien lo use, con un `NETLIFY_AUTH_TOKEN` personal en `.env`: no se expone
+> un endpoint nuevo en un sitio que cobra para una operación que es una
+> decisión humana, no algo que deba poder disparar una petición HTTP de
+> cualquiera. Probado en `pruebas/inventario.js` § 1b — anular, repetir sin
+> restar dos veces, y no bajar de cero si `items` trajera más de lo vendido.
+
 Y sigue **fallando hacia adelante**, como todo lo demás: si Blobs no está
 configurado, no responde, o el CAS no converge en seis intentos, la venta pasa
 y queda registrado en el log con el motivo. La reserva es una red de seguridad,

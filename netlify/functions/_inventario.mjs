@@ -158,7 +158,7 @@ function itemsDe(pedido) {
 /* Contra qué versión de stock.json está contando lo vendido. Ver `rebasar()`. */
 const BASE = (INV && INV.generado) || '';
 
-const vacio = () => ({ v: 1, base: BASE, vendido: {}, reservas: {} });
+const vacio = () => ({ v: 1, base: BASE, vendido: {}, reservas: {}, anuladas: {} });
 
 /* Cuando se repone inventario, `vendido` tiene que volver a cero.
  *
@@ -178,6 +178,11 @@ function rebasar(estado) {
   if (estado.base === BASE) return false;
   estado.base = BASE;
   estado.vendido = {};
+  /* `anuladas` solo existe para que anular() no reste dos veces de `vendido`
+     si se corre dos veces sobre la misma referencia. En cuanto `vendido` se
+     reinicia con un conteo nuevo, esa marca deja de significar nada — arrastrarla
+     no protege nada y solo acumula referencias viejas para siempre. */
+  estado.anuladas = {};
   return true;
 }
 
@@ -234,6 +239,7 @@ async function transaccion(mutar, etiqueta) {
     const estado = (actual && actual.data) || vacio();
     estado.vendido = estado.vendido || {};
     estado.reservas = estado.reservas || {};
+    estado.anuladas = estado.anuladas || {};
     limpiar(estado, Date.now());
     if (rebasar(estado)) {
       console.log(JSON.stringify({
@@ -319,6 +325,47 @@ async function confirmar(referencia) {
   }, 'confirmar');
 }
 
+/* Deshace un `confirmar()` ya hecho: una venta que se dio por cerrada —típico,
+ * un contraentrega— y la clienta cancela después. `liberar()` no sirve para
+ * esto: solo borra una *reserva pendiente*, y a esta altura la reserva ya no
+ * existe — `confirmar()` la borró al mover las unidades a `vendido`.
+ *
+ * Por eso `anular()` no recibe una referencia sola: recibe también qué había
+ * en el pedido (`items`, el mismo mapa sku→unidades que usa el resto de este
+ * módulo). No hay dónde más sacarlo — la reserva ya no está—, así que quien
+ * llama tiene que traerlo. En la práctica es el registro de `_pedidos.mjs`
+ * (`lineas`), que es la fuente que ya existe para saber qué llevaba un pedido.
+ *
+ * Idempotente a propósito, igual que `confirmar()` — pero por un motivo
+ * distinto. `confirmar()` es idempotente porque repetirla no encuentra
+ * reserva y no hace nada; aquí no hay ese cerrojo natural, porque `items` lo
+ * trae quien llama y sería igual de válido la segunda vez. Sin memoria propia,
+ * correr esta herramienta dos veces por error restaría dos veces de `vendido`
+ * y la tienda ofrecería unidades que no volvieron — la misma sobreventa que
+ * todo este archivo existe para evitar, solo que por el lado de anular en vez
+ * de por el de vender. `estado.anuladas` es esa memoria: una referencia que ya
+ * se anuló no se vuelve a tocar, la escriba quien la escriba. */
+async function anular(referencia, items) {
+  return transaccion(estado => {
+    if (estado.anuladas[referencia]) return { ok: true, modo: 'ya-anulada' };
+    Object.entries(items).forEach(([s, n]) => {
+      /* Nunca por debajo de cero: si `items` trae más de lo que `vendido`
+         registra —un desfase de otro origen—, esto no debe inventar una deuda
+         negativa que dejaría "libre" contando de más. */
+      estado.vendido[s] = Math.max(0, (estado.vendido[s] || 0) - n);
+    });
+    estado.anuladas[referencia] = Date.now();
+    /* Mismo cálculo que `confirmar()`, y por la misma razón: es el único punto
+       donde el número es cierto. */
+    const restante = {};
+    Object.keys(items).forEach(s => {
+      const n = libre(estado, s);
+      restante[s] = Number.isFinite(n) ? n : null;
+    });
+    return { ok: true, modo: 'anulada', items, restante };
+  }, 'anular');
+}
+
 /* El pago no llegó, se declinó o se anuló: las unidades vuelven al mostrador
    sin esperar a que caduque la reserva. */
 async function liberar(referencia) {
@@ -362,7 +409,7 @@ export async function disponibles(skus) {
   return salida;
 }
 
-export { reservar, confirmar, liberar };
+export { reservar, confirmar, liberar, anular };
 /* `itemsDe` y `describir` los usa además `armar-carrito.mjs`, que necesita
    comprobar disponibilidad sin reservar nada y contarlo con las mismas palabras
    con las que se lo contaría el checkout: si el bot de WhatsApp dice «quedan 2»

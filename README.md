@@ -26,7 +26,7 @@ Sitio de [zephoracharms.com](https://zephoracharms.com/) — joyería con signif
 | `assets/stock.json` | El inventario que lee la página: unidades por charm y tallas por brazalete. |
 | `assets/` | Las imágenes del sitio. |
 | `pruebas/` | Baterías Playwright que comprueban lo acordado. `./pruebas/correr.sh` |
-| `herramientas/` | `gen_paginas.py` (páginas de información), `extraer_catalogo.py` (precios) y `reponer.mjs` (inventario desde la hoja). |
+| `herramientas/` | `gen_paginas.py` (páginas de información), `extraer_catalogo.py` (precios), `reponer.mjs` (inventario desde la hoja) y `anular-venta.mjs` (deshacer una venta ya confirmada que la clienta cancela). |
 | `skills-lock.json` | Skills instaladas en el proyecto (fuente + hash). |
 | `.claude/skills/` | Agent Skills disponibles al trabajar en este repo. |
 
