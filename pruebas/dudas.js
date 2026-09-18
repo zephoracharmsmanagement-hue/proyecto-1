@@ -69,7 +69,7 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ficha de brazalete
   const fb = await ficha('pulsera-corazon-liso');
-  ok(fb.tipo === 'Brazalete' && fb.specs.some(s => s.includes('latón')), 'brazalete declara latón con baño, no plata 925');
+  ok(fb.tipo === 'Brazalete' && fb.specs.some(s => s.includes('925')), 'brazalete declara Plata 925 con sello grabado');
   ok(fb.est.includes('17, 18, 19, 20'), 'brazalete muestra sus tallas disponibles: ' + fb.est);
 
   // ---- 3 · buscador ----

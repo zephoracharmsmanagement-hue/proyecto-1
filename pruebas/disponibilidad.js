@@ -158,8 +158,12 @@ async function main() {
     const b = d.brazaletes[0];
     comprobar(/Plata Esterlina 925/.test(p.material),
       'los charms dicen Plata Esterlina 925');
-    comprobar(/baño de plata/.test(b.material) && !/925/.test(b.material),
-      'los brazaletes dicen baño de plata, no 925: confundirlos es publicidad engañosa');
+    /* Invertida el 2026-09-18: el proveedor confirmó que los brazaletes
+       también son S925 legítima con sello grabado, y la web se actualizó. La
+       guarda se queda —el material que el bot le dice a la clienta no puede
+       quedar a la deriva— pero ahora custodia la verdad nueva. */
+    comprobar(/925/.test(b.material) && !/baño/i.test(b.material),
+      'los brazaletes dicen Plata 925, igual que los charms');
 
     comprobar(d.piezas.every(x => x.nombre && x.nombre !== x.id),
       'todas las piezas traen nombre legible, no el id');
