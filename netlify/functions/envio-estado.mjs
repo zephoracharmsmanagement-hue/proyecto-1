@@ -22,15 +22,16 @@
 import crypto from 'node:crypto';
 import { leer, marcar } from './_pedidos.mjs';
 import { EVENTOS, TEXTOS } from './_envios.mjs';
-import { enviar, correoTienda } from './_correo.js';
+import { enviar, correoTienda, esc } from './_correo.js';
 
 const CABECERAS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
 };
 
-const responder = (codigo, cuerpo) =>
-  new Response(JSON.stringify(cuerpo), { status: codigo, headers: CABECERAS });
+const responder = (codigo, cuerpo, cabecerasExtra) =>
+  new Response(JSON.stringify(cuerpo),
+    { status: codigo, headers: cabecerasExtra ? Object.assign({}, CABECERAS, cabecerasExtra) : CABECERAS });
 
 /* Comparación en tiempo constante: una clave que protege celular y nombre de
    clientas no debería filtrarse un carácter a la vez por cuánto tarda la
@@ -49,19 +50,27 @@ function claveValida(req) {
    envío necesita que alguien la resuelva, no solo que la clienta se entere. */
 async function avisarIncidencia({ referencia, guia, transportadora, urlSeguimiento, cliente }) {
   const { para } = correoTienda();
+  /* guia/transportadora/urlSeguimiento vienen de un correo externo de Skydropx
+     que n8n parsea, y nombre/apellido los escribe la clienta en el checkout —
+     ninguno de los dos es de fiar sin escapar antes de pintarlo en el correo
+     (mismo invariante que _correo.js aplica en cada una de sus plantillas). */
+  const nombreCompleto = [cliente.nombre, cliente.apellido].filter(Boolean).map(esc).join(' ');
   const txt = [
     `El pedido ${referencia} tiene una incidencia de envío reportada por Skydropx.`,
-    `Guía: ${guia}`,
-    `Transportadora: ${transportadora}`,
-    `Seguimiento: ${urlSeguimiento}`,
-    `Clienta: ${cliente.nombre} ${cliente.apellido || ''} · Cel. ${cliente.celular}`,
+    `Guía: ${esc(guia)}`,
+    `Transportadora: ${esc(transportadora)}`,
+    `Seguimiento: ${esc(urlSeguimiento)}`,
+    `Clienta: ${nombreCompleto} · Cel. ${esc(cliente.celular)}`,
   ].join('\n');
   return enviar({ para, asunto: `Incidencia de envío · ${referencia}`, html: `<pre>${txt}</pre>`, txt });
 }
 
 export default async (req) => {
-  if (req.method !== 'POST') return responder(405, { error: 'Solo POST' });
-  if (!claveValida(req)) return responder(401, { error: 'Clave inválida o ausente' });
+  if (req.method !== 'POST') return responder(405, { error: 'Solo POST' }, { Allow: 'POST' });
+  if (!claveValida(req)) {
+    console.warn('envio-estado: intento con clave inválida o ausente');
+    return responder(401, { error: 'Clave inválida o ausente' });
+  }
 
   let cuerpo;
   try {
@@ -87,14 +96,26 @@ export default async (req) => {
   const yaEnviado = envios.some(e => e.evento === evento);
 
   if (!yaEnviado) {
-    await marcar(referencia, {
+    /* Si esto falla en silencio, la próxima entrega del mismo evento seguiría
+       viendo yaEnviado:false — riesgo de WhatsApp duplicado — y nadie se
+       entera. Por eso se captura el resultado y se deja en el log. */
+    const resultadoMarcar = await marcar(referencia, {
       envios: [...envios, {
         evento, guia, transportadora, urlSeguimiento,
         notificadoEn: new Date().toISOString(),
       }],
     });
+    if (!resultadoMarcar.ok) {
+      console.error('envio-estado: no se pudo marcar el envío como notificado',
+        referencia, evento, resultadoMarcar.motivo);
+    }
     if (evento === 'excepcion') {
-      await avisarIncidencia({ referencia, guia, transportadora, urlSeguimiento, cliente: pedido.cliente });
+      const resultadoAviso = await avisarIncidencia(
+        { referencia, guia, transportadora, urlSeguimiento, cliente: pedido.cliente });
+      if (!resultadoAviso.enviado) {
+        console.error('envio-estado: no se pudo avisar la incidencia a la tienda',
+          referencia, resultadoAviso.motivo);
+      }
     }
   }
 
