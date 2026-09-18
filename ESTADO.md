@@ -151,16 +151,12 @@ mármol lleva 10.389 impresiones acumuladas. Lo que sí queda pendiente es
 la tienda no tenía, y el tercer charm a $32.050 tampoco está dicho en ningún
 lado.
 
-## 🚧 Trabajo en curso — confirmación y estado de envío por WhatsApp (Skydropx) · 2026-09-18
+## Endpoint de confirmación de envío por WhatsApp (Skydropx) — fusionado el 2026-09-18
 
-**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
-trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
-
-**Rama:** `claude/skydropx-whatsapp-envio` — **PR #1 abierto contra `main`**,
-código completo y revisado (5 revisiones de tarea + revisión final de toda la
-rama, con una corrección aplicada y su re-revisión), esperando que el
-propietario lo revise y lo fusione. Nadie más necesita tocar estos archivos
-mientras el PR esté abierto.
+**PR #1**, merge commit `07a2ea9`. Código completo y revisado (5 revisiones de
+tarea + revisión final de toda la rama, con una corrección aplicada y su
+re-revisión) — ver `docs/superpowers/plans/2026-09-18-envio-estado-skydropx.md`
+para el detalle de esa revisión, incluida la lista de decisiones tomadas.
 
 **Alcance:** `docs/superpowers/specs/2026-09-18-skydropx-whatsapp-design.md`,
 `docs/superpowers/plans/2026-09-18-envio-estado-skydropx.md`, y un endpoint
