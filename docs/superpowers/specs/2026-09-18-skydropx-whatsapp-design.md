@@ -316,3 +316,36 @@ camino que un `400`: se registra para revisar, no se manda nada.
   registra y se revisa a mano, no se reintenta solo.
 - Tocar el bot de ventas de `BOT-WHATSAPP-ARQUITECTURA.md` — es un flujo
   aparte, sin relación de código con este.
+
+## 9 · Límites conocidos, anotados tras la revisión final de la implementación
+
+No son código pendiente de este endpoint — son comportamiento ya verdadero
+que hay que tener presente al construir el workflow de n8n o al operar esto
+en producción:
+
+- **`marcar()` no hace compare-and-swap.** Si dos correos de Skydropx para el
+  mismo pedido llegan casi al mismo tiempo, la segunda escritura puede pisar
+  el `envios` de la primera y ese evento se notificaría dos veces. No pasa en
+  operación normal —los eventos de un mismo envío llegan espaciados en
+  horas—, pero **sí puede pasar el primer día**, cuando el trigger de correo
+  de n8n procese de una vez el historial acumulado del buzón. Mitigación sin
+  tocar código: que ese workflow procese los correos **uno a la vez, en
+  orden** (tamaño de lote 1), no en paralelo.
+- **`celular` vuelve en formato local (`3018990672`), sin `57` delante.** La
+  API de WhatsApp Business necesita el número completo (E.164). Esta spec no
+  dice quién le agrega el `57` — hay que decidirlo al construir el workflow
+  de n8n (lo más simple: un nodo que lo antepone antes de mandar la
+  plantilla) antes de la primera prueba real, no descubrirlo ahí.
+- **Un pedido se marca como notificado antes de que n8n confirme que el
+  WhatsApp salió.** Si el nodo de WhatsApp falla después de que este endpoint
+  ya respondió `200`, un reintento del mismo evento vería `yaEnviado: true` y
+  no se volvería a intentar nada — el mensaje se perdería en silencio. Es la
+  misma decisión de § 8 ("no se reintenta solo"), pero conviene que el
+  workflow de n8n **alerte si el nodo de WhatsApp falla**, en vez de dejar
+  que el error se pierda ahí.
+- **Un apagón de Blobs se ve igual que una referencia que no existe.**
+  `leer()` devuelve `null` tanto si el pedido no está como si el almacén no
+  responde, y el endpoint contesta `404` en los dos casos. La respuesta —no
+  adivinar, avisar a la tienda— sigue siendo la correcta en ambos casos; el
+  único costo es que el motivo que ve la tienda («no existe esa referencia»)
+  puede ser impreciso durante un apagón real.
