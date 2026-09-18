@@ -5,6 +5,152 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Plata 925 en todo, precios nuevos de brazalete y la primera colección — 2026-09-18
+
+**Está en el aire.** Despliegue `6aad81721f0dd1000817b2be`, commit `3193789`,
+publicado a las 18:23:04 UTC, 20 segundos de construcción, sin errores. 19
+archivos nuevos, 14 funciones desplegadas, 12 redirecciones y **7 reglas de
+cabecera** (eran 5: las dos nuevas son el `no-cache` de `tienda.css` y
+`tienda.js`). El escaneo de secretos revisó 261 archivos y no encontró ninguno.
+
+### Lo que cambió, en ocho commits
+
+| | |
+|---|---|
+| `b8ab95c` | Anota el hueco de `anular-venta.mjs` con Meta CAPI (§ Pendientes 7) |
+| `93389ed` | Saca el CSS y el motor del carrito de `index.html` a `tienda.css` y `tienda.js` |
+| `ebdb9e8` | `coleccion-marvel.html`, primera página de colección, generada |
+| `59d2c90` | Estilos de las páginas de colección |
+| `9650110` | Arregla el extractor de catálogo, que la extracción dejó sin fuente |
+| `8e234d9` | **Brazaletes a Plata 925 y precios a $118.000 / $138.000 / $158.000** |
+| `1d3b1e9` | Corrige el apunte de Addi: sí se acepta, fuera de la pasarela |
+| `3193789` | Foto de la Pulsera Avengers en la portada de la colección |
+
+### Los brazaletes son Plata 925, no baño
+
+**Decisión del propietario con confirmación del proveedor (2026-09-18):** todo
+el catálogo es Plata Esterlina 925 legítima **con sello S925 grabado**,
+brazaletes incluidos. Lo anterior era un error de información del proveedor, no
+de la tienda. **No lo deshagas:** el sitio decía lo contrario de forma explícita
+y deliberada —`terminos-y-condiciones.html` llegaba a afirmar «No son plata
+maciza»— y esa redacción conservadora era correcta con la información de
+entonces.
+
+El costo no cambió: sigue rondando los $18.000 por brazalete.
+
+Se corrigió en diez sitios: `index.html` (título, descripciones, datos
+estructurados, barra de beneficios, sección de brazaletes y las 18 etiquetas de
+tarjeta), la ficha de producto y el carrito (`tienda.js`), el resumen del
+checkout, los términos, las tres respuestas de las FAQ **y sus datos
+estructurados**, `disponibilidad.mjs` y el prompt del asesor. Las páginas
+legales se cambiaron en `gen_paginas.py`, no en el HTML: la próxima corrida las
+habría pisado.
+
+**Y en el bot de WhatsApp, que es lo que no se ve desde el repo.** El prompt del
+workflow `74TjEtDnn940jh9k` decía que los brazaletes eran baño de plata **e
+instruía al modelo a corregir a la clienta** («nunca llames plata a secas a un
+brazalete: es publicidad enganosa»). Actualizado y publicado el mismo día,
+versión `71db6652`. Se cambió también el aviso de oxidación: ahora dice que la
+plata sí se oxida, brazaletes incluidos, **y que eso no da lugar a devolución**
+— sin esa frase, el primer brazalete que se oscurezca trae un reclamo de
+garantía que antes no existía.
+
+> **Trampa al auditar el prompt del bot:** está escrito **sin tildes**. Buscar
+> «baño» o «latón» devuelve cero y hace creer que está limpio. Hay que buscar
+> «bano» y «laton».
+
+### Precios de brazalete: $118.000 / $138.000 / $158.000
+
+Desde $68.000, $78.000 y $88.000. **El encargo original citaba $58.000 /
+$68.000 / $78.000**, que son los precios de antes del alza del 2026-09-13:
+ejecutarlo literal habría dejado un nivel sin tocar y otro con el precio del
+vecino.
+
+**La trampa que hay que recordar para el próximo cambio de precios: ocho charms
+valen exactamente lo mismo que un brazalete** —los cuatro clips y Corazón Mamá
+e Hija a $78.000, y Corazón de Filigrana, Elefantito Rosa y Corazón Árbol de la
+Vida a $88.000—. Un buscar-y-reemplazar por cifra les cambia el precio **sin dar
+ningún error**. Se cambió por `id`, y se comprobó: 0 charms tocados.
+
+El precio vive en cuatro sitios y los cuatro quedaron cuadrados —la tabla `DATA`
+de `tienda.js`, las tarjetas de `index.html`, los tres encabezados de nivel y
+`stock.json`—, comprobado pieza por pieza: 135 piezas, 0 desajustes. `generado`
+de `stock.json` no se tocó: es un interruptor, no una fecha.
+
+Los seis casos de compra, navegador contra servidor: 1 charm $95.000 · brazalete
+nivel 1 $118.000 · nivel 2 $138.000 · nivel 3 $158.000 · brazalete + 3 charms
+$324.850 · + 4 charms $367.600. Contraentrega suma $20.000 en todos.
+
+**El argumento de venta se hizo más fuerte, no más débil:** con el brazalete más
+caro, el 30% pesa más. Con la Pulsera Avengers **el tercer charm cuesta $32.050**
+en vez de $95.000. Ese número no está en ningún anuncio todavía.
+
+### El motor salió de index.html, y eso rompió el extractor
+
+`index.html` era un solo archivo de 3.474 líneas con todo el CSS y el JS dentro.
+Ahora viven en `tienda.css` y `tienda.js`, que comparten `index.html` y las
+páginas de colección. Fue extracción pura, sin cambiar lógica.
+
+**Lo que se llevó por delante:** `extraer_catalogo.py` leía la tabla `DATA` de
+`index.html` y dejó de encontrarla. Es decir, la tubería que mantiene al
+servidor cobrando lo mismo que muestra la página quedó cortada. **Se paró con un
+error en vez de escribir un catálogo a medias**, que es justo para lo que estaba
+escrita así. Ahora lee de las dos fuentes: `tienda.js` para `DATA` y las reglas,
+`index.html` para las tarjetas.
+
+**Al tocar `tienda.js`, acordarse de correr el extractor.** Si no, el servidor
+cobra con los datos viejos.
+
+### La primera página de colección — `coleccion-marvel.html`
+
+A esto apunta la pauta: quien hace clic en un anuncio de Marvel aterriza en una
+página de Marvel, no en la portada. Trae el catálogo acotado a las 15 piezas del
+grupo, el brazalete base, y todo el material de confianza —tallas, videos,
+reseñas, pagos y envío— porque ahí llega tráfico frío.
+
+**No se escribe a mano: la genera `herramientas/gen_colecciones.py`** extrayendo
+de `index.html` el andamiaje del carrito y las tarjetas por `data-id`. Añadir una
+colección son ~10 líneas en la lista `COLECCIONES`; como los grupos ya viven en
+`catalogo.json`, una pieza nueva entra sola en la suya.
+
+Tres cosas que salieron de construirla y no hay que redescubrir:
+
+1. **`tienda.js` da por hecho el diseño de la portada.** Accede sin protección a
+   ~60 elementos por `id`, y además al carrusel del hero por clase. Sin ese
+   carrusel, la página se quedaba **sin carrito entero** —las tarjetas se veían,
+   se tocaban, y no pasaba nada—. Se le puso guarda. **Al hacer la siguiente
+   colección, mirar la consola del navegador**: pueden quedar más supuestos así.
+2. **Las páginas generadas necesitan contenedores vacíos** (`#q`, `#q-x`,
+   `#full-cat`, `#resto-grid`, `#filters`, `#rail-top`, `#letras-grid`…) solo
+   para que el script no reviente. Van ocultos al final del HTML, comentados.
+3. **Las secciones nuevas salieron sin un solo estilo** y nadie lo detectó: las
+   pruebas de datos pasaban porque el carrito calculaba bien. Lo cazó mirar la
+   página renderizada. **Un cambio visual no se da por bueno sin verlo.**
+
+### Qué falta comprobar, y no se pudo desde la sesión
+
+La red hacia `zephoracharms.com` está **bloqueada por política** en el entorno de
+ejecución remota, así que esto se verificó por el conector de Netlify y no
+contra el sitio vivo. Queda pendiente, desde una terminal o un navegador:
+
+1. **Una compra real de punta a punta**, con un brazalete, mirando que el total
+   de la pasarela sea el de la página.
+2. **Que el bot de WhatsApp siga recibiendo.** n8n toca la configuración del
+   webhook en Meta al publicar y ya se ha quedado en blanco sin avisar. Si no
+   responde: `GET /1868981540432885/subscribed_apps`.
+3. **Que los mensajes sigan llegando a la app de WhatsApp Business**, no solo al
+   bot (coexistencia).
+4. **La página de colección en un celular de verdad.**
+
+### Lo siguiente, y es de pauta
+
+Los seis anuncios activos **no mencionan precio ni material**, así que no hubo
+que pausar ninguno y no se pausó: reactivar reinicia el aprendizaje, y el de
+mármol lleva 10.389 impresiones acumuladas. Lo que sí queda pendiente es
+**creativo nuevo**: que todo sea Plata 925 con sello grabado es un argumento que
+la tienda no tenía, y el tercer charm a $32.050 tampoco está dicho en ningún
+lado.
+
 ## Precios, envío gratis y tanda nueva de videos — 2026-09-13
 
 Aprobado por el propietario, mezclado a `main` (`522e375`, avance rápido) y
