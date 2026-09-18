@@ -20,7 +20,8 @@
  * antes de este mismo evento para no repetirlo.
  */
 import crypto from 'node:crypto';
-import { EVENTOS } from './_envios.mjs';
+import { leer, marcar } from './_pedidos.mjs';
+import { EVENTOS, TEXTOS } from './_envios.mjs';
 
 const CABECERAS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -62,6 +63,29 @@ export default async (req) => {
     return responder(400, { error: `evento debe ser uno de: ${EVENTOS.join(', ')}` });
   }
 
-  // Task 3 sigue desde aquí: correlación con el pedido y respuesta.
-  return responder(500, { error: 'sin implementar todavía' });
+  const pedido = await leer(referencia);
+  if (!pedido || !pedido.cliente || !pedido.cliente.celular) {
+    return responder(404, { error: 'No existe un pedido con celular registrado para esa referencia' });
+  }
+
+  const envios = pedido.envios || [];
+  const yaEnviado = envios.some(e => e.evento === evento);
+
+  if (!yaEnviado) {
+    await marcar(referencia, {
+      envios: [...envios, {
+        evento, guia, transportadora, urlSeguimiento,
+        notificadoEn: new Date().toISOString(),
+      }],
+    });
+  }
+
+  return responder(200, {
+    celular: pedido.cliente.celular,
+    nombre: pedido.cliente.nombre,
+    evento,
+    textoEstado: TEXTOS[evento],
+    guia, transportadora, urlSeguimiento,
+    yaEnviado,
+  });
 };

@@ -17,15 +17,32 @@ const ok = (m, d) => console.log(`  ✓ ${m}${d ? ' — ' + d : ''}`);
 const mal = (m, d) => { fallos++; console.log(`  ✗ FALLA ${m}${d ? ' — ' + d : ''}`); };
 const comprobar = (c, m, d) => (c ? ok(m, d) : mal(m, d));
 
+/* Imita Netlify Blobs en lo poco que `_pedidos.mjs` usa, igual que
+   `pruebas/armar-carrito.js` hace con `_inventario.mjs`. */
+function almacenFalso(inicial) {
+  const datos = inicial || {};
+  return {
+    async get(clave) { return datos[clave] ? JSON.parse(JSON.stringify(datos[clave])) : null; },
+    async setJSON(clave, valor) { datos[clave] = JSON.parse(JSON.stringify(valor)); return { modified: true }; },
+    async delete(clave) { delete datos[clave]; },
+    async list() { return { blobs: Object.keys(datos).map(key => ({ key })) }; },
+  };
+}
+
+const PEDIDO = {
+  referencia: 'ZC-260918-TESTCASE',
+  cliente: { nombre: 'Valentina', apellido: 'Ríos', celular: '3018990672' },
+};
+
 async function main() {
   const { EVENTOS, TEXTOS } = await import('../netlify/functions/_envios.mjs');
   const CLAVE = 'clave-de-prueba-treinta-y-dos-c';
   process.env.ENVIO_ESTADO_KEY = CLAVE;
   const mod = await import('../netlify/functions/envio-estado.mjs');
+  const pedidos = await import('../netlify/functions/_pedidos.mjs');
 
-  const REFERENCIA = 'ZC-260918-TESTCASE';
   const CUERPO_VALIDO = {
-    referencia: REFERENCIA, evento: 'creada',
+    referencia: PEDIDO.referencia, evento: 'creada',
     guia: 'SKX-1', transportadora: 'Interrapidísimo', urlSeguimiento: 'https://x.test/1',
   };
 
@@ -72,6 +89,52 @@ async function main() {
     comprobar(rJsonRoto.status === 400, 'cuerpo que no es JSON válido, 400', String(rJsonRoto.status));
   }
 
+  console.log('\n4 · Referencia inexistente o sin celular registrado');
+  {
+    pedidos._interno.usarAlmacen(almacenFalso({}));
+    const { r: sinPedido } = await pedir(CUERPO_VALIDO);
+    comprobar(sinPedido.status === 404, 'referencia que no existe, 404 — nunca se adivina a quién avisar',
+      String(sinPedido.status));
+
+    pedidos._interno.usarAlmacen(almacenFalso({ 'ZC-SIN-CLIENTE': { referencia: 'ZC-SIN-CLIENTE' } }));
+    const { r: sinCliente } = await pedir(Object.assign({}, CUERPO_VALIDO, { referencia: 'ZC-SIN-CLIENTE' }));
+    comprobar(sinCliente.status === 404, 'pedido sin celular registrado todavía, también 404',
+      String(sinCliente.status));
+  }
+
+  console.log('\n5 · Caso válido por evento, y anti-duplicados');
+  {
+    /* "excepcion" queda fuera de este bucle a propósito: dispara un correo a
+       la tienda (Task 4), y ese camino solo se ejerce en § 6, donde
+       RESEND_API_KEY queda forzada a vacía para no arriesgar un envío real. */
+    pedidos._interno.usarAlmacen(almacenFalso({ [PEDIDO.referencia]: PEDIDO }));
+    const eventosSinExcepcion = EVENTOS.filter(e => e !== 'excepcion');
+
+    for (const evento of eventosSinExcepcion) {
+      const cuerpo = { referencia: PEDIDO.referencia, evento,
+        guia: 'SKX-' + evento, transportadora: 'Coordinadora', urlSeguimiento: 'https://x.test/' + evento };
+      const { r, d } = await pedir(cuerpo);
+      comprobar(r.status === 200, `evento "${evento}", 200`, String(r.status));
+      comprobar(d.textoEstado === TEXTOS[evento],
+        `evento "${evento}" devuelve exactamente el texto de _envios.mjs, no uno inventado aquí`);
+      comprobar(d.celular === PEDIDO.cliente.celular && d.nombre === PEDIDO.cliente.nombre,
+        `evento "${evento}" trae el celular y el nombre del pedido guardado`);
+      comprobar(d.yaEnviado === false, `evento "${evento}", primera vez, yaEnviado es false`);
+    }
+
+    const repetido = { referencia: PEDIDO.referencia, evento: 'en_transito',
+      guia: 'SKX-en_transito', transportadora: 'Coordinadora', urlSeguimiento: 'https://x.test/en_transito' };
+    const { r: segunda, d: d2 } = await pedir(repetido);
+    comprobar(segunda.status === 200, 'repetir el mismo evento sigue respondiendo 200', String(segunda.status));
+    comprobar(d2.yaEnviado === true, 'pero avisa que ya se había mandado — n8n no debe repetir el WhatsApp');
+
+    const guardado = await pedidos.leer(PEDIDO.referencia);
+    comprobar(Array.isArray(guardado.envios) && guardado.envios.length === eventosSinExcepcion.length,
+      'cada evento distinto se guarda una sola vez, y repetir uno no agrega una fila más',
+      String(guardado.envios.length));
+  }
+
+  pedidos._interno.usarAlmacen(null);
   console.log(fallos ? `\nEnvío-estado: ${fallos} en rojo` : '\nEnvío-estado en verde ✓');
 }
 
