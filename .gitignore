@@ -24,3 +24,9 @@ __pycache__/
 
 # Material en bruto y capturas con datos de clientas: NO se publica.
 material-sin-publicar/
+
+# Espacio de trabajo de subagent-driven-development: el registro (ledger) y
+# los paquetes de revisión de una sesión, no código. Si algún día se comitea
+# por error, con publish = "." quedaría servido en el sitio — que no lo esté
+# hoy es porque nunca se comiteó, no porque este archivo lo impidiera.
+.superpowers/

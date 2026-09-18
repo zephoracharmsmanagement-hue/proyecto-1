@@ -151,6 +151,38 @@ mármol lleva 10.389 impresiones acumuladas. Lo que sí queda pendiente es
 la tienda no tenía, y el tercer charm a $32.050 tampoco está dicho en ningún
 lado.
 
+## 🚧 Trabajo en curso — confirmación y estado de envío por WhatsApp (Skydropx) · 2026-09-18
+
+**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
+trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
+
+**Rama:** `claude/skydropx-whatsapp-envio` — **PR #1 abierto contra `main`**,
+código completo y revisado (5 revisiones de tarea + revisión final de toda la
+rama, con una corrección aplicada y su re-revisión), esperando que el
+propietario lo revise y lo fusione. Nadie más necesita tocar estos archivos
+mientras el PR esté abierto.
+
+**Alcance:** `docs/superpowers/specs/2026-09-18-skydropx-whatsapp-design.md`,
+`docs/superpowers/plans/2026-09-18-envio-estado-skydropx.md`, y un endpoint
+nuevo y aislado: `netlify/functions/_envios.mjs` + `envio-estado.mjs` +
+`pruebas/envio-estado.js`, más dos líneas en `netlify.toml` (ruta
+`/envio-estado` y bloqueo de `/docs/*`) y una en `pruebas/correr.sh` y
+`pruebas/README.md`. **No toca** `index.html`, el checkout, ni ningún otro
+archivo de `netlify/functions/`.
+
+**Qué es:** automatización nueva, disjunta del bot de ventas de
+`automatizaciones/conversion/BOT-WHATSAPP-ARQUITECTURA.md` (frente aparte, sin
+relación de código). Cuando Skydropx marca un envío como despachado o cambia
+de estado, un flujo de n8n (correo → HTTP → WhatsApp) le avisa a la clienta.
+Skydropx es solo panel web, sin API — el diseño completo, incluida la
+autenticación del endpoint nuevo y la plantilla para Meta, está en la spec.
+
+**Lo que falta para que sirva de algo en producción, y no es código:**
+correos de muestra de Skydropx (uno por cada uno de sus seis tipos de evento,
+para escribir el nodo de n8n que los reconoce), aprobación de la plantilla
+`actualizacion_envio` en Meta, y poner `ENVIO_ESTADO_KEY` en Netlify + como
+credencial Header Auth en n8n. Todo del propietario — ver § 7 de la spec.
+
 ## Precios, envío gratis y tanda nueva de videos — 2026-09-13
 
 Aprobado por el propietario, mezclado a `main` (`522e375`, avance rápido) y
