@@ -123,8 +123,11 @@ async function main() {
        no contra una copia escrita aquí: si alguien cambia el formato en una
        página, esto se pone rojo en vez de fallar en producción. */
     const fs = require('fs');
+    /* index.html carga su carrito desde tienda.js (compartido con las páginas
+       de colección) — la expresión vive ahí, no en el HTML. */
+    const fuente = { 'checkout.html': 'checkout.html', 'index.html': 'tienda.js' };
     ['checkout.html', 'index.html'].forEach(archivo => {
-      const html = fs.readFileSync(path.join(RAIZ, archivo), 'utf8');
+      const html = fs.readFileSync(path.join(RAIZ, fuente[archivo]), 'utf8');
       const m = html.match(/t\.match\(\/(\^\([a-z0-9\\[\]{}(),?:*@|+-]+\$)\/\)/);
       comprobar(!!m, `la expresión que valida el enlace sigue en ${archivo}`);
       if (!m) return;
