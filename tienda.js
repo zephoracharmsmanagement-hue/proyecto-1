@@ -62,12 +62,19 @@ const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 const ESC=[0,0,.08,.15,.25];
 const escala=n=>n<=0?0:ESC[Math.min(n,4)];
 const $=s=>document.querySelector(s);
+/* El carrusel del hero solo existe en la portada. Las páginas de colección
+   traen su propia portada, así que esto se salta si no está: este archivo lo
+   comparten varias páginas y no puede dar por hecho el diseño de una sola. Sin
+   la guarda, la página entera se queda sin carrito —las tarjetas se ven, se
+   tocan, y no pasa nada—, que es la peor forma de fallar. */
 const hbTrack=$('.hbanner-track');
 const hbPause=$('.hbanner-pause');
-hbPause.addEventListener('click',()=>{
-  const paused=hbTrack.classList.toggle('paused');
-  hbPause.setAttribute('aria-pressed', paused ? 'true' : 'false');
-});
+if(hbPause && hbTrack){
+  hbPause.addEventListener('click',()=>{
+    const paused=hbTrack.classList.toggle('paused');
+    hbPause.setAttribute('aria-pressed', paused ? 'true' : 'false');
+  });
+}
 
 /* Videos de clientas: no se descargan hasta que la seccion entra en pantalla.
  *
