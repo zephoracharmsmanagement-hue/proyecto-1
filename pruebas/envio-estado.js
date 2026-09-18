@@ -134,6 +134,31 @@ async function main() {
       String(guardado.envios.length));
   }
 
+  console.log('\n6 · Una incidencia avisa también a la tienda');
+  {
+    pedidos._interno.usarAlmacen(almacenFalso({ [PEDIDO.referencia]: PEDIDO }));
+
+    /* Ver la constante de "Global Constraints": sin esto, quien tenga una
+       RESEND_API_KEY real puesta en su entorno mandaría un correo de verdad. */
+    const llaveAntes = process.env.RESEND_API_KEY;
+    process.env.RESEND_API_KEY = '';
+    const original = console.log;
+    const capturado = [];
+    console.log = (...args) => { capturado.push(args.join(' ')); };
+
+    const { r, d } = await pedir({ referencia: PEDIDO.referencia, evento: 'excepcion',
+      guia: 'SKX-9', transportadora: 'Coordinadora', urlSeguimiento: 'https://x.test/9' });
+
+    console.log = original;
+    if (llaveAntes === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = llaveAntes;
+
+    comprobar(r.status === 200, 'una incidencia sigue respondiendo 200 a n8n', String(r.status));
+    comprobar(d.textoEstado === TEXTOS.excepcion, 'con el texto neutro de excepcion, no uno alarmante inventado aquí');
+    comprobar(capturado.some(l => l.includes('no se manda correo')),
+      'sin RESEND_API_KEY en la prueba, intenta avisar a la tienda y lo deja escrito en el log');
+  }
+
   pedidos._interno.usarAlmacen(null);
   console.log(fallos ? `\nEnvío-estado: ${fallos} en rojo` : '\nEnvío-estado en verde ✓');
 }

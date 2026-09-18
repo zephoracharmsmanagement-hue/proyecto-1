@@ -22,6 +22,7 @@
 import crypto from 'node:crypto';
 import { leer, marcar } from './_pedidos.mjs';
 import { EVENTOS, TEXTOS } from './_envios.mjs';
+import { enviar, correoTienda } from './_correo.js';
 
 const CABECERAS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -42,6 +43,20 @@ function claveValida(req) {
   const b = Buffer.from(recibida);
   if (a.length !== b.length) return false;
   return crypto.timingSafeEqual(a, b);
+}
+
+/* Aviso a la tienda cuando Skydropx reporta una incidencia — una excepción de
+   envío necesita que alguien la resuelva, no solo que la clienta se entere. */
+async function avisarIncidencia({ referencia, guia, transportadora, urlSeguimiento, cliente }) {
+  const { para } = correoTienda();
+  const txt = [
+    `El pedido ${referencia} tiene una incidencia de envío reportada por Skydropx.`,
+    `Guía: ${guia}`,
+    `Transportadora: ${transportadora}`,
+    `Seguimiento: ${urlSeguimiento}`,
+    `Clienta: ${cliente.nombre} ${cliente.apellido || ''} · Cel. ${cliente.celular}`,
+  ].join('\n');
+  return enviar({ para, asunto: `Incidencia de envío · ${referencia}`, html: `<pre>${txt}</pre>`, txt });
 }
 
 export default async (req) => {
@@ -78,6 +93,9 @@ export default async (req) => {
         notificadoEn: new Date().toISOString(),
       }],
     });
+    if (evento === 'excepcion') {
+      await avisarIncidencia({ referencia, guia, transportadora, urlSeguimiento, cliente: pedido.cliente });
+    }
   }
 
   return responder(200, {
