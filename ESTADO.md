@@ -5,6 +5,28 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🚧 Trabajo en curso — confirmación y estado de envío por WhatsApp (Skydropx) · 2026-09-18
+
+**Reclamación de trabajo, según la regla 4 de `CLAUDE.md` § *Cómo se reparte el
+trabajo entre sesiones*.** Se borra cuando esta rama se mezcle.
+
+**Rama:** `claude/skydropx-whatsapp-envio`
+**Alcance:** documentación de diseño (`docs/superpowers/specs/2026-09-18-skydropx-whatsapp-design.md`)
+y, en el siguiente paso, un endpoint nuevo y aislado:
+`netlify/functions/envio-estado.mjs` + `pruebas/envio-estado.js`. **No toca**
+`index.html`, el checkout, ni ningún otro archivo de `netlify/functions/`.
+
+**Qué es:** automatización nueva, disjunta del bot de ventas de
+`automatizaciones/conversion/BOT-WHATSAPP-ARQUITECTURA.md` (frente aparte, sin
+relación de código). Cuando Skydropx marca un envío como despachado o cambia
+de estado, un flujo de n8n (correo → HTTP → WhatsApp) le avisa a la clienta.
+Skydropx es solo panel web, sin API — el diseño completo, incluida la
+autenticación del endpoint nuevo y la plantilla para Meta, está en la spec.
+
+**Bloqueado en:** correos de muestra de Skydropx (uno por cada uno de sus seis
+tipos de evento) y aprobación de la plantilla `actualizacion_envio` en Meta —
+ambos del propietario. Ver § 7 de la spec.
+
 ## Precios, envío gratis y tanda nueva de videos — 2026-09-13
 
 Aprobado por el propietario, mezclado a `main` (`522e375`, avance rápido) y
