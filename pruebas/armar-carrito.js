@@ -213,8 +213,11 @@ async function main() {
     /* La misma comprobación que hace pruebas/reanudar.js § 3, y por el mismo
        motivo: el formato tiene que ser el que aceptan las dos páginas, leído de
        los propios HTML y no de una copia escrita aquí. */
+    /* index.html carga su carrito desde tienda.js (compartido con las páginas
+       de colección) — la expresión vive ahí, no en el HTML. */
+    const fuente = { 'checkout.html': 'checkout.html', 'index.html': 'tienda.js' };
     ['checkout.html', 'index.html'].forEach(archivo => {
-      const html = fs.readFileSync(path.join(RAIZ, archivo), 'utf8');
+      const html = fs.readFileSync(path.join(RAIZ, fuente[archivo]), 'utf8');
       const m = html.match(/t\.match\(\/(\^\([a-z0-9\\[\]{}(),?:*@|+-]+\$)\/\)/);
       comprobar(!!m, `la expresión que valida el enlace sigue en ${archivo}`);
       if (!m) return;

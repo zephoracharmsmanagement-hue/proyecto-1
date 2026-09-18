@@ -188,6 +188,23 @@
   [headers.values]
     Cache-Control = "no-cache"
 
+# El motor del carrito y sus estilos, compartidos por index.html y las páginas
+# de colección. Mismo problema que el JSON de arriba y peor consecuencia: el
+# nombre no cambia al cambiar el código, así que sin esto una clienta que ya
+# visitó la tienda podría seguir ejecutando un carrito viejo —con precios o
+# reglas de inventario anteriores— después de desplegar el arreglo. `no-cache`
+# no prohíbe guardarlo: obliga a revalidar contra el servidor, así que sigue
+# ahorrando la descarga cuando no ha cambiado.
+[[headers]]
+  for = "/tienda.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/tienda.css"
+  [headers.values]
+    Cache-Control = "no-cache"
+
 # OJO: las fotos conservan el nombre al cambiar, así que con esta cabecera una
 # clienta que ya visitó la tienda sigue viendo la foto vieja hasta una semana
 # después de desplegarla. Pasó: se limpiaron 20 fotos y en producción seguían
