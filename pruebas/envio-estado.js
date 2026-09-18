@@ -159,6 +159,15 @@ async function main() {
       'sin RESEND_API_KEY en la prueba, intenta avisar a la tienda y lo deja escrito en el log');
   }
 
+  console.log('\n7 · Forma del código');
+  {
+    const codigo = fs.readFileSync(path.join(RAIZ, 'netlify', 'functions', 'envio-estado.mjs'), 'utf8');
+    comprobar(/from '\.\/_pedidos\.mjs'/.test(codigo) && /\bleer\(/.test(codigo) && /\bmarcar\(/.test(codigo),
+      'usa leer/marcar de _pedidos.mjs — no un lector ni un escritor propios');
+    comprobar(/timingSafeEqual/.test(codigo),
+      'compara la clave en tiempo constante, no con === directo');
+  }
+
   pedidos._interno.usarAlmacen(null);
   console.log(fallos ? `\nEnvío-estado: ${fallos} en rojo` : '\nEnvío-estado en verde ✓');
 }

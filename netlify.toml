@@ -144,6 +144,15 @@
   to = "/.netlify/functions/armar-carrito"
   status = 200
 
+# El que recibe el aviso de estado de envío desde n8n, después de que n8n
+# reconoce un correo de Skydropx. Va con nombre propio por el mismo motivo
+# que /armar-carrito: lo llama n8n desde un workflow y se lee en su
+# configuración. Protegido por header —no por la URL—, ver envio-estado.mjs.
+[[redirects]]
+  from = "/envio-estado"
+  to = "/.netlify/functions/envio-estado"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
