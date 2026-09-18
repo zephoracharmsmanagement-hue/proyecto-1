@@ -62,6 +62,13 @@ COLECCIONES = [
         ),
         'base': 'pulsera-avengers',
         'og': 'assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg',
+        # La misma foto del banner de la portada. Quien llega de un anuncio de
+        # esta coleccion tiene que ver la pieza antes que ningun texto: sin
+        # imagen sobre el pliegue, el anuncio ensena algo y la pagina no se lo
+        # confirma.
+        'foto': 'assets/avengers-marmol.webp',
+        'foto_alt': 'Pulsera Zephora con charms de la coleccion Avengers sobre marmol negro',
+        'foto_w': 1600, 'foto_h': 893,
     },
 ]
 
@@ -198,6 +205,8 @@ PAGINA = '''<!DOCTYPE html>
      un anuncio de esta colección, así que lo primero que ve es la colección,
      no el catálogo entero. -->
 <section class="col-hero wrap" id="top">
+  <img class="col-foto" src="{foto}" alt="{foto_alt}" width="{foto_w}" height="{foto_h}"
+       fetchpriority="high" decoding="async">
   <span class="eyebrow">{eyebrow}</span>
   <h1>{lema}</h1>
   <p class="col-entrada">{entrada}</p>
@@ -326,6 +335,8 @@ def generar(col, html, escribir):
         historia=b['historia'], resenas=b['resenas'], pagos=b['pagos'],
         confianza=b['confianza'], footer=b['footer'], chrome=b['chrome'],
         n_piezas=len(ids), n_catalogo=n_catalogo,
+        foto=col['foto'], foto_alt=col['foto_alt'],
+        foto_w=col['foto_w'], foto_h=col['foto_h'],
         tarjetas_charms='\n'.join('      ' + t for t in tarjetas(html, ids)),
         tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [col['base']])),
         tercer_charm=p['tercerCharm'], charm_solo=p['charmSolo'],

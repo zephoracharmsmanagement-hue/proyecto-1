@@ -1062,3 +1062,7 @@ body.sheet-open{overflow:hidden}
   .col-paso b{font-size:22px}
   .col-paso-ahorro{flex-basis:auto}
 }
+
+/* La foto de portada de una coleccion. Va antes que el titulo a proposito: es
+   lo que confirma que la pagina es la del anuncio en el que acaban de tocar. */
+.col-foto{width:100%;height:auto;border-radius:3px;margin:0 0 18px;display:block}
