@@ -1804,6 +1804,35 @@ que decide la compra: total y botón de pagar. Y `.sheet-body` lleva
 
 **Confirmado en producción por el propietario.** El caso está cerrado.
 
+### 7 · `anular-venta.mjs` no corrige el `Purchase` que ya salió a Meta — baja prioridad
+
+**Detectado el 2026-09-18, al revisar el embudo real contra Meta Ads.**
+`crear-pago.mjs` manda el `Purchase` de un pedido contraentrega **al crearse**,
+no al confirmarse el pago (ver la cabecera de esa función y de `_meta.js`): es
+una decisión ya tomada, no un bug, porque hay un pedido en firme que se
+despacha. `anular-venta.mjs` sabe deshacer esa venta —devuelve el inventario y
+marca el pedido `cancelado`— pero **no manda nada a Meta**: el `Purchase` que ya
+salió se queda como si la venta hubiera ocurrido.
+
+**Por qué es baja prioridad y no se arregla ahora:** el propietario confirma
+que el rastreo real (vía Interrápidísimo y otras transportadoras) muestra que
+la inmensa mayoría de los contraentrega sí se pagan, y en lo corrido solo hubo
+**una cancelación, y ni siquiera llegó a enviarse** — cero devoluciones después
+de despacho. Con ese historial, el sobreconteo es teórico, no un problema
+medido. Además el evento va al pixel nuevo (`1029982529813994`), que **hoy no
+alimenta ninguna campaña activa** — las campañas leen del pixel viejo
+(`2130673404542988`). Importará más el día que el portafolio madure y se
+comparta el pixel nuevo con la cuenta de anuncios (ver § Meta Ads de
+`CLAUDE.md`).
+
+**Si se retoma:** decidir el mecanismo antes de tocar código — no hay hoy forma
+de saber, sin mirar la transportadora a mano, cuáles contraentrega se pagaron
+de verdad, así que "esperar confirmación de pago" para mandar el `Purchase`
+exigiría antes construir esa confirmación (integración con el rastreo, o un
+paso manual). Alternativa más barata: que `anular-venta.mjs` mande una
+corrección o un evento de reversa a Meta cuando se aplique — no investigado
+todavía cuál soporta mejor la Conversions API de Meta.
+
 ---
 
 ## Decisiones que no hay que deshacer sin darse cuenta
