@@ -71,6 +71,18 @@ async function main() {
 
     const { r: claveMala } = await pedir(CUERPO_VALIDO, { clave: 'otra-clave-cualquiera' });
     comprobar(claveMala.status === 401, 'con la clave equivocada, también 401', String(claveMala.status));
+
+    /* La de arriba tiene otra longitud que CLAVE, así que solo prueba el
+       atajo por longitud de claveValida. Esta tiene el mismo largo pero
+       contenido distinto, y sí ejercita timingSafeEqual con dos buffers del
+       mismo tamaño. */
+    const claveMismoLargo = CLAVE.slice(0, -1) + (CLAVE.slice(-1) === 'x' ? 'y' : 'x');
+    comprobar(claveMismoLargo.length === CLAVE.length && claveMismoLargo !== CLAVE,
+      'la clave de comparación tiene el mismo largo que CLAVE pero contenido distinto (control interno de la prueba)');
+    const { r: claveMalaMismoLargo } = await pedir(CUERPO_VALIDO, { clave: claveMismoLargo });
+    comprobar(claveMalaMismoLargo.status === 401,
+      'con una clave del mismo largo pero contenido distinto, también 401 — ejercita timingSafeEqual de verdad',
+      String(claveMalaMismoLargo.status));
   }
 
   console.log('\n3 · Validación del cuerpo');
@@ -100,6 +112,15 @@ async function main() {
     const { r: sinCliente } = await pedir(Object.assign({}, CUERPO_VALIDO, { referencia: 'ZC-SIN-CLIENTE' }));
     comprobar(sinCliente.status === 404, 'pedido sin celular registrado todavía, también 404',
       String(sinCliente.status));
+
+    /* Distinto del caso de arriba: aquí sí hay objeto `cliente`, solo que sin
+       `celular` — por ejemplo un pedido creado antes de pedir ese campo. */
+    pedidos._interno.usarAlmacen(almacenFalso({
+      'ZC-CLIENTE-SIN-CELULAR': { referencia: 'ZC-CLIENTE-SIN-CELULAR', cliente: { nombre: 'Sin Celular' } },
+    }));
+    const { r: sinCelular } = await pedir(Object.assign({}, CUERPO_VALIDO, { referencia: 'ZC-CLIENTE-SIN-CELULAR' }));
+    comprobar(sinCelular.status === 404,
+      'pedido con cliente pero sin campo celular, también 404', String(sinCelular.status));
   }
 
   console.log('\n5 · Caso válido por evento, y anti-duplicados');
@@ -146,8 +167,16 @@ async function main() {
     const capturado = [];
     console.log = (...args) => { capturado.push(args.join(' ')); };
 
-    const { r, d } = await pedir({ referencia: PEDIDO.referencia, evento: 'excepcion',
-      guia: 'SKX-9', transportadora: 'Coordinadora', urlSeguimiento: 'https://x.test/9' });
+    const cuerpoExcepcion = { referencia: PEDIDO.referencia, evento: 'excepcion',
+      guia: 'SKX-9', transportadora: 'Coordinadora', urlSeguimiento: 'https://x.test/9' };
+    const { r, d } = await pedir(cuerpoExcepcion);
+
+    /* La misma llamada, otra vez, con el mismo evento y la misma referencia —
+       esto es lo que prueba de verdad el anti-duplicado de § 5 pero para
+       "excepcion": si alguien mueve avisarIncidencia() fuera del `if
+       (!yaEnviado)`, esta segunda llamada mandaría un segundo intento de
+       correo y el conteo de abajo deja de ser 1. */
+    const { r: r2, d: d2 } = await pedir(cuerpoExcepcion);
 
     console.log = original;
     if (llaveAntes === undefined) delete process.env.RESEND_API_KEY;
@@ -157,6 +186,18 @@ async function main() {
     comprobar(d.textoEstado === TEXTOS.excepcion, 'con el texto neutro de excepcion, no uno alarmante inventado aquí');
     comprobar(capturado.some(l => l.includes('no se manda correo')),
       'sin RESEND_API_KEY en la prueba, intenta avisar a la tienda y lo deja escrito en el log');
+
+    comprobar(r2.status === 200, 'repetir "excepcion" para el mismo pedido también responde 200', String(r2.status));
+    comprobar(d2.yaEnviado === true, 'la segunda vez avisa que ya se había mandado');
+    const vecesQueIntentoMandar = capturado.filter(l => l.includes('no se manda correo')).length;
+    comprobar(vecesQueIntentoMandar === 1,
+      'pero solo intentó avisar a la tienda una vez, no dos — el anti-duplicado también cubre la incidencia',
+      String(vecesQueIntentoMandar));
+
+    const guardadoExcepcion = await pedidos.leer(PEDIDO.referencia);
+    comprobar(Array.isArray(guardadoExcepcion.envios)
+      && guardadoExcepcion.envios.some(e => e.evento === 'excepcion'),
+      'el pedido queda con una entrada de "excepcion" en envios');
   }
 
   console.log('\n7 · Forma del código');
