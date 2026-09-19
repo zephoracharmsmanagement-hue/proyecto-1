@@ -5,6 +5,96 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Kits, atajos en la portada y la colección enlazada — 2026-09-19
+
+**Está en el aire.** Despliegue `6aaeaf8fbcc64e0008b25006`, commit `4caad3c`,
+publicado a las 15:52:06 UTC, 22 segundos de construcción, sin errores. 8
+archivos nuevos —3 páginas generadas, entre ellas `kits.html`—, 16 funciones,
+14 redirecciones y 7 reglas de cabecera. El escaneo de secretos revisó 268
+archivos y no encontró ninguno.
+
+**Salió junto con el trabajo de la otra sesión** (`envio-estado`, PR #1): su
+rama ya había mezclado la nuestra, y al actualizar contra `main` no hubo un
+solo conflicto. Aun así se comprobó a mano lo que un merge limpio puede borrar
+en silencio —**los dos `fbq('init')` en las cuatro páginas, las cabeceras
+`no-cache` de `tienda.css` y `tienda.js`, y los 135 precios cuadrados entre
+`tienda.js`, `catalogo.json` y `stock.json`**—, porque limpio no significa
+correcto. Su batería de envío-estado quedó en verde también.
+
+### `kits.html` — cuatro kits, y la escalera aplicada a cada uno
+
+La página a la que apunta la pauta. Cada kit muestra el mismo conjunto a 1, 2,
+3 y 4 dijes con lo que cuesta en cada escalón, así el descuento progresivo se
+ve aplicado sobre lo que la clienta mira y no como una regla abstracta en otra
+sección. **El escalón de 3 va marcado**: es donde entra el 30% del brazalete
+además de la escala por cantidad, y el descuento salta de ~5% a ~20%.
+
+| Kit | 1 dije | 2 | 3 | 4 |
+|---|---|---|---|---|
+| Spider-Man | $213.000 | $292.800 | **$324.850** | $367.600 |
+| Vengadores | $213.000 | $292.800 | **$324.850** | $367.600 |
+| Fe y Protección | $204.000 | $276.240 | **$308.700** | $343.600 |
+| Azul Profundo | $220.000 | $288.880 | **$315.900** | $351.600 |
+
+**DECISIÓN DEL PROPIETARIO: los kits NO llevan descuento propio.** Se evaluó
+añadir uno —incluso con los números sobre la mesa, que daban margen de sobra— y
+se descartó a favor de enseñar la escalera que ya existe. La consecuencia buena
+es que **`_precios.js` no se tocó**: el archivo que firma el cobro quedó igual,
+y ningún kit puede prometer un número que el checkout no vaya a cobrar, porque
+cada precio sale de `calcular()`.
+
+Un kit es **un enlace con el carrito ya armado** (`?p=`), el mismo formato que
+ya usan el rescate y el bot de WhatsApp. El brazalete va **sin talla** a
+propósito: la elige la clienta.
+
+> **Por qué el kit no se definió como «exactamente estas piezas».** Con esa
+> regla, añadir un quinto dije habría hecho perder el descuento y **subir el
+> total $108.000 por un dije de $95.000** — añadir una pieza costaría más que la
+> pieza. Se calculó antes de escribir nada. Si algún día se retoma el descuento
+> propio de kit, la regla tiene que ser «el carrito **contiene** el kit».
+
+`assets/kits.json` es dato editable a mano: añadir un kit no es tocar código.
+
+### Los atajos, y una página que estuvo un día huérfana
+
+**`coleccion-marvel.html` se desplegó el 2026-09-18 sin que ninguna página del
+sitio la enlazara.** Solo se llegaba por el anuncio. La suite pasó y el
+despliegue salió limpio: **ni las pruebas ni Netlify detectan una página
+inalcanzable**. Al publicar una página nueva, comprobar a mano quién la enlaza.
+
+Se añadió una franja de cuatro atajos bajo la barra de beneficios —Kits,
+Marvel, Brazaletes, Charms— y la tarjeta de categoría de Marvel ahora lleva a su
+página. **Hubo que quitarle el `data-cat`**: el manejador de `tienda.js`
+intercepta las tarjetas que lo llevan, así que con él puesto el clic nunca
+habría salido de la portada.
+
+> **Las tarjetas de categoría SÍ filtran**, por `data-cat` desde `tienda.js`. El
+> `href="#charms"` es solo el respaldo sin JavaScript. Queda escrito porque en
+> la conversación se afirmó lo contrario —que las seis hacían lo mismo— y era
+> falso: se leyó el HTML sin leer el manejador.
+
+Tres conteos que estaban desactualizados y ahora salen del catálogo: Marvel
+decía 9 charms y son 15, Símbolos decía 31 y son 29, y el atajo de Charms dice
+117, no 135 —135 es el catálogo entero, con los 18 brazaletes dentro—.
+
+También se corrigió que las páginas generadas enlazaban `tienda.css` **dos
+veces**: el bloque extraído de `index.html` ya terminaba en ese `<link>` y la
+plantilla ponía otro. No rompía nada, pero lo iba a heredar cada colección
+nueva.
+
+### Qué falta
+
+1. **La prueba de compra real de punta a punta** sigue pendiente desde el
+   despliegue anterior: un brazalete a $118.000, mirando que Wompi cobre eso.
+   La red hacia el sitio está bloqueada por política en el entorno remoto, así
+   que esto solo se puede hacer desde fuera.
+2. **La página de kits no avisa si una pieza se agotó.** `disponibilidad.mjs`
+   protege el cobro, pero con la pauta apuntando ahí y **3-4 kits de stock de
+   cada uno**, se va a notar rápido.
+3. **Creativo nuevo para la pauta:** todo el catálogo es Plata 925 con sello, y
+   el tercer dije cuesta $32.050 en vez de $95.000. Ninguna de las dos cosas
+   está dicha en ningún anuncio.
+
 ## Plata 925 en todo, precios nuevos de brazalete y la primera colección — 2026-09-18
 
 **Está en el aire.** Despliegue `6aad81721f0dd1000817b2be`, commit `3193789`,
