@@ -94,8 +94,11 @@ def bloques(html):
     # <head>: de <meta charset> hasta la hoja de estilos. El bloque incluye los
     # DOS fbq('init', …) — el viejo, con el que optimiza la campaña, y el nuevo,
     # que recibe el Purchase de servidor. Ver CLAUDE.md § Píxeles.
+    # Hasta el <link> de la hoja, SIN incluirlo: la plantilla pone el suyo, y
+    # con los dos la página salía enlazando tienda.css dos veces.
     b['head'] = _entre(html, '<link rel="preconnect" href="https://fonts.googleapis.com">',
                        '<link rel="stylesheet" href="tienda.css">')
+    b['head'] = b['head'][:b['head'].rindex('<link rel="stylesheet"')].rstrip()
     b['ann'] = _entre(html, '<div class="ann"', '</div>\n</div>')
     b['header'] = _entre(html, '<header class="top">', '</header>')
     b['talla'] = _entre(html, '<section class="talla-sec" id="talla">', '</section>')

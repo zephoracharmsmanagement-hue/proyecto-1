@@ -1121,3 +1121,21 @@ body.sheet-open{overflow:hidden}
   .kit{padding:26px 22px}
   .kit-piezas img{width:76px;height:76px}
 }
+
+/* Atajos de la portada. Llevan a páginas, no a anclas: la colección de Marvel
+   estuvo un día desplegada sin que nada la enlazara, y a los kits solo se
+   llegaba por el menú. */
+.atajos{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:4px 16px 22px}
+.atajo{display:flex;flex-direction:column;gap:3px;text-decoration:none;color:inherit;
+  background:var(--white);border:1px solid var(--line);border-radius:3px;padding:13px 14px;
+  transition:border-color .15s,background .15s}
+.atajo:hover{border-color:var(--plum);background:var(--bone)}
+.atajo-n{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;line-height:1.1}
+.atajo small{color:var(--silver);font-size:11.5px;letter-spacing:.04em}
+/* El de kits va marcado: es la página a la que apunta la pauta. */
+.atajo--dest{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
+.atajo--dest .atajo-n{color:var(--plum)}
+@media(min-width:700px){
+  .atajos{grid-template-columns:repeat(4,1fr);gap:12px;padding:6px 16px 30px}
+  .atajo{padding:16px 18px}
+}
