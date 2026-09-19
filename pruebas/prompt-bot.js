@@ -126,7 +126,38 @@ function main() {
   comprobar(!('empaque' in CAT.precios),
     'y el catálogo tampoco lo trae, así que las dos fuentes concuerdan');
 
-  console.log('\n4 · El saludo, que lo lee toda clienta nueva');
+  console.log('\n4 · Las promociones, que son el mejor argumento de venta');
+
+  /* Un cliente pregunto que promociones habia y el bot no supo responder,
+     aunque las reglas ya le llegaban dentro de disponibilidad: sencillamente el
+     prompt no las nombraba. Ahora las explica, y aqui se comprueba que los
+     porcentajes que dice sean los que de verdad se cobran. */
+  const pct = n => Math.round(n * 100);
+  reglas.escalaCharms.forEach((desc, cuantos) => {
+    if (desc === 0) return;
+    /* La palabra «charms» es opcional porque el último tramo de la lista se
+       escribe «4 o mas: 25%» bajo un encabezado que ya dice «por cantidad de
+       charms». Lo que se comprueba de verdad sigue intacto: que ese número de
+       piezas y ese porcentaje aparezcan juntos en la misma línea. */
+    const esperado = new RegExp(`${cuantos}\\s*(charms?\\s*)?(o mas)?[^\\n]*${pct(desc)}\\s*%`, 'i');
+    comprobar(esperado.test(prompt),
+      `anuncia el ${pct(desc)}% con ${cuantos} charms`);
+  });
+
+  comprobar(new RegExp(`${pct(reglas.descuentoBrazalete)}\\s*%`).test(prompt),
+    `anuncia el ${pct(reglas.descuentoBrazalete)}% del brazalete`);
+
+  comprobar(new RegExp(`${reglas.minCharmsParaDescuento} charms o mas`, 'i').test(prompt),
+    `dice desde cuantos charms se activa ese 30%`,
+    `${reglas.minCharmsParaDescuento}`);
+
+  /* La ley de este repo: un número de precio que no se reproduce con
+     calcular() no se escribe. Ya costó una corrección pública cuando un
+     documento interno publicó tres totales de ejemplo que no cuadraban. */
+  comprobar(/nunca los PESOS|no calcules|NI SIQUIERA|ni siquiera aproximado/i.test(prompt),
+    'tiene prohibido calcular totales de ejemplo: esos salen de armar_carrito');
+
+  console.log('\n5 · El saludo, que lo lee toda clienta nueva');
 
   comprobar(!/\*\*/.test(prompt),
     'sin asteriscos dobles: WhatsApp usa uno solo y con dos se ven los símbolos');
