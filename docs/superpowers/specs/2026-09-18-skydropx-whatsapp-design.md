@@ -15,69 +15,96 @@ despachado, y de nuevo en cada cambio de estado hasta la entrega.
 no reportó—, ni el bot de ventas de `BOT-WHATSAPP-ARQUITECTURA.md` (frente
 aparte, no se toca).
 
-## 1 · Restricción de fondo: Skydropx solo por panel, sin API
+## 1 · El disparador: webhook de Skydropx (corregido el 2026-09-18, misma tarde)
 
-Confirmado con el propietario (2026-09-18): la cuenta de Skydropx es de panel
-web, sin API ni webhooks propios. Lo que sí existe y es la base de todo este
-diseño:
+> **Esta sección se reescribió el mismo día.** La versión original decía que la
+> cuenta de Skydropx era «solo panel web, sin API» y que el campo «Referencia»
+> de su formulario servía para guardar la referencia del pedido. **Las dos
+> cosas resultaron falsas** al mirarlo contra la cuenta real. Lo que sigue es
+> lo verificado; el § 2 describe la arquitectura que salió de eso.
 
-- **WhatsApp Business API ya está activa** en n8n (credenciales conectadas).
-- **Skydropx manda un correo por cada evento** (guía creada, recogido, en
-  tránsito, entregado, etc.) a una casilla que el propietario puede compartir
-  con n8n.
-- **El formulario de creación de guía en Skydropx tiene un campo de
-  referencia/número de orden libre** — confirmado por el propietario. Ahí va
-  la `referencia` del pedido de Zephora (ej. `ZC-260828-4A7F21C3`), a mano,
-  en el mismo momento en que ya se copian los datos del pedido para armar la
-  guía. No es un paso nuevo de captura, es un campo más en un formulario que
-  ya se llena a mano.
+Lo que se comprobó en la cuenta real (capturas de pantalla del propietario):
 
-Esa referencia, repetida por Skydropx en su correo de notificación, es lo que
-permite encontrar el pedido exacto sin ambigüedad — la alternativa (cruzar por
-número de celular) se descartó en la conversación de diseño por el riesgo de
-mandarle a alguien el estado del pedido de otra persona.
+- **La API y los webhooks de Skydropx están disponibles y sin costo** en esta
+  cuenta (Conexiones → API / Webhooks). El formulario de «Crear webhook» pide
+  URL, sección, eventos, método de autenticación y nombre del header.
+- **Los eventos que ofrece calzan uno a uno con los seis de esta spec**:
+  `created`, `picked_up`, `in_transit`, `last_mile`, `delivered`, `exception`.
+- **El webhook es «delgado»**: avisa «cambió el recurso X» con un `id`, un
+  `status` y un `links.related`; el detalle completo se pide después a la API
+  con el token Bearer de la cuenta.
+- **El correo de Skydropx NO repite la referencia del pedido.** Comprobado
+  contra un correo real: trae guía, transportadora, nombre y dirección de la
+  clienta, nada más. Por eso se abandonó la idea de reconocer correos.
+- **El campo «Referencia» del formulario de crear guía no sirve para esto**:
+  está bajo «Dirección de destino», con el ejemplo «Barrio obrero,
+  Candelaria». Es el punto de referencia de la **dirección**, para el
+  mensajero — no un ID de pedido.
+
+**Consecuencia para la correlación:** mientras las guías se creen a mano en el
+panel, Skydropx no tiene dónde guardar la referencia de Zephora, así que la
+correlación necesita una tabla propia guía → referencia (§ 3.5). El día que
+las guías se creen **por API**, el campo `reference` de su endpoint de creación
+sí acepta un ID propio y esa tabla sobra.
 
 ## 2 · Arquitectura
 
 ```
-Correo de Skydropx (evento de envío)
+Skydropx cambia el estado de un envío
     ↓
-[n8n · Email Trigger IMAP sobre el buzón compartido]
+[POST al webhook de n8n]  { data: { id, attributes.status, links.related } }
     ↓
-[n8n · nodo de código: reconoce la plantilla de correo de Skydropx]
-    → extrae: referencia, evento crudo, guía, transportadora, URL de rastreo
+[n8n · valida que links.related apunte a pro.skydropx.com]
+    → si no: avisa a la tienda y PARA. Ese link se llama con el token de
+      Skydropx; sin esta comprobación, quien conozca la URL del webhook
+      podría hacer que n8n mande el token a su propio servidor.
     ↓
-[n8n · mapea evento crudo de Skydropx → código canónico de Zephora]
-    (creada | recogido | en_transito | en_reparto | entregado | excepcion)
+[n8n · GET a links.related con el token Bearer de Skydropx]
+    → trae guía, transportadora, URL de rastreo, estado
     ↓
-[n8n · HTTP Request → POST /.netlify/functions/envio-estado]
-    (header de autenticación compartida)
+[n8n · traduce el estado de Skydropx → código canónico de Zephora]
+    created→creada · picked_up→recogido · in_transit→en_transito
+    last_mile→en_reparto · delivered→entregado · exception→excepcion
+    → un estado fuera de esa lista NO se adivina: avisa a la tienda
     ↓
-¿404 referencia no existe?  → avisa a la tienda, no adivina, no manda WhatsApp
-¿yaEnviado: true?           → no hace nada más (evita duplicado)
-¿200 con datos?             → sigue
+[n8n · busca la referencia del pedido por número de guía]
+    (tabla "Guías Zephora"; sin fila → avisa a la tienda, no adivina)
+    ↓
+[n8n · HTTP Request → POST /envio-estado]  (header de autenticación compartida)
+    ↓
+¿404 / 401 / 400?  → avisa a la tienda, no manda WhatsApp
+¿yaEnviado: true?  → no hace nada más (evita duplicado)
+¿200 con datos?    → sigue
     ↓
 [n8n · nodo WhatsApp Business Cloud: envía plantilla `actualizacion_envio`]
     con { nombre, textoEstado, guia, transportadora, urlSeguimiento }
-    al `celular` que devolvió el endpoint
+    al `celular` que devolvió el endpoint (con el 57 antepuesto)
     ↓
 Mensaje al teléfono de la clienta
 ```
 
 **Dónde vive cada responsabilidad, y por qué:**
 
-- **n8n reconoce el correo de Skydropx** (formato externo, fuera de nuestro
-  control, puede cambiar sin avisar) y **traduce a un código canónico
-  propio**. Es la misma idea que ya usa este proyecto: la plomería hacia un
-  servicio externo vive en n8n, nunca en el repo.
+- **n8n habla con Skydropx** (recibe el webhook, pide el detalle a su API,
+  traduce su vocabulario de estados al canónico de Zephora). Es la misma idea
+  que ya usa este proyecto: la plomería hacia un servicio externo vive en n8n,
+  nunca en el repo.
 - **El repo decide qué le llega a la clienta.** El texto exacto que lee la
   clienta (`textoEstado`) no lo escribe n8n con un `Set` a mano —vive en
   `_envios.mjs`, versionado, con historial en git—, igual que `armar-carrito`
-  nunca deja que quien lo llama formatee el precio. Si Skydropx cambia la
-  redacción de sus correos, se ajusta el reconocimiento en n8n; el texto que
-  ve la clienta no se toca.
+  nunca deja que quien lo llama formatee el precio. Si Skydropx agrega o
+  renombra un estado, se ajusta la traducción en n8n; el texto que ve la
+  clienta no se toca.
 - **La correlación con el pedido y el anti-duplicados viven en código**, no en
   memoria de n8n, porque son la parte que no puede fallar en silencio.
+
+**Por qué webhook y no los correos de Skydropx** (se evaluaron los dos el
+2026-09-18): el correo obligaba a reconocer seis plantillas de texto escritas
+para humanos —de las cuales solo una se pudo verificar contra un correo real—,
+con hasta 10 minutos de retraso por el sondeo y sin traer la referencia del
+pedido. El webhook da los seis estados con nombres fijos, en tiempo real, y no
+cuesta nada en esta cuenta. La tabla guía → referencia hace falta en los dos
+casos, así que no fue un factor.
 
 ## 3 · Endpoint nuevo: `netlify/functions/envio-estado.mjs`
 
@@ -253,29 +280,31 @@ compra, no una comunicación comercial — no necesita la misma casilla de
 autorización que exige `cliente.optin`. Se manda a todo pedido que llegue a
 esta automatización, sin filtrar por ese campo.
 
-## 5 · Recolectar los correos de muestra de Skydropx — lo que hace falta antes de programar el parseo
+## 5 · La tabla guía → referencia, y el paso manual que queda
 
-El nodo de n8n que reconoce el correo de Skydropx **no se puede escribir a
-ciegas** — necesita ver la forma real de cada tipo de correo. Pedirle al
-propietario, por cada uno de los seis eventos de la tabla de § 3.2, uno o dos
-correos reales reenviados o pegados en un documento aparte (no en este
-archivo, y no en un commit — ver la nota de privacidad abajo):
+Mientras las guías se creen a mano en el panel de Skydropx, nada en su sistema
+guarda la referencia del pedido de Zephora (§ 1). La correlación vive entonces
+en una tabla propia, **"Guías Zephora"**, en las Data Tables de n8n:
 
-- **Asunto completo**, tal cual.
-- **Cuerpo completo**, tal cual — sobre todo la línea o sección donde aparece
-  la referencia que se pegó al crear la guía, el número de guía, el nombre de
-  la transportadora y el enlace de rastreo.
+| Columna | Qué lleva |
+|---|---|
+| `guia` | El número de guía que asigna la transportadora (ej. `58101124105`) |
+| `referencia` | La referencia del pedido de Zephora (ej. `ZC-260918-4A7F21C3`) |
 
-**Nota de privacidad — antes de pegar cualquier correo en un documento del
-repo:** tapar o reemplazar el nombre, celular y dirección de la clienta real
-por un dato inventado (`Cliente de prueba`, `300 000 0000`). Lo único que
-hace falta del correo es su **forma**, no los datos de una clienta real
-metidos para siempre en el historial de git.
+**El paso manual:** al crear cada guía en Skydropx, agregar esa fila. Son dos
+datos y diez segundos, en el mismo momento en que ya se están copiando los
+datos del pedido al formulario de Skydropx.
 
-Con eso, el nodo de código de n8n queda como una tabla corta: por cada patrón
-de asunto/cuerpo reconocible, qué `evento` canónico le corresponde. Si algún
-correo no calza con ningún patrón conocido, n8n no adivina — cae al mismo
-camino que un `400`: se registra para revisar, no se manda nada.
+Si llega un evento de una guía que no está en la tabla, n8n **no adivina de
+qué pedido es**: avisa a la tienda con el número de guía para que se agregue
+la fila. Nunca cruza por nombre ni por celular — mandarle a alguien el estado
+del pedido de otra persona es peor que no mandar nada.
+
+**Cómo se elimina este paso algún día:** creando las guías por la API de
+Skydropx en vez de a mano. Su endpoint de creación acepta un campo
+`reference`, que es exactamente para esto. Eso es un frente aparte —
+automatizar el despacho, no solo el aviso— y no está en el alcance de esta
+spec.
 
 ## 6 · Pruebas
 
@@ -288,24 +317,30 @@ camino que un `400`: se registra para revisar, no se manda nada.
   - Mismo `evento` dos veces sobre el mismo pedido → la segunda vez
     `yaEnviado: true` y `envios` no crece.
   - `excepcion` → confirma que se dispara también el aviso a la tienda.
-- **Banco de correos de prueba en n8n**, antes de apuntar al buzón real: los
-  correos de muestra recolectados en § 5, uno por uno, confirmando que cada
-  uno dispara el `evento` correcto y el WhatsApp esperado — mismo espíritu que
-  el banco de conversaciones de `BOT-WHATSAPP-ARQUITECTURA.md` § 7.
+- **Prueba con el botón «Probar API» de Skydropx**, que manda un webhook de
+  ejemplo al workflow: confirma que la autenticación del webhook pasa, que la
+  validación del host acepta el link real, y que el nodo de normalización
+  encuentra guía y transportadora en la respuesta de la API. **Esa primera
+  ejecución real es la que fija los nombres de campo definitivos** — el nodo
+  los busca hoy en varias rutas posibles y deja el JSON crudo en el aviso
+  justo para poder ajustarlo con datos en vez de suposiciones.
 - **Prueba de plantilla en Meta** con el botón de vista previa antes de
   mandarla a revisión, y una prueba real a un número propio una vez aprobada,
-  antes de conectar el buzón de producción.
+  antes de activar el workflow.
 
 ## 7 · Qué falta y de quién es
 
 | Cosa | Responsabilidad | Bloquea a |
 |---|---|---|
-| Correos de muestra de los 6 eventos (§ 5) | Propietario | Escribir el nodo de reconocimiento en n8n |
-| Acceso al buzón donde llegan los correos de Skydropx (credencial IMAP/Gmail en n8n) | Propietario | Activar el trigger |
-| Clave compartida (`X-Zephora-Automation-Key`) — generarla y ponerla en Netlify env vars y en n8n como credencial Header Auth | Propietario, con ayuda de código para generarla | Que el endpoint no quede abierto |
-| `netlify/functions/envio-estado.mjs` + `pruebas/envio-estado.js` | Código | — ✅ siguiente paso |
-| Plantilla `actualizacion_envio` enviada y aprobada en Meta | Propietario (es quien administra la cuenta de Meta) | Que el nodo de WhatsApp pueda mandar algo |
-| Workflow de n8n (nodos) | Código, una vez estén los correos de muestra | — |
+| Clave compartida (`X-Zephora-Automation-Key`) — generarla y ponerla en Netlify env vars y en n8n como credencial Header Auth | Propietario | Que el endpoint no quede abierto |
+| Token de la API de Skydropx (Conexiones → API → Ver credenciales) como credencial Bearer en n8n | Propietario | Pedir el detalle del envío tras el webhook |
+| Credencial de header propia para el webhook de entrada, con el mismo valor en Skydropx | Propietario | Que cualquiera no pueda disparar el workflow |
+| Crear el webhook en Skydropx (URL de n8n, sección Envíos, los 6 eventos) | Propietario | Que llegue algo |
+| Credencial de Gmail en n8n, solo para los avisos a la tienda | Propietario | Los cuatro caminos de aviso |
+| Phone Number ID de WhatsApp Manager | Propietario | Que el nodo de WhatsApp pueda mandar |
+| Plantilla `actualizacion_envio` en Meta | Propietario | — ✅ activa desde el 2026-09-18 |
+| `netlify/functions/envio-estado.mjs` + `pruebas/envio-estado.js` | Código | — ✅ en `main` desde el 2026-09-18 |
+| Workflow de n8n | Código | — ✅ construido el 2026-09-18, sin activar |
 
 ## 8 · Fuera de alcance de esta versión
 
@@ -323,19 +358,19 @@ No son código pendiente de este endpoint — son comportamiento ya verdadero
 que hay que tener presente al construir el workflow de n8n o al operar esto
 en producción:
 
-- **`marcar()` no hace compare-and-swap.** Si dos correos de Skydropx para el
+- **`marcar()` no hace compare-and-swap.** Si dos eventos de Skydropx para el
   mismo pedido llegan casi al mismo tiempo, la segunda escritura puede pisar
   el `envios` de la primera y ese evento se notificaría dos veces. No pasa en
   operación normal —los eventos de un mismo envío llegan espaciados en
-  horas—, pero **sí puede pasar el primer día**, cuando el trigger de correo
-  de n8n procese de una vez el historial acumulado del buzón. Mitigación sin
-  tocar código: que ese workflow procese los correos **uno a la vez, en
-  orden** (tamaño de lote 1), no en paralelo.
+  horas—; el riesgo real sería una ráfaga de reintentos de Skydropx sobre el
+  mismo envío. Con webhooks el riesgo es menor que con el sondeo de correo
+  (que habría procesado el buzón acumulado de golpe el primer día), pero no
+  es cero.
 - **`celular` vuelve en formato local (`3018990672`), sin `57` delante.** La
-  API de WhatsApp Business necesita el número completo (E.164). Esta spec no
-  dice quién le agrega el `57` — hay que decidirlo al construir el workflow
-  de n8n (lo más simple: un nodo que lo antepone antes de mandar la
-  plantilla) antes de la primera prueba real, no descubrirlo ahí.
+  API de WhatsApp Business necesita el número completo (E.164). Lo antepone
+  el nodo «Preparar variables de WhatsApp» del workflow, no el endpoint —
+  queda anotado porque es el tipo de detalle que se descubre en la primera
+  prueba real si nadie lo escribió.
 - **Un pedido se marca como notificado antes de que n8n confirme que el
   WhatsApp salió.** Si el nodo de WhatsApp falla después de que este endpoint
   ya respondió `200`, un reintento del mismo evento vería `yaEnviado: true` y
