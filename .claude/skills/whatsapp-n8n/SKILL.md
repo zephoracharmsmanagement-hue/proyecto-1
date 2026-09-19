@@ -61,6 +61,13 @@ independientes:
 - **Sí, en verde, pero la clienta no recibió nada** → el nodo de envío
   respondió bien pero el número de destino no es el que crees, o el mensaje
   salió por otro número.
+- **Sí, en rojo, pero solo con algunos clientes** → mirá si a esos les falta el
+  teléfono en el payload. Es el caso de los **nombres de usuario**, abajo: la
+  respuesta se redacta entera y el envío muere al final.
+
+Y una advertencia sobre el primer sí: **una ejecución en verde no prueba que el
+mensaje llegó**, solo que Meta aceptó la llamada. La prueba de entrega es el
+doble check en el chat, o un aviso `delivered` en el webhook.
 
 Ese primer sí/no es la pregunta que más rápido acorrala el problema. Todo lo
 demás son detalles.
@@ -178,6 +185,7 @@ Dos cosas que se olvidan:
 | `No prompt specified` / prompt vacío | Llegó un mensaje que no es texto: nota de voz, sticker, foto, tipo desconocido | Expresión con `?.` y un texto de reemplazo |
 | `Referenced node doesn't exist` | Renombraste o recreaste un nodo; alguna expresión sigue apuntando al nombre viejo | Buscar todos los `$('Nombre viejo')` |
 | `Cannot modify workflow while it is being edited` | Tienes el editor abierto en el navegador | Cerrar la pestaña |
+| `Cannot read properties of null (reading 'replace')` en el nodo de envío | El cliente escribió con **nombre de usuario**: no hay `messages[0].from` ni `wa_id`, solo `from_user_id` | Leer el identificador en cascada — ver «no todo cliente trae teléfono» |
 | `Your credit balance is too low` | Es de la API de Anthropic, no de Meta | Cargar créditos en `console.anthropic.com` |
 
 ## Los avisos de entrega
@@ -286,6 +294,122 @@ destinatario del envío     →  {{ $('Combinar buffer').first().json.telefono }
 ```
 
 Regla corta: **en cuanto el flujo tenga un Wait, `.item` deja de ser de fiar.**
+
+## No todo cliente trae teléfono: los nombres de usuario
+
+**El fallo más caro que hemos visto, y el que peor se ve venir.** La ejecución
+sale entera en verde, el modelo redacta la respuesta completa, y **el cliente
+no recibe nada**.
+
+Meta activó los **nombres de usuario de WhatsApp**. Quien escribe con usuario y
+el número en privado llega **sin `messages[0].from` y sin `contacts[0].wa_id`**.
+Compará los dos payloads reales:
+
+```jsonc
+// Con teléfono — lo de siempre
+"contacts": [{ "profile": {"name":"Martin D"}, "wa_id": "573023228850", … }],
+"messages": [{ "from": "573023228850", "from_user_id": "CO.1525743059147130", … }]
+
+// Con nombre de usuario — NO hay from ni wa_id
+"contacts": [{ "profile": {"name":"Ivancho","username":"_ivanchis"},
+               "user_id": "CO.2117010622227528" }],
+"messages": [{ "from_user_id": "CO.2117010622227528", … }]
+```
+
+Un `$json.messages[0].from` devuelve `undefined`, el nodo Set lo guarda como
+`null`, y el nodo de envío muere con un error que no menciona nada de esto:
+
+```
+Cannot read properties of null (reading 'replace')
+```
+
+Es el nodo haciendo `.replace()` sobre el teléfono para normalizarlo. **Si ves
+ese error, es esto**, no un problema de credencial ni de token.
+
+Leer el identificador en cascada:
+
+```
+{{ $json.messages[0].from
+   || $json.messages[0].from_user_id
+   || ($json.contacts && $json.contacts[0] && $json.contacts[0].user_id) }}
+```
+
+Los avisos de entrega vienen igual de cambiados: traen `recipient_user_id` en
+vez del teléfono.
+
+### Y una guarda antes de tocar nada compartido
+
+Lo peor no fue el envío fallido. Fue que **cada uno de esos casos escribió en la
+misma fila del buffer**, la de `telefono: null`, porque esa era la clave. En esa
+fila acabaron mezcladas las conversaciones de **personas distintas** — decenas
+de mensajes de gente que no se conoce, en un solo hilo que el modelo leía
+entero. Además de romper la venta, es una fuga de la conversación de un cliente
+hacia otro.
+
+**Cualquier flujo con estado por conversación necesita rechazar el mensaje sin
+identificador antes de escribir**, no después. En el nodo que filtra la entrada,
+además de comprobar que hay `messages`, exigir que haya identificador:
+
+```
+{{ $json.messages && ($json.messages[0].from
+   || $json.messages[0].from_user_id
+   || ($json.contacts && $json.contacts[0] && $json.contacts[0].user_id)) ? 1 : 0 }}
+```
+
+Sin esa guarda un fallo de uno envenena a todos. Con ella, falla solo esa
+conversación.
+
+### Cómo se detecta de verdad
+
+Por el chat, no por n8n: **el doble check del cliente es la única prueba de
+entrega**. Una ejecución en verde solo dice que Meta aceptó la llamada. En el
+caso que destapó esto, la lista de chats mostraba el mensaje del cliente sin
+ningún saliente debajo, mientras n8n enseñaba la respuesta redactada y completa.
+
+## El prompt es una copia congelada del sitio, y el sitio se mueve
+
+Cargar las políticas de la tienda en el prompt del sistema es lo correcto —evita
+que el bot mande a la clienta a leer la web por cada pregunta— pero crea una
+**segunda copia de la verdad**, y las dos copias se separan sin que nada avise.
+
+Caso real, a los seis días de cargarlas: el prompt decía *envío 15.000 con pago
+anticipado, 25.000 contraentrega, gratis desde 180.000*. Para entonces la tienda
+ya cobraba **envío gratis con pago anticipado sin mínimo** y **20.000
+contraentrega**. Las tres cifras mal, y la peor en la dirección más cara: el bot
+le cobraba de palabra un envío que era gratis, y se inventaba un mínimo de
+compra que ya no existía. Nadie lo detectó porque no hay error: el bot responde
+con aplomo.
+
+Dos defensas:
+
+1. **Lo que se pueda leer del servidor, que se lea del servidor.** El endpoint
+   que ya sirve catálogo y existencias puede servir también las reglas de envío
+   y descuento, generadas del mismo sitio del que sale el cobro. Un número que
+   el prompt repite es un número que un día será falso.
+2. **Al tocar precios, envío o políticas, el prompt del bot entra en la lista
+   de sitios que hay que actualizar.** Junto al HTML y al extractor.
+
+### «No» también es inventar
+
+Regla que faltaba y costó una venta. A una clienta le preguntaron si aceptaban
+financiación a cuotas con **Addi**. No estaba en el prompt, así que el bot
+contestó **que no**. Sí se acepta — y el botón de Addi de la propia tienda lleva
+a esa misma conversación de WhatsApp, así que el bot estaba negando justo
+aquello para lo que la web lo había convocado.
+
+El prompt prohibía *inventar* políticas, y el modelo cumplió al pie de la letra:
+no inventó nada, negó. Pero **un «no» equivocado cierra la venta en el acto y no
+se puede desandar**, mientras que un «déjame confirmarlo» no cuesta nada.
+
+```
+- DECIR QUE NO A ALGO QUE NO CONOCES. Negar es tan grave como inventar.
+  Si te preguntan por un medio de pago, un servicio o una condición que no
+  aparece aquí, NO LO NIEGUES: di que lo confirmas y enseguida le cuentas.
+```
+
+Y al escribir el prompt, cubrir explícitamente **los medios de pago**. Es de lo
+que más se pregunta antes de comprar y de lo que más fácil se olvida, porque no
+va en la ficha del producto.
 
 ## Mensajes que no son texto
 
