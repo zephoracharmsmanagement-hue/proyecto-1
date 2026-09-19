@@ -315,6 +315,35 @@ PAGINA = '''<!DOCTYPE html>
 '''
 
 
+def arregla_nav(pagina):
+    """Deja usables, fuera de la portada, los enlaces que se copian de ella.
+
+    La cabecera, el pie y el aviso del carrito vienen de `index.html`, y sus
+    enlaces son **anclas** a secciones que solo existen allí. En `kits.html`
+    eso dejaba cuatro enlaces del menú sin hacer nada, el botón «Ver charms»
+    del aviso igual, y el logotipo apuntando a `#top` —el principio de la
+    propia página—, así que **no había forma de volver a la portada**. Lo
+    reportó el propietario mirando el sitio ya desplegado: ni las pruebas ni el
+    despliegue detectan un ancla que no lleva a ninguna parte.
+
+    La regla vale para toda la página y no solo para el menú: un ancla se
+    respeta si esa sección existe de verdad aquí, y si no, se reescribe hacia
+    la portada. Así se corrige sola en cualquier página nueva.
+    """
+    def destino(m):
+        ancla = m.group(1)
+        if ('id="%s"' % ancla) in pagina:
+            return m.group(0)
+        return 'href="index.html#%s"' % ancla
+
+    pagina = re.sub(r'href="#([^"]+)"', destino, pagina)
+
+    # Los dos logotipos —cabecera y pie— vuelven a la portada. Es la salida que
+    # la gente busca por costumbre, y `#top` aquí no sale de la página.
+    return pagina.replace('<a class="brand" href="#top">',
+                          '<a class="brand" href="index.html">')
+
+
 def generar(col, html, escribir):
     cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
     grupos = cat['grupos']
@@ -346,6 +375,8 @@ def generar(col, html, escribir):
         pulsera_sola=p['pulseraSola'], dos=p['dos'], tres=p['tres'],
         ahorro_tres=p['ahorroTres'], contraentrega=p['contraentrega'],
     )
+
+    pagina = arregla_nav(pagina)
 
     destino = RAIZ / col['archivo']
     if escribir:
@@ -596,6 +627,8 @@ def generar_kits(html, escribir):
         footer=b['footer'], chrome=b['chrome'],
         tarjetas=''.join(tarjetas_html), n_catalogo=n_catalogo, desc=desc,
     )
+
+    pagina = arregla_nav(pagina)
 
     destino = RAIZ / 'kits.html'
     if escribir:
