@@ -483,5 +483,5 @@ async function pagoTienda({ referencia, total, pedido }) {
 
 module.exports = {
   enviar, plantilla, texto, pedidoRecibido, avisoTienda, pagoTienda,
-  plantillaTienda, textoTienda, correoTienda, recuperarCarrito,
+  plantillaTienda, textoTienda, correoTienda, recuperarCarrito, esc,
 };
