@@ -5,6 +5,145 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🚧 ENCARGO ABIERTO — la web completa, en bucle, hasta que convierta
+
+**Reclamación de trabajo (regla 4 de `CLAUDE.md`), abierta el 2026-09-19.**
+El propietario encarga **rehacer el sitio entero hasta que quede profesional y
+convertidor**, trabajando en bucle: revisar, arreglar, desplegar, volver a
+mirar. No es una tarea con final escrito — es un ciclo.
+
+**Rama de trabajo:** `claude/zephoracharms-conversion-funnel-nom9ph`
+**Alcance:** todo el frente de tienda. Por eso, **regla 1 de `CLAUDE.md` en
+pleno**: una sola sesión toca la tienda mientras este encargo esté abierto.
+Otra sesión en paralelo sobre `index.html`, `tienda.js`, `tienda.css` o
+`herramientas/gen_colecciones.py` duplicará trabajo.
+
+### Lo primero que hay que entender: qué NO detectan las pruebas
+
+Este es el aprendizaje más caro de la jornada del 2026-09-19, y vale más que
+cualquier lista de tareas. **Tres fallos reales llegaron a producción con la
+suite en verde y el despliegue limpio:**
+
+1. **Una página que nadie enlazaba.** `coleccion-marvel.html` estuvo un día
+   desplegada sin que ninguna otra página apuntara a ella. Respondía 200.
+2. **Enlaces que no hacían nada.** En `kits.html`, cuatro de los seis enlaces
+   del menú eran anclas a secciones que solo existen en la portada, y los dos
+   logotipos apuntaban a `#top` —el principio de la propia página—, así que no
+   había forma de volver al inicio. HTML válido, cero errores.
+3. **Secciones sin un solo estilo.** Las de la primera página de colección
+   salieron crudas porque usé clases que no existían en `tienda.css`. Las
+   pruebas de datos pasaban: el carrito calculaba bien.
+
+Los tres los encontró **una persona mirando el sitio**, no una batería. La
+regla que sale de aquí, y que este encargo necesita porque va a producir muchas
+páginas:
+
+> **Ningún cambio visual se da por bueno sin verlo renderizado**, y ninguna
+> página nueva sin comprobar (a) quién la enlaza, (b) que sus enlaces lleven a
+> algún sitio, y (c) que sus secciones tengan estilos.
+
+En el entorno de ejecución remota se puede levantar `python3 -m http.server` y
+mirar con Playwright (`pruebas/node_modules` ya lo trae). **La red hacia
+`zephoracharms.com` está bloqueada por política**, así que contra producción no
+se puede verificar desde aquí: eso lo hace el propietario.
+
+### Qué está en el aire hoy
+
+Último despliegue: `6aaeb1e2`, commit `1570d5a`, 2026-09-19 16:01 UTC.
+
+- **Todo el catálogo es Plata Esterlina 925 con sello S925 grabado**, brazaletes
+  incluidos, y los tres niveles de brazalete valen **$118.000 / $138.000 /
+  $158.000**. Ver la entrada del 2026-09-18.
+- **`tienda.css` y `tienda.js`** — el CSS y el motor del carrito salieron de
+  `index.html`. Los comparten la portada y todas las páginas generadas.
+- **`coleccion-marvel.html`** — 15 piezas, generada.
+- **`kits.html`** — cuatro kits con la escalera de descuento aplicada a cada
+  uno. **Sin descuento propio**: decisión del propietario, y por eso
+  `_precios.js` no se tocó.
+- **Franja de atajos** en la portada: Kits · Marvel · Brazaletes · Charms.
+- **El bot de WhatsApp** al día en material y sin precios escritos a mano.
+
+### Lo que falta, por orden de impacto
+
+1. **La prueba de compra real de punta a punta.** Comprar un brazalete a
+   $118.000 y confirmar que Wompi cobra exactamente eso. **Arrastra desde el
+   2026-09-18 y solo la puede hacer el propietario.** Hasta que no esté hecha,
+   el cambio de precios no está confirmado contra dinero real.
+2. **La página de kits no avisa si una pieza se agotó.** `disponibilidad.mjs`
+   protege el cobro, pero hay **3-4 kits de stock de cada uno** y la pauta va a
+   entrar por ahí.
+3. **Creativo nuevo para la pauta.** Dos argumentos verdaderos que no están en
+   ningún anuncio: todo es Plata 925 con sello, y **con brazalete el tercer dije
+   cuesta $32.050 en vez de $95.000**. Los seis anuncios activos no mencionan
+   precio ni material, así que no hubo que pausar ninguno.
+4. **Reponer inventario.** Sigue siendo el cuello de botella real del negocio,
+   no la pauta: faltan 14 letras que nunca se compraron. Ver `CLAUDE.md`.
+5. **Las secciones que faltan:** Brazaletes, Destacados y «Para regalar».
+   Símbolos es la mejor colección temática que nadie ha pedido —21 de 29 piezas
+   con 3+ unidades—. **Disney, Zodiaco, Pixar y Profesiones NO se pueden hacer
+   todavía**: tienen 1, 0, 0 y 0 piezas con inventario suficiente. Una página de
+   agotados convierte peor que no tenerla.
+6. **`anular-venta.mjs` no corrige el `Purchase` que ya salió a Meta** —
+   § Pendientes 7, baja prioridad.
+
+### Trampas que ya se pagaron — no redescubrirlas
+
+- **`tienda.js` da por hecho el diseño de la portada.** Accede sin protección a
+  unos 60 elementos por `id`, y antes también al carrusel del hero por clase.
+  Una página generada a la que le falte uno **se queda sin carrito entero**: las
+  tarjetas se ven, se tocan, y no pasa nada. Por eso las páginas generadas
+  llevan contenedores vacíos al final del HTML. **Al hacer una página nueva,
+  mirar la consola del navegador.**
+- **La cabecera que se copia de `index.html` trae enlaces relativos a esa
+  página.** `arregla_nav()` en el generador lo resuelve: un ancla se respeta si
+  esa sección existe aquí, y si no, se reescribe hacia `index.html`.
+- **El precio vive en cuatro sitios** —`DATA` en `tienda.js`, las tarjetas de
+  `index.html`, los encabezados de nivel, y `stock.json`— y de ahí sale
+  `catalogo.json`, que es lo que lee el servidor al cobrar. **Cambiar precios
+  por `id`, NUNCA por número:** ocho charms valen exactamente lo mismo que un
+  brazalete, y un buscar-y-reemplazar por cifra les cambia el precio sin dar
+  ningún error.
+- **Al tocar `tienda.js` hay que correr `extraer_catalogo.py`.** Si no, el
+  servidor cobra con datos viejos. El extractor se para con un error en vez de
+  escribir un catálogo a medias; eso ya salvó una.
+- **`generado` de `stock.json` es un interruptor, no una fecha.** Cambiarlo
+  pone a cero lo vendido de todo el catálogo.
+- **Un número de precio que no se pueda reproducir con `calcular()` no se
+  escribe.** Ni en una página, ni en un documento, ni en un guion.
+- **El prompt del bot de WhatsApp está escrito SIN TILDES.** Buscar «baño» o
+  «latón» devuelve cero y hace creer que está limpio.
+- **Solo `main` despliega**, y cada despliegue son ~15 créditos. Un push que
+  solo cambia `.md` se salta el despliegue (regla `ignore` de `netlify.toml`),
+  así que documentar es gratis. **Volver a la rama después de empujar `main`**:
+  ya pasó quedarse en `main` y commitear ahí sin querer.
+- **`regresion` y `dudas` fallan en el entorno remoto** por elementos que no se
+  hacen visibles, no por el código. Se comprobó con `git stash` contra `main`.
+  Todo lo demás tiene que estar en verde.
+
+### Cómo trabajar en bucle
+
+La skill `/loop` de Claude Code repite un encargo por intervalos o se
+autorregula. Para este frente, un ciclo que funciona:
+
+1. **Mirar** una página renderizada (Playwright, celular a 390px primero: por
+   ahí entra casi toda la venta).
+2. **Elegir un fallo concreto** — algo que confunda, mienta o no lleve a
+   ninguna parte. No refactorizar por gusto.
+3. **Arreglarlo en el generador** si la página es generada, nunca en el HTML
+   de salida: la próxima corrida lo pisa.
+4. **Suite completa** (`bash pruebas/correr.sh`) y volver a mirar el render.
+5. **Desplegar junto con otros cambios**, no de a uno: son ~15 créditos cada
+   vez.
+6. **Anotar aquí** lo aprendido, sobre todo lo que las pruebas no detectan.
+
+**Qué significa «convertidor» en este sitio, con datos y no con opinión:** de
+quien aterriza, el 35% agrega al carrito —eso está sano—; de ahí a iniciar
+checkout cae al 31%, y esa es la fuga real. El cuello no es el configurador.
+Medir siempre en checkouts, nunca en clics: el anuncio con mejor CTR de la
+cuenta (15,43%) fue de los peores en conversión.
+
+---
+
 ## Kits, atajos en la portada y la colección enlazada — 2026-09-19
 
 **Está en el aire.** Despliegue `6aaeaf8fbcc64e0008b25006`, commit `4caad3c`,
