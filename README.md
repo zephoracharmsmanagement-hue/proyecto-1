@@ -91,10 +91,18 @@ muestra la ficha de producto, que son distintas: lo que **mide** la pieza y lo q
 
 Son **promedios por familia**, y la ficha lo dice: no hay medición pieza a pieza.
 
-> **Materiales — no mezclar.** Los charms son **Plata 925**; solo los **brazaletes**
-> son latón con baño de plata y e-coating. Ambos, libres de níquel y plomo.
-> Describir un charm como enchapado es publicidad engañosa sobre el producto que
-> más margen deja. Hay una comprobación por `grep` en la verificación para eso.
+> **Materiales — todo es plata.** Desde el 2026-09-18, **charms y brazaletes son
+> Plata Esterlina 925** legítima con sello S925 grabado. Libres de níquel y plomo.
+> Antes los brazaletes eran latón enchapado, y por eso subieron de precio: la
+> Pulsera Avengers pasó de $58.000 a $118.000. **Decir que un brazalete es bañado
+> regala el motivo del precio** y además es falso; `pruebas/disponibilidad.js` lo
+> comprueba en cada corrida.
+>
+> El material vive en **un solo sitio**: el campo `material` de
+> `disponibilidad.mjs`. Ni la web ni el bot de WhatsApp deben afirmarlo por su
+> cuenta — el 2026-09-19 el prompt del bot todavía llevaba una copia vieja que le
+> ordenaba decir «baño de plata», y le pisó al servidor la respuesta correcta
+> delante de una clienta.
 
 ## Envío
 
