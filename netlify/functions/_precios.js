@@ -12,7 +12,7 @@
  */
 const CAT = require('../../assets/catalogo.json');
 const INV = require('../../assets/stock.json');
-const { precios, nombres, pulseras, reglas, fotos } = CAT;
+const { precios, nombres, pulseras, reglas, fotos, grupos } = CAT;
 const ESP = new Set(pulseras);
 
 /* Tope de piezas por pedido. No es una regla de negocio, es un cortafuegos:
@@ -188,4 +188,4 @@ const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
    importación o a createRequire, y las dos formas se comportan distinto según
    si Netlify empaqueta o no. Pasando por aquí, hay un solo sitio que lo lee. */
 module.exports = { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario, reglas, nombres, fotos, inventario: INV };
+  PedidoInvalido, SinInventario, reglas, nombres, fotos, grupos, inventario: INV };

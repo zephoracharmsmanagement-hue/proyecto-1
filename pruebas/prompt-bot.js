@@ -157,7 +157,23 @@ function main() {
   comprobar(/nunca los PESOS|no calcules|NI SIQUIERA|ni siquiera aproximado/i.test(prompt),
     'tiene prohibido calcular totales de ejemplo: esos salen de armar_carrito');
 
-  console.log('\n5 · El saludo, que lo lee toda clienta nueva');
+  console.log('\n5 · Qué hace cuando algo está agotado');
+
+  /* Preguntaron por la Libélula Morada, estaba agotada, y el bot contestó
+     «colgantes de mariposas, flores o algo en tono morado» sin nombrar una sola
+     pieza real. Nadie compra una descripción. La causa estaba en el servidor
+     —`disponibilidad` no devolvía el grupo— y se arregló ahí, pero el prompt
+     tiene que pedirlo explícitamente o el modelo vuelve a generalizar. */
+  comprobar(/apenas la repongamos|cuando la repongamos|aviso de reposicion/i.test(prompt),
+    'promete avisar cuando se reponga');
+
+  comprobar(/campo `?grupo`?/i.test(prompt),
+    'usa el campo grupo para buscar alternativas del mismo estilo');
+
+  comprobar(/NOMBRALAS|con nombre propio|nombre y foto/i.test(prompt),
+    'exige nombrar las piezas alternativas, no describirlas en abstracto');
+
+  console.log('\n6 · El saludo, que lo lee toda clienta nueva');
 
   comprobar(!/\*\*/.test(prompt),
     'sin asteriscos dobles: WhatsApp usa uno solo y con dos se ven los símbolos');

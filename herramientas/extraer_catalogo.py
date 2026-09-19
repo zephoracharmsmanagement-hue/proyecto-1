@@ -90,6 +90,15 @@ def main():
     }
     destacados = re.findall(r'<article class="pc pc--top[^"]*" data-id="([^"]+)"', html)
 
+    # Los brazaletes marcan su estilo con `data-cg` en vez de `data-g`, así que
+    # ninguno entraba en `grupos`. Importa más de lo que parece: el grupo es lo
+    # que permite ofrecer algo parecido cuando lo que pidieron está agotado, y
+    # sin él el asesor improvisa en vez de nombrar piezas que sí hay.
+    for m in re.finditer(r'<article class="pc pc--b" data-id="([^"]+)" data-cg="([^"]+)"', html):
+        grupos[m.group(1)] = m.group(2)
+    letras_g = re.search(
+        r'<article class="pc pc--letras" data-id="letras" data-g="([^"]+)"', html)
+
     # La foto de cada pieza. El nombre del archivo NO se puede deducir del id:
     # `lilo-stitch` se ilustra con `lilo-y-stitch.webp`, `walle` con
     # `wall-e.webp` y `jack-sally` con `jack-y-sally.webp`. Un `f'{id}.webp'`
@@ -119,6 +128,10 @@ def main():
     for c in data['charms']:
         if c['id'].startswith('letra-'):
             fotos[c['id']] = letras
+            # Las 27 iniciales comparten una sola tarjeta, así que el grupo hay
+            # que repartirlo igual que la foto.
+            if letras_g:
+                grupos[c['id']] = letras_g.group(1)
 
     catalogo = {
         '_': ('Generado por herramientas/extraer_catalogo.py desde index.html. '

@@ -40,7 +40,7 @@
 /* Se leen a través de _precios.js y no con un import de JSON: ese módulo ya los
    carga con require, es la fuente que usa el checkout para cobrar, y así no
    dependemos de que el empaquetador de Netlify soporte import attributes. */
-import { reglas, nombres, fotos, inventario as stock } from './_precios.js';
+import { reglas, nombres, fotos, grupos, inventario as stock } from './_precios.js';
 import { disponibles } from './_inventario.mjs';
 
 /* ── La foto, y por qué pasa por el CDN de imágenes ──
@@ -106,6 +106,18 @@ export default async (req) => {
          nada. Las 27 letras comparten la foto del grupo: no tienen una propia.
          Ver `fotos` en catalogo.json. */
       foto: fotoDe(id, origen),
+      /* La categoría de la tienda —Disney, Marvel, Zodiaco, Símbolos…— y es
+         lo que permite ofrecer algo parecido cuando lo que pidieron está
+         agotado.
+
+         `extraer_catalogo.py` la extrae desde 2026-08 con ese propósito escrito
+         en su comentario, y hasta el 2026-09-19 nunca llegó hasta aquí: el bot
+         tenía los nombres y las existencias, pero no sabía qué se parece a qué.
+         Preguntaron por la Libélula Morada, estaba agotada, y contestó
+         «mariposas, flores o algo morado» en vez de nombrar las dos piezas de
+         Símbolos que sí había. Una venta que se cae por un campo que ya
+         existía. */
+      grupo: (grupos && grupos[id]) || null,
     };
 
     if (it.tallas) {
