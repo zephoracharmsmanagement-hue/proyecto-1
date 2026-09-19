@@ -356,12 +356,264 @@ def generar(col, html, escribir):
               % (p['pulseraSola'], p['dos'], p['tres'], p['tercerCharm']))
 
 
+
+# ══ KITS ═══════════════════════════════════════════════════════════════════
+#
+# Un kit no es un producto nuevo: es una selección de piezas que ya existen,
+# con su enlace al carrito ya armado. **No tiene precio propio ni descuento
+# propio** — el precio sale de calcular(), el mismo código que firma el cobro,
+# así que un kit no puede prometer un número que el checkout no vaya a cobrar.
+#
+# Lo que la página enseña es la escalera que la tienda YA aplica: el mismo kit
+# a 1, 2, 3 y 4 dijes. El salto que importa es del segundo al tercero —de ~5% a
+# ~20%— porque ahí entra el 30% del brazalete además de la escala por cantidad.
+# A ese escalón apunta la pauta, y por eso va marcado.
+
+KITS_JSON = RAIZ / 'assets' / 'kits.json'
+
+
+def escalera(base, charms):
+    """El kit a 1, 2, 3 y 4 dijes, con calcular() de verdad.
+
+    Devuelve también el costo del dije que se añade en cada escalón, que es el
+    argumento de venta más fuerte que la tienda tiene programado y que no
+    aparecía en ningún sitio: con brazalete, el tercer dije cuesta cerca de un
+    tercio de su precio de lista.
+    """
+    guion = """
+const {calcular, cop} = require('./netlify/functions/_precios.js');
+const cat = require('./assets/catalogo.json');
+const base = %s, charms = %s;
+const pasos = [];
+let previo = 0;
+for (let i = 1; i <= charms.length; i++) {
+  const sel = charms.slice(0, i);
+  const c = calcular({ base: { id: base, talla: null }, charms: sel, pago: 'anticipado' });
+  const lista = cat.precios[base] + sel.reduce((s, id) => s + cat.precios[id], 0);
+  pasos.push({
+    n: i,
+    total: c.total, totalTexto: cop(c.total),
+    lista, listaTexto: cop(lista),
+    dto: Math.round((1 - c.total / lista) * 100),
+    ahorro: cop(lista - c.total),
+    /* Lo que cuesta EL dije que se acaba de sumar, ya con el descuento que
+       arrastra al resto del carrito. En el tercero es donde sorprende. */
+    esteDije: cop(c.total - previo),
+    listaDije: cop(cat.precios[charms[i - 1]]),
+    piezas: [base].concat(sel),
+  });
+  previo = c.total;
+}
+console.log(JSON.stringify(pasos));
+""" % (json.dumps(base), json.dumps(charms))
+    r = subprocess.run(['node', '-e', guion], cwd=RAIZ, capture_output=True, text=True)
+    if r.returncode != 0:
+        raise SystemExit('calcular() falló al armar la escalera:\n' + r.stderr)
+    return json.loads(r.stdout)
+
+
+def enlace(piezas):
+    """El enlace que abre el carrito ya armado.
+
+    Formato de `?p=`, el mismo que ya usan el rescate de carritos y el bot de
+    WhatsApp, validado por la expresión de tienda.js. **El brazalete va sin
+    `@talla` a propósito**: la clienta la elige en el carrito, y prometerle una
+    talla que quizá no le sirva es peor que no elegir ninguna.
+    """
+    return 'index.html?p=' + ','.join(piezas) + '&via=kit'
+
+
+TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
+      <div class="kit-head">
+        <span class="eyebrow">{eyebrow}</span>
+        <h3>{nombre}</h3>
+        <p class="kit-lema">{lema}</p>
+        <p class="kit-entrada">{entrada}</p>
+      </div>
+      <div class="kit-piezas">{fotos}</div>
+      <p class="kit-tercer">Con brazalete, <b>el tercer dije cuesta {tercer_dije}</b> en vez de {tercer_lista}.</p>
+      <div class="kit-escalera">
+{pasos}
+      </div>
+      <p class="kit-nota">Elige tu talla en el carrito. Envío gratis pagando en línea.</p>
+    </article>
+'''
+
+PASO_KIT = ('        <a class="kit-paso{clase}" href="{enlace}">'
+            '<span class="kit-paso-n">Brazalete + {n} dije{s}</span>'
+            '<span class="kit-paso-p"><b>{total}</b>'
+            '<s>{lista}</s></span>'
+            '<span class="kit-paso-d">{marca}</span></a>')
+
+PAGINA_KITS = '''<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kits Zephora · Brazalete y dijes en Plata 925, con descuento por cantidad</title>
+<meta name="description" content="{desc}">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
+<meta name="theme-color" content="#2A1F2E">
+<link rel="canonical" href="https://zephoracharms.com/kits.html">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_CO">
+<meta property="og:site_name" content="Zephora Charms">
+<meta property="og:title" content="Kits Zephora · Brazalete y dijes en Plata 925">
+<meta property="og:description" content="{desc}">
+<meta property="og:url" content="https://zephoracharms.com/kits.html">
+<meta property="og:image" content="https://zephoracharms.com/assets/avengers-marmol.webp">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kits Zephora · Brazalete y dijes en Plata 925">
+<meta name="twitter:description" content="{desc}">
+<meta name="twitter:image" content="https://zephoracharms.com/assets/avengers-marmol.webp">
+{head}
+<link rel="stylesheet" href="tienda.css">
+</head>
+<body>
+
+{ann}
+
+{header}
+
+<section class="col-hero wrap" id="top">
+  <span class="eyebrow">Kits</span>
+  <h1>Armados, y con el descuento puesto</h1>
+  <p class="col-entrada">Combinaciones que tienen sentido juntas, con el precio ya
+  calculado en cada paso. Todo en Plata Esterlina 925 legítima, con sello S925 grabado.</p>
+</section>
+
+<!-- LA ESCALERA, explicada una vez arriba y luego aplicada kit por kit. No es
+     una promoción aparte: es el descuento que la tienda ya aplica sola. -->
+<section class="kits-esc wrap">
+  <h2>El descuento sube con cada dije</h2>
+  <p class="col-sub">No hay códigos ni letra pequeña: se aplica solo al armar. Son dos
+  descuentos que se suman — la escala por cantidad de dijes, y un <b>30% en el
+  brazalete</b> a partir del tercero. Por eso el tercer dije es el que más baja el precio.</p>
+  <div class="kits-esc-fila">
+    <div class="kits-esc-p"><span>1 dije</span><b>—</b></div>
+    <div class="kits-esc-p"><span>2 dijes</span><b>8%</b></div>
+    <div class="kits-esc-p kits-esc-p--best"><span>3 dijes</span><b>15% <i>+ 30% brazalete</i></b></div>
+    <div class="kits-esc-p"><span>4 o más</span><b>25% <i>+ 30% brazalete</i></b></div>
+  </div>
+</section>
+
+<section class="kits wrap">
+{tarjetas}
+</section>
+
+<section class="col-resto wrap">
+  <h2>¿Prefieres armarla tú?</h2>
+  <p class="col-sub">Los kits son un punto de partida, no una caja cerrada: puedes
+  cambiar cualquier pieza en el carrito, o empezar de cero con las {n_catalogo} del catálogo.</p>
+  <a class="btn btn--ghost" href="index.html#charms">Ver el catálogo completo</a>
+</section>
+
+{talla}
+
+{resenas}
+
+{pagos}
+
+{confianza}
+
+{footer}
+
+<!-- Contenedores que tienda.js exige por id. Ver gen_colecciones.py. -->
+<div hidden>
+  <button type="button" id="ver-todos"></button>
+  <button type="button" id="more-btn"></button>
+  <span id="count"></span>
+  <div id="rail-top"></div>
+  <div class="filters" id="b-filters"></div>
+  <div id="full-cat" hidden>
+    <div class="filters" id="filters"></div>
+    <input type="search" id="q" aria-hidden="true" tabindex="-1">
+    <button type="button" id="q-x" hidden></button>
+    <div class="grid" id="resto-grid"></div>
+  </div>
+  <div class="letras-grid" id="letras-grid" role="group" aria-label="Elegir inicial"></div>
+</div>
+
+{chrome}
+</body>
+</html>
+'''
+
+
+def generar_kits(html, escribir):
+    cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
+    kits = json.loads(KITS_JSON.read_text(encoding='utf-8'))['kits']
+    fotos = cat['fotos']
+    nombres = cat['nombres']
+
+    tarjetas_html = []
+    for k in kits:
+        pasos = escalera(k['base'], k['charms'])
+
+        # Las fotos de las piezas de verdad, no un montaje: cada una existe ya.
+        miniaturas = []
+        for pid in [k['base']] + k['charms']:
+            if pid not in fotos:
+                raise SystemExit('La pieza %s no tiene foto en catalogo.json.' % pid)
+            miniaturas.append(
+                '<img src="assets/%s" alt="%s" width="80" height="80" loading="lazy" decoding="async">'
+                % (fotos[pid], nombres[pid].replace('"', '')))
+
+        filas = []
+        for p in pasos:
+            mejor = (p['n'] == 3)
+            filas.append(PASO_KIT.format(
+                clase=' kit-paso--best' if mejor else '',
+                enlace=enlace(p['piezas']),
+                n=p['n'], s='s' if p['n'] > 1 else '',
+                total=p['totalTexto'],
+                lista=p['listaTexto'] if p['dto'] > 0 else '',
+                marca=('El mejor salto · ahorras %s' % p['ahorro']) if mejor
+                      else ('ahorras %s' % p['ahorro'] if p['dto'] > 0 else 'precio de lista'),
+            ))
+
+        tercero = pasos[2]
+        tarjetas_html.append(TARJETA_KIT.format(
+            id=k['id'], eyebrow=k['eyebrow'], nombre=k['nombre'],
+            lema=k['lema'], entrada=k['entrada'],
+            fotos=''.join(miniaturas),
+            tercer_dije=tercero['esteDije'], tercer_lista=tercero['listaDije'],
+            pasos='\n'.join(filas),
+        ))
+
+    b = bloques(html)
+    n_catalogo = len(cat['precios'])
+    desc = ('Kits de brazalete y dijes en Plata Esterlina 925 con sello grabado. '
+            'El descuento sube con cada dije y se aplica solo: hasta 25% en dijes '
+            'y 30% en el brazalete. Envío gratis a toda Colombia.')
+
+    pagina = PAGINA_KITS.format(
+        head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+        resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
+        footer=b['footer'], chrome=b['chrome'],
+        tarjetas=''.join(tarjetas_html), n_catalogo=n_catalogo, desc=desc,
+    )
+
+    destino = RAIZ / 'kits.html'
+    if escribir:
+        destino.write_text(pagina, encoding='utf-8')
+        print('  escrito  kits.html  (%d kits, %d KB)' % (len(kits), len(pagina) // 1024))
+    else:
+        print('  se escribiría  kits.html  (%d kits, %d KB)' % (len(kits), len(pagina) // 1024))
+    for k in kits:
+        e = escalera(k['base'], k['charms'])
+        print('     %-22s %s' % (k['nombre'],
+              ' · '.join('%dd %s (-%d%%)' % (p['n'], p['totalTexto'], p['dto']) for p in e)))
+
+
 def main():
     escribir = '--escribir' in sys.argv
     html = INDEX.read_text(encoding='utf-8')
     print('Colecciones desde index.html:')
     for col in COLECCIONES:
         generar(col, html, escribir)
+    print('\nKits:')
+    generar_kits(html, escribir)
     if not escribir:
         print('\nNo se escribió nada. Repite con --escribir.')
 

@@ -1,0 +1,41 @@
+{
+  "_": "Los kits de la tienda. Los edita una persona; no lo pisa ningún extractor. Cada kit es una selección de piezas que YA existen en el catálogo — no hay precio aquí a propósito: lo calcula calcular() con las mismas reglas que firman el cobro, así que un kit nunca puede prometer un precio que el checkout no vaya a cobrar. El orden de `charms` es el orden en que se van sumando en la escalera, así que el primero es el que mejor cuenta el kit solo.",
+  "kits": [
+    {
+      "id": "spider-man",
+      "nombre": "Kit Spider-Man",
+      "eyebrow": "Marvel",
+      "lema": "Toda la telaraña, en plata 925",
+      "entrada": "Las cuatro piezas de Spider-Man del catálogo, sobre la Pulsera Avengers. Cada una en Plata Esterlina 925 legítima, con el sello S925 grabado.",
+      "base": "pulsera-avengers",
+      "charms": ["spider-man", "esfera-telarana-spider-man", "mascara-spider-man-roja", "spider-man-pave"]
+    },
+    {
+      "id": "vengadores",
+      "nombre": "Kit Vengadores",
+      "eyebrow": "Marvel",
+      "lema": "Los que empezaron todo",
+      "entrada": "Iron Man, el Capitán América y Wolverine sobre la Pulsera Avengers, que lleva el emblema en el broche. Para quien ya sabe de cuál equipo es.",
+      "base": "pulsera-avengers",
+      "charms": ["iron-man", "capitan-america", "casco-iron-man", "wolverine"]
+    },
+    {
+      "id": "fe-y-proteccion",
+      "nombre": "Kit Fe y Protección",
+      "eyebrow": "Símbolos",
+      "lema": "Lo que se lleva puesto todos los días",
+      "entrada": "La Virgen María, las manos orando, el trébol y la herradura sobre la Pulsera Corazón Liso. El regalo que se da cuando alguien empieza algo.",
+      "base": "pulsera-corazon-liso",
+      "charms": ["virgen-maria", "manos-orando-con-cruz", "trebol-verde-giratorio", "caballo-herradura"]
+    },
+    {
+      "id": "azul-profundo",
+      "nombre": "Kit Azul Profundo",
+      "eyebrow": "Símbolos",
+      "lema": "Cuatro azules que se hablan entre sí",
+      "entrada": "Atrapasueños, esfera de cristal, pulpo y flor, todos en la misma gama de azules, sobre la Pulsera Corona Pavé. Combinan entre ellos y con lo que ya tengas.",
+      "base": "pulsera-corona-pave",
+      "charms": ["atrapasuenos-azul", "esfera-azul-con-cristales", "pulpo-azul-cristal", "flor-azul-con-cristales"]
+    }
+  ]
+}
