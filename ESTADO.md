@@ -97,6 +97,27 @@ se puede verificar desde aquí: eso lo hace el propietario.
    agotados convierte peor que no tenerla.
 6. **`anular-venta.mjs` no corrige el `Purchase` que ya salió a Meta** —
    § Pendientes 7, baja prioridad.
+7. ~~**Los pasos de la escalera de kits armaban el carrito con dijes elegidos
+   por el sistema, no por la clienta.**~~ **Resuelto 2026-09-20, a pedido
+   directo del propietario tras verlo en su celular** (ver captura de
+   `kits.html`): pedía «brazalete + 2 dijes» y la tienda le ponía dos dijes
+   cualquiera en el carrito sin que él los hubiera tocado. El enlace de cada
+   paso ya solo pone el brazalete (`p=`); los dijes del kit van en `sug=` y
+   **nunca entran solos al carrito** — `tienda.js` los resalta en el
+   catálogo (borde rosa + etiqueta «Sugerido»), abre el catálogo completo y,
+   si comparten categoría (el caso normal), filtra a esa categoría con el
+   mismo `aplicarFiltro()` que ya usan las tarjetas de la portada — si no,
+   el filtrado se salta y queda «Todos», nunca oculta piezas. Un aviso
+   arriba del catálogo (`.sug-banner`) explica qué está pasando. El
+   descuento que se gana al agregarlos se ve en el resumen del carrito que
+   **ya existía** (`#row-save`, `#desc-nota`) — no hubo que inventar una
+   segunda forma de mostrarlo. Probado de punta a punta con Playwright:
+   aterrizar con `sug=spider-man,esfera-telarana-spider-man,mascara-spider-man-roja`
+   filtra a Marvel, resalta los tres, y agregarlos uno por uno con clics
+   normales de "Agregar" llega exactamente a $324.850 / ahorras $78.150 —
+   los mismos números que muestra kits.html para "3 dijes". `k=` en el
+   enlace es solo el nombre del kit para ese aviso; se arma con nodos de
+   texto, no `innerHTML`, porque viene de la URL.
 
 ### Trampas que ya se pagaron — no redescubrirlas
 

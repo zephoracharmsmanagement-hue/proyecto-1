@@ -231,6 +231,12 @@ section{scroll-margin-top:64px}
 .pc[hidden]{display:none}
 @media(hover:hover){.pc:hover{border-color:var(--silver)}}
 .pc.is-sel{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
+/* Dije sugerido por un kit (ver `sug=` en tienda.js): mismo tratamiento que
+   `is-sel`, en rosa para no confundirse con "ya está en tu carrito". */
+.pc.is-sug{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
+.pc.is-sug .pc-img::after{content:'Sugerido';position:absolute;
+  top:7px;right:7px;background:var(--rose);color:#fff;font-size:8.5px;
+  letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:2px}
 .pc-img{position:relative;aspect-ratio:1;overflow:hidden;background:#fff;border-radius:3px 3px 0 0}
 .pc-img img{width:100%;height:100%;object-fit:contain}
 .pc-mark{position:absolute;top:7px;left:7px;font-size:8.5px;letter-spacing:.1em;
@@ -598,6 +604,11 @@ section{scroll-margin-top:64px}
 .sin-res{text-align:center;padding:28px 10px;color:#6d6070;font-size:14.5px}
 .sin-res b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-size:21px;
   font-weight:400;color:var(--ink);margin-bottom:6px}
+
+/* Aviso de dijes sugeridos por un kit (ver mostrarBannerKit en tienda.js) */
+.sug-banner{background:var(--rose-soft);border-radius:3px;padding:12px 14px;
+  margin:0 0 16px;font-size:13.5px;color:var(--ink);line-height:1.5}
+.sug-banner b{font-weight:600;color:var(--plum)}
 
 /* ——— pagos y entrega ——— */
 .pe{padding:34px 0;border-top:1px solid var(--line)}

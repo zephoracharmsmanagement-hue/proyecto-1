@@ -37,6 +37,7 @@ import pathlib
 import re
 import subprocess
 import sys
+import urllib.parse
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 INDEX = RAIZ / 'index.html'
@@ -393,15 +394,25 @@ def generar(col, html, escribir):
 
 # ══ KITS ═══════════════════════════════════════════════════════════════════
 #
-# Un kit no es un producto nuevo: es una selección de piezas que ya existen,
-# con su enlace al carrito ya armado. **No tiene precio propio ni descuento
-# propio** — el precio sale de calcular(), el mismo código que firma el cobro,
-# así que un kit no puede prometer un número que el checkout no vaya a cobrar.
+# Un kit no es un producto nuevo: es una selección de piezas que ya existen.
+# **No tiene precio propio ni descuento propio** — el precio sale de
+# calcular(), el mismo código que firma el cobro, así que un kit no puede
+# prometer un número que el checkout no vaya a cobrar.
 #
 # Lo que la página enseña es la escalera que la tienda YA aplica: el mismo kit
 # a 1, 2, 3 y 4 dijes. El salto que importa es del segundo al tercero —de ~5% a
 # ~20%— porque ahí entra el 30% del brazalete además de la escala por cantidad.
 # A ese escalón apunta la pauta, y por eso va marcado.
+#
+# **El enlace NO arma el carrito por la clienta.** Antes cada paso ponía el
+# brazalete Y los N dijes directamente en el carrito (`?p=base,charm1,charm2`)
+# — el propietario lo detectó en carne propia: pidió «brazalete + 2 dijes» y
+# la tienda le eligió los dos dijes por su cuenta, sin que él los hubiera
+# tocado. Ahora el enlace solo pone el brazalete y **sugiere** los dijes
+# (`sug=`): `index.html` los resalta en el catálogo y ella decide agregarlos,
+# cambiarlos por otros o ignorarlos — viendo el descuento subir en el propio
+# resumen del carrito (`#row-save`, `#desc-nota`), que ya existe ahí y no hubo
+# que inventar nada nuevo para mostrarlo.
 
 KITS_JSON = RAIZ / 'assets' / 'kits.json'
 
@@ -446,15 +457,21 @@ console.log(JSON.stringify(pasos));
     return json.loads(r.stdout)
 
 
-def enlace(piezas):
-    """El enlace que abre el carrito ya armado.
+def enlace(nombre_kit, base, charms_sugeridos):
+    """El enlace que pone el brazalete y sugiere los dijes, sin elegirlos.
 
-    Formato de `?p=`, el mismo que ya usan el rescate de carritos y el bot de
-    WhatsApp, validado por la expresión de tienda.js. **El brazalete va sin
-    `@talla` a propósito**: la clienta la elige en el carrito, y prometerle una
-    talla que quizá no le sirva es peor que no elegir ninguna.
+    `p=` solo trae el brazalete —formato que ya valida tienda.js, y **sin
+    `@talla` a propósito**: la clienta la elige en el carrito, y prometerle
+    una que quizá no le sirva es peor que no elegir ninguna—. Los dijes van en
+    `sug=`, que tienda.js no agrega al carrito: solo resalta esas tarjetas en
+    el catálogo para que ella misma decida. `k=` es el nombre del kit, para el
+    aviso que ve al aterrizar.
     """
-    return 'index.html?p=' + ','.join(piezas) + '&via=kit'
+    qs = 'p=' + base
+    if charms_sugeridos:
+        qs += '&sug=' + ','.join(charms_sugeridos)
+    qs += '&k=' + urllib.parse.quote(nombre_kit)
+    return 'index.html?' + qs + '&via=kit'
 
 
 TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
@@ -469,7 +486,8 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
       <div class="kit-escalera">
 {pasos}
       </div>
-      <p class="kit-nota">Elige tu talla en el carrito. Envío gratis pagando en línea.</p>
+      <p class="kit-nota">En el carrito verás los dijes de este kit ya resaltados para
+      que elijas cuáles agregar, y tu talla. Envío gratis pagando en línea.</p>
     </article>
 '''
 
@@ -598,7 +616,7 @@ def generar_kits(html, escribir):
             mejor = (p['n'] == 3)
             filas.append(PASO_KIT.format(
                 clase=' kit-paso--best' if mejor else '',
-                enlace=enlace(p['piezas']),
+                enlace=enlace(k['nombre'], k['base'], p['piezas'][1:]),
                 piezas=','.join(p['piezas']),
                 n=p['n'], s='s' if p['n'] > 1 else '',
                 total=p['totalTexto'],

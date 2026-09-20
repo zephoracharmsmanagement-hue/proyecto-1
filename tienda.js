@@ -126,6 +126,9 @@ const FOTOS = {
 };
 
 let base=null, sel=[];
+/* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
+   solos al carrito, solo resaltan la tarjeta para que la clienta decida. */
+let kitSug=[], kitNombre='';
 /* Si la clienta cierra el aviso de charms, no vuelve a salir en esa visita.
    En sessionStorage y no en localStorage: cerrarlo hoy no es decir que no
    quiere verlo nunca más. */
@@ -238,6 +241,28 @@ function marcarKits(){
   });
 }
 
+/* Aviso de "estos son los dijes de tu kit" al aterrizar desde kits.html con
+   `sug=`. Va arriba del catálogo completo, que es donde tienda.js resalta
+   las tarjetas (ver `pintarTarjetas`) — sin este aviso, resaltar unas
+   tarjetas entre 117 no se entiende solo. No existe en páginas sin
+   `#full-cat` (los generadores lo dejan aunque esté vacío, ver
+   gen_colecciones.py), así que esto nunca corre ahí. */
+function mostrarBannerKit(){
+  if(!full||!kitSug.length) return;
+  const n=kitSug.length;
+  const banner=document.createElement('p');
+  banner.className='sug-banner';
+  /* Con nodos, no con innerHTML: `kitNombre` viene de la URL (`k=`) y no se
+     confía en su contenido. */
+  const b=document.createElement('b');
+  b.textContent=(kitNombre?'Para tu '+kitNombre+': ':'')
+    +'te sugerimos '+n+(n===1?' dije':' dijes');
+  banner.appendChild(b);
+  banner.appendChild(document.createTextNode(
+    ', resaltados abajo. Agrega los que quieras, cámbialos por otros, o ninguno — tú decides.'));
+  full.insertBefore(banner, full.firstChild);
+}
+
 /* Panel de tallas dentro de la tarjeta del brazalete. */
 function pintarTallas(p,id){
   let caja=p.querySelector('.tallas');
@@ -276,6 +301,7 @@ function pintarTarjetas(){
     const sinStock=agotado(id);
     p.classList.toggle('is-sel',on);
     p.classList.toggle('is-out',sinStock);
+    p.classList.toggle('is-sug',!on&&!sinStock&&kitSug.indexOf(id)>=0);
     etiquetaStock(p,id);
     if(esBrazalete) pintarTallas(p,id);
 
@@ -861,7 +887,34 @@ function delEnlace(){
   return true;
 }
 
+/* ── Dijes sugeridos de un kit ───────────────────────────────────────────
+ *
+ * `sug=id1,id2,…` viene de kits.html (ver gen_colecciones.py). A propósito
+ * NO entra al carrito como `p=` sí hace con el brazalete: antes un kit ponía
+ * el brazalete Y los dijes de una vez, y la clienta se encontraba el carrito
+ * armado con piezas que nunca tocó. Aquí solo se guardan para resaltar esas
+ * tarjetas en el catálogo — agregarlas, cambiarlas o no sigue siendo
+ * decisión suya, y el descuento que se gana se ve solo, en el resumen del
+ * carrito de siempre (`#row-save`, `#desc-nota`).
+ *
+ * `k=` es el nombre del kit, solo para el aviso; no afecta nada del cobro.
+ */
+function delSugerido(){
+  var q;
+  try{ q=new URLSearchParams(location.search); }catch(_){ return; }
+  var s=q.get('sug'), k=q.get('k');
+  if(!s && !k) return;
+  if(s) kitSug=s.split(',').map(function(x){ return x.trim(); }).filter(function(id){ return CH[id]; });
+  kitNombre=k||'';
+  try{
+    var u=new URL(location.href);
+    ['sug','k'].forEach(function(x){ u.searchParams.delete(x); });
+    history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
+  }catch(_){}
+}
+
 function recuperar(){
+  delSugerido();
   /* El enlace primero: si trae selección, no se mira lo guardado. */
   if(delEnlace()) return;
   let d=null;
@@ -1298,6 +1351,21 @@ document.getElementById('year').textContent=new Date().getFullYear();
 recuperar();
 render();
 marcarVerDetalle();
+
+/* Llegó con dijes sugeridos por un kit: se abre el catálogo completo —donde
+   viven, no en los destacados—. Si todos comparten categoría (el caso normal:
+   un kit de Marvel sugiere charms de Marvel), se filtra a esa categoría con
+   el mismo `aplicarFiltro` que ya usan las tarjetas de categoría de la
+   portada — si no, el aviso queda lejos de lo que señala, en medio de un
+   catálogo de 117 piezas sin filtrar. `pintarTarjetas()` (dentro de
+   `render()`) ya puso `.is-sug` en las que tocan. */
+if(kitSug.length && full){
+  abrirCat(true);
+  const catsSug=[...new Set(kitSug.map(id=>GRUPO[id]).filter(Boolean))];
+  if(catsSug.length===1) aplicarFiltro(catsSug[0]);
+  mostrarBannerKit();
+  requestAnimationFrame(()=>full.scrollIntoView({behavior:'smooth',block:'start'}));
+}
 
 /* El inventario llega después de pintar: la página ya es usable sin él, y si
    falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
