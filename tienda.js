@@ -1232,6 +1232,25 @@ function buscarPiezas(q) {
   return empieza.concat(dentro).slice(0, BUSQ_MAX);
 }
 
+/* Menú de secciones (☰): antes era una franja fija en la portada (Kits ·
+   Marvel · Brazaletes · Charms), ahora vive en la cabecera compartida y
+   alcanza también a kits.html y las colecciones. Mismo patrón abrir/cerrar
+   que la lupa, sin buscador porque son 5 enlaces fijos. */
+const menuBtn = $('#menu-btn'), menuPanel = $('#menu-panel');
+function abrirMenu(v) {
+  menuPanel.hidden = !v;
+  menuBtn.setAttribute('aria-expanded', v ? 'true' : 'false');
+  if (v && busq && !busq.hidden) abrirBusqueda(false);
+}
+if (menuBtn && menuPanel) {
+  menuBtn.addEventListener('click', () => abrirMenu(menuPanel.hidden));
+  menuPanel.addEventListener('click', e => { if (e.target.closest('a')) abrirMenu(false); });
+  document.addEventListener('click', e => {
+    if (!menuPanel.hidden && !e.target.closest('#menu-panel') && !e.target.closest('#menu-btn')) abrirMenu(false);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menuPanel.hidden) abrirMenu(false); });
+}
+
 const busq = $('#busq'), busqQ = $('#busq-q'), busqRes = $('#busq-res'),
       busqNota = $('#busq-nota'), lupa = $('#lupa');
 let busqMarca = -1;
@@ -1282,7 +1301,7 @@ function pintarBusqueda() {
 function abrirBusqueda(v) {
   busq.hidden = !v;
   lupa.setAttribute('aria-expanded', v ? 'true' : 'false');
-  if (v) { pintarBusqueda(); busqQ.focus(); busqQ.select(); }
+  if (v) { pintarBusqueda(); busqQ.focus(); busqQ.select(); if (menuPanel && !menuPanel.hidden) abrirMenu(false); }
 }
 
 function irAPieza(id) {

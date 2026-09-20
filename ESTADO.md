@@ -118,6 +118,18 @@ se puede verificar desde aquí: eso lo hace el propietario.
    los mismos números que muestra kits.html para "3 dijes". `k=` en el
    enlace es solo el nombre del kit para ese aviso; se arma con nodos de
    texto, no `innerHTML`, porque viene de la URL.
+8. ~~**La franja de atajos (Kits · Marvel · Brazaletes · Charms) ocupaba media
+   pantalla en celular antes del catálogo, y solo existía en la portada.**~~
+   **Resuelto 2026-09-20, a pedido del propietario.** Se movió a un menú (☰)
+   nuevo junto a la lupa de la cabecera, y se agregó un quinto ítem, **Envíos**
+   (`envios-y-devoluciones.html`). Como `<header class="top">` es un bloque
+   compartido (`bloques()` en `gen_colecciones.py`), el menú aparece también en
+   `kits.html` y `coleccion-marvel.html` sin tocarlas a mano — antes esos
+   atajos solo existían en la portada. `checkout.html` y las páginas legales
+   tienen su propia cabecera simplificada (sin lupa tampoco) y se dejaron
+   igual, a propósito: no es el lugar para invitar a navegar afuera. El menú y
+   la búsqueda se cierran entre sí para no superponerse. Probado con
+   Playwright en las tres páginas: abre, navega, cierra con clic afuera.
 
 ### Trampas que ya se pagaron — no redescubrirlas
 
