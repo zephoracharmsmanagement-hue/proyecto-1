@@ -56,16 +56,14 @@ button{font-family:inherit}
  *
  * Solo el icono, sin la palabra «Buscar»: la lupa es de los pocos símbolos que
  * no necesitan etiqueta, y la cabecera en móvil no tiene sitio para más. */
-.top-lupa{display:flex;align-items:center;justify-content:center;
+.top-lupa{margin-left:auto;display:flex;align-items:center;justify-content:center;
   width:38px;height:38px;border:1px solid transparent;border-radius:50%;
   background:none;color:var(--ink);cursor:pointer;flex:0 0 auto;transition:.16s}
 @media(hover:hover){.top-lupa:hover{border-color:var(--line);background:var(--white)}}
 .top-lupa[aria-expanded="true"]{border-color:var(--line);background:var(--white)}
 
-/* Menú de secciones (☰), junto a la lupa. `margin-left:auto` va aquí y no en
-   la lupa porque ahora es el primero de los dos botones — empuja a los dos
-   contra el borde derecho, con el `gap` de `.top-in` entre ellos. */
-.top-menu{margin-left:auto;display:flex;align-items:center;justify-content:center;
+/* Menú de secciones (☰), a la derecha de la lupa. */
+.top-menu{display:flex;align-items:center;justify-content:center;
   width:38px;height:38px;border:1px solid transparent;border-radius:50%;
   background:none;color:var(--ink);cursor:pointer;flex:0 0 auto;transition:.16s}
 @media(hover:hover){.top-menu:hover{border-color:var(--line);background:var(--white)}}
