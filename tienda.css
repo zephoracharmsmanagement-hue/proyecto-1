@@ -62,6 +62,27 @@ button{font-family:inherit}
 @media(hover:hover){.top-lupa:hover{border-color:var(--line);background:var(--white)}}
 .top-lupa[aria-expanded="true"]{border-color:var(--line);background:var(--white)}
 
+/* Menú de secciones (☰), a la derecha de la lupa. */
+.top-menu{display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border:1px solid transparent;border-radius:50%;
+  background:none;color:var(--ink);cursor:pointer;flex:0 0 auto;transition:.16s}
+@media(hover:hover){.top-menu:hover{border-color:var(--line);background:var(--white)}}
+.top-menu[aria-expanded="true"]{border-color:var(--line);background:var(--white)}
+
+/* Panel del menú: mismo anclaje que `.busq` (cuelga de la cabecera, que es
+   pegajosa, así que viaja con ella) y mismas piezas que traía la franja de
+   atajos de la portada —Kits, Marvel, Brazaletes, Charms— más Envíos. */
+.menu-panel{position:absolute;left:0;right:0;top:100%;background:var(--bone);
+  border-bottom:1px solid var(--line);box-shadow:0 14px 34px rgba(42,31,46,.13);
+  max-height:min(70vh,520px);overflow-y:auto;overscroll-behavior:contain;
+  display:flex;flex-direction:column;max-width:640px;margin:0 auto;padding:6px 16px 10px}
+.menu-panel[hidden]{display:none}
+.menu-panel a{display:flex;flex-direction:column;gap:2px;padding:13px 4px;
+  text-decoration:none;color:var(--ink);border-bottom:1px solid var(--line)}
+.menu-panel a:last-child{border-bottom:none}
+.menu-panel a b{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:19px}
+.menu-panel a small{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--silver)}
+
 /* Cuelga de la cabecera, que es pegajosa, así que el panel viaja con ella. */
 .busq{position:absolute;left:0;right:0;top:100%;background:var(--bone);
   border-bottom:1px solid var(--line);box-shadow:0 14px 34px rgba(42,31,46,.13);
@@ -231,6 +252,12 @@ section{scroll-margin-top:64px}
 .pc[hidden]{display:none}
 @media(hover:hover){.pc:hover{border-color:var(--silver)}}
 .pc.is-sel{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
+/* Dije sugerido por un kit (ver `sug=` en tienda.js): mismo tratamiento que
+   `is-sel`, en rosa para no confundirse con "ya está en tu carrito". */
+.pc.is-sug{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
+.pc.is-sug .pc-img::after{content:'Sugerido';position:absolute;
+  top:7px;right:7px;background:var(--rose);color:#fff;font-size:8.5px;
+  letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:2px}
 .pc-img{position:relative;aspect-ratio:1;overflow:hidden;background:#fff;border-radius:3px 3px 0 0}
 .pc-img img{width:100%;height:100%;object-fit:contain}
 .pc-mark{position:absolute;top:7px;left:7px;font-size:8.5px;letter-spacing:.1em;
@@ -598,6 +625,11 @@ section{scroll-margin-top:64px}
 .sin-res{text-align:center;padding:28px 10px;color:#6d6070;font-size:14.5px}
 .sin-res b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-size:21px;
   font-weight:400;color:var(--ink);margin-bottom:6px}
+
+/* Aviso de dijes sugeridos por un kit (ver mostrarBannerKit en tienda.js) */
+.sug-banner{background:var(--rose-soft);border-radius:3px;padding:12px 14px;
+  margin:0 0 16px;font-size:13.5px;color:var(--ink);line-height:1.5}
+.sug-banner b{font-weight:600;color:var(--plum)}
 
 /* ——— pagos y entrega ——— */
 .pe{padding:34px 0;border-top:1px solid var(--line)}
@@ -1112,6 +1144,12 @@ body.sheet-open{overflow:hidden}
 .kit-paso--best{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
 .kit-paso--best .kit-paso-p b{color:var(--plum)}
 .kit-paso--best .kit-paso-d{color:var(--rose);text-transform:uppercase;letter-spacing:.1em}
+/* Una pieza del paso ya no tiene stock: no se puede prometer un carrito que
+   el checkout va a rechazar, así que el paso pasa a pedir por WhatsApp. */
+.kit-paso--agotado{border-color:var(--line);background:var(--bone)}
+.kit-paso--agotado .kit-paso-p b{color:#7c7681;font-size:15px}
+.kit-paso--agotado .kit-paso-p s{display:none}
+.kit-paso--agotado .kit-paso-d{color:#7c7681;text-transform:none;letter-spacing:normal}
 
 .kit-nota{margin:14px 0 0;font-size:12.5px;color:var(--silver)}
 
@@ -1122,20 +1160,3 @@ body.sheet-open{overflow:hidden}
   .kit-piezas img{width:76px;height:76px}
 }
 
-/* Atajos de la portada. Llevan a páginas, no a anclas: la colección de Marvel
-   estuvo un día desplegada sin que nada la enlazara, y a los kits solo se
-   llegaba por el menú. */
-.atajos{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:4px 16px 22px}
-.atajo{display:flex;flex-direction:column;gap:3px;text-decoration:none;color:inherit;
-  background:var(--white);border:1px solid var(--line);border-radius:3px;padding:13px 14px;
-  transition:border-color .15s,background .15s}
-.atajo:hover{border-color:var(--plum);background:var(--bone)}
-.atajo-n{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;line-height:1.1}
-.atajo small{color:var(--silver);font-size:11.5px;letter-spacing:.04em}
-/* El de kits va marcado: es la página a la que apunta la pauta. */
-.atajo--dest{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
-.atajo--dest .atajo-n{color:var(--plum)}
-@media(min-width:700px){
-  .atajos{grid-template-columns:repeat(4,1fr);gap:12px;padding:6px 16px 30px}
-  .atajo{padding:16px 18px}
-}
