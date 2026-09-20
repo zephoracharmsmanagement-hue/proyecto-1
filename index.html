@@ -86,7 +86,22 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     </nav>
     <button class="top-lupa" type="button" id="lupa" aria-label="Buscar una pieza"
             aria-expanded="false" aria-controls="busq"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg></button>
+    <button class="top-menu" type="button" id="menu-btn" aria-label="Menú de secciones"
+            aria-expanded="false" aria-controls="menu-panel"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   </div>
+
+  <!-- Los atajos a página completa (Kits, Marvel…) vivían como una franja fija
+       en la portada — nadie los veía en kits.html ni en las colecciones, que
+       comparten esta cabecera pero no esa franja. Aquí, dentro del bloque que
+       `bloques()` copia a cada página generada, quedan al alcance en todo el
+       sitio con un solo botón. -->
+  <nav class="menu-panel" id="menu-panel" hidden aria-label="Secciones de la tienda">
+    <a href="kits.html"><b>Kits</b><small>Armados, con el descuento puesto</small></a>
+    <a href="coleccion-marvel.html"><b>Marvel</b><small>15 piezas</small></a>
+    <a href="#brazaletes"><b>Brazaletes</b><small>18 modelos</small></a>
+    <a href="#charms"><b>Charms</b><small>117 piezas</small></a>
+    <a href="envios-y-devoluciones.html"><b>Envíos</b><small>Tiempos, tarifas y devoluciones</small></a>
+  </nav>
 
   <!-- Dentro de la cabecera a propósito: es pegajosa, así que el panel viaja
        con ella y no se queda flotando a media página al desplazarse. -->
@@ -153,25 +168,12 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   </div>
 </div>
 
-<!-- 2a · ACCESOS. Botones a páginas de verdad, no a anclas: quien entra por la
-     portada no tiene cómo saber que existen los kits ni la colección de Marvel
-     —la de Marvel llevaba un día desplegada sin que nada la enlazara—. Van
-     arriba, antes del catálogo, porque son atajos para quien ya sabe qué
-     quiere; quien no lo sabe sigue bajando y se encuentra las categorías. -->
-<nav class="atajos wrap" aria-label="Secciones de la tienda">
-  <a class="atajo atajo--dest" href="kits.html">
-    <span class="atajo-n">Kits</span>
-    <small>Armados, con el descuento puesto</small></a>
-  <a class="atajo" href="coleccion-marvel.html">
-    <span class="atajo-n">Marvel</span>
-    <small>15 piezas</small></a>
-  <a class="atajo" href="#brazaletes">
-    <span class="atajo-n">Brazaletes</span>
-    <small>18 modelos</small></a>
-  <a class="atajo" href="#charms">
-    <span class="atajo-n">Charms</span>
-    <small>117 piezas</small></a>
-</nav>
+<!-- 2a · ACCESOS — se mudaron al menú de la cabecera (☰, junto a la lupa) el
+     2026-09-20, a pedido del propietario: la franja ocupaba media pantalla en
+     celular antes del catálogo, y solo existía en la portada. El menú va
+     dentro de `<header>`, que es un bloque compartido (ver `bloques()` en
+     gen_colecciones.py), así que kits.html y las colecciones ganan el mismo
+     acceso rápido que antes solo tenía la portada. -->
 
 <!-- 2b · LLAMADA A LA ACCIÓN — vivía superpuesta sobre la foto del banner y se
      comía la imagen en celular. Acá abajo la clienta ya leyó de qué está hecha

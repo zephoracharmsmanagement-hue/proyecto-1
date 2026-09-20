@@ -126,6 +126,9 @@ const FOTOS = {
 };
 
 let base=null, sel=[];
+/* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
+   solos al carrito, solo resaltan la tarjeta para que la clienta decida. */
+let kitSug=[], kitNombre='';
 /* Si la clienta cierra el aviso de charms, no vuelve a salir en esa visita.
    En sessionStorage y no en localStorage: cerrarlo hoy no es decir que no
    quiere verlo nunca más. */
@@ -218,6 +221,48 @@ function etiquetaStock(p,id){
   pie.parentNode.insertBefore(e,pie);
 }
 
+/* Kits (kits.html): cada paso de la escalera trae en `data-piezas` los ids
+   que necesita (ver gen_colecciones.py). Si alguna se agotó, el paso no puede
+   seguir prometiendo un carrito que el checkout va a rechazar: se convierte
+   en un enlace a WhatsApp, igual que ya hace `waEncargo` con el resto del
+   catálogo. No toca páginas sin `.kit-paso`: el selector devuelve vacío. */
+function marcarKits(){
+  if(!STOCK) return;
+  document.querySelectorAll('.kit-paso[data-piezas]').forEach(a=>{
+    if(a.dataset.marcado) return;
+    const ids=a.dataset.piezas.split(',');
+    if(!ids.some(agotado)) return;
+    a.dataset.marcado='1';
+    a.classList.add('kit-paso--agotado');
+    const nombre=a.closest('.kit')?.querySelector('h3')?.textContent || 'este kit';
+    a.href=waEncargo(nombre);
+    const p=a.querySelector('.kit-paso-p'); if(p) p.innerHTML='<b>Agotado</b>';
+    const d=a.querySelector('.kit-paso-d'); if(d) d.textContent='Escríbenos y te avisamos';
+  });
+}
+
+/* Aviso de "estos son los dijes de tu kit" al aterrizar desde kits.html con
+   `sug=`. Va arriba del catálogo completo, que es donde tienda.js resalta
+   las tarjetas (ver `pintarTarjetas`) — sin este aviso, resaltar unas
+   tarjetas entre 117 no se entiende solo. No existe en páginas sin
+   `#full-cat` (los generadores lo dejan aunque esté vacío, ver
+   gen_colecciones.py), así que esto nunca corre ahí. */
+function mostrarBannerKit(){
+  if(!full||!kitSug.length) return;
+  const n=kitSug.length;
+  const banner=document.createElement('p');
+  banner.className='sug-banner';
+  /* Con nodos, no con innerHTML: `kitNombre` viene de la URL (`k=`) y no se
+     confía en su contenido. */
+  const b=document.createElement('b');
+  b.textContent=(kitNombre?'Para tu '+kitNombre+': ':'')
+    +'te sugerimos '+n+(n===1?' dije':' dijes');
+  banner.appendChild(b);
+  banner.appendChild(document.createTextNode(
+    ', resaltados abajo. Agrega los que quieras, cámbialos por otros, o ninguno — tú decides.'));
+  full.insertBefore(banner, full.firstChild);
+}
+
 /* Panel de tallas dentro de la tarjeta del brazalete. */
 function pintarTallas(p,id){
   let caja=p.querySelector('.tallas');
@@ -256,6 +301,7 @@ function pintarTarjetas(){
     const sinStock=agotado(id);
     p.classList.toggle('is-sel',on);
     p.classList.toggle('is-out',sinStock);
+    p.classList.toggle('is-sug',!on&&!sinStock&&kitSug.indexOf(id)>=0);
     etiquetaStock(p,id);
     if(esBrazalete) pintarTallas(p,id);
 
@@ -841,7 +887,34 @@ function delEnlace(){
   return true;
 }
 
+/* ── Dijes sugeridos de un kit ───────────────────────────────────────────
+ *
+ * `sug=id1,id2,…` viene de kits.html (ver gen_colecciones.py). A propósito
+ * NO entra al carrito como `p=` sí hace con el brazalete: antes un kit ponía
+ * el brazalete Y los dijes de una vez, y la clienta se encontraba el carrito
+ * armado con piezas que nunca tocó. Aquí solo se guardan para resaltar esas
+ * tarjetas en el catálogo — agregarlas, cambiarlas o no sigue siendo
+ * decisión suya, y el descuento que se gana se ve solo, en el resumen del
+ * carrito de siempre (`#row-save`, `#desc-nota`).
+ *
+ * `k=` es el nombre del kit, solo para el aviso; no afecta nada del cobro.
+ */
+function delSugerido(){
+  var q;
+  try{ q=new URLSearchParams(location.search); }catch(_){ return; }
+  var s=q.get('sug'), k=q.get('k');
+  if(!s && !k) return;
+  if(s) kitSug=s.split(',').map(function(x){ return x.trim(); }).filter(function(id){ return CH[id]; });
+  kitNombre=k||'';
+  try{
+    var u=new URL(location.href);
+    ['sug','k'].forEach(function(x){ u.searchParams.delete(x); });
+    history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
+  }catch(_){}
+}
+
 function recuperar(){
+  delSugerido();
   /* El enlace primero: si trae selección, no se mira lo guardado. */
   if(delEnlace()) return;
   let d=null;
@@ -1159,6 +1232,25 @@ function buscarPiezas(q) {
   return empieza.concat(dentro).slice(0, BUSQ_MAX);
 }
 
+/* Menú de secciones (☰): antes era una franja fija en la portada (Kits ·
+   Marvel · Brazaletes · Charms), ahora vive en la cabecera compartida y
+   alcanza también a kits.html y las colecciones. Mismo patrón abrir/cerrar
+   que la lupa, sin buscador porque son 5 enlaces fijos. */
+const menuBtn = $('#menu-btn'), menuPanel = $('#menu-panel');
+function abrirMenu(v) {
+  menuPanel.hidden = !v;
+  menuBtn.setAttribute('aria-expanded', v ? 'true' : 'false');
+  if (v && busq && !busq.hidden) abrirBusqueda(false);
+}
+if (menuBtn && menuPanel) {
+  menuBtn.addEventListener('click', () => abrirMenu(menuPanel.hidden));
+  menuPanel.addEventListener('click', e => { if (e.target.closest('a')) abrirMenu(false); });
+  document.addEventListener('click', e => {
+    if (!menuPanel.hidden && !e.target.closest('#menu-panel') && !e.target.closest('#menu-btn')) abrirMenu(false);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menuPanel.hidden) abrirMenu(false); });
+}
+
 const busq = $('#busq'), busqQ = $('#busq-q'), busqRes = $('#busq-res'),
       busqNota = $('#busq-nota'), lupa = $('#lupa');
 let busqMarca = -1;
@@ -1209,7 +1301,7 @@ function pintarBusqueda() {
 function abrirBusqueda(v) {
   busq.hidden = !v;
   lupa.setAttribute('aria-expanded', v ? 'true' : 'false');
-  if (v) { pintarBusqueda(); busqQ.focus(); busqQ.select(); }
+  if (v) { pintarBusqueda(); busqQ.focus(); busqQ.select(); if (menuPanel && !menuPanel.hidden) abrirMenu(false); }
 }
 
 function irAPieza(id) {
@@ -1279,6 +1371,21 @@ recuperar();
 render();
 marcarVerDetalle();
 
+/* Llegó con dijes sugeridos por un kit: se abre el catálogo completo —donde
+   viven, no en los destacados—. Si todos comparten categoría (el caso normal:
+   un kit de Marvel sugiere charms de Marvel), se filtra a esa categoría con
+   el mismo `aplicarFiltro` que ya usan las tarjetas de categoría de la
+   portada — si no, el aviso queda lejos de lo que señala, en medio de un
+   catálogo de 117 piezas sin filtrar. `pintarTarjetas()` (dentro de
+   `render()`) ya puso `.is-sug` en las que tocan. */
+if(kitSug.length && full){
+  abrirCat(true);
+  const catsSug=[...new Set(kitSug.map(id=>GRUPO[id]).filter(Boolean))];
+  if(catsSug.length===1) aplicarFiltro(catsSug[0]);
+  mostrarBannerKit();
+  requestAnimationFrame(()=>full.scrollIntoView({behavior:'smooth',block:'start'}));
+}
+
 /* El inventario llega después de pintar: la página ya es usable sin él, y si
    falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
 fetch('assets/stock.json',{cache:'no-cache'})
@@ -1304,6 +1411,7 @@ fetch('assets/stock.json',{cache:'no-cache'})
     render();
     aplicarFiltro(filtroActual);
     pintarCalculadora();   /* ahora sí puede marcar las tallas sin unidades */
+    marcarKits();
     if(fichaId) abrirFicha(fichaId);
     const n=document.getElementById('stock-fecha');
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;

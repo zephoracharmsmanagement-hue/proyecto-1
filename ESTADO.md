@@ -69,9 +69,21 @@ se puede verificar desde aquí: eso lo hace el propietario.
    $118.000 y confirmar que Wompi cobra exactamente eso. **Arrastra desde el
    2026-09-18 y solo la puede hacer el propietario.** Hasta que no esté hecha,
    el cambio de precios no está confirmado contra dinero real.
-2. **La página de kits no avisa si una pieza se agotó.** `disponibilidad.mjs`
-   protege el cobro, pero hay **3-4 kits de stock de cada uno** y la pauta va a
-   entrar por ahí.
+2. ~~**La página de kits no avisa si una pieza se agotó.**~~ **Resuelto
+   2026-09-20.** Cada paso de la escalera (`.kit-paso`) ya trae en
+   `data-piezas` los ids que necesita (generador: `gen_colecciones.py`), y
+   `tienda.js` los revisa contra el mismo `agotado()` que usa el resto del
+   sitio en cuanto carga `stock.json`. Si algún id falta, ese paso —solo ese,
+   no el kit entero— se convierte en un enlace a WhatsApp con `waEncargo()`
+   (el mismo patrón que ya existe para charms sueltos), en vez de prometer un
+   carrito que el checkout rechazaría. Si la pieza agotada es el brazalete
+   base, los cuatro pasos caen porque todos lo incluyen — no hizo falta
+   caso especial. Probado a mano con Playwright vaciando temporalmente
+   `stock.json` (nunca comiteado así): un charm agotado bloquea solo el paso
+   que lo necesita, el brazalete agotado bloquea los cuatro. Sigue siendo
+   conteo estático de build, no lo apartado en vivo —igual que el resto de
+   `tienda.js`—, así que puede tardar hasta el próximo build en reflejar una
+   venta que agote justo en ese momento.
 3. **Creativo nuevo para la pauta.** Dos argumentos verdaderos que no están en
    ningún anuncio: todo es Plata 925 con sello, y **con brazalete el tercer dije
    cuesta $32.050 en vez de $95.000**. Los seis anuncios activos no mencionan
@@ -85,6 +97,39 @@ se puede verificar desde aquí: eso lo hace el propietario.
    agotados convierte peor que no tenerla.
 6. **`anular-venta.mjs` no corrige el `Purchase` que ya salió a Meta** —
    § Pendientes 7, baja prioridad.
+7. ~~**Los pasos de la escalera de kits armaban el carrito con dijes elegidos
+   por el sistema, no por la clienta.**~~ **Resuelto 2026-09-20, a pedido
+   directo del propietario tras verlo en su celular** (ver captura de
+   `kits.html`): pedía «brazalete + 2 dijes» y la tienda le ponía dos dijes
+   cualquiera en el carrito sin que él los hubiera tocado. El enlace de cada
+   paso ya solo pone el brazalete (`p=`); los dijes del kit van en `sug=` y
+   **nunca entran solos al carrito** — `tienda.js` los resalta en el
+   catálogo (borde rosa + etiqueta «Sugerido»), abre el catálogo completo y,
+   si comparten categoría (el caso normal), filtra a esa categoría con el
+   mismo `aplicarFiltro()` que ya usan las tarjetas de la portada — si no,
+   el filtrado se salta y queda «Todos», nunca oculta piezas. Un aviso
+   arriba del catálogo (`.sug-banner`) explica qué está pasando. El
+   descuento que se gana al agregarlos se ve en el resumen del carrito que
+   **ya existía** (`#row-save`, `#desc-nota`) — no hubo que inventar una
+   segunda forma de mostrarlo. Probado de punta a punta con Playwright:
+   aterrizar con `sug=spider-man,esfera-telarana-spider-man,mascara-spider-man-roja`
+   filtra a Marvel, resalta los tres, y agregarlos uno por uno con clics
+   normales de "Agregar" llega exactamente a $324.850 / ahorras $78.150 —
+   los mismos números que muestra kits.html para "3 dijes". `k=` en el
+   enlace es solo el nombre del kit para ese aviso; se arma con nodos de
+   texto, no `innerHTML`, porque viene de la URL.
+8. ~~**La franja de atajos (Kits · Marvel · Brazaletes · Charms) ocupaba media
+   pantalla en celular antes del catálogo, y solo existía en la portada.**~~
+   **Resuelto 2026-09-20, a pedido del propietario.** Se movió a un menú (☰)
+   nuevo junto a la lupa de la cabecera, y se agregó un quinto ítem, **Envíos**
+   (`envios-y-devoluciones.html`). Como `<header class="top">` es un bloque
+   compartido (`bloques()` en `gen_colecciones.py`), el menú aparece también en
+   `kits.html` y `coleccion-marvel.html` sin tocarlas a mano — antes esos
+   atajos solo existían en la portada. `checkout.html` y las páginas legales
+   tienen su propia cabecera simplificada (sin lupa tampoco) y se dejaron
+   igual, a propósito: no es el lugar para invitar a navegar afuera. El menú y
+   la búsqueda se cierran entre sí para no superponerse. Probado con
+   Playwright en las tres páginas: abre, navega, cierra con clic afuera.
 
 ### Trampas que ya se pagaron — no redescubrirlas
 
