@@ -5,6 +5,18 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🔒 Reclamado — contenido orgánico, retomado el 2026-09-20
+
+Regla 4 de `CLAUDE.md`. El propietario pidió un plan de escalamiento integral
+(inventario, conversión, pauta, contenido, automatizaciones) y el frente que
+salió priorizado para arrancar ya es **contenido orgánico**: parado desde el
+2026-09-08, doce días, cero piezas publicadas.
+
+**Alcance: `automatizaciones/contenido/` y `assets/` para lo que ahí se
+prepare.** Genuinamente disjunto del encargo de conversión que sigue abierto
+en `claude/zephoracharms-conversion-funnel-nom9ph` — no toca `index.html`,
+`tienda.js`, `tienda.css` ni `netlify/functions/`. Se borra al terminar.
+
 ## 🚧 ENCARGO ABIERTO — la web completa, en bucle, hasta que convierta
 
 **Reclamación de trabajo (regla 4 de `CLAUDE.md`), abierta el 2026-09-19.**
