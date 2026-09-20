@@ -473,7 +473,7 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
     </article>
 '''
 
-PASO_KIT = ('        <a class="kit-paso{clase}" href="{enlace}">'
+PASO_KIT = ('        <a class="kit-paso{clase}" href="{enlace}" data-piezas="{piezas}">'
             '<span class="kit-paso-n">Brazalete + {n} dije{s}</span>'
             '<span class="kit-paso-p"><b>{total}</b>'
             '<s>{lista}</s></span>'
@@ -599,6 +599,7 @@ def generar_kits(html, escribir):
             filas.append(PASO_KIT.format(
                 clase=' kit-paso--best' if mejor else '',
                 enlace=enlace(p['piezas']),
+                piezas=','.join(p['piezas']),
                 n=p['n'], s='s' if p['n'] > 1 else '',
                 total=p['totalTexto'],
                 lista=p['listaTexto'] if p['dto'] > 0 else '',

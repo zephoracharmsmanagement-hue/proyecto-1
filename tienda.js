@@ -218,6 +218,26 @@ function etiquetaStock(p,id){
   pie.parentNode.insertBefore(e,pie);
 }
 
+/* Kits (kits.html): cada paso de la escalera trae en `data-piezas` los ids
+   que necesita (ver gen_colecciones.py). Si alguna se agotó, el paso no puede
+   seguir prometiendo un carrito que el checkout va a rechazar: se convierte
+   en un enlace a WhatsApp, igual que ya hace `waEncargo` con el resto del
+   catálogo. No toca páginas sin `.kit-paso`: el selector devuelve vacío. */
+function marcarKits(){
+  if(!STOCK) return;
+  document.querySelectorAll('.kit-paso[data-piezas]').forEach(a=>{
+    if(a.dataset.marcado) return;
+    const ids=a.dataset.piezas.split(',');
+    if(!ids.some(agotado)) return;
+    a.dataset.marcado='1';
+    a.classList.add('kit-paso--agotado');
+    const nombre=a.closest('.kit')?.querySelector('h3')?.textContent || 'este kit';
+    a.href=waEncargo(nombre);
+    const p=a.querySelector('.kit-paso-p'); if(p) p.innerHTML='<b>Agotado</b>';
+    const d=a.querySelector('.kit-paso-d'); if(d) d.textContent='Escríbenos y te avisamos';
+  });
+}
+
 /* Panel de tallas dentro de la tarjeta del brazalete. */
 function pintarTallas(p,id){
   let caja=p.querySelector('.tallas');
@@ -1304,6 +1324,7 @@ fetch('assets/stock.json',{cache:'no-cache'})
     render();
     aplicarFiltro(filtroActual);
     pintarCalculadora();   /* ahora sí puede marcar las tallas sin unidades */
+    marcarKits();
     if(fichaId) abrirFicha(fichaId);
     const n=document.getElementById('stock-fecha');
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;

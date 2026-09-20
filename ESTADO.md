@@ -69,9 +69,21 @@ se puede verificar desde aquí: eso lo hace el propietario.
    $118.000 y confirmar que Wompi cobra exactamente eso. **Arrastra desde el
    2026-09-18 y solo la puede hacer el propietario.** Hasta que no esté hecha,
    el cambio de precios no está confirmado contra dinero real.
-2. **La página de kits no avisa si una pieza se agotó.** `disponibilidad.mjs`
-   protege el cobro, pero hay **3-4 kits de stock de cada uno** y la pauta va a
-   entrar por ahí.
+2. ~~**La página de kits no avisa si una pieza se agotó.**~~ **Resuelto
+   2026-09-20.** Cada paso de la escalera (`.kit-paso`) ya trae en
+   `data-piezas` los ids que necesita (generador: `gen_colecciones.py`), y
+   `tienda.js` los revisa contra el mismo `agotado()` que usa el resto del
+   sitio en cuanto carga `stock.json`. Si algún id falta, ese paso —solo ese,
+   no el kit entero— se convierte en un enlace a WhatsApp con `waEncargo()`
+   (el mismo patrón que ya existe para charms sueltos), en vez de prometer un
+   carrito que el checkout rechazaría. Si la pieza agotada es el brazalete
+   base, los cuatro pasos caen porque todos lo incluyen — no hizo falta
+   caso especial. Probado a mano con Playwright vaciando temporalmente
+   `stock.json` (nunca comiteado así): un charm agotado bloquea solo el paso
+   que lo necesita, el brazalete agotado bloquea los cuatro. Sigue siendo
+   conteo estático de build, no lo apartado en vivo —igual que el resto de
+   `tienda.js`—, así que puede tardar hasta el próximo build en reflejar una
+   venta que agote justo en ese momento.
 3. **Creativo nuevo para la pauta.** Dos argumentos verdaderos que no están en
    ningún anuncio: todo es Plata 925 con sello, y **con brazalete el tercer dije
    cuesta $32.050 en vez de $95.000**. Los seis anuncios activos no mencionan

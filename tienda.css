@@ -1112,6 +1112,12 @@ body.sheet-open{overflow:hidden}
 .kit-paso--best{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
 .kit-paso--best .kit-paso-p b{color:var(--plum)}
 .kit-paso--best .kit-paso-d{color:var(--rose);text-transform:uppercase;letter-spacing:.1em}
+/* Una pieza del paso ya no tiene stock: no se puede prometer un carrito que
+   el checkout va a rechazar, así que el paso pasa a pedir por WhatsApp. */
+.kit-paso--agotado{border-color:var(--line);background:var(--bone)}
+.kit-paso--agotado .kit-paso-p b{color:#7c7681;font-size:15px}
+.kit-paso--agotado .kit-paso-p s{display:none}
+.kit-paso--agotado .kit-paso-d{color:#7c7681;text-transform:none;letter-spacing:normal}
 
 .kit-nota{margin:14px 0 0;font-size:12.5px;color:var(--silver)}
 
