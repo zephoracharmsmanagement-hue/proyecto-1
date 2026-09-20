@@ -123,12 +123,17 @@ optimiza las campañas hacia gente que escribe, no hacia gente que compra.
 Por orden de impacto sobre el dinero:
 
 1. **Reponer inventario.** Es el cuello de botella real, no el presupuesto.
-   Faltan **14 letras que nunca se compraron** (F G H I P Q R T U W X Y Z Ñ —
-   el 52% del abecedario): ~$73.000 de costo para ~$1.064.000 de utilidad
-   potencial, el mejor retorno del negocio y además arregla que media
-   Colombia no encuentre su inicial. Después, **83 referencias en 1-2
-   unidades** ($2,64M para habilitar ~$11,7M de utilidad), priorizando
-   charms (88% de margen) sobre pulseras (71%).
+   **83 referencias en 1-2 unidades** ($2,64M para habilitar ~$11,7M de
+   utilidad), priorizando charms (88% de margen) sobre pulseras (71%).
+
+   > **Corregido el 2026-09-20.** Este punto decía que faltaban **14 letras
+   > que nunca se compraron** (F G H I P Q R T U W X Y Z Ñ, «el 52% del
+   > abecedario»). **Ya no es cierto: las letras llegaron.** `stock.json` hoy
+   > tiene 25 de las 27 con existencia; solo **Ñ y Q están en cero**, y la
+   > mayoría del resto en 2 unidades. El dato viejo llegó a un documento de
+   > pauta antes de que nadie lo mirara contra el archivo. **Antes de escribir
+   > una cifra de inventario en cualquier documento, leerla de `stock.json`**
+   > — misma regla que ya rige para los precios y `calcular()`.
 2. **Pausar "Retargeting · Recuperación de checkout"** hasta tener público.
    Con ~55 personas no entrega; el presupuesto rinde más en la campaña
    principal.
@@ -289,9 +294,10 @@ y que no estaban escritas en ningún sitio:
   ni margen ni inventario.
 
 Lo de mayor retorno de todo el frente **no necesita el motor**: una historia con
-las iniciales preguntando *«¿cuál te falta?»* resuelve en 24 horas y gratis si
-comprar las 14 letras que faltan (~$73.000 de costo, ~$1.064.000 de utilidad
-potencial) es apuesta o dato. Hoy se está decidiendo a ciegas.
+las iniciales preguntando *«¿cuál te falta?»* resuelve en 24 horas y gratis
+cuánto repone de cada letra. Ya no es la apuesta de comprar el abecedario —eso
+está hecho—, sino saber sobre cuáles de las 25 que hay (casi todas en 2
+unidades) vale la pena doblar, y si Ñ y Q, hoy en cero, los pide alguien.
 
 ## Cómo se reparte el trabajo entre sesiones — leer antes de construir
 

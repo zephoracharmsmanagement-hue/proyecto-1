@@ -37,9 +37,12 @@ El salto viene de dos reglas que se disparan juntas al tercer dije:
    percibida sin nombrar marcas ajenas (riesgo de marca, ver `CLAUDE.md`).
 
 Descartados a propósito: *Saving* (coleccionar) funcionaría, pero hoy el
-inventario no soporta una promesa de colección —24 referencias en cero, 59 en
-1-2 unidades y 14 letras que nunca se compraron—. Prometer «arma tu colección
-completa» con medio abecedario agotado es publicidad que trae reclamos.
+inventario no soporta una promesa de colección —24 referencias en cero y 59 en
+1-2 unidades—. Prometer «arma tu colección completa» y que la clienta se choque
+con una pieza agotada es publicidad que trae reclamos.
+
+El abecedario, en cambio, **sí aguanta**: 25 de las 27 letras tienen existencia
+(`stock.json`), la mayoría en 2-3 unidades. Solo **Ñ y Q están en cero**.
 
 ### Los 2 perfiles
 
@@ -137,9 +140,12 @@ gasta hoy.
 
 ### Lo que estos ganchos no pueden decir
 
-- **Nada que prometa el abecedario completo.** Faltan 14 letras (F G H I P Q R T
-  U W X Y Z Ñ). Un anuncio de iniciales lleva tráfico a una página donde media
-  Colombia no encuentra la suya.
+- **El abecedario sí se puede pautar**, con una salvedad: **Ñ y Q están en
+  cero**. Son las dos iniciales menos frecuentes en Colombia, así que el riesgo
+  es bajo, pero un anuncio de iniciales no debe prometer «todas las letras».
+  El cuidado real es otro: la mayoría está en **2 unidades**, así que un
+  creativo de iniciales que funcione bien agota letras en días. Revisar
+  `stock.json` antes de escalar presupuesto sobre ese ángulo.
 - **Nada de zodiaco.** Cero de doce signos llegan a 3 unidades; Cáncer y Acuario
   están en cero.
 - **Nada que nombre marcas ajenas**, ni en copia ni en creativo (por eso
