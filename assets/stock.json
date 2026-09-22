@@ -23,7 +23,7 @@
     "letra-d": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "letra-e": {
@@ -365,7 +365,7 @@
     "cadena-seguridad-hamsa-y-ojo": {
       "tipo": "charm",
       "precio": 75000,
-      "stock": 2,
+      "stock": 0,
       "familia": "cadena"
     },
     "cadena-seguridad-luna-y-sol": {
@@ -401,13 +401,13 @@
     "torre-eiffel-y-camara": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 1,
+      "stock": 0,
       "familia": "colgante"
     },
     "avion-globo-y-pasaporte": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 2,
+      "stock": 0,
       "familia": "colgante"
     },
     "carrusel-rosado": {
