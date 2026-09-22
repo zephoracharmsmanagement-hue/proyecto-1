@@ -75,6 +75,48 @@ se puede verificar desde aquí: eso lo hace el propietario.
 - **Franja de atajos** en la portada: Kits · Marvel · Brazaletes · Charms.
 - **El bot de WhatsApp** al día en material y sin precios escritos a mano.
 
+### Hecho, sin fusionar todavía — beneficios gratis, Addi y promo (2026-09-21)
+
+Rama `claude/beneficios-gratis-addi-promo`, sobre `main` en `503cd3a`. A pedido
+directo del propietario: explotar en la página lo que ya se regala con la
+compra, y hacer más visible la financiación con Addi. **Solo copy y
+maquetado — `tienda.js` y `_precios.js` sin tocar, ninguna mecánica de precio
+cambió.**
+
+- **Promo reescrita.** «Lleva 4, paga 3» pasó a «Paga 3 y llévate el 4º
+  gratis» (banner) y «Paga 3, el 4º gratis» (escalera). Se confirmó con el
+  propietario que la promo real es de 4 charms, no de 3 como se dijo al
+  pedirlo — la mecánica no cambió, solo el rótulo.
+- **Empaque gratis (caja, paño, tarjeta con dedicatoria) ahora se dice en
+  tres sitios:** la franja de beneficios de la portada (`.bens`, ahora con 5
+  columnas en escritorio), el carrito (`.sheet-tot`) y el resumen de
+  `checkout.html`. El paño nunca se había mencionado en el sitio — el
+  propietario confirmó que ya se incluye, así que es copy nuevo sobre un
+  hecho viejo, no un beneficio nuevo que haya que empezar a dar.
+- **Addi, más visible, sigue sin ser un botón de pago real.** Wompi no lo
+  soporta (ver § *Addi* más arriba) y esa decisión no cambió. Se agregó
+  «Difiere tu compra hasta en 3 cuotas sin interés con Addi» en el carrito y
+  un aviso equivalente en el paso de pago de `checkout.html`, ambos apuntando
+  a WhatsApp con `data-wa="pagos"`. `checkout.html` no tenía el listener
+  genérico de clics a `wa.me` que sí tiene `tienda.js`; se le agregó uno
+  mínimo, solo para enlaces `data-wa` ya presentes al cargar, para no dejar
+  ese clic sin medir.
+- **`.sheet-tot` es del bloque `chrome` que `gen_colecciones.py` copia de
+  `index.html`** — el cambio ahí se propagó a `kits.html` y
+  `coleccion-marvel.html` corriendo el generador (`python
+  herramientas/gen_colecciones.py --escribir`), no editándolos a mano.
+- **Verificado sin navegador:** sintaxis de los `<script>` inline
+  (`node --check`), balance de etiquetas HTML (`html.parser` de Python) y de
+  llaves en `tienda.css`, y el generador corrió limpio las dos veces.
+- **Sin verificar: cómo se ve renderizado de verdad.** Es justo la regla de
+  este encargo (arriba: *ningún cambio visual se da por bueno sin verlo*).
+  Esta sesión corre en Windows, donde Playwright ya dio problemas antes
+  (queda memoria de eso); no se reintentó aquí. **Falta que alguien lo mire
+  con el sitio servido, o revisar en `zephoracharms.com` tras fusionar**,
+  antes de dar esto por terminado. Puntos a mirar primero: que las 5 columnas
+  de `.bens` no se vean apretadas en escritorio, y que los tres avisos
+  nuevos del carrito no lo hagan crecer más de lo que cabe en pantalla.
+
 ### Lo que falta, por orden de impacto
 
 1. **La prueba de compra real de punta a punta.** Comprar un brazalete a
