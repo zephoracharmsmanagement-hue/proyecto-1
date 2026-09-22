@@ -538,11 +538,26 @@ section{scroll-margin-top:64px}
   display:flex;align-items:center;justify-content:center;padding:16px;
   overscroll-behavior:contain}
 .fx[hidden]{display:none}
+/* OJO CON `display:grid` AQUÍ: en móvil NO va, y esto es lo que hacía que la
+   ficha pareciera trabada de verdad.
+ *
+ * Una rejilla con `max-height` dimensiona sus filas automáticas contra el
+ * alto disponible, no contra su contenido. Con la ficha a 598 px, la foto
+ * (358) y el texto (836) suman 1.194, pero las filas se apretaban hasta
+ * sumar 864: cada elemento desbordaba SU fila y se pintaba encima de la
+ * siguiente. El efecto en el teléfono es exactamente el reportado —la foto
+ * se queda clavada arriba mientras el texto pasa por debajo y aparece
+ * cortado—, y no es un fallo de scroll: el scroll funcionaba.
+ *
+ * En una sola columna no hay nada que rejillar: son dos bloques apilados, y
+ * `block` los deja en flujo normal, con el alto real y un único scroll. La
+ * rejilla se enciende solo en @media(min-width:700px), que es donde de
+ * verdad hace falta para las dos columnas. */
 .fx-box{background:var(--bone);border-radius:5px;max-width:760px;width:100%;
-  max-height:90dvh;overflow-y:auto;position:relative;display:grid;
+  max-height:90dvh;overflow-y:auto;position:relative;display:block;
   /* Sin esto, al llegar al final de la ficha el gesto sigue de largo y
-     arrastra lo que haya detrás: es la mitad de la sensación de "trabado". */
-  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+     arrastra lo que haya detrás. */
+  overscroll-behavior:contain}
 .fx-x{position:absolute;top:8px;right:8px;z-index:2;width:38px;height:38px;border-radius:50%;
   border:1px solid var(--line);background:rgba(255,255,255,.94);color:var(--ink);
   font-size:16px;cursor:pointer;line-height:1}
@@ -1023,7 +1038,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
   .talla-sec,.pe{padding:46px 0}
   .calc{grid-template-columns:300px 1fr;gap:26px;align-items:start;max-width:none}
-  .fx-box{grid-template-columns:1fr 1fr;max-height:82dvh}
+  .fx-box{display:grid;grid-template-columns:1fr 1fr;max-height:82dvh}
   /* En dos columnas, la foto y sus miniaturas van juntas a la izquierda y el
      texto ocupa la derecha entero. Sin esto, el bloque de miniaturas se cuela
      en la segunda columna y empuja la descripción a la fila de abajo. */

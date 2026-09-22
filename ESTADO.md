@@ -517,6 +517,41 @@ abierta, posición recuperada exacta (3339 → 3339) medida a los 120 ms sin dar
 tiempo a ninguna animación, y el `body` vuelve a `static` tras dos aperturas
 seguidas. Las ocho pruebas del dinero, en verde.
 
+#### La causa de verdad de la ficha trabada: `display:grid` con `max-height`
+
+Lo de arriba (el bloqueo de fondo y el `behavior:'instant'`) era real y hacía
+falta, **pero no era esto**. El propietario volvió a reportarlo tras ese
+despliegue, con capturas donde la foto se queda clavada arriba y el texto pasa
+por debajo, cortado.
+
+`.fx-box` era `display:grid` con `max-height:90dvh`. **Una rejilla con alto
+máximo dimensiona sus filas automáticas contra el alto disponible, no contra su
+contenido.** Medido en iPhone: la ficha da 598 px, la foto 358 y el texto 836
+—1.194 en total—, pero las filas se apretaban hasta sumar **864**. Cada
+elemento desbordaba *su* fila y se pintaba sobre la siguiente. 330 px de
+solapamiento. El scroll funcionaba perfectamente; lo que estaba roto era la
+maquetación.
+
+En una sola columna no hay nada que rejillar: son dos bloques apilados.
+`display:block` de base, y la rejilla solo dentro de `@media(min-width:700px)`,
+que es donde de verdad hace falta para las dos columnas.
+
+Verificado: contenido 1.194 = desplazable 1.194 en iPhone 13 y 1.196 = 1.196 en
+Pixel 7, la foto sale de la pantalla al desplazar (33 → −367 px), y escritorio
+sigue a dos columnas. Revisado también **mirando la captura**, no solo los
+números.
+
+> **La lección, que es la misma tres veces hoy:** las tres veces el fallo lo
+> encontró el propietario mirando el sitio, con la suite en verde, y las tres
+> veces yo había verificado lo que había cambiado en vez de lo que el cliente
+> ve. Aquí además me quedé en la primera causa plausible —el scroll— y la
+> arreglé sin comprobar que fuera *la* causa. Medir `scrollHeight` contra la
+> suma de los hijos habría señalado la rejilla en un minuto.
+
+Para este caso queda una comprobación reproducible: **en la ficha, la suma de
+los altos de `.fx-ph` y `.fx-tx` tiene que ser igual al `scrollHeight` de
+`.fx-box`.** Si no cuadra, hay solapamiento, y ninguna prueba de datos lo ve.
+
 **Pendiente, y solo lo puede hacer el propietario:** comprar un brazalete de
 **$78.000** y confirmar que Wompi cobra exactamente eso. Es la única prueba de
 que `catalogo.json` se regeneró de verdad.
