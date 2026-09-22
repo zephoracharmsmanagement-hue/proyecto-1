@@ -293,7 +293,7 @@
     "spider-man": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 4,
+      "stock": 3,
       "familia": "colgante"
     },
     "guantelete-del-infinito": {
@@ -455,7 +455,7 @@
     "bola-rosa-con-flores": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 1,
+      "stock": 0,
       "familia": "murano"
     },
     "bola-azul-con-flor-rosa": {
@@ -557,7 +557,7 @@
     "angel-guardian": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 3,
+      "stock": 2,
       "familia": "colgante"
     },
     "pulsera-copo-de-nieve": {
