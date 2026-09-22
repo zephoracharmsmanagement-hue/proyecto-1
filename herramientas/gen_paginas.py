@@ -185,7 +185,7 @@ TERMINOS = '''  <p>Estos términos regulan la compra de productos de <b>Zephora 
 
   <h2>1. Quiénes somos</h2>
   <p><b>Zephora Charms</b>, identificada con <b>NIT 1.019.151.696-3</b>, es una marca colombiana
-  dedicada a la venta de charms y brazaletes en Plata Esterlina 925.
+  dedicada a la venta de charms en Plata Esterlina 925 y brazaletes con acabado en baño de plata.
   Somos una <b>tienda virtual con operación en Bogotá D.C.</b>: no atendemos público en local
   físico, y despachamos a todo el país.</p>
   <p>Canales oficiales de atención y de notificaciones al consumidor:
@@ -197,8 +197,8 @@ TERMINOS = '''  <p>Estos términos regulan la compra de productos de <b>Zephora 
   <p>Describimos los materiales de forma explícita en cada pieza, sin ambigüedades:</p>
   <ul>
     <li><b>Charms:</b> elaborados en <b>Plata Esterlina 925 verificada</b>, con sello grabado.</li>
-    <li><b>Brazaletes:</b> elaborados en <b>Plata Esterlina 925 legítima</b>, con el sello S925
-      grabado, igual que los charms.</li>
+    <li><b>Brazaletes:</b> piezas de alta calidad con <b>acabado en baño de plata</b>. No son plata
+      maciza, y así se indica en cada ficha de producto.</li>
   </ul>
   <p>Las fotografías son referenciales. Al tratarse de piezas con componentes artesanales y
   cristales, pueden existir variaciones mínimas de tono o brillo respecto de la imagen.</p>
@@ -356,21 +356,25 @@ ENVIOS = '''  <p>Aquí encuentras cómo enviamos, cuánto cuesta y qué hacer si
 FAQS = [
  ('Materiales y cuidado', [
     ('¿De qué material están hechas las joyas?',
-     '<p>Un solo material, y lo decimos sin ambigüedades: <b>Plata Esterlina 925 legítima</b>, '
-     'con el sello S925 grabado en cada pieza.</p>'
-     '<ul><li>Los <b>charms</b>, en Plata Esterlina 925 verificada.</li>'
-     '<li>Los <b>brazaletes</b>, también en Plata Esterlina 925 legítima, con su sello grabado. '
-     'No son baño de plata: son plata.</li></ul>'),
+     '<p>Son dos materiales distintos y lo decimos sin ambigüedades:</p>'
+     '<ul><li>Los <b>charms</b> están elaborados en <b>Plata Esterlina 925 verificada</b>, con el '
+     'sello grabado que lo certifica.</li>'
+     '<li>Los <b>brazaletes</b> llevan base de latón de calidad joyería con <b>baño de plata '
+     'certificado</b> y una capa protectora e-coating. Así consiguen el peso, el brillo y el '
+     'acabado de la joyería fina a un precio accesible.</li></ul>'),
     ('¿Se pone negra o se oxida la pieza?',
-     '<p>Sí, y preferimos decirlo claro: <b>la Plata 925 se oxida</b> con el tiempo al contacto '
-     'con el aire, tanto en los charms como en los brazaletes. Es la naturaleza de la plata, no un '
-     'defecto —de hecho es una de las señales de que es plata de verdad— y el brillo se recupera '
-     'con un paño de joyería.</p>'
-     '<p>Para que tarde más: no la mojes, aplícate el perfume antes de ponértela y guárdala en un '
-     'lugar seco.</p>'),
+     '<p>Depende de la pieza, y preferimos decirlo claro:</p>'
+     '<ul><li>La <b>Plata 925 de los charms sí se oxida</b> con el tiempo al contacto con el aire. '
+     'Es la naturaleza de la plata, no un defecto —de hecho es una de las señales de que es plata '
+     'de verdad— y el brillo se recupera con un paño de joyería.</li>'
+     '<li>El <b>baño de los brazaletes</b> no se oxida solo gracias al e-coating, pero puede perder '
+     'brillo si se expone a humedad, perfumes, cremas o sudor.</li></ul>'
+     '<p>En ambos casos: no la mojes, aplícate el perfume antes de ponértela y guárdala en un lugar '
+     'seco.</p>'),
     ('¿Tienen níquel o causan alergia?',
-     '<p>Nuestras piezas son <b>100% libres de níquel y plomo</b>. Charms y brazaletes son Plata '
-     'Esterlina 925, así que son seguras e hipoalergénicas, aptas para pieles sensibles.</p>'),
+     '<p>Nuestras piezas son <b>100% libres de níquel y plomo</b>. Los charms son Plata 925 y los '
+     'brazaletes van sobre latón de calidad joyería con baño de plata certificado, así que son '
+     'seguras e hipoalergénicas, aptas para pieles sensibles.</p>'),
     ('¿Cómo cuido mi pulsera?',
      '<p>Guárdala en su bolsa cuando no la uses, quítatela para bañarte, nadar o hacer ejercicio, '
      'y evita el contacto con perfumes y cremas. Para limpiarla, un paño suave y seco. Así '
@@ -556,7 +560,7 @@ CUERPOS = {
         'Cómo Zephora Charms recolecta, usa y protege tus datos personales, conforme a la Ley 1581 de 2012.', ''),
     'terminos-y-condiciones.html': (
         TERMINOS, 'Condiciones de compra',
-        'Términos que regulan la compra de charms y brazaletes en Plata 925 de Zephora Charms en Colombia.', ''),
+        'Términos que regulan la compra de charms en Plata 925 y brazaletes de Zephora Charms en Colombia.', ''),
     'envios-y-devoluciones.html': (
         ENVIOS, 'Antes y después de comprar',
         'Cobertura, costos y tiempos de envío en Colombia, derecho de retracto, cambios de talla y garantía.', ''),

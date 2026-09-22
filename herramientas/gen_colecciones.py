@@ -502,7 +502,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kits Zephora · Brazalete y dijes en Plata 925, con descuento por cantidad</title>
+<title>Kits Zephora · Brazalete con dijes de Plata 925, con descuento por cantidad</title>
 <meta name="description" content="{desc}">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
 <meta name="theme-color" content="#2A1F2E">
@@ -510,12 +510,12 @@ PAGINA_KITS = '''<!DOCTYPE html>
 <meta property="og:type" content="website">
 <meta property="og:locale" content="es_CO">
 <meta property="og:site_name" content="Zephora Charms">
-<meta property="og:title" content="Kits Zephora · Brazalete y dijes en Plata 925">
+<meta property="og:title" content="Kits Zephora · Brazalete con dijes de Plata 925">
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="https://zephoracharms.com/kits.html">
 <meta property="og:image" content="https://zephoracharms.com/assets/avengers-marmol.webp">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Kits Zephora · Brazalete y dijes en Plata 925">
+<meta name="twitter:title" content="Kits Zephora · Brazalete con dijes de Plata 925">
 <meta name="twitter:description" content="{desc}">
 <meta name="twitter:image" content="https://zephoracharms.com/assets/avengers-marmol.webp">
 {head}
@@ -531,7 +531,8 @@ PAGINA_KITS = '''<!DOCTYPE html>
   <span class="eyebrow">Kits</span>
   <h1>Armados, y con el descuento puesto</h1>
   <p class="col-entrada">Combinaciones que tienen sentido juntas, con el precio ya
-  calculado en cada paso. Todo en Plata Esterlina 925 legítima, con sello S925 grabado.</p>
+  calculado en cada paso. Los dijes en Plata Esterlina 925 verificada; el brazalete,
+  con acabado en baño de plata.</p>
 </section>
 
 <!-- LA ESCALERA, explicada una vez arriba y luego aplicada kit por kit. No es
@@ -636,7 +637,7 @@ def generar_kits(html, escribir):
 
     b = bloques(html)
     n_catalogo = len(cat['precios'])
-    desc = ('Kits de brazalete y dijes en Plata Esterlina 925 con sello grabado. '
+    desc = ('Kits de brazalete con dijes en Plata Esterlina 925 con sello grabado. '
             'El descuento sube con cada dije y se aplica solo: hasta 25% en dijes '
             'y 30% en el brazalete. Envío gratis a toda Colombia.')
 

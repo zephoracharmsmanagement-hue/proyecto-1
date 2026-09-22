@@ -710,7 +710,7 @@ function lineas(c){
   const out=[];
   if(c.base) out.push({id:c.base.id,
     n:CAT.nombres[c.base.id].replace(/^Pulsera /,'Brazalete '),
-    m:'Plata 925'+(c.base.talla?' · Talla '+c.base.talla+' cm':''),
+    m:'Baño de plata'+(c.base.talla?' · Talla '+c.base.talla+' cm':''),
     p:CAT.precios[c.base.id]});
   const cuenta={};
   c.charms.forEach(id=>cuenta[id]=(cuenta[id]||0)+1);

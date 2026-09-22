@@ -51,9 +51,10 @@ se puede verificar desde aquí: eso lo hace el propietario.
 
 Último despliegue: `6aaeb1e2`, commit `1570d5a`, 2026-09-19 16:01 UTC.
 
-- **Todo el catálogo es Plata Esterlina 925 con sello S925 grabado**, brazaletes
-  incluidos, y los tres niveles de brazalete valen **$118.000 / $138.000 /
-  $158.000**. Ver la entrada del 2026-09-18.
+- **Los charms son Plata Esterlina 925 con sello grabado; los brazaletes son
+  baño de plata** sobre base de latón de calidad joyería con e-coating. Los tres
+  niveles de brazalete valen **$78.000 / $82.000 / $88.000**. Revertido el
+  2026-09-22 — ver esa entrada antes de tocar nada de material.
 - **`tienda.css` y `tienda.js`** — el CSS y el motor del carrito salieron de
   `index.html`. Los comparten la portada y todas las páginas generadas.
 - **`coleccion-marvel.html`** — 15 piezas, generada.
@@ -84,10 +85,13 @@ se puede verificar desde aquí: eso lo hace el propietario.
    conteo estático de build, no lo apartado en vivo —igual que el resto de
    `tienda.js`—, así que puede tardar hasta el próximo build en reflejar una
    venta que agote justo en ese momento.
-3. **Creativo nuevo para la pauta.** Dos argumentos verdaderos que no están en
-   ningún anuncio: todo es Plata 925 con sello, y **con brazalete el tercer dije
-   cuesta $32.050 en vez de $95.000**. Los seis anuncios activos no mencionan
-   precio ni material, así que no hubo que pausar ninguno.
+3. **Creativo nuevo para la pauta.** El argumento que queda en pie: **con
+   brazalete el tercer dije cuesta $44.050 en vez de $95.000** (recalculado con
+   `calcular()` el 2026-09-22; con el brazalete a $118.000 eran $32.050 — al
+   bajar el brazalete, el 30% que se le descuenta pesa menos, así que el tercer
+   dije sale *más* caro). El de «todo es Plata 925» ya no es cierto y no puede
+   usarse. Los seis anuncios activos no mencionan precio ni material, así que
+   tampoco ahora hubo que pausar ninguno.
 4. **Reponer inventario.** Sigue siendo el cuello de botella real del negocio,
    no la pauta: faltan 14 letras que nunca se compraron. Ver `CLAUDE.md`.
 5. **Las secciones que faltan:** Brazaletes, Destacados y «Para regalar».
@@ -299,6 +303,72 @@ cabecera** (eran 5: las dos nuevas son el `no-cache` de `tienda.css` y
 | `8e234d9` | **Brazaletes a Plata 925 y precios a $118.000 / $138.000 / $158.000** |
 | `1d3b1e9` | Corrige el apunte de Addi: sí se acepta, fuera de la pasarela |
 | `3193789` | Foto de la Pulsera Avengers en la portada de la colección |
+
+
+### 2026-09-22 · Revertido: los brazaletes vuelven a baño de plata, pisos a 78/82/88
+
+El dato del proveedor del 2026-09-18 era erróneo. **Los charms siguen siendo
+Plata Esterlina 925 con sello grabado; los brazaletes son baño de plata** sobre
+base de latón de calidad joyería con capa e-coating, como antes de `8e234d9`.
+Y los tres niveles pasan de $118.000 / $138.000 / $158.000 a
+**$78.000 / $82.000 / $88.000**.
+
+**Por qué este cambio era más peligroso que el del 18**, y qué se hizo:
+
+1. **Los tres pisos nuevos coinciden con precios que ya tienen 30 charms** — 5
+   en $78.000, **22 en $82.000**, 3 en $88.000. Un `sed` por número habría
+   movido 22 charms sin error visible, y **contar piezas por precio tampoco
+   sirve para verificar**, porque no distingue un brazalete de un charm. Se
+   cambió y se verificó **por `id`**, los 18. Comprobado: 0 charms movidos.
+2. **El material iba en dirección contraria al precio.** De las 148 apariciones
+   de «Plata 925», la mayoría son charms, que siguen siéndolo: un
+   buscar-y-reemplazar global habría borrado la afirmación *correcta* de 117
+   piezas. El discriminador es `pc-mark--b` (18 brazaletes) frente a `pc-mark`
+   (91 charms) en `index.html`, y el `if(esB)` en `tienda.js`, `checkout.html`
+   y `disponibilidad.mjs`.
+3. **El texto viejo estaba íntegro en git**, en `8e234d9^`. La parte de material
+   se restauró desde ahí en vez de reescribirla — importa sobre todo en la
+   respuesta de níquel/hipoalergenia, que es la única con consecuencia
+   sanitaria y no se debe redactar de nuevo a ojo.
+
+**Lo que había publicado y era falso**, ya corregido: la FAQ afirmaba
+literalmente **«No son baño de plata: son plata»**, y esa frase estaba
+duplicada en el **JSON-LD `FAQPage`**, que es lo que indexa Google; y
+`terminos-y-condiciones.html` declaraba el material en **cláusula contractual**,
+con la Ley 1480 citada en la misma página. Los dos regenerados y verificados.
+
+**Consecuencia comercial que conviene no pasar por alto:** el argumento del
+tercer dije se debilita. Pasa de $32.050 a **$44.050**, porque el 30% de
+descuento del brazalete se calcula sobre un brazalete más barato.
+
+**Cuarta fuente de precio, y casi se escapa: `stock.json`.** No la escribe
+`extraer_catalogo.py` —la mantiene `herramientas/reponer.mjs` desde la hoja de
+cálculo— así que regenerar el catálogo **no la toca**. Y sí lleva `precio`:
+`disponibilidad.mjs:104` lo lee de ahí, que es **lo que el bot de WhatsApp le
+cotiza a la clienta**. Sin corregirla, el bot habría dicho $118.000 mientras la
+web cobraba $78.000. Se corrigió por `id`, **sin tocar `generado`**, que es el
+interruptor con el que `_inventario.mjs` detecta un conteo nuevo: cambiarlo
+habría reseteado la cuenta de vendidos.
+
+> Y la lección de verificación, que es peor que el fallo: la primera
+> comprobación cruzada **dio verde sin comprobar nada**. `items` de
+> `stock.json` es un diccionario por `id`, y se leyó como lista de objetos con
+> campo `id`; el mapa salió vacío y los 135 contrastes se saltaron en silencio.
+> Una verificación que no puede fallar no es una verificación: **que imprima
+> cuántas piezas comparó**, no solo que no encontró nada.
+
+Verificado: 18 brazaletes a 78/82/88 coincidiendo en `tienda.js`,
+`catalogo.json` y `stock.json` — 135 piezas contrastadas, 0 desajustes · 0 charms con precio movido ·
+0 sellos `pc-mark--b` diciendo 925, 91 sellos de charm intactos · `precios.js`,
+`stock.js`, `checkout.js`, `disponibilidad.js`, `enlace.js`, `armar-carrito.js`
+en verde · ficha de brazalete, kits, marvel y FAQ comprobadas en el navegador,
+sin errores de JS. `dudas.js` y `regresion.js` siguen fallando por entorno
+(timeout antes de la primera aserción, 0 comprobaciones corridas), así que la
+guarda invertida de `dudas.js` se verificó a mano contra el DOM.
+
+**Pendiente, y solo lo puede hacer el propietario:** comprar un brazalete de
+**$78.000** y confirmar que Wompi cobra exactamente eso. Es la única prueba de
+que `catalogo.json` se regeneró de verdad.
 
 ### Los brazaletes son Plata 925, no baño
 
