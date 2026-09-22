@@ -115,10 +115,11 @@ Un video «busca tu signo» manda al 17% de la audiencia a un agotado y al resto
 piezas que se acaban con dos ventas. Es exactamente el fallo que el BRIEF § 1.1
 describe: gasta la grabación, gasta el alcance y termina en «se agotó».
 
-Las letras son el mismo problema a medias: **faltan 14 que nunca se compraron**
-(F G H I P Q R T U W X Y Z Ñ). Regla operativa: **en video se enseñan solo las
-nueve elegibles; las 14 ausentes solo aparecen en la historia de sondeo**
-(guion 8), que pregunta y no ofrece — regla 2 del BRIEF.
+Las letras son el mismo problema a medias, y menos grave que cuando se escribió
+esto: **hoy solo faltan Ñ y Q** (se repuso el resto — ver la corrección del
+2026-09-20 en el guion 8). Regla operativa: **en video se enseñan las 25 que
+existen; Ñ y Q solo aparecen en la historia de sondeo** (guion 8), que
+pregunta y no ofrece — regla 2 del BRIEF.
 
 ### 1.5 · Dos trampas de talla que arruinarían un video bueno
 
@@ -233,7 +234,7 @@ Objetivo de la quincena: **carritos de 3 piezas antes de las fechas límite de l
 | **Mar 16** | Guion 7 · GRWM | Historias: **hoy cierra Bogotá** | 3 · Curaduría | Corona Pavé + 3 charms | **Checkout urgente** | Link + cuenta atrás |
 | **Mié 17** | Guion 5 (2.ª versión, otro gancho) | Foto fija: fechas límite | 2 · Venta | El salto a 3 dijes | **Checkout** | Link |
 | **Jue 18** | POV «lo pedí a última hora» | Reel (mismo) | 1 · POV | Corazón Liso | Últimos Bogotá | «Escríbenos» |
-| **Vie 19** | Guion 8 · sondeo de letras | **Historia sondeo: ¿cuál te falta?** | 4 · Educación | Las 14 ausentes | **Dato de compra** | Responder historia |
+| **Vie 19** | Guion 8 · sondeo de letras | **Historia sondeo: ¿cuál te falta?** | 4 · Educación | Ñ y Q | **Dato de compra** | Responder historia |
 | **Sáb 20** | Contenido de agradecimiento | Reel: pedidos reales saliendo | 1 · POV | — | Prueba social | Seguir |
 
 > El **guion 8 va el viernes 19 a propósito**: es el día de mayor tráfico al
@@ -529,35 +530,48 @@ debe emitirlas en este orden:
 
 ---
 
-### GUION 8 · Sondeo — Las 14 letras que faltan · **Historia de Instagram** (no Reel)
+### GUION 8 · Sondeo — El abecedario casi completo · **Historia de Instagram** (no Reel)
 **Pilar 4 · La pieza de mayor retorno de todo el documento, y no necesita cámara ni inventario.**
 
-> **Esto es sondeo, nunca oferta** (BRIEF, regla 2). Las 14 letras **no existen
-> en la mano**. La historia **pregunta**; no enseña un producto comprable, no
-> lleva precio y no lleva link de compra. Si alguna versión de esto parece
-> catálogo, está mal hecha.
+> **Corregido el 2026-09-20.** Esta versión decía «tenemos nueve letras, nos
+> faltan catorce» y proponía sondear cuáles reponer primero. Los doce días sin
+> publicar nada cambiaron la realidad que describía: se repuso, y hoy son
+> **25 de 27 letras** (todo el abecedario español salvo **Ñ y Q**). El ángulo
+> de «decidir qué comprar a ciegas» ya no aplica —comprar las dos que faltan
+> cuesta ~$24.000 y no hace falta sondeo para justificarlo—. Lo que sí sigue
+> vigente y ahora pesa más: la prueba social de que la tienda repuso rápido, y
+> el sondeo genuino de si alguien con inicial Ñ o Q está esperando la suya.
+> Verificado contra `assets/stock.json` el 2026-09-20, no contra memoria.
+
+> **Sigue siendo sondeo, nunca oferta** (BRIEF, regla 2). Ñ y Q **no existen en
+> la mano**. La historia pregunta por esas dos; no vende ninguna letra, no
+> lleva precio y no lleva link de compra. Las 25 que sí existen se pueden
+> mencionar como hecho, nunca como catálogo abierto en esta pieza — eso es
+> contenido de venta, no esta historia.
 
 **Formato:** dos historias seguidas.
 
-**Historia 1 — la pregunta.** Fondo liso de marca. En tipografía grande, el
-abecedario completo, con **las nueve que existen en color** (A B D E K L O S V) y
-**las demás en gris muy claro**. Encima:
+**Historia 1 — el anuncio.** Fondo liso de marca. En tipografía grande, el
+abecedario completo, con **las 25 que existen en color** y **Ñ y Q en gris muy
+claro**. Encima:
 
-> «Tenemos nueve letras.
-> Nos faltan catorce.
-> **¿Cuál es la tuya?**»
+> «Ya tenemos 25 de 27 letras.
+> Solo faltan dos: **Ñ** y **Q**.
+> **¿Es la tuya?**»
 
-Sticker de **caja de preguntas** abierta: *«Escribe tu inicial»*.
+Sticker de **caja de preguntas** abierta: *«Escribe si tu inicial es Ñ o Q»*.
 
 **Historia 2 — el porqué (se sube 30 min después).**
-> «Preguntamos en serio: con lo que respondan, compramos las que más falten.
-> Si la tuya no está, escríbela — es la forma de que llegue.»
+> «Si nos escriben suficientes, las traemos ya. Cuéntanos y te avisamos apenas
+> lleguen.»
 
-**Por qué esto vale más que cualquier Reel del lote:** las 14 letras ausentes son
-~$73.000 de costo para ~$1.064.000 de utilidad potencial (`CLAUDE.md` §
-*Pendiente*, punto 1). Hoy esa compra **se decide a ciegas**. Esta historia da la
-respuesta en 24 horas, cuesta cero, y va publicada el **viernes 19**, el día de
-más tráfico al perfil de la quincena.
+**Por qué esto vale más que cualquier Reel del lote:** convierte doce días
+parados en la prueba de que la tienda repone rápido —de 9 a 25 letras en un
+mes—, y resuelve en un día, gratis, si vale la pena adelantar la compra de Ñ y
+Q o esperar al siguiente pedido grande. Sale la primera vez que se retome
+publicación, no hace falta esperar a un viernes: el frente lleva doce días
+detenido y el costo de seguir esperando el día «ideal» ya superó el beneficio
+de elegirlo con precisión.
 
 **Qué se hace con el resultado:** se cuenta cuántas veces sale cada letra en las
 respuestas y se compran las más pedidas primero. **El resultado se anota en
@@ -598,10 +612,10 @@ Igual que el BRIEF, esta parte importa más que el calendario.
 2. **Nada de trends de baile ni de humor sin producto.** Traen vistas que no
    vuelven y consumen el mismo tiempo de cámara que un guion que vende. Es la
    versión orgánica del error de Copia 4.
-3. **No se enseña `pulsera-avengers`, `pulsera-mickey-mouse-pave` ni
-   `pulsera-rosa-clasica`**: están en cero.
-4. **Las 14 letras ausentes solo aparecen en el sondeo**, nunca en un Reel de
-   producto.
+3. **No se enseña `pulsera-mickey-mouse-pave` ni `pulsera-rosa-clasica`**: están
+   en cero. `pulsera-avengers` **ya no aplica esta regla** — repuesta con 24
+   unidades, verificado en `assets/stock.json` el 2026-09-20.
+4. **Ñ y Q solo aparecen en el sondeo**, nunca en un Reel de producto.
 5. **No se publica un precio de memoria.** Sale de `_precios.js` o no sale.
 6. **No se automatiza la publicación todavía** (BRIEF, Fase 4). Publicar a mano
    cuesta minutos y no arriesga la cuenta; automatizar antes de que los paquetes

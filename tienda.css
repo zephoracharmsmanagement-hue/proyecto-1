@@ -945,13 +945,21 @@ body.sheet-open{overflow:hidden}
    resto de la página, y en el checkout aparece si algo falla — que es donde
    de verdad rescata una venta. */
 .sheet-note{font-size:11.5px;color:#8d7f92;text-align:center;margin:9px 0 0;line-height:1.5}
+/* Los dos avisos que sí queremos que se lean usan los colores que esta hoja ya
+   tiene asignados en el carrito oscuro: el menta es el de «Envío GRATIS»
+   (.pb-gratis) y el rosa el de «Descuento promo» (.tot-row.save). Antes el
+   enlace de Addi iba en `--plum` (#5C3D63) sobre el fondo #231a27 del carrito:
+   1.6:1 de contraste, es decir, ilegible. */
+.sheet-note--regalo{color:#7fc7ae}
+.sheet-note--addi{color:#e39aae}
+.sheet-note a{color:inherit;font-weight:500;text-decoration:underline;
+  text-underline-offset:2px}
 /* Justo debajo del botón de pagar, que es donde aparece la duda de «¿esto es
    seguro?». Dice quién cobra —un nombre que la clienta reconoce— y no promete
    nada que la tienda no pueda sostener. */
 .sheet-seguro{display:flex;align-items:center;justify-content:center;gap:6px;
   font-size:11.5px;color:#8d7f92;margin:10px 0 0}
 .sheet-seguro svg{flex:0 0 auto;opacity:.8}
-.sheet-seguro + .sheet-note{margin-top:5px}
 .pago{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
 .pbtn{font:400 12.5px/1.3 Jost;text-align:left;padding:10px 12px;cursor:pointer;
   border:1px solid rgba(255,255,255,.22);background:transparent;color:#c3b4c6;
