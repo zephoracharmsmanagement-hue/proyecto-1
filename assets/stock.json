@@ -1,6 +1,6 @@
 {
-  "generado": "2026-08-16",
-  "conteo_inventario": "2026-08-01",
+  "generado": "2026-09-22",
+  "conteo_inventario": "2026-09-22",
   "items": {
     "letra-a": {
       "tipo": "charm",
@@ -23,7 +23,7 @@
     "letra-d": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 3,
+      "stock": 2,
       "familia": "pasador"
     },
     "letra-e": {
@@ -95,7 +95,7 @@
     "geminis": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 1,
       "familia": "pasador"
     },
     "leo": {
@@ -143,7 +143,7 @@
     "charm-medicina": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 2,
+      "stock": 1,
       "familia": "pasador"
     },
     "charm-psicologia": {
@@ -197,7 +197,7 @@
     "minnie-mouse": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 2,
+      "stock": 1,
       "familia": "pasador"
     },
     "stitch": {
@@ -269,13 +269,13 @@
     "iron-man": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 5,
+      "stock": 4,
       "familia": "pasador"
     },
     "mjolnir-martillo-de-thor": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 3,
+      "stock": 2,
       "familia": "pasador"
     },
     "escudo-capitan-america": {
@@ -287,7 +287,7 @@
     "deadpool": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 5,
+      "stock": 4,
       "familia": "pasador"
     },
     "spider-man": {
@@ -389,7 +389,7 @@
     "clip-orquideas-moradas": {
       "tipo": "charm",
       "precio": 78000,
-      "stock": 3,
+      "stock": 2,
       "familia": "clip"
     },
     "clip-mariposas-de-colores": {
@@ -461,7 +461,7 @@
     "bola-azul-con-flor-rosa": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 1,
+      "stock": 2,
       "familia": "murano"
     },
     "elefantito-rosa": {
@@ -515,7 +515,7 @@
     "atrapasuenos-corazon-multicolor": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 5,
+      "stock": 4,
       "familia": "pasador"
     },
     "pulpo-azul-cristal": {
@@ -527,13 +527,13 @@
     "caballo-herradura": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 3,
+      "stock": 4,
       "familia": "colgante"
     },
     "trebol-verde-giratorio": {
       "tipo": "charm",
       "precio": 94000,
-      "stock": 5,
+      "stock": 4,
       "familia": "colgante"
     },
     "corazon-arbol-de-la-vida": {
@@ -545,13 +545,13 @@
     "camaleon-verde": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 4,
+      "stock": 3,
       "familia": "pasador"
     },
     "manos-orando-con-cruz": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 4,
+      "stock": 3,
       "familia": "colgante"
     },
     "angel-guardian": {
@@ -844,7 +844,7 @@
     "corazon-mama-e-hija": {
       "tipo": "charm",
       "precio": 78000,
-      "stock": 2,
+      "stock": 1,
       "familia": "colgante"
     }
   }
