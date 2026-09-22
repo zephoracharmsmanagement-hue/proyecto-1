@@ -463,14 +463,59 @@ function abrirFicha(id){
   if(sinStock) fw.href=waEncargo(p.n);
 
   $('#ficha').hidden=false;
-  document.body.classList.add('sheet-open');
+  bloquearFondo(true);
   $('#fx-x').focus();
 }
+/* Bloqueo del fondo mientras hay una capa abierta (ficha o carrito).
+ *
+ * `body{overflow:hidden}` NO bloquea en Safari de iOS: el fondo sigue
+ * arrastrándose por debajo, y como la capa es `position:fixed`, lo que el
+ * cliente percibe es que la ficha "se traba" —el dedo mueve algo, pero no lo
+ * que está mirando—. Reportado sobre iOS el 2026-09-22 con la ficha abierta.
+ *
+ * Lo único que lo bloquea de verdad en iOS es fijar el propio body. Al fijarlo
+ * pierde su posición de scroll, así que hay que guardarla y devolverla al
+ * cerrar; si no, cada vez que se cierra una ficha la página salta arriba y se
+ * pierde el sitio de la rejilla donde estaba mirando.
+ *
+ * El contador existe porque las dos capas comparten el bloqueo y pueden
+ * solaparse: abrir la ficha desde el carrito y cerrarla no debe soltar el
+ * fondo mientras el carrito siga abierto. */
+let fondoY = 0, fondoN = 0;
+function bloquearFondo(v){
+  if(v){
+    if(fondoN++ === 0){
+      fondoY = window.scrollY || document.documentElement.scrollTop || 0;
+      document.body.style.top = '-' + fondoY + 'px';
+      document.body.classList.add('sheet-open');
+    }
+    return;
+  }
+  if(fondoN === 0) return;
+  if(--fondoN === 0){
+    document.body.classList.remove('sheet-open');
+    document.body.style.top = '';
+    /* La lectura fuerza el recálculo de la maquetación ANTES de devolver el
+       scroll. Sin ella, el body todavía no ha vuelto al flujo, la página mide
+       una pantalla, y el navegador recorta la posición pedida a ese alto: se
+       guardaban 3.339 px y se volvía a 1.942. Comprobado el 2026-09-22. */
+    void document.body.offsetHeight;
+    /* `behavior:'instant'` es obligatorio: `html{scroll-behavior:smooth}` hace
+       que devolver la posición se convierta en un barrido de más de un
+       segundo desde arriba. Es exactamente lo que el cliente ve como que la
+       página "se queda corrida" al cerrar la ficha: no está trabada, está
+       animándose. Se mide: al cerrar iba por 94 px y solo llegaba a los 3.339
+       guardados pasado 1,2 s. */
+    window.scrollTo({ top: fondoY, left: 0, behavior: 'instant' });
+  }
+}
+
 function cerrarFicha(){
   $('#ficha').hidden=true; fichaId=null;
-  /* El bloqueo de scroll lo comparten la hoja del carrito y la ficha:
-     solo se suelta si la hoja no quedó abierta detrás. */
-  if($('#sheet').getAttribute('aria-hidden')!=='false') document.body.classList.remove('sheet-open');
+  /* El bloqueo lo comparten la hoja del carrito y la ficha; lo lleva un
+     contador, así que cerrar la ficha no suelta el fondo si la hoja sigue
+     abierta detrás. */
+  bloquearFondo(false);
 }
 $('#fx-x').onclick=cerrarFicha;
 $('#ficha').addEventListener('click',e=>{ if(e.target.id==='ficha') cerrarFicha(); });
@@ -759,15 +804,17 @@ function pintarCross(nC,brutoC,brutoB,descB){
 
 /* Abrir el detalle ya no dispara InitiateCheckout: ese evento ahora marca
    el salto a WhatsApp, que es donde de verdad empieza la compra. */
+let hojaAbierta = false;
 const abrir=v=>{
-  document.body.classList.toggle('sheet-open',v);
+  v = !!v;
+  if(v !== hojaAbierta){ hojaAbierta = v; bloquearFondo(v); }
   $('#sheet').setAttribute('aria-hidden',v?'false':'true');
   $('#dock-open').setAttribute('aria-expanded',v?'true':'false');
   $('#dock-open svg').style.transform=v?'rotate(180deg)':'';
 };
 $('#dock').addEventListener('click',e=>{
   if(e.target.closest('#dock-send')) return;
-  abrir(!document.body.classList.contains('sheet-open'));
+  abrir(!hojaAbierta);
 });
 $('#dock').addEventListener('keydown',e=>{
   if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(true)}

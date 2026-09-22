@@ -185,7 +185,7 @@ TERMINOS = '''  <p>Estos términos regulan la compra de productos de <b>Zephora 
 
   <h2>1. Quiénes somos</h2>
   <p><b>Zephora Charms</b>, identificada con <b>NIT 1.019.151.696-3</b>, es una marca colombiana
-  dedicada a la venta de charms en Plata Esterlina 925 y brazaletes con acabado en baño de plata.
+  dedicada a la venta de charms en Plata Esterlina 925 y brazaletes con baño de plata de alta calidad.
   Somos una <b>tienda virtual con operación en Bogotá D.C.</b>: no atendemos público en local
   físico, y despachamos a todo el país.</p>
   <p>Canales oficiales de atención y de notificaciones al consumidor:
@@ -560,7 +560,7 @@ CUERPOS = {
         'Cómo Zephora Charms recolecta, usa y protege tus datos personales, conforme a la Ley 1581 de 2012.', ''),
     'terminos-y-condiciones.html': (
         TERMINOS, 'Condiciones de compra',
-        'Términos que regulan la compra de charms en Plata 925 y brazaletes de Zephora Charms en Colombia.', ''),
+        'Términos que regulan la compra de charms en Plata 925 y brazaletes con baño de plata de Zephora Charms.', ''),
     'envios-y-devoluciones.html': (
         ENVIOS, 'Antes y después de comprar',
         'Cobertura, costos y tiempos de envío en Colombia, derecho de retracto, cambios de talla y garantía.', ''),

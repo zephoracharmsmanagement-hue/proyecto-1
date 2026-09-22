@@ -535,10 +535,14 @@ section{scroll-margin-top:64px}
 
 /* ——— ficha de producto ——— */
 .fx{position:fixed;inset:0;z-index:130;background:rgba(42,31,46,.93);
-  display:flex;align-items:center;justify-content:center;padding:16px}
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  overscroll-behavior:contain}
 .fx[hidden]{display:none}
 .fx-box{background:var(--bone);border-radius:5px;max-width:760px;width:100%;
-  max-height:90dvh;overflow-y:auto;position:relative;display:grid}
+  max-height:90dvh;overflow-y:auto;position:relative;display:grid;
+  /* Sin esto, al llegar al final de la ficha el gesto sigue de largo y
+     arrastra lo que haya detrás: es la mitad de la sensación de "trabado". */
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .fx-x{position:absolute;top:8px;right:8px;z-index:2;width:38px;height:38px;border-radius:50%;
   border:1px solid var(--line);background:rgba(255,255,255,.94);color:var(--ink);
   font-size:16px;cursor:pointer;line-height:1}
@@ -557,7 +561,11 @@ section{scroll-margin-top:64px}
  * Con una sola foto no se pinta nada de esto: ni tira, ni puntos, ni
  * miniaturas. Una galería de un elemento es ruido que promete algo que no hay. */
 .fx-ph{position:relative;overflow:hidden}
+/* `touch-action:pan-x` deja que el arrastre VERTICAL sobre la foto lo
+   reciba la ficha y no la tira: sin eso, empezar a deslizar encima de la
+   imagen no movía nada y parecía que la ficha se habia colgado. */
 .fx-gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  touch-action:pan-x;overscroll-behavior-x:contain;
   width:100%;height:100%;gap:0;scrollbar-width:none;-ms-overflow-style:none}
 .fx-gal::-webkit-scrollbar{display:none}
 .fx-gal>figure{flex:0 0 100%;scroll-snap-align:center;margin:0;display:flex;
@@ -842,7 +850,10 @@ body.sheet-open .xs{display:none}
   visibility:hidden;box-shadow:0 -18px 50px rgba(20,12,24,.45)}
 body.sheet-open .veil{opacity:1;pointer-events:auto}
 body.sheet-open .sheet{transform:none;visibility:visible}
-body.sheet-open{overflow:hidden}
+/* El fondo se FIJA, no solo se le esconde el scroll: `overflow:hidden` a
+   secas no bloquea en Safari de iOS y la ficha se siente trabada. `top` lo
+   pone tienda.js con la posición guardada, y la devuelve al cerrar. */
+body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .sheet-head{display:flex;align-items:center;gap:12px;padding:14px 18px 10px;flex:0 0 auto}
 .sheet-head b{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:300;letter-spacing:.03em}
 .sheet-x{margin-left:auto;width:38px;height:38px;border:1px solid rgba(255,255,255,.22);

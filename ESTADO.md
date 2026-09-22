@@ -465,6 +465,58 @@ leyendo la versión **publicada**, no el borrador; los otros 28 nodos intactos.
 > dos copias distintas**. Cambiar `automatizaciones/prompts/asesor-whatsapp.md`
 > no toca el bot en vivo, y el bot no se entera de un despliegue de la web.
 
+### 2026-09-22 (tarde) · Once textos que se escaparon, y la ficha que se «trababa»
+
+El propietario lo encontró mirando el sitio en su iPhone, con la suite en
+verde. **Las dos cosas que fallaron son las dos que esta sección ya advertía.**
+
+**1 · Textos.** La corrección de la mañana cambió el material donde el código
+bifurca por tipo de pieza (`pc-mark--b`, `if(esB)`, `disponibilidad.mjs`) y
+las páginas generadas, pero **dejó intactas las frases de marketing que meten
+a los dos materiales en una sola afirmación**: el título y los cuatro
+metadatos, el JSON-LD, la barra de beneficios («Charms y brazaletes en Plata
+Esterlina 925»), la cabecera **PASO UNO · El brazalete** («En Plata Esterlina
+925 legítima, con el sello S925 grabado»), la lista de compra tranquila
+(«Materiales garantizados: … tanto en charms como en brazaletes») y el pie.
+Once sitios.
+
+> **Por qué no los vi:** verifiqué con `grep` por las cadenas que sabía que
+> había cambiado, y conté sellos. Ninguna de esas comprobaciones puede
+> encontrar una frase que nunca toqué. **La búsqueda buena no es «¿cambié lo
+> que quería?» sino «¿queda algo que nombre brazalete y 925 en la misma
+> línea?»** — ese grep los saca los once de golpe, y es el que queda escrito
+> aquí para la próxima vez que cambie un material.
+
+También quedó un comentario en `index.html` que decía «la afirmación de
+material no se toca — decisión del propietario, 2026-09-18» y congelaba la
+versión vieja. Reescrito para que diga lo contrario: esa línea nombra **dos**
+materiales a propósito y unificarla vuelve a publicar la falsedad.
+
+**2 · La ficha se sentía trabada en iOS.** Dos causas sumadas, y ninguna
+aparece en las pruebas porque **ninguna es un error: es comportamiento
+correcto de CSS**.
+
+- `body{overflow:hidden}` **no bloquea el scroll en Safari de iOS**. La ficha
+  es `position:fixed`, así que el dedo arrastraba el fondo por debajo: se mueve
+  algo, pero no lo que estás mirando. Lo único que lo bloquea de verdad es
+  fijar el propio `body`, guardando y devolviendo la posición.
+- Y al devolverla, `html{scroll-behavior:smooth}` convertía el salto en **un
+  barrido de más de un segundo desde arriba**. Medido: al cerrar iba por 94 px
+  y solo llegaba a los 3.339 guardados pasado 1,2 s. Eso es literalmente «se
+  queda corrido». Se arregla con `behavior:'instant'`.
+- De paso, `overscroll-behavior:contain` en la capa y en la caja, y
+  `touch-action:pan-x` en la galería, para que arrastrar en vertical **sobre
+  la foto** lo reciba la ficha y no la tira horizontal.
+
+El bloqueo lo lleva ahora un **contador**, porque la ficha y la hoja del
+carrito lo comparten: cerrar la ficha abierta desde el carrito no debe soltar
+el fondo mientras el carrito siga abierto.
+
+Comprobado con navegador en iPhone 13 y Pixel 7: fondo no movible con la ficha
+abierta, posición recuperada exacta (3339 → 3339) medida a los 120 ms sin dar
+tiempo a ninguna animación, y el `body` vuelve a `static` tras dos aperturas
+seguidas. Las ocho pruebas del dinero, en verde.
+
 **Pendiente, y solo lo puede hacer el propietario:** comprar un brazalete de
 **$78.000** y confirmar que Wompi cobra exactamente eso. Es la única prueba de
 que `catalogo.json` se regeneró de verdad.
