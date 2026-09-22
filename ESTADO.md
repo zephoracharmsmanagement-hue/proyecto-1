@@ -116,6 +116,25 @@ cambió.**
   antes de dar esto por terminado. Puntos a mirar primero: que las 5 columnas
   de `.bens` no se vean apretadas en escritorio, y que los tres avisos
   nuevos del carrito no lo hagan crecer más de lo que cabe en pantalla.
+- **Además, en la misma rama (2026-09-22):** foto y nombre de
+  `luciernaga-you-are-my-light` cambiados a pedido del propietario — la
+  foto de cristales de colores no era la pieza real, la reemplazó por la
+  que mandó él, y el nombre visible pasa a **«Luciérnaga Evangeline»**.
+  El `id` interno no cambió (lo usan `stock.json`, `catalogo.json` y el
+  feed de Meta), solo el archivo de la foto (misma ruta,
+  `?v=20260922`), el nombre en `index.html`/`tienda.js`, y
+  `catalogo.json` regenerado con `extraer_catalogo.py`.
+
+**Ojo al fusionar: hay otra rama esperando además de esta.**
+`claude/charming-sagan-l4q2eq` (otra sesión, 2026-09-22) está pusheada
+con la reconciliación de inventario del conteo físico —renombra tres
+Muranos («Bola» → «Murano») y ajusta `stock.json`—, también sobre
+`503cd3a`. No toca los mismos archivos que esta rama en las mismas
+líneas (ni el mismo producto), así que no debería haber conflicto real,
+pero **las dos siguen sin fusionar a `main`** — alguien tiene que
+mezclar ambas, revisar que `extraer_catalogo.py` corrido después del
+merge deje un `catalogo.json` consistente con las dos series de
+cambios, y solo entonces desplegar.
 
 ### Lo que falta, por orden de impacto
 
