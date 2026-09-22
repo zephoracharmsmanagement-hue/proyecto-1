@@ -160,7 +160,11 @@ referencias:
 > único que decide qué se graba, nunca cambió.
 
 46 referencias son meses de calendario a un video por pieza. **El limitante del
-contenido no es el inventario; es el tiempo de grabación.**
+contenido no es el inventario; es el tiempo de grabación.** (El pool creció a
+**62** con la reposición de septiembre — verificado en `assets/stock.json` el
+2026-09-20, no recontado a fondo contra este análisis. El argumento de arriba
+se sostiene igual o mejor con el número más alto; no hacía falta rehacer las
+cuentas para saberlo.)
 
 > **La trampa, y hay que escribirla porque ya nos pasó al calcular esto:**
 > `stock.json` guarda las unidades en **dos formas distintas**. Un charm tiene

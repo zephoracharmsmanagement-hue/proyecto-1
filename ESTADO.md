@@ -5,6 +5,18 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🔒 Reclamado — contenido orgánico, retomado el 2026-09-20
+
+Regla 4 de `CLAUDE.md`. El propietario pidió un plan de escalamiento integral
+(inventario, conversión, pauta, contenido, automatizaciones) y el frente que
+salió priorizado para arrancar ya es **contenido orgánico**: parado desde el
+2026-09-08, doce días, cero piezas publicadas.
+
+**Alcance: `automatizaciones/contenido/` y `assets/` para lo que ahí se
+prepare.** Genuinamente disjunto del encargo de conversión que sigue abierto
+en `claude/zephoracharms-conversion-funnel-nom9ph` — no toca `index.html`,
+`tienda.js`, `tienda.css` ni `netlify/functions/`. Se borra al terminar.
+
 ## 🚧 ENCARGO ABIERTO — la web completa, en bucle, hasta que convierta
 
 **Reclamación de trabajo (regla 4 de `CLAUDE.md`), abierta el 2026-09-19.**
@@ -63,6 +75,67 @@ se puede verificar desde aquí: eso lo hace el propietario.
   `_precios.js` no se tocó.
 - **Franja de atajos** en la portada: Kits · Marvel · Brazaletes · Charms.
 - **El bot de WhatsApp** al día en material y sin precios escritos a mano.
+
+### Hecho, sin fusionar todavía — beneficios gratis, Addi y promo (2026-09-21)
+
+Rama `claude/beneficios-gratis-addi-promo`, sobre `main` en `503cd3a`. A pedido
+directo del propietario: explotar en la página lo que ya se regala con la
+compra, y hacer más visible la financiación con Addi. **Solo copy y
+maquetado — `tienda.js` y `_precios.js` sin tocar, ninguna mecánica de precio
+cambió.**
+
+- **Promo reescrita.** «Lleva 4, paga 3» pasó a «Paga 3 y llévate el 4º
+  gratis» (banner) y «Paga 3, el 4º gratis» (escalera). Se confirmó con el
+  propietario que la promo real es de 4 charms, no de 3 como se dijo al
+  pedirlo — la mecánica no cambió, solo el rótulo.
+- **Empaque gratis (caja, paño, tarjeta con dedicatoria) ahora se dice en
+  tres sitios:** la franja de beneficios de la portada (`.bens`, ahora con 5
+  columnas en escritorio), el carrito (`.sheet-tot`) y el resumen de
+  `checkout.html`. El paño nunca se había mencionado en el sitio — el
+  propietario confirmó que ya se incluye, así que es copy nuevo sobre un
+  hecho viejo, no un beneficio nuevo que haya que empezar a dar.
+- **Addi, más visible, sigue sin ser un botón de pago real.** Wompi no lo
+  soporta (ver § *Addi* más arriba) y esa decisión no cambió. Se agregó
+  «Difiere tu compra hasta en 3 cuotas sin interés con Addi» en el carrito y
+  un aviso equivalente en el paso de pago de `checkout.html`, ambos apuntando
+  a WhatsApp con `data-wa="pagos"`. `checkout.html` no tenía el listener
+  genérico de clics a `wa.me` que sí tiene `tienda.js`; se le agregó uno
+  mínimo, solo para enlaces `data-wa` ya presentes al cargar, para no dejar
+  ese clic sin medir.
+- **`.sheet-tot` es del bloque `chrome` que `gen_colecciones.py` copia de
+  `index.html`** — el cambio ahí se propagó a `kits.html` y
+  `coleccion-marvel.html` corriendo el generador (`python
+  herramientas/gen_colecciones.py --escribir`), no editándolos a mano.
+- **Verificado sin navegador:** sintaxis de los `<script>` inline
+  (`node --check`), balance de etiquetas HTML (`html.parser` de Python) y de
+  llaves en `tienda.css`, y el generador corrió limpio las dos veces.
+- **Sin verificar: cómo se ve renderizado de verdad.** Es justo la regla de
+  este encargo (arriba: *ningún cambio visual se da por bueno sin verlo*).
+  Esta sesión corre en Windows, donde Playwright ya dio problemas antes
+  (queda memoria de eso); no se reintentó aquí. **Falta que alguien lo mire
+  con el sitio servido, o revisar en `zephoracharms.com` tras fusionar**,
+  antes de dar esto por terminado. Puntos a mirar primero: que las 5 columnas
+  de `.bens` no se vean apretadas en escritorio, y que los tres avisos
+  nuevos del carrito no lo hagan crecer más de lo que cabe en pantalla.
+- **Además, en la misma rama (2026-09-22):** foto y nombre de
+  `luciernaga-you-are-my-light` cambiados a pedido del propietario — la
+  foto de cristales de colores no era la pieza real, la reemplazó por la
+  que mandó él, y el nombre visible pasa a **«Luciérnaga Evangeline»**.
+  El `id` interno no cambió (lo usan `stock.json`, `catalogo.json` y el
+  feed de Meta), solo el archivo de la foto (misma ruta,
+  `?v=20260922`), el nombre en `index.html`/`tienda.js`, y
+  `catalogo.json` regenerado con `extraer_catalogo.py`.
+
+**Ojo al fusionar: hay otra rama esperando además de esta.**
+`claude/charming-sagan-l4q2eq` (otra sesión, 2026-09-22) está pusheada
+con la reconciliación de inventario del conteo físico —renombra tres
+Muranos («Bola» → «Murano») y ajusta `stock.json`—, también sobre
+`503cd3a`. No toca los mismos archivos que esta rama en las mismas
+líneas (ni el mismo producto), así que no debería haber conflicto real,
+pero **las dos siguen sin fusionar a `main`** — alguien tiene que
+mezclar ambas, revisar que `extraer_catalogo.py` corrido después del
+merge deje un `catalogo.json` consistente con las dos series de
+cambios, y solo entonces desplegar.
 
 ### Lo que falta, por orden de impacto
 
@@ -365,6 +438,18 @@ en verde · ficha de brazalete, kits, marvel y FAQ comprobadas en el navegador,
 sin errores de JS. `dudas.js` y `regresion.js` siguen fallando por entorno
 (timeout antes de la primera aserción, 0 comprobaciones corridas), así que la
 guarda invertida de `dudas.js` se verificó a mano contra el DOM.
+
+**Al mezclar con `main` apareció el riesgo documentado del repo**, y conviene
+saber cómo se resolvió: `main` traía 13 commits, entre ellos un conteo físico
+de inventario del 2026-09-22 y el renombrado de la línea de muranos
+(`Bola` → `Murano`) más `Luciérnaga Evangeline`. Ocho archivos se tocaban por
+ambos lados, **incluidos los tres que llevan precio**. El único conflicto que
+git marcó fue la tabla `DATA` de `tienda.js`; los otros siete los fusionó solo,
+que es justo el modo de fallo peligroso. Se resolvió tomando **`main` como
+base** —sus 4 renombrados y su conteo— y reaplicando encima **solo los 18
+precios de brazalete, por `id`**. Después se regeneró todo lo derivado y se
+contrastaron de nuevo las 135 piezas: 0 desajustes, los nombres de `main`
+intactos y los 18 precios puestos.
 
 **Pendiente, y solo lo puede hacer el propietario:** comprar un brazalete de
 **$78.000** y confirmar que Wompi cobra exactamente eso. Es la única prueba de
