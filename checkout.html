@@ -102,6 +102,9 @@ button{font-family:inherit}
 .env-bar.is-ok i{background:var(--bien)}
 .env-nota{margin:0;font-size:12.5px;line-height:1.5;color:#6d6070}
 .env-nota.is-ok{color:var(--bien)}
+/* El mismo verde de «Envío: Gratis», que es lo que aquí ya significa «esto no
+   te cuesta». Clase propia y no `is-ok`, que es un estado que escribe el JS. */
+.env-nota--regalo{color:var(--bien)}
 @media(prefers-reduced-motion:reduce){.env-bar i{transition:none}}
 
 /* Prueba social pegada al botón de pagar.
@@ -307,7 +310,7 @@ button{font-family:inherit}
         <div id="res-totales"></div>
           <div class="env-bar" id="env-bar" aria-hidden="true"><i></i></div>
           <p class="env-nota" id="env-nota"></p>
-          <p class="env-nota">🎁 Incluye caja de lujo, paño para tu plata y tarjeta con dedicatoria — sin costo.</p>
+          <p class="env-nota env-nota--regalo">🎁 Incluye caja de lujo, paño para tu plata y tarjeta con dedicatoria — sin costo.</p>
         <a class="res-editar" href="index.html#brazaletes">← Modificar mi selección</a>
       </div>
     </div>

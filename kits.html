@@ -430,6 +430,14 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     <div class="ship-bar" id="ship-bar"><i></i></div>
     <p class="ship-note" id="ship-note"></p>
     <p class="desc-nota" id="desc-nota" hidden></p>
+    <!-- Estas tres viven aquí, en la zona que rueda, y no en el bloque fijo de
+         abajo. Ya había pasado que ese bloque creciera hasta dejar la lista de
+         piezas en 65 px (ver el comentario de arriba); con estas tres dentro
+         volvía a ocupar ~290 px y solo se veía un producto y medio. Abajo queda
+         únicamente lo que decide la compra. -->
+    <p class="sheet-note sheet-note--regalo">🎁 Incluye caja de lujo, paño para tu plata y tarjeta con dedicatoria — sin costo.</p>
+    <p class="sheet-note sheet-note--addi">¿Ticket alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Difiere tu compra hasta en 3 cuotas sin interés con Addi</a></p>
+    <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</p>
     <p class="stock-nota"><span id="stock-fecha"></span></p>
   </div>
   </div>
@@ -437,15 +445,15 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   <div class="sheet-tot">
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
     <button class="btn btn--pagar" type="button" id="send">Finalizar compra</button>
-    <!-- La misma frase que ya usa el pie del checkout, para que la clienta lea
-         lo mismo en los dos sitios. No se añade «Retracto de 5 días hábiles»
-         junto a esta: la política de devoluciones recoge la excepción del
-         artículo 47 para bienes personalizados, y prometerlo aquí sin condición
-         contradiría esa página. Bajo la Ley 1480 ganaría lo anunciado. -->
+    <!-- El sello se queda aquí, pegado al botón, porque es justo ahí donde
+         aparece la duda de «¿esto es seguro?». El resto del texto —medios de
+         pago, empaque, Addi— se fue a la zona que rueda: se lee una vez y no
+         necesita estar clavado a la vista. No se añade «Retracto de 5 días
+         hábiles» junto a esta: la política de devoluciones recoge la excepción
+         del artículo 47 para bienes personalizados, y prometerlo aquí sin
+         condición contradiría esa página. Bajo la Ley 1480 ganaría lo
+         anunciado. -->
     <p class="sheet-seguro"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>Pago procesado por Wompi (Bancolombia)</p>
-    <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</p>
-    <p class="sheet-note">🎁 Incluye caja de lujo, paño para tu plata y tarjeta con dedicatoria — sin costo.</p>
-    <p class="sheet-note">¿Ticket alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Difiere tu compra hasta en 3 cuotas sin interés con Addi</a></p>
   </div>
 </aside>
 
