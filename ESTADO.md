@@ -451,6 +451,20 @@ precios de brazalete, por `id`**. Después se regeneró todo lo derivado y se
 contrastaron de nuevo las 135 piezas: 0 desajustes, los nombres de `main`
 intactos y los 18 precios puestos.
 
+**Desplegado y publicado el 2026-09-22.** Despliegue `6ab30993`, commit
+`965a206`, publicado a las 23:05 UTC en 19 s, 16 funciones y 13 archivos
+nuevos. Y **el bot de WhatsApp quedó actualizado en la misma tanda**, que es lo
+que evita la contradicción: el prompt en vivo (workflow `74TjEtDnn940jh9k`,
+versión activa `5093ad1a`) afirmaba que los brazaletes eran 925 en cinco
+puntos y, peor, **prohibía expresamente decir «baño de plata»** y traía el
+ejemplo de la regla dura invertido. Corregidos los cinco, con la sección de
+oxidación distinguiendo ahora la plata del baño con e-coating. Verificado
+leyendo la versión **publicada**, no el borrador; los otros 28 nodos intactos.
+
+> Recordatorio para la próxima: **el archivo del repo y el prompt del bot son
+> dos copias distintas**. Cambiar `automatizaciones/prompts/asesor-whatsapp.md`
+> no toca el bot en vivo, y el bot no se entera de un despliegue de la web.
+
 **Pendiente, y solo lo puede hacer el propietario:** comprar un brazalete de
 **$78.000** y confirmar que Wompi cobra exactamente eso. Es la única prueba de
 que `catalogo.json` se regeneró de verdad.
