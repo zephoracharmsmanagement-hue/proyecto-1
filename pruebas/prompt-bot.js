@@ -181,6 +181,87 @@ function main() {
   comprobar(/ADDI SI SE ACEPTA|ADDI SÍ SE ACEPTA/i.test(prompt),
     'Addi sigue declarado como medio de pago aceptado');
 
+  console.log('\n7 · Lo que la tienda publicó el 2026-09-22');
+
+  /* Tres cambios del sitio que el prompt tenía que alcanzar, y que no dan error
+     en ninguna parte si se quedan atrás: Addi pasó de estar escondido en un
+     acordeón a anunciarse en el carrito y en el checkout, se publicó lo que va
+     gratis con cada pedido, y la promo cambió de redacción sin cambiar de
+     mecánica. */
+
+  /* Addi. El fallo peligroso no era negarlo —eso ya estaba arreglado— sino
+     meterlo en la lista de medios que se eligen dentro del checkout, porque ahí
+     no está: Wompi no lo soporta y no hay ningún botón. Mandarla a buscarlo la
+     deja dando vueltas en la pantalla de pago. */
+  const lineaMedios = prompt.split('\n').find(l => /^MEDIOS DE PAGO/.test(l)) || '';
+  comprobar(!/addi/i.test(lineaMedios),
+    'no mete Addi en la lista de medios que se eligen en el checkout',
+    /addi/i.test(lineaMedios) ? lineaMedios.slice(0, 90) : undefined);
+
+  comprobar(/3 cuotas sin interes|3 CUOTAS SIN INTERES/i.test(prompt),
+    'dice la frase pública de Addi: hasta 3 cuotas sin interés');
+
+  comprobar(/no hay ningun boton de Addi|Wompi no lo soporta/i.test(prompt),
+    'advierte que en el checkout no hay botón de Addi');
+
+  /* Lo que va gratis con cada pedido. El paño nunca se había mencionado en la
+     web y ahora está publicado: si lo lee ahí y el bot no lo conoce, lo niega. */
+  for (const [que, re] of [
+    ['la caja de lujo', /caja de lujo/i],
+    ['el paño para la plata', /pa[ñn]o para (limpiar )?(la )?(su )?plata/i],
+    ['la tarjeta con dedicatoria', /tarjeta con dedicatoria/i],
+  ]) {
+    comprobar(re.test(prompt), `nombra ${que} entre lo que va incluido sin costo`);
+  }
+
+  /* Y no ofrece ninguna caja de pago. Se quitó el upsell de «cajas premium»
+     porque la página ya llama «de lujo» a la que va incluida: ofrecer algo por
+     encima le hace dudar de la que sí le llega. Misma heurística por contexto
+     que el material: la palabra puede aparecer, pero solo en una línea que la
+     prohíba. */
+  const ofreceCaja = prompt.split('\n').filter(l =>
+    /cajas? premium|empaque (especial|de pago)/i.test(l) &&
+    !/no ofrezcas|NO OFREZCAS|SE RETIRO|no existe|no lo menciones/i.test(l));
+  comprobar(ofreceCaja.length === 0,
+    'no ofrece ninguna caja ni empaque de pago por encima del incluido',
+    ofreceCaja.length ? ofreceCaja[0].trim().slice(0, 90) : undefined);
+
+  /* La promo: misma mecánica (ya comprobada arriba contra `reglas`), redacción
+     nueva. El chat y la página tienen que decir lo mismo palabra por palabra o
+     la clienta cree que son dos ofertas. */
+  comprobar(/paga 3 y ll[eé]vate el cuarto gratis/i.test(prompt),
+    'usa la redacción nueva de la promo: paga 3 y llévate el cuarto gratis');
+
+  const promoVieja = prompt.split('\n').filter(l => /lleva 4 y paga 3/i.test(l));
+  comprobar(promoVieja.length === 0,
+    'y ya no usa la vieja «lleva 4 y paga 3», que la página retiró',
+    promoVieja.length ? promoVieja[0].trim().slice(0, 90) : undefined);
+
+  console.log('\n8 · Los nombres de pieza que el prompt escribe a mano');
+
+  /* El prompt cita una pieza por su nombre: el ejemplo con el que se le enseña
+     a buscar alternativas por concepto. Cuando la tienda renombró cuatro piezas
+     —Luciérnaga «You Are My Light» → Luciérnaga Evangeline, y tres «Bola» →
+     «Murano»—, la única que el prompt nombraba a mano resultó ser una de ellas.
+     Nada falló: el bot seguía ofreciendo un nombre que la clienta ya no veía.
+     Por eso los nombres citados se declaran aquí y se contrastan contra
+     catalogo.json, que es lo que ve la página. */
+  const NOMBRES_CITADOS = ['Luciernaga Evangeline'];
+
+  /* El prompt está escrito sin tildes a propósito, así que comparar exige
+     quitarlas de los dos lados. Buscar «Luciérnaga» con tilde da cero y parece
+     que está limpio. */
+  const plano = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const delCatalogo = new Set(Object.values(CAT.nombres).map(plano));
+  const promptPlano = plano(prompt);
+
+  for (const nombre of NOMBRES_CITADOS) {
+    comprobar(promptPlano.includes(plano(nombre)),
+      `el prompt sigue citando «${nombre}»`);
+    comprobar(delCatalogo.has(plano(nombre)),
+      `y «${nombre}» sigue siendo el nombre que la clienta ve en la página`);
+  }
+
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
     : '\nPrompt del bot en verde ✓');
