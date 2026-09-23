@@ -91,18 +91,27 @@ muestra la ficha de producto, que son distintas: lo que **mide** la pieza y lo q
 
 Son **promedios por familia**, y la ficha lo dice: no hay medición pieza a pieza.
 
-> **Materiales — todo es plata.** Desde el 2026-09-18, **charms y brazaletes son
-> Plata Esterlina 925** legítima con sello S925 grabado. Libres de níquel y plomo.
-> Antes los brazaletes eran latón enchapado, y por eso subieron de precio: la
-> Pulsera Avengers pasó de $58.000 a $118.000. **Decir que un brazalete es bañado
-> regala el motivo del precio** y además es falso; `pruebas/disponibilidad.js` lo
-> comprueba en cada corrida.
+> **Materiales — son dos, no uno.** Los **charms, clips y cadenas** son Plata
+> Esterlina 925 con sello grabado. Los **brazaletes son baño de plata** sobre
+> base de alta resistencia, con capa protectora e-coating. Ambos libres de
+> níquel y plomo. **Meterlos en el mismo saco es publicidad engañosa** sobre el
+> producto que más margen deja, y la clienta lo nota al abrir la caja.
 >
 > El material vive en **un solo sitio**: el campo `material` de
-> `disponibilidad.mjs`. Ni la web ni el bot de WhatsApp deben afirmarlo por su
-> cuenta — el 2026-09-19 el prompt del bot todavía llevaba una copia vieja que le
-> ordenaba decir «baño de plata», y le pisó al servidor la respuesta correcta
-> delante de una clienta.
+> `disponibilidad.mjs`. Ni la web, ni el bot de WhatsApp, ni ningún documento
+> deben afirmarlo por su cuenta.
+>
+> **Esto giró dos veces en cinco días** y las dos hubo texto publicado
+> afirmando lo contrario del servidor. El 18 de septiembre un dato del
+> proveedor puso los brazaletes en Plata 925 y subió los precios a
+> 118/138/158; el 22 se supo que era erróneo y volvieron a baño de plata con
+> pisos 78/82/88. Lo caro del segundo giro no fue el sitio: fueron las copias
+> —el prompt del bot, esta misma nota, la hoja del asesor externo— que habían
+> pasado a afirmar 925 y siguieron afirmándolo. **No escribas el material en
+> ningún sitio nuevo; léelo de `disponibilidad.mjs`.** Eso hacen hoy
+> `pruebas/disponibilidad.js` (lo que devuelve el servidor),
+> `pruebas/prompt-bot.js` (lo que dice el bot) y
+> `herramientas/hoja_para_asesor.py` (lo que lee un asesor externo).
 
 ## Envío
 

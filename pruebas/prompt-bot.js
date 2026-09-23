@@ -66,26 +66,86 @@ function platas(texto) {
 function main() {
   const prompt = leerPrompt();
 
-  console.log('\n1 · El material, que es lo que acaba de costar una venta');
+  console.log('\n1 · El material, que ya costó una venta en cada dirección');
+
+  /* Esta comprobación NO sabe de qué está hecho un brazalete, y es a propósito.
+     El material cambió dos veces en cinco días —el 18 de septiembre los
+     brazaletes pasaron a Plata 925, el 22 volvieron a baño de plata porque el
+     dato del proveedor era erróneo— y las dos veces el prompt del bot se quedó
+     atrás afirmando lo contrario que el servidor.
+
+     La primera versión de esta prueba escribía la verdad a mano, así que en el
+     segundo giro no solo no avisó: pasó a EXIGIR la afirmación falsa. Una
+     prueba que se equivoca en la misma dirección que el código no protege de
+     nada, y encima da confianza.
+
+     Así que la dirección la lee del único sitio donde el material es dato y no
+     prosa: los campos `material` de `disponibilidad.mjs`, que es lo que el bot
+     recibe en cada consulta. Si vuelve a cambiar, esto cambia solo. */
+  const FUENTE = path.join(RAIZ, 'netlify', 'functions', 'disponibilidad.mjs');
+  const servidor = fs.readFileSync(FUENTE, 'utf8');
+
+  function materialDe(empuja) {
+    const bloque = servidor.slice(servidor.indexOf(empuja));
+    const m = bloque.match(/material:\s*'([^']+)'/);
+    if (!m) throw new Error(`no se encontró el material de ${empuja} en ${FUENTE}`);
+    return m[1];
+  }
+  const matBrazalete = materialDe('brazaletes.push(');
+  const matCharm = materialDe('piezas.push(');
+  const es925 = s => /925/.test(s);
+
+  console.log(`  · según el servidor: charm «${matCharm}» · brazalete «${matBrazalete}»`);
+
+  comprobar(es925(matCharm),
+    'el servidor sigue diciendo que los charms son Plata 925',
+    'si esto cambia, revisa el resto de esta sección antes que nada');
 
   comprobar(/Plata Esterlina 925/i.test(prompt),
-    'afirma Plata Esterlina 925');
+    'el prompt nombra la Plata Esterlina 925 de los charms');
 
-  /* Las palabras del material viejo pueden aparecer, pero SOLO en una línea que
-     las prohíba o que las contraste con la verdad nueva. Buscarlas a secas da
-     falso positivo justo en las reglas que arreglan el problema —pasó en la
-     primera corrida de esta prueba—.
-     
-     Es una heurística por palabras, no un analizador: lo que de verdad protege
-     es que una AFIRMACIÓN de enchapado no llevaría ninguna de estas señales
-     encima. Al añadir una regla nueva sobre material, escribirla con alguna. */
-  const prohibidas = /ba[ñn]ado|ba[ñn]o de plata|lat[oó]n|enchapad/i;
-  const contexto = /NUNCA|no digas|dejo de ser cierto|de memoria|Plata 925|925 legitima|925 leg[ií]tima/i;
-  const sueltas = prompt.split('\n').filter(l =>
-    prohibidas.test(l) && !contexto.test(l));
-  comprobar(sueltas.length === 0,
-    'no describe ninguna pieza como bañada, enchapada o de latón',
-    sueltas.length ? sueltas[0].trim().slice(0, 90) : undefined);
+  /* Una AFIRMACIÓN sobre el brazalete es una línea que lo nombra junto al
+     material, sin ninguna señal de que lo esté prohibiendo o corrigiendo. Las
+     reglas que arreglan el problema nombran las dos cosas a la vez —«el
+     brazalete NO es Plata 925: es baño de plata»— y contarlas como afirmación
+     fue un falso positivo real en la primera corrida de esta prueba. */
+  const niega = /NUNCA|NO es|no es\b|no digas|jamas|jam[áa]s|dejo de ser|dej[óo] de ser|en vez de|de memoria/i;
+
+  /* Por trozo de frase, no por línea entera. La primera línea del prompt dice
+     «charms en Plata Esterlina 925 y brazaletes con bano de plata»: nombra las
+     dos familias y los dos materiales, y es exactamente la frase correcta. Una
+     línea que contenga «brazalete» y «925» no afirma nada por sí sola — hay que
+     mirar a qué familia está pegado cada material. */
+  const trozos = prompt.split('\n')
+    .filter(l => !niega.test(l))
+    .flatMap(l => l.split(/[,;:.·]| y /))
+    .filter(s => /brazalete|pulsera/i.test(s));
+
+  const dicen925 = trozos.filter(s => /925|plata esterlina/i.test(s));
+  const dicenBanio = trozos.filter(s => /ba[ñn]o de plata|ba[ñn]ad|enchapad|lat[oó]n/i.test(s));
+
+  const [debe, noDebe, comoSeLlama] = es925(matBrazalete)
+    ? [dicen925, dicenBanio, 'Plata 925']
+    : [dicenBanio, dicen925, 'baño de plata'];
+
+  comprobar(debe.length > 0,
+    `el prompt afirma que el brazalete es ${comoSeLlama}, igual que el servidor`);
+
+  comprobar(noDebe.length === 0,
+    `y ninguna línea le atribuye al brazalete lo contrario`,
+    noDebe.length ? noDebe[0].trim().slice(0, 100) : undefined);
+
+  /* El error de fondo de las dos veces no fue un material equivocado: fue una
+     frase que mete a las dos familias en el mismo saco. Mientras sean
+     materiales distintos, el prompt no puede tener ninguna. */
+  if (es925(matCharm) !== es925(matBrazalete)) {
+    const enElMismoSaco = prompt.split('\n').filter(l =>
+      /toda? la joyeria|toda? la joyer[íi]a|todo (lo que vendemos|es plata)|todo el catalogo|todo el cat[áa]logo/i.test(l) &&
+      /925|plata/i.test(l) && !niega.test(l));
+    comprobar(enElMismoSaco.length === 0,
+      'no mete charms y brazaletes en el mismo saco: son materiales distintos',
+      enElMismoSaco.length ? enElMismoSaco[0].trim().slice(0, 100) : undefined);
+  }
 
   comprobar(/campo `?material`?/i.test(prompt),
     'manda al campo material del servidor en vez de afirmarlo de memoria');

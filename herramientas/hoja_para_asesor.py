@@ -14,8 +14,11 @@ con un error visible:
   · El asesor cobraba de palabra un envío que era gratis.
   · Negaba que se aceptara Addi, con el botón de Addi de la tienda llevando a
     esa misma conversación.
-  · Decía que los brazaletes eran baño de plata después de que pasaran a ser
-    Plata 925 —que es el motivo por el que subieron de precio—.
+  · Se equivocó con el material de los brazaletes en las dos direcciones. El
+    18 de septiembre pasaron a Plata 925 y el texto seguía diciendo baño; el 22
+    volvieron a baño de plata, porque el dato del proveedor era erróneo, y el
+    texto ya decía 925. Un documento que afirma el material de memoria se
+    equivoca en cada giro, y este giró dos veces en cinco días.
   · No sabía explicar las promociones, que son el mejor argumento de venta.
 
 Todos se descubrieron porque alguien leyó un chat, no porque algo fallara.
@@ -39,6 +42,7 @@ llamar a una URL.
 import json
 import pathlib
 import sys
+import re
 from datetime import date
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
@@ -64,6 +68,22 @@ def pesos(n):
     return '$' + f'{n:,}'.replace(',', '.')
 
 
+def materiales():
+    """Los dos materiales, leídos del único sitio donde son dato y no prosa: los
+    campos `material` de `disponibilidad.mjs`, que es lo que el bot y la ficha de
+    producto reciben en cada consulta. Escribirlos a mano aquí sería fabricar la
+    quinta copia, y esta es justo la que giró dos veces."""
+    src = (RAIZ / 'netlify' / 'functions' / 'disponibilidad.mjs').read_text(encoding='utf-8')
+
+    def tras(empuja):
+        m = re.search(r"material:\s*'([^']+)'", src[src.index(empuja):])
+        if not m:
+            sys.exit(f'no se encontró el material de {empuja} en disponibilidad.mjs')
+        return m.group(1)
+
+    return tras('piezas.push('), tras('brazaletes.push(')
+
+
 def unidades(item):
     """Un charm cuenta por pieza y un brazalete por talla. Leer `stock` a secas
     da CERO para los 18 brazaletes sin dar ningún error — la trampa ya cazada en
@@ -84,6 +104,9 @@ def main():
     inv = json.loads((RAIZ / 'assets' / 'stock.json').read_text(encoding='utf-8'))
     items = inv.get('items', inv)
     reglas = cat['reglas']
+    mat_charm, mat_brazalete = materiales()
+    charm_es_plata = '925' in mat_charm
+    brazalete_es_plata = '925' in mat_brazalete
     hoy = date.today().isoformat()
 
     DESTINO.mkdir(parents=True, exist_ok=True)
@@ -136,10 +159,13 @@ def main():
          'del equipo escribe enseguida. Eso no es lo mismo que negar. Ya pasó: '
          'preguntaron si aceptábamos Addi, se dijo que no, y sí se acepta.'),
         ('Nunca describas el material de memoria',
-         'Toda la joyería —charms Y brazaletes— es Plata Esterlina 925 legítima '
-         'con sello S925 grabado. Los brazaletes fueron enchapados en el pasado '
-         'y dejaron de serlo: decir «baño de plata» hoy es falso y además regala '
-         'el motivo por el que subieron de precio.'),
+         f'No son el mismo material y meterlos en el mismo saco es publicidad '
+         f'engañosa: los charms son <b>{mat_charm}</b> y los brazaletes son '
+         f'<b>{mat_brazalete}</b>. Nunca digas «todo es plata». Si te preguntan '
+         'directo, dilo de frente: el dije es plata, el brazalete es baño de '
+         'plata de la mejor calidad, y por eso el conjunto sale a este precio. '
+         'Esto cambió dos veces en cinco días, así que no lo digas de memoria '
+         'aunque creas recordarlo.'),
         ('Nunca calcules un total',
          'Explica los porcentajes de descuento, jamás los pesos de una '
          'combinación concreta, ni siquiera aproximados. Un total que no cuadre '
@@ -152,7 +178,7 @@ def main():
          'como «algo parecido en morado»; se compra una pieza con nombre.'),
         ('Busca por la idea, no por el nombre literal',
          'La clienta no usa los nombres del catálogo. Pidió una «libélula» y la '
-         'pieza que le servía se llama Luciérnaga «You Are My Light»: mismo '
+         'pieza que le servía se llama Luciérnaga Evangeline: mismo '
          'grupo, mismo precio, con unidades. Antes de decir que algo no existe, '
          'revisa el catálogo por concepto —qué animal, qué símbolo, qué tema—.'),
         ('Nunca pases datos bancarios',
@@ -168,14 +194,26 @@ def main():
     # ── Materiales ──
     A(Paragraph('Materiales', H1))
     A(Paragraph(
-        '<b>Todo es Plata Esterlina 925 legítima</b>, con el sello S925 grabado '
-        'en cada pieza: tanto los charms como los brazaletes. Libre de níquel y '
-        'plomo, hipoalergénica, apta para pieles sensibles.', P))
+        '<b>Son dos materiales distintos y hay que decirlo sin ambigüedades.</b> '
+        f'Los charms, clips y cadenas de seguridad son <b>{mat_charm}</b>, con '
+        f'sello grabado. Los brazaletes son <b>{mat_brazalete}</b>: así '
+        'consiguen el peso, el brillo y el acabado de la joyería fina a un '
+        'precio accesible. Ambos libres de níquel y plomo, hipoalergénicos, '
+        'aptos para pieles sensibles.', P))
     A(Paragraph(
-        '<b>Sobre la oxidación, y conviene adelantarse.</b> La plata 925 sí se '
-        'oxida con el tiempo al contacto con el aire. No es un defecto: es una '
-        'de las señales de que es plata de verdad. El brillo se recupera con un '
-        'paño de joyería.', P))
+        '<b>Nunca digas que «todo es plata».</b> Afirmar que el brazalete es '
+        'plata 925 es publicidad engañosa sobre el producto que más margen '
+        'deja, y la clienta lo nota al abrir la caja.', P)
+      if charm_es_plata and not brazalete_es_plata else
+      Paragraph(
+        '<b>Copia el material de la ficha</b>, no lo escribas de memoria.', P))
+    A(Paragraph(
+        '<b>Sobre la oxidación, y conviene adelantarse.</b> Depende de la pieza. '
+        'La plata 925 de los charms sí se oxida con el tiempo al contacto con el '
+        'aire: no es un defecto, es una de las señales de que es plata de verdad. '
+        'El baño de los brazaletes no se oxida solo, gracias al e-coating, pero '
+        'puede perder brillo con humedad, perfumes, cremas o sudor. En los dos '
+        'casos el brillo se recupera con el paño.', P))
     A(Paragraph(
         '<b>Cuidado:</b> no mojarla, perfumarse antes de ponérsela, guardarla '
         'seca en su bolsa, quitársela para bañarse, nadar o hacer ejercicio.', P))
@@ -197,7 +235,7 @@ def main():
         if desc == 0:
             continue
         etiqueta = f'{n} o más' if n == len(reglas['escalaCharms']) - 1 else str(n)
-        extra = ' — «lleva 4 y paga 3»' if desc >= 0.25 else ''
+        extra = ' — «paga 3 y llévate el cuarto gratis»' if desc >= 0.25 else ''
         escala.append([Paragraph(etiqueta, P),
                        Paragraph(f'<b>{round(desc * 100)}%</b>{extra}', P),
                        Paragraph('El total de charms, no solo el último', P)])
@@ -219,19 +257,24 @@ def main():
     A(Paragraph('Medios de pago', H2))
     A(Paragraph(
         'Transferencia a <b>Bancolombia, Nequi y Daviplata</b>; pagos en línea '
-        'con <b>PSE</b>; <b>tarjetas</b> de crédito y débito; financiación a '
-        'cuotas con <b>Addi</b>; y <b>contraentrega</b> donde la transportadora '
-        'lo permite.', P))
+        'con <b>PSE</b>; <b>tarjetas</b> de crédito y débito; y '
+        '<b>contraentrega</b> donde la transportadora lo permite. Addi también '
+        'se acepta, pero va por otro camino: tiene su propio párrafo abajo y no '
+        'entra en esta lista.', P))
     A(Paragraph(
-        '<b>Todos se eligen dentro del checkout</b>, en la pantalla de pago. La '
+        '<b>Esos se eligen dentro del checkout</b> —Addi no—, en la pantalla de '
+        'pago. La '
         'clienta no transfiere a mano ni manda comprobante. El pago lo procesa '
         '<b>Wompi (Bancolombia)</b>, no la tienda —esa frase se puede decir tal '
         'cual y responde sola la pregunta de si es seguro—. Los datos de la '
         'tarjeta no pasan por la tienda en ningún momento.', P))
     A(Paragraph(
-        '<b>Addi es la excepción:</b> sí se acepta, pero no se procesa solo en '
-        'el checkout. Se gestiona por WhatsApp; el equipo le pasa el enlace de '
-        'Addi para aprobar el cupo. Nunca digas que no lo manejamos.', P))
+        '<b>Addi: hasta 3 cuotas sin interés.</b> Esa es la frase que la '
+        'clienta lee en la página, dila igual. Pero <b>Addi NO está en la '
+        'pasarela de pago</b> —Wompi no lo soporta— y en el checkout no hay '
+        'ningún botón de Addi: se coordina a mano por WhatsApp, y el equipo le '
+        'pasa el enlace para aprobar el cupo. Nunca la mandes a buscarlo en la '
+        'pantalla de pago, y nunca digas que no lo manejamos.', P))
 
     A(Paragraph('Envíos', H2))
     gratis = reglas['envioGratisDesde'] == 0
@@ -255,12 +298,14 @@ def main():
 
     A(Paragraph('Empaque, devoluciones y garantía', H1))
     A(Paragraph(
-        '<b>Caja básica incluida y sin costo</b> en todos los pedidos, junto con '
-        'su bolsa. <b>No existe hoy ningún empaque de pago en la página</b>: '
-        'había un Empaque Premium y se retiró, así que no lo menciones ni lo '
-        'sumes a un pedido. Sí hay cajas premium fuera de la web; si preguntan, '
-        'el equipo les pasa foto y precio. En el checkout se puede escribir una '
-        'dedicatoria, y va a mano en la tarjeta, sin costo.', P))
+        '<b>Con cada pedido van tres cosas gratis</b>, y están anunciadas en la '
+        'página: <b>caja de lujo</b> con su bolsa, <b>paño</b> para limpiar la '
+        'plata, y <b>tarjeta con dedicatoria</b> —la dedicatoria es opcional, se '
+        'escribe en el checkout y va a mano—. Di «caja de lujo», que son las '
+        'palabras de la página; «caja básica» suena a que le llega la mala. '
+        '<b>No ofrezcas ningún empaque de pago:</b> no existe ninguno, había un '
+        'Empaque Premium y se retiró, y ofrecer otra caja por encima le hace '
+        'dudar de la que sí le va a llegar.', P))
     A(Paragraph(
         '<b>Cambio de talla:</b> 5 días hábiles desde la entrega, pieza sin uso y '
         'en su empaque. Es distinto de devolver: se queda con la pulsera y solo '

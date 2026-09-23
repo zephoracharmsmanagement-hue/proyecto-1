@@ -1,5 +1,20 @@
 # Workflows de n8n
 
+> **`prompt-asesora.md` es el prompt del bot que está atendiendo clientas
+> ahora mismo**, copiado carácter por carácter del nodo `Asesora Zephora` del
+> workflow `74TjEtDnn940jh9k`, con la versión publicada anotada arriba del todo.
+> `pruebas/prompt-bot.js` lo contrasta contra `catalogo.json` y
+> `disponibilidad.mjs` en cada corrida.
+>
+> No lo confundas con
+> [`../prompts/asesor-whatsapp.md`](../prompts/asesor-whatsapp.md), que es otra
+> cosa —un asesor en modo borrador que nunca se desplegó— y que ya se editó una
+> vez por error creyendo que era este.
+>
+> **Editar este archivo no cambia el bot.** El bot vive en n8n; hay que
+> actualizarlo allá y publicar. Y al revés: quien toque el prompt en n8n tiene
+> que traerlo aquí, o la prueba revisa un texto que ya nadie usa.
+
 Aquí van los workflows **exportados en JSON**. Un workflow que solo existe
 dentro del servidor de n8n no está versionado, no se puede revisar en un diff y
 no se puede recuperar si alguien lo edita mal.

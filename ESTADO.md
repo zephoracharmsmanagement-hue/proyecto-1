@@ -465,6 +465,40 @@ leyendo la versión **publicada**, no el borrador; los otros 28 nodos intactos.
 > dos copias distintas**. Cambiar `automatizaciones/prompts/asesor-whatsapp.md`
 > no toca el bot en vivo, y el bot no se entera de un despliegue de la web.
 
+**Corrección del 2026-09-23, y es la parte que importa:** ese recordatorio
+señala el archivo equivocado. `automatizaciones/prompts/asesor-whatsapp.md`
+**no es** la copia del bot: es otro artefacto, un asesor en modo borrador con
+`{{DISPONIBILIDAD_JSON}}` pegado a mano que nunca se desplegó. La copia exacta
+del prompt en producción —carácter por carácter, con la versión publicada
+anotada— vive en `automatizaciones/n8n/prompt-asesora.md`, y la revisa
+`pruebas/prompt-bot.js` en cada corrida.
+
+O sea que **hay dos archivos que parecen ser el prompt del asesor de WhatsApp**,
+con nombres lo bastante parecidos como para confundirlos, y ya se confundieron.
+El bot quedó bien porque se editó también en n8n, por otra vía; si solo se
+hubiera tocado el archivo, la corrección no habría llegado a ninguna clienta.
+Puestos avisos cruzados en los dos `README.md` de esas carpetas. No se
+fusionaron los archivos porque no son lo mismo: uno está vivo y el otro es una
+idea guardada.
+
+**Lo que se arregló ese mismo día**, todo copias que habían pasado a afirmar
+925 en el giro del 18 y seguían afirmándolo después del giro del 22:
+
+- `automatizaciones/n8n/prompt-asesora.md` — sincronizado con la versión viva
+  `5093ad1a`. (El bot en sí ya estaba bien.)
+- `pruebas/prompt-bot.js` — **la prueba afirmaba la falsedad y la exigía.**
+  Escribía la verdad a mano, así que en el segundo giro no solo no avisó: pasó
+  a poner en rojo cualquier prompt correcto. Ahora lee los dos materiales de los
+  campos `material` de `disponibilidad.mjs` y comprueba la dirección, sea cual
+  sea. Si vuelve a girar, la prueba gira sola. Verificado con el prompt viejo
+  delante: tres comprobaciones en rojo.
+- `herramientas/hoja_para_asesor.py` y su PDF — es lo que se le carga a un
+  asesor de IA externo, así que estaba diciéndole a una clienta que el brazalete
+  era plata. Mismo arreglo de raíz: el material sale de `disponibilidad.mjs`.
+  **Borrado el PDF del 20**, que ya no se puede usar. El del 23 lo reemplaza.
+- `README.md` — el bloque de materiales decía «todo es plata» en el documento
+  de entrada del repo.
+
 ### 2026-09-22 (tarde) · Once textos que se escaparon, y la ficha que se «trababa»
 
 El propietario lo encontró mirando el sitio en su iPhone, con la suite en
