@@ -562,14 +562,14 @@
     },
     "pulsera-copo-de-nieve": {
       "tipo": "pulsera",
-      "precio": 118000,
+      "precio": 78000,
       "tallas": {
         "18": 2
       }
     },
     "pulsera-corazon-luminoso": {
       "tipo": "pulsera",
-      "precio": 138000,
+      "precio": 82000,
       "tallas": {
         "19": 1,
         "20": 1
@@ -577,14 +577,14 @@
     },
     "pulsera-trebol-verde": {
       "tipo": "pulsera",
-      "precio": 118000,
+      "precio": 78000,
       "tallas": {
         "20": 2
       }
     },
     "pulsera-mano-de-hamsa": {
       "tipo": "pulsera",
-      "precio": 138000,
+      "precio": 82000,
       "tallas": {
         "18": 2,
         "20": 1
@@ -592,14 +592,14 @@
     },
     "pulsera-sol-con-cadena-seguridad": {
       "tipo": "pulsera",
-      "precio": 158000,
+      "precio": 88000,
       "tallas": {
         "19": 2
       }
     },
     "pulsera-corazon-rosado-con-cadena": {
       "tipo": "pulsera",
-      "precio": 158000,
+      "precio": 88000,
       "tallas": {
         "19": 1,
         "21": 1
@@ -607,7 +607,7 @@
     },
     "pulsera-corazon-pave": {
       "tipo": "pulsera",
-      "precio": 138000,
+      "precio": 82000,
       "tallas": {
         "18": 1,
         "19": 1
@@ -615,7 +615,7 @@
     },
     "pulsera-corazon-pave-pequeno": {
       "tipo": "pulsera",
-      "precio": 118000,
+      "precio": 78000,
       "tallas": {
         "17": 1,
         "18": 1,
@@ -625,7 +625,7 @@
     },
     "pulsera-corazon-con-diamante": {
       "tipo": "pulsera",
-      "precio": 118000,
+      "precio": 78000,
       "tallas": {
         "17": 1,
         "19": 1,
@@ -635,7 +635,7 @@
     },
     "pulsera-corazon-liso": {
       "tipo": "pulsera",
-      "precio": 118000,
+      "precio": 78000,
       "tallas": {
         "17": 2,
         "18": 2,
@@ -645,7 +645,7 @@
     },
     "pulsera-clasica-cierre-barril": {
       "tipo": "pulsera",
-      "precio": 118000,
+      "precio": 78000,
       "tallas": {
         "20": 3,
         "21": 3
@@ -653,7 +653,7 @@
     },
     "pulsera-corona-con-cristales": {
       "tipo": "pulsera",
-      "precio": 138000,
+      "precio": 82000,
       "tallas": {
         "17": 2,
         "19": 2,
@@ -662,7 +662,7 @@
     },
     "pulsera-corona-pave": {
       "tipo": "pulsera",
-      "precio": 138000,
+      "precio": 82000,
       "tallas": {
         "17": 2,
         "18": 2,
@@ -672,7 +672,7 @@
     },
     "pulsera-avengers": {
       "tipo": "pulsera",
-      "precio": 118000,
+      "precio": 78000,
       "tallas": {
         "18": 8,
         "19": 8,
@@ -681,14 +681,14 @@
     },
     "pulsera-mono-rosa-con-cadena": {
       "tipo": "pulsera",
-      "precio": 158000,
+      "precio": 88000,
       "tallas": {
         "18": 1
       }
     },
     "pulsera-candado-rosa-con-cadena": {
       "tipo": "pulsera",
-      "precio": 158000,
+      "precio": 88000,
       "tallas": {
         "20": 1
       }
@@ -827,12 +827,12 @@
     },
     "pulsera-mickey-mouse-pave": {
       "tipo": "pulsera",
-      "precio": 138000,
+      "precio": 82000,
       "tallas": {}
     },
     "pulsera-rosa-clasica": {
       "tipo": "pulsera",
-      "precio": 118000,
+      "precio": 78000,
       "tallas": {}
     },
     "cenicienta": {

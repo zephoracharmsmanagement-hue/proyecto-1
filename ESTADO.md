@@ -63,9 +63,10 @@ se puede verificar desde aquí: eso lo hace el propietario.
 
 Último despliegue: `6aaeb1e2`, commit `1570d5a`, 2026-09-19 16:01 UTC.
 
-- **Todo el catálogo es Plata Esterlina 925 con sello S925 grabado**, brazaletes
-  incluidos, y los tres niveles de brazalete valen **$118.000 / $138.000 /
-  $158.000**. Ver la entrada del 2026-09-18.
+- **Los charms son Plata Esterlina 925 con sello grabado; los brazaletes son
+  baño de plata** sobre base de latón de calidad joyería con e-coating. Los tres
+  niveles de brazalete valen **$78.000 / $82.000 / $88.000**. Revertido el
+  2026-09-22 — ver esa entrada antes de tocar nada de material.
 - **`tienda.css` y `tienda.js`** — el CSS y el motor del carrito salieron de
   `index.html`. Los comparten la portada y todas las páginas generadas.
 - **`coleccion-marvel.html`** — 15 piezas, generada.
@@ -157,10 +158,13 @@ cambios, y solo entonces desplegar.
    conteo estático de build, no lo apartado en vivo —igual que el resto de
    `tienda.js`—, así que puede tardar hasta el próximo build en reflejar una
    venta que agote justo en ese momento.
-3. **Creativo nuevo para la pauta.** Dos argumentos verdaderos que no están en
-   ningún anuncio: todo es Plata 925 con sello, y **con brazalete el tercer dije
-   cuesta $32.050 en vez de $95.000**. Los seis anuncios activos no mencionan
-   precio ni material, así que no hubo que pausar ninguno.
+3. **Creativo nuevo para la pauta.** El argumento que queda en pie: **con
+   brazalete el tercer dije cuesta $44.050 en vez de $95.000** (recalculado con
+   `calcular()` el 2026-09-22; con el brazalete a $118.000 eran $32.050 — al
+   bajar el brazalete, el 30% que se le descuenta pesa menos, así que el tercer
+   dije sale *más* caro). El de «todo es Plata 925» ya no es cierto y no puede
+   usarse. Los seis anuncios activos no mencionan precio ni material, así que
+   tampoco ahora hubo que pausar ninguno.
 4. **Reponer inventario.** Sigue siendo el cuello de botella real del negocio,
    no la pauta: faltan 14 letras que nunca se compraron. Ver `CLAUDE.md`.
 5. **Las secciones que faltan:** Brazaletes, Destacados y «Para regalar».
@@ -372,6 +376,185 @@ cabecera** (eran 5: las dos nuevas son el `no-cache` de `tienda.css` y
 | `8e234d9` | **Brazaletes a Plata 925 y precios a $118.000 / $138.000 / $158.000** |
 | `1d3b1e9` | Corrige el apunte de Addi: sí se acepta, fuera de la pasarela |
 | `3193789` | Foto de la Pulsera Avengers en la portada de la colección |
+
+
+### 2026-09-22 · Revertido: los brazaletes vuelven a baño de plata, pisos a 78/82/88
+
+El dato del proveedor del 2026-09-18 era erróneo. **Los charms siguen siendo
+Plata Esterlina 925 con sello grabado; los brazaletes son baño de plata** sobre
+base de latón de calidad joyería con capa e-coating, como antes de `8e234d9`.
+Y los tres niveles pasan de $118.000 / $138.000 / $158.000 a
+**$78.000 / $82.000 / $88.000**.
+
+**Por qué este cambio era más peligroso que el del 18**, y qué se hizo:
+
+1. **Los tres pisos nuevos coinciden con precios que ya tienen 30 charms** — 5
+   en $78.000, **22 en $82.000**, 3 en $88.000. Un `sed` por número habría
+   movido 22 charms sin error visible, y **contar piezas por precio tampoco
+   sirve para verificar**, porque no distingue un brazalete de un charm. Se
+   cambió y se verificó **por `id`**, los 18. Comprobado: 0 charms movidos.
+2. **El material iba en dirección contraria al precio.** De las 148 apariciones
+   de «Plata 925», la mayoría son charms, que siguen siéndolo: un
+   buscar-y-reemplazar global habría borrado la afirmación *correcta* de 117
+   piezas. El discriminador es `pc-mark--b` (18 brazaletes) frente a `pc-mark`
+   (91 charms) en `index.html`, y el `if(esB)` en `tienda.js`, `checkout.html`
+   y `disponibilidad.mjs`.
+3. **El texto viejo estaba íntegro en git**, en `8e234d9^`. La parte de material
+   se restauró desde ahí en vez de reescribirla — importa sobre todo en la
+   respuesta de níquel/hipoalergenia, que es la única con consecuencia
+   sanitaria y no se debe redactar de nuevo a ojo.
+
+**Lo que había publicado y era falso**, ya corregido: la FAQ afirmaba
+literalmente **«No son baño de plata: son plata»**, y esa frase estaba
+duplicada en el **JSON-LD `FAQPage`**, que es lo que indexa Google; y
+`terminos-y-condiciones.html` declaraba el material en **cláusula contractual**,
+con la Ley 1480 citada en la misma página. Los dos regenerados y verificados.
+
+**Consecuencia comercial que conviene no pasar por alto:** el argumento del
+tercer dije se debilita. Pasa de $32.050 a **$44.050**, porque el 30% de
+descuento del brazalete se calcula sobre un brazalete más barato.
+
+**Cuarta fuente de precio, y casi se escapa: `stock.json`.** No la escribe
+`extraer_catalogo.py` —la mantiene `herramientas/reponer.mjs` desde la hoja de
+cálculo— así que regenerar el catálogo **no la toca**. Y sí lleva `precio`:
+`disponibilidad.mjs:104` lo lee de ahí, que es **lo que el bot de WhatsApp le
+cotiza a la clienta**. Sin corregirla, el bot habría dicho $118.000 mientras la
+web cobraba $78.000. Se corrigió por `id`, **sin tocar `generado`**, que es el
+interruptor con el que `_inventario.mjs` detecta un conteo nuevo: cambiarlo
+habría reseteado la cuenta de vendidos.
+
+> Y la lección de verificación, que es peor que el fallo: la primera
+> comprobación cruzada **dio verde sin comprobar nada**. `items` de
+> `stock.json` es un diccionario por `id`, y se leyó como lista de objetos con
+> campo `id`; el mapa salió vacío y los 135 contrastes se saltaron en silencio.
+> Una verificación que no puede fallar no es una verificación: **que imprima
+> cuántas piezas comparó**, no solo que no encontró nada.
+
+Verificado: 18 brazaletes a 78/82/88 coincidiendo en `tienda.js`,
+`catalogo.json` y `stock.json` — 135 piezas contrastadas, 0 desajustes · 0 charms con precio movido ·
+0 sellos `pc-mark--b` diciendo 925, 91 sellos de charm intactos · `precios.js`,
+`stock.js`, `checkout.js`, `disponibilidad.js`, `enlace.js`, `armar-carrito.js`
+en verde · ficha de brazalete, kits, marvel y FAQ comprobadas en el navegador,
+sin errores de JS. `dudas.js` y `regresion.js` siguen fallando por entorno
+(timeout antes de la primera aserción, 0 comprobaciones corridas), así que la
+guarda invertida de `dudas.js` se verificó a mano contra el DOM.
+
+**Al mezclar con `main` apareció el riesgo documentado del repo**, y conviene
+saber cómo se resolvió: `main` traía 13 commits, entre ellos un conteo físico
+de inventario del 2026-09-22 y el renombrado de la línea de muranos
+(`Bola` → `Murano`) más `Luciérnaga Evangeline`. Ocho archivos se tocaban por
+ambos lados, **incluidos los tres que llevan precio**. El único conflicto que
+git marcó fue la tabla `DATA` de `tienda.js`; los otros siete los fusionó solo,
+que es justo el modo de fallo peligroso. Se resolvió tomando **`main` como
+base** —sus 4 renombrados y su conteo— y reaplicando encima **solo los 18
+precios de brazalete, por `id`**. Después se regeneró todo lo derivado y se
+contrastaron de nuevo las 135 piezas: 0 desajustes, los nombres de `main`
+intactos y los 18 precios puestos.
+
+**Desplegado y publicado el 2026-09-22.** Despliegue `6ab30993`, commit
+`965a206`, publicado a las 23:05 UTC en 19 s, 16 funciones y 13 archivos
+nuevos. Y **el bot de WhatsApp quedó actualizado en la misma tanda**, que es lo
+que evita la contradicción: el prompt en vivo (workflow `74TjEtDnn940jh9k`,
+versión activa `5093ad1a`) afirmaba que los brazaletes eran 925 en cinco
+puntos y, peor, **prohibía expresamente decir «baño de plata»** y traía el
+ejemplo de la regla dura invertido. Corregidos los cinco, con la sección de
+oxidación distinguiendo ahora la plata del baño con e-coating. Verificado
+leyendo la versión **publicada**, no el borrador; los otros 28 nodos intactos.
+
+> Recordatorio para la próxima: **el archivo del repo y el prompt del bot son
+> dos copias distintas**. Cambiar `automatizaciones/prompts/asesor-whatsapp.md`
+> no toca el bot en vivo, y el bot no se entera de un despliegue de la web.
+
+### 2026-09-22 (tarde) · Once textos que se escaparon, y la ficha que se «trababa»
+
+El propietario lo encontró mirando el sitio en su iPhone, con la suite en
+verde. **Las dos cosas que fallaron son las dos que esta sección ya advertía.**
+
+**1 · Textos.** La corrección de la mañana cambió el material donde el código
+bifurca por tipo de pieza (`pc-mark--b`, `if(esB)`, `disponibilidad.mjs`) y
+las páginas generadas, pero **dejó intactas las frases de marketing que meten
+a los dos materiales en una sola afirmación**: el título y los cuatro
+metadatos, el JSON-LD, la barra de beneficios («Charms y brazaletes en Plata
+Esterlina 925»), la cabecera **PASO UNO · El brazalete** («En Plata Esterlina
+925 legítima, con el sello S925 grabado»), la lista de compra tranquila
+(«Materiales garantizados: … tanto en charms como en brazaletes») y el pie.
+Once sitios.
+
+> **Por qué no los vi:** verifiqué con `grep` por las cadenas que sabía que
+> había cambiado, y conté sellos. Ninguna de esas comprobaciones puede
+> encontrar una frase que nunca toqué. **La búsqueda buena no es «¿cambié lo
+> que quería?» sino «¿queda algo que nombre brazalete y 925 en la misma
+> línea?»** — ese grep los saca los once de golpe, y es el que queda escrito
+> aquí para la próxima vez que cambie un material.
+
+También quedó un comentario en `index.html` que decía «la afirmación de
+material no se toca — decisión del propietario, 2026-09-18» y congelaba la
+versión vieja. Reescrito para que diga lo contrario: esa línea nombra **dos**
+materiales a propósito y unificarla vuelve a publicar la falsedad.
+
+**2 · La ficha se sentía trabada en iOS.** Dos causas sumadas, y ninguna
+aparece en las pruebas porque **ninguna es un error: es comportamiento
+correcto de CSS**.
+
+- `body{overflow:hidden}` **no bloquea el scroll en Safari de iOS**. La ficha
+  es `position:fixed`, así que el dedo arrastraba el fondo por debajo: se mueve
+  algo, pero no lo que estás mirando. Lo único que lo bloquea de verdad es
+  fijar el propio `body`, guardando y devolviendo la posición.
+- Y al devolverla, `html{scroll-behavior:smooth}` convertía el salto en **un
+  barrido de más de un segundo desde arriba**. Medido: al cerrar iba por 94 px
+  y solo llegaba a los 3.339 guardados pasado 1,2 s. Eso es literalmente «se
+  queda corrido». Se arregla con `behavior:'instant'`.
+- De paso, `overscroll-behavior:contain` en la capa y en la caja, y
+  `touch-action:pan-x` en la galería, para que arrastrar en vertical **sobre
+  la foto** lo reciba la ficha y no la tira horizontal.
+
+El bloqueo lo lleva ahora un **contador**, porque la ficha y la hoja del
+carrito lo comparten: cerrar la ficha abierta desde el carrito no debe soltar
+el fondo mientras el carrito siga abierto.
+
+Comprobado con navegador en iPhone 13 y Pixel 7: fondo no movible con la ficha
+abierta, posición recuperada exacta (3339 → 3339) medida a los 120 ms sin dar
+tiempo a ninguna animación, y el `body` vuelve a `static` tras dos aperturas
+seguidas. Las ocho pruebas del dinero, en verde.
+
+#### La causa de verdad de la ficha trabada: `display:grid` con `max-height`
+
+Lo de arriba (el bloqueo de fondo y el `behavior:'instant'`) era real y hacía
+falta, **pero no era esto**. El propietario volvió a reportarlo tras ese
+despliegue, con capturas donde la foto se queda clavada arriba y el texto pasa
+por debajo, cortado.
+
+`.fx-box` era `display:grid` con `max-height:90dvh`. **Una rejilla con alto
+máximo dimensiona sus filas automáticas contra el alto disponible, no contra su
+contenido.** Medido en iPhone: la ficha da 598 px, la foto 358 y el texto 836
+—1.194 en total—, pero las filas se apretaban hasta sumar **864**. Cada
+elemento desbordaba *su* fila y se pintaba sobre la siguiente. 330 px de
+solapamiento. El scroll funcionaba perfectamente; lo que estaba roto era la
+maquetación.
+
+En una sola columna no hay nada que rejillar: son dos bloques apilados.
+`display:block` de base, y la rejilla solo dentro de `@media(min-width:700px)`,
+que es donde de verdad hace falta para las dos columnas.
+
+Verificado: contenido 1.194 = desplazable 1.194 en iPhone 13 y 1.196 = 1.196 en
+Pixel 7, la foto sale de la pantalla al desplazar (33 → −367 px), y escritorio
+sigue a dos columnas. Revisado también **mirando la captura**, no solo los
+números.
+
+> **La lección, que es la misma tres veces hoy:** las tres veces el fallo lo
+> encontró el propietario mirando el sitio, con la suite en verde, y las tres
+> veces yo había verificado lo que había cambiado en vez de lo que el cliente
+> ve. Aquí además me quedé en la primera causa plausible —el scroll— y la
+> arreglé sin comprobar que fuera *la* causa. Medir `scrollHeight` contra la
+> suma de los hijos habría señalado la rejilla en un minuto.
+
+Para este caso queda una comprobación reproducible: **en la ficha, la suma de
+los altos de `.fx-ph` y `.fx-tx` tiene que ser igual al `scrollHeight` de
+`.fx-box`.** Si no cuadra, hay solapamiento, y ninguna prueba de datos lo ve.
+
+**Pendiente, y solo lo puede hacer el propietario:** comprar un brazalete de
+**$78.000** y confirmar que Wompi cobra exactamente eso. Es la única prueba de
+que `catalogo.json` se regeneró de verdad.
 
 ### Los brazaletes son Plata 925, no baño
 

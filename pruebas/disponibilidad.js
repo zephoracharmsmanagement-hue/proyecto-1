@@ -158,12 +158,13 @@ async function main() {
     const b = d.brazaletes[0];
     comprobar(/Plata Esterlina 925/.test(p.material),
       'los charms dicen Plata Esterlina 925');
-    /* Invertida el 2026-09-18: el proveedor confirmó que los brazaletes
-       también son S925 legítima con sello grabado, y la web se actualizó. La
-       guarda se queda —el material que el bot le dice a la clienta no puede
-       quedar a la deriva— pero ahora custodia la verdad nueva. */
-    comprobar(/925/.test(b.material) && !/baño/i.test(b.material),
-      'los brazaletes dicen Plata 925, igual que los charms');
+    /* Invertida dos veces. El 2026-09-18 se dio por bueno que los brazaletes
+       también eran 925; el 2026-09-22 se revirtió, porque el dato del
+       proveedor era erróneo. Que esta guarda haya cambiado de sentido dos
+       veces es justo la razón de que exista: el material que el bot le dice a
+       la clienta no puede quedar a la deriva. */
+    comprobar(/baño de plata/i.test(b.material) && !/925/.test(b.material),
+      'los brazaletes dicen baño de plata, NO 925');
 
     comprobar(d.piezas.every(x => x.nombre && x.nombre !== x.id),
       'todas las piezas traen nombre legible, no el id');

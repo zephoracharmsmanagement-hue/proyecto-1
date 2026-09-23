@@ -132,7 +132,7 @@ export default async (req) => {
         : null;
       brazaletes.push(Object.assign(base, {
         tipo: 'brazalete',
-        material: 'Plata Esterlina 925, con sello S925 grabado',
+        material: 'baño de plata sobre base de alta resistencia',
         tallas: libres ? tallas : null,
         agotado: libres ? hay === 0 : null,
       }));
