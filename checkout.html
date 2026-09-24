@@ -102,6 +102,9 @@ button{font-family:inherit}
 .env-bar.is-ok i{background:var(--bien)}
 .env-nota{margin:0;font-size:12.5px;line-height:1.5;color:#6d6070}
 .env-nota.is-ok{color:var(--bien)}
+/* El mismo verde de «Envío: Gratis», que es lo que aquí ya significa «esto no
+   te cuesta». Clase propia y no `is-ok`, que es un estado que escribe el JS. */
+.env-nota--regalo{color:var(--bien)}
 @media(prefers-reduced-motion:reduce){.env-bar i{transition:none}}
 
 /* Prueba social pegada al botón de pagar.
@@ -307,6 +310,7 @@ button{font-family:inherit}
         <div id="res-totales"></div>
           <div class="env-bar" id="env-bar" aria-hidden="true"><i></i></div>
           <p class="env-nota" id="env-nota"></p>
+          <p class="env-nota env-nota--regalo">🎁 Incluye caja de lujo, paño para tu plata y tarjeta con dedicatoria — sin costo.</p>
         <a class="res-editar" href="index.html#brazaletes">← Modificar mi selección</a>
       </div>
     </div>
@@ -535,6 +539,15 @@ button{font-family:inherit}
             <span id="nota-pago">Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.</span>
           </div>
 
+          <!-- Addi no está en accepted_payment_methods de Wompi (ver nota más
+               arriba), así que no puede ser una tercera opción del radiogroup:
+               prometer un botón que no existe se descubre en el peor momento.
+               Se coordina por chat, igual que en la portada. -->
+          <div class="aviso aviso--info" style="margin-top:10px">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span>¿Prefieres pagar a cuotas? Con Addi difieres tu compra hasta en 3 cuotas sin interés — lo coordinamos por <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">WhatsApp</a>.</span>
+          </div>
+
           <!-- Antes de la casilla de términos a propósito: aceptar es la última
                puerta antes de pagar, y una oferta entre el consentimiento y el
                botón añade un artículo al pedido después de haberlo aceptado. -->
@@ -597,6 +610,14 @@ const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 const track=(ev,d,id)=>{ if(typeof fbq!=='function') return;
   const datos=Object.assign({currency:'COP'},d||{});
   if(id) fbq('track',ev,datos,{eventID:String(id)}); else fbq('track',ev,datos); };
+
+/* Mismo patrón que tienda.js: cuenta el clic al enlace de Addi como Contact,
+   con `data-wa` como etiqueta, para saber cuánta gente lo pide desde el
+   checkout. Solo cubre enlaces que ya están en el HTML al cargar —el único
+   caso hoy—, no los que arma el JS de más abajo por texto. */
+document.querySelectorAll('a[href*="wa.me"][data-wa]').forEach(a=>{
+  a.addEventListener('click',()=>track('Contact',{content_name:'WhatsApp · '+a.dataset.wa}));
+});
 
 /* Las cookies que planta el pixel: _fbc guarda el clic en el anuncio y _fbp
    identifica el navegador. Viajan con el pedido porque el webhook de Wompi es
@@ -710,7 +731,7 @@ function lineas(c){
   const out=[];
   if(c.base) out.push({id:c.base.id,
     n:CAT.nombres[c.base.id].replace(/^Pulsera /,'Brazalete '),
-    m:'Plata 925'+(c.base.talla?' · Talla '+c.base.talla+' cm':''),
+    m:'Baño de plata'+(c.base.talla?' · Talla '+c.base.talla+' cm':''),
     p:CAT.precios[c.base.id]});
   const cuenta={};
   c.charms.forEach(id=>cuenta[id]=(cuenta[id]||0)+1);
