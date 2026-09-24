@@ -322,6 +322,35 @@ function main() {
       `y «${nombre}» sigue siendo el nombre que la clienta ve en la página`);
   }
 
+  console.log('\n9 · No promete un aviso o un silencio que no puede cumplir');
+
+  /* El bot le puede ofrecer a la clienta hablar con una persona, pero solo
+     tiene tres herramientas conectadas —disponibilidad, armar_carrito,
+     enviar_foto— y ninguna le avisa a nadie ni pausa la conversación. Esas dos
+     cosas existen en el workflow (aviso al propietario, marcar chat como
+     humano) pero se disparan solas por otros caminos —un envío fallido, que el
+     propietario escriba a mano—, nunca porque la IA lo decida. Si el prompt le
+     hace decir «ya avisé» o «no responderé más», es la misma familia de fallo
+     que Addi o el material: una promesa que el sistema no respalda. */
+  const prometeAviso = /ya (le )?avis[eé]|ya (le )?not|ya (le )?dej[eé] la notificaci[oó]n/i;
+  const prometeSilencio = /no (te )?volver[eé] a responder|no enviar[eé] m[aá]s respuestas|me quedar[eé] (en silencio|callad)/i;
+
+  const lineasAviso = prompt.split('\n').filter(l => prometeAviso.test(l));
+  comprobar(lineasAviso.length === 0,
+    'no hay ninguna frase de «ya avisé», que el bot no puede cumplir',
+    lineasAviso.length ? lineasAviso[0].trim().slice(0, 90) : undefined);
+
+  const lineasSilencio = prompt.split('\n').filter(l => prometeSilencio.test(l));
+  comprobar(lineasSilencio.length === 0,
+    'no hay ninguna promesa de silencio, que el bot tampoco puede cumplir',
+    lineasSilencio.length ? lineasSilencio[0].trim().slice(0, 90) : undefined);
+
+  comprobar(/no tienes forma de avisarle a nadie|no es una herramienta que tengas/i.test(prompt),
+    'el propio prompt le explica a la IA por qué no debe prometerlo');
+
+  comprobar(/en breve (te )?escribe|en breve te escriben/i.test(prompt),
+    'ofrece la alternativa honesta: el equipo revisa el chat y escribe en breve');
+
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
     : '\nPrompt del bot en verde ✓');
