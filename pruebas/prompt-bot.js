@@ -351,6 +351,38 @@ function main() {
   comprobar(/en breve (te )?escribe|en breve te escriben/i.test(prompt),
     'ofrece la alternativa honesta: el equipo revisa el chat y escribe en breve');
 
+  console.log('\n10 · El saludo no repite su propia pregunta');
+
+  /* Casi toda clienta llega por un botón de la página con un mensaje ya
+     escrito. Ninguno de esos botones pregunta algo concreto —dicen que hay una
+     duda, no cuál es—, y el saludo ya invita a contarla. Una clienta real
+     escribió el genérico y el bot, siguiendo la regla de «si ya preguntó algo,
+     respondele debajo», le agregó una segunda pregunta idéntica a la que el
+     saludo acababa de hacer. Se vio robótico en la captura que lo reportó.
+
+     Los textos se leen de los propios botones en index.html —vía el enlace
+     wa.me, que es la fuente real— para que esto no se desactualice si algún
+     día cambia la redacción del botón. */
+  const html = fs.readFileSync(path.join(RAIZ, 'index.html'), 'utf8');
+  const aperturas = [...html.matchAll(/wa\.me\/\d+\?text=([^"]+)"/g)]
+    .map(m => decodeURIComponent(m[1]))
+    .filter(s => /tengo una duda|pulseras y charms/i.test(s));
+  const unicas = [...new Set(aperturas)];
+  comprobar(unicas.length >= 2,
+    'encontró los botones genéricos de contacto en index.html para verificar contra ellos',
+    `${unicas.length} encontrados`);
+
+  /* `plano` y `promptPlano` ya se declararon en la sección 8: el prompt está
+     escrito sin tildes a propósito, y comparar con tildes da falso positivo
+     aquí también —ya pasó al escribir esta misma sección—. */
+  for (const apertura of unicas) {
+    comprobar(promptPlano.includes(plano(apertura)),
+      `el prompt cita el botón «${apertura.slice(0, 40)}…», sin tildes pero igual`);
+  }
+
+  comprobar(/no le agregues nada debajo|NO le agregues nada debajo/i.test(prompt),
+    'y le dice a la IA que NO responda debajo cuando el mensaje es uno de esos genéricos');
+
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
     : '\nPrompt del bot en verde ✓');
