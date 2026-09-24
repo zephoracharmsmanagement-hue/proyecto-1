@@ -269,7 +269,7 @@
     "iron-man": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 4,
+      "stock": 3,
       "familia": "pasador"
     },
     "mjolnir-martillo-de-thor": {
@@ -287,7 +287,7 @@
     "deadpool": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 4,
+      "stock": 3,
       "familia": "pasador"
     },
     "spider-man": {
@@ -323,7 +323,7 @@
     "casco-iron-man": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 4,
+      "stock": 3,
       "familia": "pasador"
     },
     "mascara-un-gran-poder": {
@@ -676,7 +676,7 @@
       "tallas": {
         "18": 8,
         "19": 8,
-        "20": 8
+        "20": 7
       }
     },
     "pulsera-mono-rosa-con-cadena": {
