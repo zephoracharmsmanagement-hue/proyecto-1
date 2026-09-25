@@ -209,6 +209,14 @@ PAGINA = '''<!DOCTYPE html>
   </div>
 </section>
 {bloque_letras}
+<!-- PRUEBA SOCIAL, justo debajo de la pieza: reseñas y los videos de
+     clientas, los mismos bloques de index.html (se actualizan solos al
+     regenerar). Los videos no descargan nada hasta entrar en pantalla: los
+     arranca el IntersectionObserver de tienda.js. -->
+{resenas}
+
+{historia}
+
 <!-- 2 · CERCANAS. Tarjetas de index.html por data-id. -->
 <section class="sec"{id_rel}>
   <div class="wrap">
@@ -336,6 +344,7 @@ def generar(pid, html, cat, stock, b, exigidos):
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
+        resenas=b['resenas'], historia=b['historia'],
         bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'],
         pagos=b['pagos'], footer=b['footer'], chrome=b['chrome'],
     )

@@ -126,6 +126,15 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     // al borde: se ve mal y ninguna comprobación de datos lo nota.
     const margen = await p.evaluate(() => Math.round(document.querySelector('.pc--pp').getBoundingClientRect().left));
     ok(margen >= 12, `la pieza respeta el margen lateral (${margen} px)`);
+    // Prueba social en la página de la pieza: reseñas y los 3 videos de
+    // clientas, que no deben descargarse antes de verse (preload="none").
+    const social = await p.evaluate(() => ({
+      resenas: !!document.getElementById('reseñas'),
+      videos: document.querySelectorAll('#historia video.ugc-v').length,
+      precarga: [...document.querySelectorAll('#historia video')].every(v => v.preload === 'none' && !v.autoplay),
+    }));
+    ok(social.resenas && social.videos === 3 && social.precarga,
+      `reseñas y ${social.videos} videos de clientas, sin descarga anticipada`);
     const h1 = await p.locator('h1').count();
     ok(h1 === 1, `un solo <h1> (${h1})`);
 
