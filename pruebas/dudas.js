@@ -128,6 +128,21 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   const comb2 = await p.evaluate(() => [...document.querySelectorAll('#resto-grid .pc:not([hidden])')].filter(x => x.classList.contains('is-out')).length);
   ok(comb2 === 0, 'sumando "solo disponibles" no queda ningún agotado');
 
+  // ---- 4 · precio de las iniciales ----
+  // Estuvo escrito a mano en $76.000 (tarjeta y botones) mientras se cobraban
+  // $86.000: el alza del 2026-09-13 no lo tocó porque no era un precio de tarjeta.
+  console.log('4 · Precio de las iniciales');
+  const ini = await p.evaluate(async () => {
+    const c = await fetch('assets/catalogo.json').then(r => r.json());
+    const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
+    const b = [...document.querySelectorAll('#letras-grid .lbtn')].find(x => x.getAttribute('aria-disabled') !== 'true');
+    return { esperado: cop(c.precios['letra-a']),
+      meta: document.querySelector('.pc[data-id="letras"] .pc-meta').textContent,
+      boton: b ? b.getAttribute('aria-label') : '' };
+  });
+  ok(ini.meta.includes(ini.esperado), `la tarjeta dice ${ini.esperado}: «${ini.meta}»`);
+  ok(ini.boton.includes(ini.esperado), `y los botones de inicial también: «${ini.boton}»`);
+
   console.log('errores JS: ' + (errs.length ? errs.join(' | ') : 'ninguno ✓'));
   await b.close();
 })();
