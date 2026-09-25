@@ -41,7 +41,7 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
   ACTIVA, $10.000 COP/día, **$0 gastados y 0 impresiones**. Sí optimiza por
   `Purchase`. No entrega por dos razones: un error de segmentación por lugar
   (#1870194, tipo de ubicación descontinuado por Meta) y, más de fondo, que
-  **el público tiene ~55 personas**. Pendiente de pausar.
+  **el público tiene ~55 personas**. *(2026-09-25: ya está pausada.)*
 
 ### Públicos
 

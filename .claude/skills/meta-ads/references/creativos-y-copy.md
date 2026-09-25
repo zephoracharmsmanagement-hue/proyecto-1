@@ -74,9 +74,9 @@ producto, 1 de problema. Los de decisión van en personalizados y ascensión.
   escribe.
 - **No nombrar a Pandora** ni a ninguna marca competidora. Las comparaciones van
   contra «una pulsera genérica».
-- **Personajes (Marvel, Disney, Pixar)**: pendiente de decisión del propietario
-  por riesgo de reclamo de propiedad intelectual. Mientras tanto, cada texto en
-  dos versiones: con el nombre del personaje y con una descripción («el héroe
-  de la armadura»), marcando cuál es cuál.
+- **Personajes (Marvel, Disney, Pixar)**: se nombran. El propietario confirmó
+  el permiso el 2026-09-25.
+- **Envío gratis solo con pago anticipado.** En contraentrega el envío se
+  cobra (`calcular()` en `_precios.js`). Nunca prometer las dos cosas juntas.
 - **No inventar** testimonios, cantidades de clientes, calificaciones ni
   menciones de prensa.

@@ -43,12 +43,9 @@ archivo del repo.
    el sitio, pero en el texto de un anuncio es riesgo de marca registrada. Se
    dice «compatible con pulseras de sistema modular». Pandora sí puede ir como
    interés en la segmentación, que no se ve.
-   **Los nombres de personajes (Marvel, Disney, Pixar) son otro caso** y está
-   pendiente de decisión del propietario: el sitio los usa porque es lo que
-   la gente busca, pero en un anuncio exponen a un reclamo de propiedad
-   intelectual ante Meta. Mientras no haya decisión, entregar las dos versiones
-   de cada texto (con nombre y con descripción, «el héroe de la armadura»), y
-   decir cuál es cuál.
+   **Los nombres de personajes (Marvel, Disney, Pixar) sí se pueden usar**:
+   el propietario confirmó el 2026-09-25 que tiene permiso. Se escriben con el
+   nombre, una sola versión.
 7. **El inventario sale de `assets/stock.json` en `main`**, que es lo que
    vende el sitio, no de cifras escritas en `CLAUDE.md` u otros documentos (se
    desactualizan: en septiembre de 2026 seguían diciendo «faltan 14 letras»
