@@ -1200,3 +1200,37 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .kit-piezas img{width:76px;height:76px}
 }
 
+
+/* ── Página de producto (producto-<id>.html, generada por
+   herramientas/gen_productos.py). La pieza es su tarjeta de la portada con la
+   clase pc--pp: mismo botón, mismas tallas, mismas marcas de agotado. ── */
+.migas{padding-top:14px;font-size:12px;letter-spacing:.04em;color:var(--silver)}
+.migas ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 6px}
+.migas li+li::before{content:'›';margin-right:6px}
+.migas a{color:#6d6070;text-decoration:none;border-bottom:1px solid transparent}
+.migas a:hover{border-color:var(--rose)}
+.migas [aria-current]{color:var(--ink)}
+/* Solo arriba y abajo: el relleno lateral es el de .wrap, y un `padding`
+   abreviado lo pisaba y dejaba la pieza pegada al borde de la pantalla. */
+.pp{padding-top:12px;padding-bottom:30px}
+/* En la página de un brazalete el panel de tallas ya sale abierto: «Elegir»
+   sobraba, y tocarlo lo cerraba. La talla elegida la marca su propio botón. */
+.pc--pp:has(.tallas) .pc-add[data-base]{display:none}
+.pp-in{display:grid;gap:20px}
+.pc--pp .pc-body{padding:16px 16px 18px}
+.pc--pp .pc-name{font-size:clamp(28px,7.5vw,40px);line-height:1.08;margin:0 0 6px}
+.pc--pp .pc-meta{font-size:11.5px;margin:0 0 14px}
+.pc--pp .pc-price{font-size:22px}
+.pc--pp .pc-add{min-height:46px;font-size:12px}
+.pc--pp .pc-mark{font-size:10px;padding:4px 8px;top:10px;left:10px}
+.pp-info .fx-est{margin:0 0 14px}
+.pp-info .fx-est:empty{display:none}
+.pp-envio{margin:16px 0 0;font-size:13.5px;line-height:1.5;color:var(--plum)}
+@media(min-width:700px){
+  .pp{padding-top:18px;padding-bottom:44px}
+  /* La pieza a 440px como mucho: más ancha, la foto cuadrada empujaba nombre,
+     precio y botón por debajo de la pantalla en escritorio. 440 es además el
+     tamaño real de las fotos del catálogo: más grande, se estiraban. */
+  .pp-in{grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:48px;align-items:start}
+  .pp-info{padding-top:8px}
+}

@@ -143,9 +143,8 @@ const verPieza=id=>{ const p=PU[id]||CH[id]; if(p) track('ViewContent',
   {content_type:'product',content_ids:[id],content_name:p.n,value:p.p}); };
 
 function imgDe(id){
-  /* las 27 iniciales comparten la foto del bloque de letras */
-  const clave=/^letra-/.test(id)?'letras':id;
-  const el=document.querySelector('.pc[data-id="'+CSS.escape(clave)+'"] img');
+  /* las 27 iniciales comparten la foto del bloque de letras (tarjetaDe) */
+  const t=tarjetaDe(id), el=t&&t.querySelector('img');
   return el?el.src:'';
 }
 
@@ -358,8 +357,12 @@ function pintarLetras(){
     if(sinStock||veces>=tope(id)) b.setAttribute('aria-disabled','true');
     else b.removeAttribute('aria-disabled');
     b.setAttribute('aria-label','Inicial '+b.dataset.letra.toUpperCase()+
-      (sinStock?', agotada':', $76.000'));
+      (sinStock?', agotada':', '+cop(CH[id].p)));
   });
+  /* El precio de la tarjeta sale de DATA, no del HTML: estuvo escrito a mano
+     en $76.000 mientras se cobraban $86.000 (alza del 2026-09-13). */
+  const meta=document.querySelector('.pc[data-id="letras"] .pc-meta');
+  if(meta&&LETRAS.length) meta.textContent=LETRAS.length+' iniciales · '+cop(CH['letra-'+LETRAS[0]].p)+' cada una';
 }
 
 /* ——— ficha de producto ——— */
@@ -411,39 +414,28 @@ function pintarGaleria(id, img, nombre){
   };
 }
 
-function abrirFicha(id){
-  const esB=!!PU[id], p=esB?PU[id]:CH[id];
-  if(!p) return;
-  /* Se repinta abierta tras agregar y al llegar el inventario: eso no es
-     otra vista. Y en su propia página de producto ya se contó al cargar. */
-  if(($('#ficha').hidden||fichaId!==id) && id!==document.body.dataset.producto) verPieza(id);
-  fichaId=id;
-  const tarjeta=document.querySelector('.pc[data-id="'+CSS.escape(/^letra-/.test(id)?'letras':id)+'"]');
-  const img=tarjeta&&tarjeta.querySelector('.pc-img img');
-  const inv=STOCK?STOCK[id]:null;
-  const fam=inv&&inv.familia?FAMILIAS[inv.familia]:null;
+/* La tarjeta de una pieza. Las iniciales comparten la tarjeta «letras» en la
+   portada, pero en su propia página de producto tienen una tarjeta suya. */
+function tarjetaDe(id){
+  return document.querySelector('.pc[data-id="'+CSS.escape(id)+'"]')
+    || (/^letra-/.test(id)?document.querySelector('.pc[data-id="letras"]'):null);
+}
+function familiaDe(id){ const s=STOCK?STOCK[id]:null; return s&&s.familia?FAMILIAS[s.familia]:null; }
 
-  pintarGaleria(id, img, p.n);
-  $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
-  $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
-  $('#fx-p').textContent = cop(p.p);
-
-  const est=$('#fx-est');
-  if(!STOCK){ est.textContent=''; est.className='fx-est'; }
-  else if(agotado(id)){ est.textContent='Agotado — puedes pedirlo por encargo'; est.className='fx-est fx-est--out'; }
-  else if(esB){
-    const l=tallasLibres(id)||[];
-    est.textContent='Disponible en talla '+l.join(', ')+' cm';
-    est.className='fx-est fx-est--ok';
-  }else{
-    const u=unidades(id);
-    est.textContent = u!==null&&u<=2 ? (u===1?'Queda 1 unidad':'Quedan '+u+' unidades') : 'Disponible';
-    est.className='fx-est'+(u!==null&&u<=2?' fx-est--few':' fx-est--ok');
-  }
-
-  const filas=[];
+/* Disponibilidad y ficha técnica de una pieza. Las usan la ficha emergente y
+   la página de producto: el material se escribe en UN solo sitio, porque dos
+   copias ya dejaron una vez afirmaciones de 925 en brazaletes. */
+function estadoDe(id){
+  if(!STOCK) return {t:'',k:''};
+  if(agotado(id)) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
+  if(PU[id]) return {t:'Disponible en talla '+(tallasLibres(id)||[]).join(', ')+' cm',k:'ok'};
+  const u=unidades(id);
+  return u!==null&&u<=2 ? {t:u===1?'Queda 1 unidad':'Quedan '+u+' unidades',k:'few'} : {t:'Disponible',k:'ok'};
+}
+function specsDe(id){
+  const filas=[], fam=familiaDe(id);
   const fila=(k,v)=>filas.push('<div><dt>'+k+'</dt><dd>'+v+'</dd></div>');
-  if(esB){
+  if(PU[id]){
     fila('Material','Base de latón de calidad joyería con baño de plata certificado y capa protectora e-coating');
     fila('Tallas','17 a 21 cm. <a href="#talla" class="talla-link" style="margin:0">¿Cuál es la mía?</a>');
   }else{
@@ -456,7 +448,42 @@ function abrirFicha(id){
   }
   fila('Compatible','Con brazaletes Zephora y con pulseras de sistema modular, incluidas las de Pandora');
   fila('Sin níquel','Libre de níquel y plomo — apta para pieles sensibles');
-  $('#fx-specs').innerHTML=filas.join('');
+  return filas.join('');
+}
+/* En una página de producto, su bloque de disponibilidad y ficha técnica.
+   Se repinta al llegar el inventario (la familia de la pieza sale de ahí). */
+function pintarPagina(){
+  const id=document.body.dataset.producto, specs=$('#pp-specs'), est=$('#pp-est');
+  if(!id||!specs||!est) return;
+  specs.innerHTML=specsDe(id);
+  /* En la página de un brazalete, la talla es lo primero que hay que elegir:
+     el panel sale abierto en vez de esconderse tras «Elegir». */
+  const t=tarjetaDe(id), tallas=t&&t.querySelector('.tallas');
+  if(tallas&&!t.dataset.abierta){ tallas.hidden=false; t.dataset.abierta='1'; }
+  const e=estadoDe(id);
+  est.textContent=e.t; est.className='fx-est'+(e.k?' fx-est--'+e.k:'');
+}
+
+function abrirFicha(id){
+  const esB=!!PU[id], p=esB?PU[id]:CH[id];
+  if(!p) return;
+  /* Se repinta abierta tras agregar y al llegar el inventario: eso no es
+     otra vista. Y en su propia página de producto ya se contó al cargar. */
+  if(($('#ficha').hidden||fichaId!==id) && id!==document.body.dataset.producto) verPieza(id);
+  fichaId=id;
+  const tarjeta=tarjetaDe(id);
+  const img=tarjeta&&tarjeta.querySelector('.pc-img img');
+  const fam=familiaDe(id);
+
+  pintarGaleria(id, img, p.n);
+  $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
+  $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
+  $('#fx-p').textContent = cop(p.p);
+
+  const e=estadoDe(id), est=$('#fx-est');
+  est.textContent=e.t; est.className='fx-est'+(e.k?' fx-est--'+e.k:'');
+
+  $('#fx-specs').innerHTML=specsDe(id);
   $('#fx-nota').textContent = esB ? '' : 'Medidas aproximadas por tipo de pieza, no medición individual.';
 
   const add=$('#fx-add'), sinStock=agotado(id);
@@ -1468,6 +1495,7 @@ fetch('assets/stock.json',{cache:'no-cache'})
     aplicarFiltro(filtroActual);
     pintarCalculadora();   /* ahora sí puede marcar las tallas sin unidades */
     marcarKits();
+    pintarPagina();
     if(fichaId) abrirFicha(fichaId);
     const n=document.getElementById('stock-fecha');
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
@@ -1477,6 +1505,7 @@ fetch('assets/stock.json',{cache:'no-cache'})
 /* En una página de producto (`<body data-producto="id">`, la escribe
    gen_productos.py) la vista es de esa pieza. En el resto, ViewContent de
    grupo con los ids de los charms destacados. */
+pintarPagina();
 if(document.body.dataset.producto) verPieza(document.body.dataset.producto);
 else track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',
   content_ids:[...document.querySelectorAll('.pc--top')].map(p=>p.dataset.id)});
