@@ -24,7 +24,22 @@ El propietario encarga **rehacer el sitio entero hasta que quede profesional y
 convertidor**, trabajando en bucle: revisar, arreglar, desplegar, volver a
 mirar. No es una tarea con final escrito — es un ciclo.
 
-**Rama de trabajo:** `claude/zephoracharms-conversion-funnel-nom9ph`
+> **2026-09-24 · Cambio de mano: la sesión de terminal toma la tienda.** Por
+> decisión del propietario, **la sesión web deja de tocar la tienda** y el
+> encargo sigue desde una terminal local, en la rama
+> **`claude/tienda-paginas-producto`** (salida de `origin/main` en `b63a35c`).
+> `claude/zephoracharms-conversion-funnel-nom9ph` ya está fusionada entera en
+> `main` (+0 commits), así que no queda trabajo suyo pendiente.
+> **Tarea en curso:** una página generada por producto (135: 117 charms + 18
+> brazaletes), páginas de colección y navegación entre ellas, para que el
+> píxel mida por pieza —`ViewContent`/`AddToCart` con `content_type
+> 'product'` y `content_ids` del id de `catalogo.json`, `InitiateCheckout`
+> con los ids del carrito—. Mientras esto esté abierto, **nadie más toca
+> `index.html`, `tienda.js`, `tienda.css`, `herramientas/gen_colecciones.py`
+> ni páginas generadas**.
+
+**Rama de trabajo:** `claude/tienda-paginas-producto` (antes
+`claude/zephoracharms-conversion-funnel-nom9ph`)
 **Alcance:** todo el frente de tienda. Por eso, **regla 1 de `CLAUDE.md` en
 pleno**: una sola sesión toca la tienda mientras este encargo esté abierto.
 Otra sesión en paralelo sobre `index.html`, `tienda.js`, `tienda.css` o
