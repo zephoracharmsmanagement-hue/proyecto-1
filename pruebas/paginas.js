@@ -76,6 +76,15 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     (leer(o).includes(`href="${encodeURIComponent(f)}"`) || leer(o).includes(`href="${f}"`))));
   ok(!huerfanas.length, `(a) ninguna página huérfana` + lista(huerfanas));
 
+  // Los bloqueos de netlify.toml. Sin `force = true`, Netlify no aplica la
+  // regla si el archivo existe: ESTADO.md, CLAUDE.md, docs/ y el resto se
+  // sirvieron en producción con su regla de 404 «puesta».
+  const reglas = leer('netlify.toml').split('[[redirects]]').slice(1);
+  const sinForce = reglas.filter(r => /status\s*=\s*404/.test(r) && !/force\s*=\s*true/.test(r))
+    .map(r => (r.match(/from\s*=\s*"([^"]+)"/) || [])[1]);
+  ok(reglas.some(r => /status\s*=\s*404/.test(r)) && !sinForce.length,
+    'toda regla 404 de netlify.toml lleva force = true' + lista(sinForce));
+
   // ── Renderizadas: una por tipo ──
   const hay = id => unidades(stock[id]) > 0;
   const primero = fn => [...idsPagina].find(fn);

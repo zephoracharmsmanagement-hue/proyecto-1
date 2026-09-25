@@ -73,20 +73,31 @@
 
 # Nada de esto es parte del sitio: son herramientas, pruebas y scripts internos.
 # Publicar la raíz los expondría en URLs adivinables, así que se bloquean.
+#
+# `force = true` ES LO QUE BLOQUEA, y faltó hasta el 2026-09-24. Netlify no
+# aplica una redirección si en esa ruta EXISTE un archivo («shadowing»), así que
+# sin él estas reglas nunca hicieron nada: ESTADO.md, CLAUDE.md, docs/,
+# automatizaciones/, pruebas/ y herramientas/ respondían 200 en
+# zephoracharms.com. Lo delató mirar la vista previa, no el panel ni las
+# pruebas. pruebas/paginas.js exige `force` en toda regla 404; el efecto real
+# solo se ve con red: tras desplegar, un GET a /ESTADO.md tiene que dar 404.
 [[redirects]]
   from = "/pruebas/*"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/herramientas/*"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/meta/*"
   to = "/404.html"
   status = 404
+  force = true
 
 # Los documentos internos viven en la raíz, que es justo lo que se publica, así
 # que no los cubría el bloqueo de las carpetas de arriba: quedaban servidos en
@@ -98,16 +109,19 @@
   from = "/ESTADO.md"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/README.md"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/skills-lock.json"
   to = "/404.html"
   status = 404
+  force = true
 
 # CLAUDE.md llegó después que las reglas de arriba y por eso hace falta esta
 # línea. Trae el hostname del n8n autohospedado, los App IDs de Meta y notas
@@ -117,6 +131,7 @@
   from = "/CLAUDE.md"
   to = "/404.html"
   status = 404
+  force = true
 
 # Y lo mismo con la carpeta de automatizaciones, que llegó después. Trae los
 # márgenes reales por pieza, la utilidad por venta, los planes de pauta y las
@@ -126,6 +141,7 @@
   from = "/automatizaciones/*"
   to = "/404.html"
   status = 404
+  force = true
 
 # Y lo mismo con docs/, que llegó todavía después. Ahí viven las specs de
 # superpowers —incluida la de envío-estado, que ya nombra el header de
@@ -136,6 +152,35 @@
   from = "/docs/*"
   to = "/404.html"
   status = 404
+  force = true
+
+# Carpetas y archivos del repo que llegaron después y tampoco son del sitio:
+# skills de Claude, flujos de GitHub, el FUENTE de las funciones (se ejecutan
+# en /.netlify/functions/, con punto, que esto no toca) y la plantilla de
+# variables.
+[[redirects]]
+  from = "/.claude/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.github/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env.example"
+  to = "/404.html"
+  status = 404
+  force = true
 
 # El enlace que reanuda un pedido sin pagar. Va con nombre propio porque viaja
 # en un correo a una clienta: /.netlify/functions/… en la barra del navegador
