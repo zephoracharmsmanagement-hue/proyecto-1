@@ -136,6 +136,11 @@ let xsFuera=(()=>{ try{ return sessionStorage.getItem('zephora.xs')==='1'; }catc
 const evId=()=>(window.zcEvId?window.zcEvId():'zc-'+Math.random().toString(36).slice(2,10));
 const track=(ev,d)=>{ if(typeof fbq==='function')
   fbq('track',ev,Object.assign({currency:'COP'},d||{}),{eventID:evId()}); };
+/* ViewContent de UNA pieza. El id es el de catalogo.json —el mismo slug de la
+   página de producto y el que usará el catálogo de Meta—, así que el
+   retargeting dinámico empata sin mapeos. */
+const verPieza=id=>{ const p=PU[id]||CH[id]; if(p) track('ViewContent',
+  {content_type:'product',content_ids:[id],content_name:p.n,value:p.p}); };
 
 function imgDe(id){
   /* las 27 iniciales comparten la foto del bloque de letras */
@@ -409,6 +414,9 @@ function pintarGaleria(id, img, nombre){
 function abrirFicha(id){
   const esB=!!PU[id], p=esB?PU[id]:CH[id];
   if(!p) return;
+  /* Se repinta abierta tras agregar y al llegar el inventario: eso no es
+     otra vista. Y en su propia página de producto ya se contó al cargar. */
+  if(($('#ficha').hidden||fichaId!==id) && id!==document.body.dataset.producto) verPieza(id);
   fichaId=id;
   const tarjeta=document.querySelector('.pc[data-id="'+CSS.escape(/^letra-/.test(id)?'letras':id)+'"]');
   const img=tarjeta&&tarjeta.querySelector('.pc-img img');
@@ -987,9 +995,10 @@ function comprar(){
   }
   tocado=true;
   guardar();
-  const piezas=sel.length+(base?1:0);
-  const val=+$('#v-tot').textContent.replace(/[^0-9]/g,'')||0;
-  track('InitiateCheckout',{content_name:'Checkout web',num_items:piezas,value:val});
+  /* Sin InitiateCheckout aquí: lo manda checkout.html al cargar, con los ids
+     del carrito. Con los dos, cada checkout contaba doble —cada uno con su
+     eventID, así que Meta no los deduplicaba—. Decisión del propietario,
+     2026-09-24. */
   location.href='checkout.html';
 }
 
@@ -1465,9 +1474,10 @@ fetch('assets/stock.json',{cache:'no-cache'})
   })
   .catch(()=>{});
 
-/* ViewContent con los ids de los charms destacados. Son los mismos slugs de las
-   tarjetas, así que cuando se suba el catálogo a Meta usando esos slugs como id
-   de producto, el retargeting dinámico empata sin tocar nada. */
-track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',
+/* En una página de producto (`<body data-producto="id">`, la escribe
+   gen_productos.py) la vista es de esa pieza. En el resto, ViewContent de
+   grupo con los ids de los charms destacados. */
+if(document.body.dataset.producto) verPieza(document.body.dataset.producto);
+else track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',
   content_ids:[...document.querySelectorAll('.pc--top')].map(p=>p.dataset.id)});
 })();

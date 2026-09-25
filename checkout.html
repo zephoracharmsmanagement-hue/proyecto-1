@@ -1386,8 +1386,16 @@ Promise.all([
   addEventListener('storage',e=>{ if(e.key===LLAVE) releer(); });
 
   $('#year').textContent=new Date().getFullYear();
-  track('InitiateCheckout',{value:calcular(carrito).total,
-    num_items:carrito.charms.length+(carrito.base?1:0),content_name:'Checkout paso 1'});
+  /* El único InitiateCheckout del sitio (tienda.js dejó de mandarlo al tocar
+     pagar: contaba doble). Lleva los ids de catalogo.json de todo el carrito,
+     con cantidades, para que Meta sepa QUÉ piezas llegaron al checkout. */
+  const ids=(carrito.base?[carrito.base.id]:[]).concat(carrito.charms);
+  const cuenta={}; ids.forEach(i=>{ cuenta[i]=(cuenta[i]||0)+1; });
+  track('InitiateCheckout',{value:calcular(carrito).total,num_items:ids.length,
+    content_type:'product',content_ids:Object.keys(cuenta),
+    contents:Object.keys(cuenta).map(i=>({id:i,quantity:cuenta[i]})),
+    content_name:'Checkout paso 1'},
+    'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
 }).catch(()=>{
   /* Sin catálogo no se puede mostrar un precio, y mostrar uno inventado sería
      peor que no mostrar ninguno. Se manda a WhatsApp, que no depende de esto. */
