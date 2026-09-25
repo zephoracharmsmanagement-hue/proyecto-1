@@ -493,6 +493,9 @@ function abrirFicha(id){
     add.textContent = sinStock ? 'Agotado' : (lleno?'Sin más unidades':'Agregar a mi pulsera');
     if(sinStock||lleno) add.setAttribute('aria-disabled','true'); else add.removeAttribute('aria-disabled');
   }
+  const pag=$('#fx-pag');
+  pag.href='producto-'+encodeURIComponent(id)+'.html';
+  pag.hidden = id===document.body.dataset.producto;
   const fw=$('#fx-wa');
   fw.hidden=!sinStock;
   if(sinStock) fw.href=waEncargo(p.n);
@@ -1065,7 +1068,14 @@ document.addEventListener('click',e=>{
   const ver=e.target.closest('.pc-img, .pc-name');
   if(ver && !e.target.closest('.pc-add, .tbtn, .lbtn, .pc-encargo')){
     const t=ver.closest('.pc');
-    if(t && t.dataset.id && t.dataset.id!=='letras'){ abrirFicha(t.dataset.id); return; }
+    /* El nombre es un enlace a la página de la pieza. El clic normal sigue
+       abriendo la ficha —decisión del propietario: el flujo que hoy lleva a
+       agregar no se toca—; con Ctrl/Cmd/Mayús o rueda, el navegador abre la
+       página como cualquier enlace. */
+    const conTecla=e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0;
+    if(t && t.dataset.id && t.dataset.id!=='letras' && !(conTecla&&e.target.closest('a'))){
+      e.preventDefault(); abrirFicha(t.dataset.id); return;
+    }
   }
 
   const add=e.target.closest('[data-add]');

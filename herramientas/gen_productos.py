@@ -94,6 +94,8 @@ def tarjeta_principal(html, pid, cat):
         t = tarjetas(html, [pid])[0]   # ya sin pc--top, el ancho de carrusel
     t = re.sub(r'class="pc( |")', r'class="pc pc--pp\1', t, count=1)
     t = t.replace('<h3 class="pc-name">', '<h1 class="pc-name">', 1).replace('</h3>', '</h1>', 1)
+    # En su propia página, el nombre no se enlaza a sí mismo.
+    t = re.sub(r'<h1 class="pc-name"><a href="[^"]*">(.*?)</a></h1>', r'<h1 class="pc-name">\1</h1>', t, count=1)
     t = t.replace(' loading="lazy"', ' fetchpriority="high"', 1)
     return t
 
@@ -206,7 +208,7 @@ PAGINA = '''<!DOCTYPE html>
     </div>
   </div>
 </section>
-
+{bloque_letras}
 <!-- 2 · CERCANAS. Tarjetas de index.html por data-id. -->
 <section class="sec"{id_rel}>
   <div class="wrap">
@@ -260,6 +262,19 @@ BLOQUE_BRAZALETES = '''
   </div>
 </section>
 '''
+
+
+def tira_letras(pid, cat):
+    """Las 27 iniciales enlazadas entre sí. En la portada comparten una sola
+    tarjeta con botones que agregan directo, así que sin esta tira ninguna
+    página de inicial tendría quien la enlace salvo la de la A."""
+    letras = [p for p in cat['precios'] if p.startswith('letra-')]
+    items = ''.join(
+        '<li><a href="%s"%s>%s</a></li>' % (href_de(p), ' aria-current="page"' if p == pid else '',
+                                           H.escape(cat['nombres'][p].replace('Letra ', '')))
+        for p in letras)
+    return ('\n<nav class="pp-letras wrap" aria-label="Todas las iniciales">\n'
+            '  <span class="eyebrow">Todas las iniciales</span>\n  <ul>%s</ul>\n</nav>\n' % items)
 
 
 def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
@@ -317,7 +332,8 @@ def generar(pid, html, cat, stock, b, exigidos):
         titulo=H.escape(titulo), desc=H.escape(desc), canon=canon, imagen=imagen, precio=precio,
         jsonld=jsonld(pid, nombre, imagen, precio, grupo, hay, canon), pid=pid,
         head=b['head'], ann=b['ann'], header=b['header'], migas=migas(tipo, grupo, nombre),
-        tarjeta='    ' + tarjeta, id_rel=id_rel, rel_eyebrow=H.escape(rel_eyebrow),
+        tarjeta='    ' + tarjeta, id_rel=id_rel,
+        bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
         bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'],
@@ -350,6 +366,34 @@ def comprobar(pid, pagina, exigidos):
         raise SystemExit('%s:\n  - %s' % (archivo_de(pid), '\n  - '.join(errores)))
 
 
+NO_INDEXAR = {'checkout.html', 'gracias.html', '404.html'}
+
+
+def sitemap():
+    """sitemap.xml con la URL canónica de cada página pública de la raíz, leída
+    de su propio <link rel="canonical">: si una página cambia de canónica, el
+    sitemap la sigue sin tocar esto. Sin canonical, se para: una página pública
+    sin canónica es un fallo que conviene ver."""
+    urls = []
+    for f in sorted(RAIZ.glob('*.html')):
+        if f.name in NO_INDEXAR:
+            continue
+        h = f.read_text(encoding='utf-8')
+        if re.search(r'<meta name="robots" content="[^"]*noindex', h):
+            continue
+        m = re.search(r'<link rel="canonical" href="([^"]+)"', h)
+        if not m:
+            raise SystemExit('%s no tiene <link rel="canonical">; no se puede poner en el sitemap.' % f.name)
+        urls.append(m.group(1))
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+           + ''.join('  <url><loc>%s</loc></url>\n' % H.escape(u) for u in urls)
+           + '</urlset>\n')
+    robots = ('User-agent: *\nDisallow: /checkout\nDisallow: /checkout.html\n'
+              'Disallow: /gracias\nDisallow: /gracias.html\n\nSitemap: %ssitemap.xml\n' % SITIO)
+    return xml, robots, len(urls)
+
+
 def main():
     escribir = '--escribir' in sys.argv
     cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
@@ -380,6 +424,12 @@ def main():
     print('%s %d páginas de producto (%s) · %d ids exigidos por tienda.js comprobados en cada una'
           % ('Escritas' if escribir else 'Se escribirían', len(salida),
              ', '.join('%d %s' % (v, k) for k, v in sorted(cuenta.items())), len(exigidos)))
+    # El sitemap solo con la tanda completa: con --solo faltarían páginas.
+    if '--solo' not in sys.argv and escribir:
+        xml, robots, n = sitemap()
+        (RAIZ / 'sitemap.xml').write_text(xml, encoding='utf-8', newline='\n')
+        (RAIZ / 'robots.txt').write_text(robots, encoding='utf-8', newline='\n')
+        print('sitemap.xml con %d URLs · robots.txt' % n)
     if not escribir:
         print('No se escribió nada. Repite con --escribir.')
 

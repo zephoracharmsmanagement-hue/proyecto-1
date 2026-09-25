@@ -150,5 +150,61 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(!errs.length, '(d) consola limpia' + lista(errs));
     await ctx.close();
   }
+  // ── 3 · Cómo se llega: el nombre de la tarjeta y la ficha ──
+  // Decisión del propietario: tocar la tarjeta sigue abriendo la ficha (el
+  // flujo que hoy lleva a agregar no cambia); el nombre es un enlace real a
+  // la página y la ficha trae «Ver la página completa».
+  console.log('3 · Portada → página de producto');
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
+    const enlazadas = await p.$$eval('.pc[data-id] .pc-name a', as => as.length);
+    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i)).length,
+      `${enlazadas} nombres de tarjeta enlazan a su página`);
+    const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
+    await p.click(`.pc[data-id="${id}"] .pc-name a`);
+    await p.waitForTimeout(300);
+    ok(p.url().endsWith('/index.html') && !(await p.locator('#ficha').isHidden()),
+      `clic normal en el nombre abre la ficha y no sale de la portada`);
+    // .btn{display:…} le ganaba a [hidden]: toda ficha ofrecía «Pedir por
+    // encargo», también con unidades. Se mide lo que se VE, no el atributo.
+    const encargoVisible = await p.locator('#fx-wa').isVisible();
+    const agotadaId = await p.evaluate(() => document.querySelector('#fx-est').textContent);
+    ok(!encargoVisible || /Agotado/.test(agotadaId), `la ficha de una pieza con unidades no ofrece encargo («${agotadaId}»)`);
+    const pag = await p.getAttribute('#fx-pag', 'href');
+    ok(pag === archivoDe(id) && await p.locator('#fx-pag').isVisible(), `la ficha enlaza a ${pag}`);
+    await Promise.all([p.waitForURL(u => u.pathname.endsWith(archivoDe(id))), p.click('#fx-pag')]);
+    ok(true, 'y ese enlace lleva a la página de la pieza');
+    await p.click('.pc--pp .pc-img');
+    await p.waitForTimeout(300);
+    ok(await p.locator('#fx-pag').isHidden(), 'en su propia página, la ficha no se enlaza a sí misma');
+    await p.keyboard.press('Escape');
+    await p.goto(BASE + '/' + archivoDe(cat.pulseras[0]), { waitUntil: 'networkidle' });
+    await p.click('.pc--pp .pc-img');
+    await p.waitForTimeout(300);
+    ok(!(await p.locator('#fx-add').isVisible()), 'la ficha de un brazalete no ofrece «Agregar» (se elige por talla)');
+    ok(!errs.length, 'consola limpia' + lista(errs));
+    await p.close();
+  }
+
+  console.log('4 · Colecciones');
+  for (const f of htmlRaiz.filter(x => x.startsWith('coleccion-'))) {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    const errs = [], rotos = [];
+    p.on('pageerror', e => errs.push(e.message));
+    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE)) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
+    await p.goto(BASE + '/' + f, { waitUntil: 'networkidle' });
+    const des = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    const entra = htmlRaiz.filter(o => o !== f && leer(o).includes(`href="${f}"`)).length;
+    const h = leer(f);
+    const nuevas = [...clases(h)].filter(c => !conEstilo(c) && !sinEstiloPortada.has(c));
+    ok(entra > 0 && !des && !errs.length && !rotos.length && !nuevas.length,
+      `${f}: enlazada desde ${entra} páginas, sin desborde (${des}), consola ${errs.length ? 'CON ERRORES ' + errs.join(' | ') : 'limpia'}` +
+      (rotos.length ? ', rotos ' + rotos.join(' ') : '') + (nuevas.length ? ', clases sin estilo ' + nuevas.join(' ') : ''));
+    if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, f.replace('.html', '.png')) });
+    await p.close();
+  }
   await b.close();
 })();
