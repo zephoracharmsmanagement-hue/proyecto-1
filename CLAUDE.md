@@ -12,6 +12,12 @@ Claude Code en varias sesiones/terminales a la vez.
 
 ## Meta Ads — estado de la automatización
 
+**Cómo se pauta** (diagnóstico, estructura, escalamiento, públicos, creativos y
+copy) está en la skill [`.claude/skills/meta-ads/`](.claude/skills/meta-ads/SKILL.md):
+el método de Felipe Vergara aplicado a esta cuenta. Esta sección cuenta el
+**estado** de la cuenta; la skill dice **qué hacer** con él. Costos y márgenes no
+van en ninguna de las dos: el repo es público.
+
 ### Campañas en producción (cuenta `1583713932705268`)
 
 Esa cuenta **no pertenece a ningún portafolio comercial** — de ahí sale casi
@@ -104,6 +110,14 @@ nombra a Pandora — riesgo de marca.
   todavía** — falta credential del token CAPI y una prueba con
   `test_event_code`.
 
+  > **Ojo, 2026-09-25: el workflow apunta al píxel que no puede recibirlo.**
+  > `2130673404542988` es el píxel viejo, y `ESTADO.md` § 4a documenta que para
+  > él nadie puede generar un token de API de conversiones (la cuenta no tiene
+  > portafolio). Antes de publicarlo, cambiar el destino a
+  > `1029982529813994`, el píxel nuevo, que es donde vive el token de
+  > `Netlify CAPI` y donde ya llega el `Purchase` de Wompi. Así las ventas de
+  > WhatsApp y las web quedan en el mismo píxel.
+
   Nota: **el sitio ya cobra de verdad por Wompi** (ver `ESTADO.md` § 4).
   Cuando ese flujo esté estable, lo correcto es que el webhook de Wompi
   dispare el `Purchase` directamente al confirmar el pago — más confiable
@@ -143,6 +157,10 @@ Por orden de impacto sobre el dinero:
    con la cuenta `1583713932705268` (o reclamar la cuenta hacia el
    portafolio), migrar la optimización de `InitiateCheckout` a `Purchase`, y
    sacar el segundo `fbq('init', …)` de los tres HTML.
+   *Matiz (2026-09-25):* migrar a `Purchase` solo si el volumen alcanza. Meta
+   necesita del orden de 50 eventos semanales por conjunto; con el volumen de
+   ventas actual un conjunto optimizado por compra se queda en aprendizaje
+   limitado aunque la medición sea perfecta. Ver la skill `meta-ads`.
 6. **Revisar el access token que se pegó en un chat hace tiempo.** Si sigue
    activo, revocarlo en Configuración del negocio → Usuarios del sistema y
    usar en su lugar un usuario del sistema con permisos acotados.
