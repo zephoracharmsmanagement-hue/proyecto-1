@@ -999,15 +999,21 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .pbtn small.pb-gratis,.pbtn.is-on small.pb-gratis{color:#7fc7ae;font-weight:500;
   letter-spacing:.04em}
 
-/* escritorio */
-@media(min-width:700px){
-  .wrap{padding:0 24px}
-  .top-in{padding:0 24px;height:60px}
+/* La navegación completa necesita ~800px con la lupa y el ☰ al lado: desde
+   700px empujaba el ☰ 27px fuera de la pantalla y la página entera se
+   deslizaba en tableta. Por debajo de esto el ☰ ya lleva a las secciones. */
+@media(min-width:960px){
   .tnav{display:flex}
   /* Con la navegación a la vista es ella la que empuja a la derecha; si la
      lupa conservara su propio margen automático, el espacio libre se
      repartiría entre las dos y el menú quedaría flotando en el medio. */
   .top-lupa{margin-left:0}
+}
+
+/* escritorio */
+@media(min-width:700px){
+  .wrap{padding:0 24px}
+  .top-in{padding:0 24px;height:60px}
   .grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:16px}
   .hbanner{height:78dvh}
   .hbanner-copy{padding:48px 16px 0}
