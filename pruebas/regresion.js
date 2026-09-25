@@ -35,20 +35,18 @@ const U = BASE + '/index.html';
   p.on('pageerror', e => errores.push(e.message));
   await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
 
-  /* El catálogo completo ya nace abierto: antes esta prueba lo abría con
-     #more-btn y ahora ese botón lo cerraría, dejando los filtros fuera de
-     pantalla y el resto de comprobaciones midiendo una página plegada. */
-  const abiertoAlCargar = await p.locator('#full-cat').isVisible();
+  /* Desde la poda del 2026-09-11 el catálogo completo nace CERRADO (son 86
+     piezas). Esta sección exigía lo contrario y reventaba antes de su primera
+     comprobación, en cualquier máquina. */
+  const cerradoAlCargar = !(await p.locator('#full-cat').isVisible());
   const rotuloInicial = (await p.locator('#more-btn').textContent()).trim();
   await p.click('#more-btn');
   await p.waitForTimeout(150);
-  const cerradoTrasClic = !(await p.locator('#full-cat').isVisible());
-  await p.click('#more-btn');
-  await p.waitForTimeout(150);
-  out.push('\nCatálogo abierto de entrada'
-    + `\n  visible al cargar: ${abiertoAlCargar ? 'sí ✓' : 'NO ✗'}`
-    + `\n  el botón ofrece cerrarlo: ${/ocultar/i.test(rotuloInicial) ? 'sí ✓' : 'NO ✗'} — "${rotuloInicial}"`
-    + `\n  y al tocarlo se pliega: ${cerradoTrasClic ? 'sí ✓' : 'NO ✗'}`);
+  const abiertoTrasClic = await p.locator('#full-cat').isVisible();
+  out.push('\nCatálogo cerrado de entrada'
+    + `\n  oculto al cargar: ${cerradoAlCargar ? 'sí ✓' : 'NO ✗'}`
+    + `\n  el botón ofrece verlo: ${/ver el cat/i.test(rotuloInicial) ? 'sí ✓' : 'NO ✗'} — "${rotuloInicial}"`
+    + `\n  y al tocarlo se abre: ${abiertoTrasClic ? 'sí ✓' : 'NO ✗'}`);
 
   await p.click('#filters .fbtn[data-f="Disney"]');
   await p.waitForTimeout(200);
@@ -69,11 +67,16 @@ const U = BASE + '/index.html';
     `\n  total: ${destacados + revelados}\n  rótulo actual del botón: "${rotulo.trim()}"`);
 
   // ---- 4. Categorías ----
-  await p.click('.cat[data-cat="Marvel"]');
+  /* La primera tarjeta que todavía filtra. No se clava el nombre: una
+     categoría que gana página propia pierde su data-cat —Marvel el
+     2026-09-19— y esta prueba se quedaba esperando un elemento que ya no
+     existe. */
+  const cat = await p.getAttribute('.cat[data-cat]', 'data-cat');
+  await p.click(`.cat[data-cat="${cat}"]`);
   await p.waitForTimeout(400);
-  const marvelOn = await p.locator('#filters .fbtn[data-f="Marvel"].is-on').count();
-  const cuentaMarvel = await p.locator('#count').textContent();
-  out.push(`\nTarjeta de categoría "Marvel"\n  filtro aplicado: ${marvelOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaMarvel}"`);
+  const catOn = await p.locator(`#filters .fbtn[data-f="${cat}"].is-on`).count();
+  const cuentaCat = await p.locator('#count').textContent();
+  out.push(`\nTarjeta de categoría "${cat}"\n  filtro aplicado: ${catOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaCat}"`);
 
   // ---- 5. Eventos del pixel en clic a WhatsApp ----
   await p.evaluate(() => { window.__ev = []; window.fbq = (a, b, c) => window.__ev.push([a, b, c]); });
@@ -154,11 +157,12 @@ const U = BASE + '/index.html';
   //      error: la ficha abre, el hueco queda en blanco, y solo se ve mirando.
   //      Es el mismo patrón que dejó una foto sin cargar por un carácter
   //      invisible en el nombre.
-  const declaradas = await p.evaluate(() => {
-    const F = window.__FOTOS || null;
-    if (F) return F;
-    // FOTOS vive dentro de la IIFE del armador; se lee del propio fuente.
-    const m = document.documentElement.innerHTML.match(/const FOTOS = (\{[\s\S]*?\n\};)/);
+  // FOTOS vive dentro de la IIFE de tienda.js (salió de index.html el
+  // 2026-09-18); se lee del fuente. Buscándolo en el HTML esta sección daba
+  // «NO ✗» y la comprobación de fotos existentes no revisaba ninguna.
+  const declaradas = await p.evaluate(async () => {
+    const src = await fetch('tienda.js').then(r => r.text());
+    const m = src.match(/const FOTOS = (\{[\s\S]*?\n\};)/);
     return m ? JSON.parse(m[1].replace(/'/g, '"').replace(/,(\s*[}\]])/g, '$1').replace(/;$/, '')) : null;
   });
   let rotas = [];

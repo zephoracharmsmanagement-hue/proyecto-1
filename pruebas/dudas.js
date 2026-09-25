@@ -13,6 +13,12 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ---- 1 · calculadora, con las reglas del negocio ----
   console.log('1 · Calculadora de talla');
+  /* La calculadora vive en un <details> cerrado desde el 2026-09-11. */
+  const des = await p.evaluate(() => {
+    const d = document.getElementById('talla-des');
+    const antes = d.open; d.open = true; return antes;
+  });
+  ok(des === false, 'la calculadora nace plegada');
   const calc = async v => {
     await p.fill('#muneca', String(v));
     await p.waitForTimeout(280);
