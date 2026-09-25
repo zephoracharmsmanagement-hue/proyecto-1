@@ -72,7 +72,11 @@ producto, 1 de problema. Los de decisión van en personalizados y ascensión.
   (1 charm 0%, 2 charms 8%, 3 charms 15%, 4 o más 25%; brazalete −30% desde 3
   charms). Un número de precio que no se pueda reproducir con `calcular()` no se
   escribe.
-- **No nombrar a Pandora** ni a ninguna otra marca. Las comparaciones van contra
-  «una pulsera genérica».
+- **No nombrar a Pandora** ni a ninguna marca competidora. Las comparaciones van
+  contra «una pulsera genérica».
+- **Personajes (Marvel, Disney, Pixar)**: pendiente de decisión del propietario
+  por riesgo de reclamo de propiedad intelectual. Mientras tanto, cada texto en
+  dos versiones: con el nombre del personaje y con una descripción («el héroe
+  de la armadura»), marcando cuál es cuál.
 - **No inventar** testimonios, cantidades de clientes, calificaciones ni
   menciones de prensa.

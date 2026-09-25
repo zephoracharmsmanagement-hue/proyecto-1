@@ -137,7 +137,12 @@ optimiza las campañas hacia gente que escribe, no hacia gente que compra.
 Por orden de impacto sobre el dinero:
 
 1. **Reponer inventario.** Es el cuello de botella real, no el presupuesto.
-   Faltan **14 letras que nunca se compraron** (F G H I P Q R T U W X Y Z Ñ —
+   > **Corregido el 2026-09-25:** las letras se repusieron el 28 de agosto.
+   > Según el conteo físico del 22 de septiembre, hoy solo están en cero la
+   > **Q** y la **Ñ**; lo de abajo quedó como historia. El inventario vigente
+   > sale siempre de `assets/stock.json`, no de este párrafo.
+
+   Faltaban **14 letras que nunca se compraron** (F G H I P Q R T U W X Y Z Ñ —
    el 52% del abecedario): ~$73.000 de costo para ~$1.064.000 de utilidad
    potencial, el mejor retorno del negocio y además arregla que media
    Colombia no encuentre su inicial. Después, **83 referencias en 1-2
@@ -301,6 +306,8 @@ y que no estaban escritas en ningún sitio:
   así que el set Marvel —6 referencias elegibles, las más caras del catálogo— se
   monta sobre `pulsera-clasica-cierre-barril`, que además solo existe en tallas
   20 y 21: justo las de muñeca masculina.
+  *(2026-09-25: `pulsera-avengers` ya tiene unidades en tallas 18 a 20, sin 21;
+  para muñeca grande sigue siendo la clásica. Verificar en `assets/stock.json`.)*
 - **Amor y Amistad cae el sábado 19 de septiembre de 2026**, y de los tiempos de
   `envios-y-devoluciones.html` salen fechas límite de pedido reales (10 sept
   resto del país · 14 ciudades principales · 16 Bogotá). Urgencia que no cuesta

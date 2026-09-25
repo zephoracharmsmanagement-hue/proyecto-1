@@ -43,6 +43,18 @@ archivo del repo.
    el sitio, pero en el texto de un anuncio es riesgo de marca registrada. Se
    dice «compatible con pulseras de sistema modular». Pandora sí puede ir como
    interés en la segmentación, que no se ve.
+   **Los nombres de personajes (Marvel, Disney, Pixar) son otro caso** y está
+   pendiente de decisión del propietario: el sitio los usa porque es lo que
+   la gente busca, pero en un anuncio exponen a un reclamo de propiedad
+   intelectual ante Meta. Mientras no haya decisión, entregar las dos versiones
+   de cada texto (con nombre y con descripción, «el héroe de la armadura»), y
+   decir cuál es cuál.
+7. **El inventario sale de `assets/stock.json` en `main`**, que es lo que
+   vende el sitio, no de cifras escritas en `CLAUDE.md` u otros documentos (se
+   desactualizan: en septiembre de 2026 seguían diciendo «faltan 14 letras»
+   cuando faltaban 2). Si la rama local difiere de `main`, decirlo. Antes de
+   empujar un producto con pauta, confirmar que tiene unidades: pagar por
+   mandar gente a una pieza agotada es el peor gasto posible.
 
 ## El estado de la cuenta, que cambia casi todo
 
@@ -62,6 +74,19 @@ Verificar lo vigente antes de afirmarlo (`ads_get_ad_accounts`,
 - **El público similar está inactivo** (semilla muy chica).
 - **El checkout no guarda los UTMs en el pedido.** El origen de una venta web no
   queda registrado solo; se anota a mano.
+- **`InitiateCheckout` se cuenta doble en la compra web.** Se dispara al tocar
+  «Comprar» (`tienda.js`, `comprar()`) y otra vez al cargar `checkout.html`, y de
+  nuevo con cada recarga. Los dos no comparten `eventID`, así que Meta no los
+  deduplica. Consecuencias: el número de checkouts está inflado (el costo por
+  checkout real es más alto que el que muestra Meta) y la campaña optimiza sobre
+  una señal ruidosa. Los clics de compra a WhatsApp que cuentan como checkout sí
+  son intencionales (ahí se cierra la venta); el botón flotante y el banner ya
+  van como `Contact`. Corregirlo es un cambio en la tienda: al hacerlo, el
+  volumen de checkouts en Meta va a caer, y eso no es menos venta sino mejor
+  conteo. Ojo con el momento: con ~69 eventos semanales hoy, quitar el
+  duplicado puede dejar la campaña cerca de 35, por debajo de lo que necesita
+  para salir de aprendizaje. Se hace a propósito, avisando, y nunca junto con
+  otro cambio.
 - **Buena parte de la venta se cierra por WhatsApp**, fuera de lo que el píxel
   puede ver.
 
@@ -91,6 +116,10 @@ cuando las ventas sí están ocurriendo y lo que falla es el píxel.
   mientras el paso 0 dé una brecha grande.
 - **MER** (ROAS real del negocio) = facturación total registrada ÷ gasto en
   Meta, en el mismo periodo. Es el que decide rentabilidad y escalamiento.
+  Pero mientras no se registre de dónde vino cada venta, el MER incluye las que
+  habrían llegado sin pauta (orgánico, recompra, recomendación): es un **techo**
+  de lo que produce la pauta, no una medida exacta. Escalar sobre un techo se
+  hace con prudencia y diciéndolo.
 - **ROAS de equilibrio** = 1 ÷ margen de contribución (margen después de
   producto, empaque, envío y pasarela; el valor está en la Guía privada). Por
   debajo, la pauta se come todo el margen.
