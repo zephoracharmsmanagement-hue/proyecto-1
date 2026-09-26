@@ -30,3 +30,6 @@ material-sin-publicar/
 # por error, con publish = "." quedaría servido en el sitio — que no lo esté
 # hoy es porque nunca se comiteó, no porque este archivo lo impidiera.
 .superpowers/
+
+# Entregables generados para el propietario (PDF, etc.): no se versionan
+entregables/

@@ -73,20 +73,31 @@
 
 # Nada de esto es parte del sitio: son herramientas, pruebas y scripts internos.
 # Publicar la raíz los expondría en URLs adivinables, así que se bloquean.
+#
+# `force = true` ES LO QUE BLOQUEA, y faltó hasta el 2026-09-24. Netlify no
+# aplica una redirección si en esa ruta EXISTE un archivo («shadowing»), así que
+# sin él estas reglas nunca hicieron nada: ESTADO.md, CLAUDE.md, docs/,
+# automatizaciones/, pruebas/ y herramientas/ respondían 200 en
+# zephoracharms.com. Lo delató mirar la vista previa, no el panel ni las
+# pruebas. pruebas/paginas.js exige `force` en toda regla 404; el efecto real
+# solo se ve con red: tras desplegar, un GET a /ESTADO.md tiene que dar 404.
 [[redirects]]
   from = "/pruebas/*"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/herramientas/*"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/meta/*"
   to = "/404.html"
   status = 404
+  force = true
 
 # Los documentos internos viven en la raíz, que es justo lo que se publica, así
 # que no los cubría el bloqueo de las carpetas de arriba: quedaban servidos en
@@ -98,16 +109,19 @@
   from = "/ESTADO.md"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/README.md"
   to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/skills-lock.json"
   to = "/404.html"
   status = 404
+  force = true
 
 # CLAUDE.md llegó después que las reglas de arriba y por eso hace falta esta
 # línea. Trae el hostname del n8n autohospedado, los App IDs de Meta y notas
@@ -117,6 +131,7 @@
   from = "/CLAUDE.md"
   to = "/404.html"
   status = 404
+  force = true
 
 # Y lo mismo con la carpeta de automatizaciones, que llegó después. Trae los
 # márgenes reales por pieza, la utilidad por venta, los planes de pauta y las
@@ -126,6 +141,7 @@
   from = "/automatizaciones/*"
   to = "/404.html"
   status = 404
+  force = true
 
 # Y lo mismo con docs/, que llegó todavía después. Ahí viven las specs de
 # superpowers —incluida la de envío-estado, que ya nombra el header de
@@ -136,6 +152,35 @@
   from = "/docs/*"
   to = "/404.html"
   status = 404
+  force = true
+
+# Carpetas y archivos del repo que llegaron después y tampoco son del sitio:
+# skills de Claude, flujos de GitHub, el FUENTE de las funciones (se ejecutan
+# en /.netlify/functions/, con punto, que esto no toca) y la plantilla de
+# variables.
+[[redirects]]
+  from = "/.claude/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.github/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env.example"
+  to = "/404.html"
+  status = 404
+  force = true
 
 # El enlace que reanuda un pedido sin pagar. Va con nombre propio porque viaja
 # en un correo a una clienta: /.netlify/functions/… en la barra del navegador
@@ -152,6 +197,36 @@
 [[redirects]]
   from = "/armar-carrito"
   to = "/.netlify/functions/armar-carrito"
+  status = 200
+
+# Ventas cerradas por WhatsApp y pagadas por fuera: las registra el formulario
+# de n8n para que descuenten inventario como una venta web. Protegido por
+# header (VENTA_MANUAL_KEY), ver registrar-venta.mjs.
+[[redirects]]
+  from = "/registrar-venta"
+  to = "/.netlify/functions/registrar-venta"
+  status = 200
+
+# Suscripción por correo con doble confirmación: el formulario del sitio hace
+# POST aquí, y los enlaces de los correos (confirmar / darse de baja) son GET a
+# esta misma ruta. Nombre propio porque viaja en correos a clientas.
+[[redirects]]
+  from = "/suscribir"
+  to = "/.netlify/functions/suscribir"
+  status = 200
+
+# Reseñas de producto: el formulario de la página hace POST aquí, y los enlaces
+# de moderación del correo a la tienda son GET a esta misma ruta.
+[[redirects]]
+  from = "/resenas"
+  to = "/.netlify/functions/resenas"
+  status = 200
+
+# La lista de suscriptoras confirmadas para n8n. Protegida por header
+# (SUSCRIPTORES_KEY), ver suscriptores-export.mjs.
+[[redirects]]
+  from = "/suscriptores-export"
+  to = "/.netlify/functions/suscriptores-export"
   status = 200
 
 # El que recibe el aviso de estado de envío desde n8n, después de que n8n

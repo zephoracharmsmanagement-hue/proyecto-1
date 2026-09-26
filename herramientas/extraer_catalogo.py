@@ -116,9 +116,15 @@ def main():
     # 27 letras de sitio y dejaba un diff de 40 líneas que no cambia ni un dato.
     # El extractor pisa este archivo cada vez que se toca un precio; si su
     # salida no es reproducible, ese ruido tapa el cambio de verdad.
+    #
+    # Desde el 2026-09-25 cada inicial puede tener su foto propia,
+    # `assets/letra-<x>.webp` (las metió entrar_fotos.py). La que no la tenga
+    # —hoy Ñ y Q— sigue con la foto del grupo.
+    carpeta = pathlib.Path(__file__).resolve().parent.parent / 'assets'
     for c in data['charms']:
         if c['id'].startswith('letra-'):
-            fotos[c['id']] = letras
+            propia = c['id'] + '.webp'
+            fotos[c['id']] = propia if (carpeta / propia).exists() else letras
 
     catalogo = {
         '_': ('Generado por herramientas/extraer_catalogo.py desde index.html. '

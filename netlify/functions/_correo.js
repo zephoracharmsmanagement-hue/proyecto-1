@@ -197,13 +197,14 @@ async function enviar({ para, asunto, html, txt, responder }) {
 
 /* Confirmación de pedido recibido. Para contraentrega es el comprobante final;
    para pago en línea es el «lo estamos esperando» previo al pago aprobado. */
-async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente }) {
+async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente, regalo }) {
   const contra = pago === 'contraentrega';
+  const conRegalo = regalo === 'suscriptor' ? ' Tu pedido incluye tu charm de regalo por estar suscrita.' : '';
   const datos = {
     titulo: contra ? 'Pedido confirmado' : 'Recibimos tu pedido',
-    entrada: contra
+    entrada: (contra
       ? 'Lo estamos preparando. Pagas en efectivo cuando el mensajero te lo entregue.'
-      : 'Estamos confirmando tu pago. En cuanto quede aprobado te escribimos otra vez.',
+      : 'Estamos confirmando tu pago. En cuanto quede aprobado te escribimos otra vez.') + conRegalo,
     referencia, lineas,
     envio: cuentas.envio, envioGratis: cuentas.envioGratis, total: cuentas.total,
     pago, cliente,
@@ -327,7 +328,15 @@ const BLOQUE = (rotulo, valor, destacado) => !valor ? '' : `
        ${destacado ? 'background:#FDF1F2;border-left:3px solid #B03A48;padding:10px 12px' : ''}">${valor}</p>
   </td></tr>`;
 
-function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado }) {
+/* El regalo de suscriptora, en la hoja de despacho. Destacado en rojo como las
+   indicaciones: es de lo que se olvida si se empaca leyendo en diagonal. La
+   pieza la escoge quien empaca y la descuenta con registrar-venta (pago
+   «regalo»), ver automatizaciones/suscripcion/BRIEF.md. */
+const TXT_REGALO = 'Un charm de regalo por ser suscriptora (su primera compra de 2 charms o más). '
+  + 'Escógelo al empacar —nunca una pieza con menos de 3 unidades— y descuéntalo con el formulario '
+  + 'de ventas manuales, pago «regalo», total 0.';
+
+function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regalo }) {
   const contra = pago === 'contraentrega';
   const piezas = lineas.map(l =>
     `• ${esc(l.nombre)}${l.talla ? ` — <b>talla ${esc(l.talla)} cm</b>` : ''}`
@@ -370,6 +379,7 @@ function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado })
   ${BLOQUE('⚠ Indicaciones para la entrega', esc(cliente.notas).replace(/\n/g, '<br>'), true)}
   ${BLOQUE('✎ Dedicatoria — va escrita a mano',
     esc(cliente.dedicatoria).replace(/\n/g, '<br>'), true)}
+  ${regalo === 'suscriptor' ? BLOQUE('🎁 INCLUIR REGALO DE SUSCRIPTOR', esc(TXT_REGALO), true) : ''}
   ${BLOQUE('Qué empacar', piezas)}
   ${BLOQUE('Para la guía — destinatario', contacto)}
   ${BLOQUE('Para la guía — dirección', direccion)}
@@ -389,7 +399,7 @@ function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado })
 
 /* La misma hoja en texto plano. No es un respaldo decorativo: empacando se lee
    en el teléfono, y ahí muchos clientes de correo muestran esta versión. */
-function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado }) {
+function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regalo }) {
   const bloque = (rotulo, valor) => (valor ? [rotulo, valor, ''] : []);
   return [
     pagado ? `PAGO CONFIRMADO — YA SE PUEDE DESPACHAR · ${referencia}` : `PEDIDO NUEVO · ${referencia}`,
@@ -399,6 +409,7 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado }) {
     '',
     ...bloque('>> INDICACIONES PARA LA ENTREGA:', cliente.notas),
     ...bloque('>> DEDICATORIA (va escrita a mano):', cliente.dedicatoria),
+    ...bloque('>> INCLUIR REGALO DE SUSCRIPTOR:', regalo === 'suscriptor' ? TXT_REGALO : ''),
     'QUÉ EMPACAR:',
     ...lineas.map(l => `- ${l.nombre}${l.talla ? ` (talla ${l.talla} cm)` : ''}`
       + `${l.unidades > 1 ? ` x${l.unidades}` : ''}`),
@@ -418,13 +429,14 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado }) {
 }
 
 /* Copia interna, para no depender de mirar el panel de Wompi. */
-async function avisoTienda({ referencia, lineas, cuentas, pago, cliente }) {
+async function avisoTienda({ referencia, lineas, cuentas, pago, cliente, regalo }) {
   const { para, defecto } = correoTienda();
-  const datos = { referencia, lineas, cuentas, pago, cliente };
+  const datos = { referencia, lineas, cuentas, pago, cliente, regalo };
   /* Las indicaciones y la dedicatoria van en el asunto —marcadas— porque el
      correo se ve primero en una lista, y lo que no se ve ahí se empaca sin
      leer. */
-  const avisos = [cliente.notas ? '⚠ CON INDICACIONES' : '', cliente.dedicatoria ? '✎ DEDICATORIA' : '']
+  const avisos = [cliente.notas ? '⚠ CON INDICACIONES' : '', cliente.dedicatoria ? '✎ DEDICATORIA' : '',
+    regalo === 'suscriptor' ? '🎁 REGALO' : '']
     .filter(Boolean).join(' ');
   const r = await enviar({
     para,
@@ -468,10 +480,11 @@ async function pagoTienda({ referencia, total, pedido }) {
   const cuentas = pedido.cuentas || { envio: 0, envioGratis: false, total: total || 0 };
   const datos = {
     referencia, lineas: pedido.lineas, cuentas,
-    pago: pedido.pago || 'anticipado', cliente: pedido.cliente, pagado: true,
+    pago: pedido.pago || 'anticipado', cliente: pedido.cliente, pagado: true, regalo: pedido.regalo,
   };
   const avisos = [pedido.cliente.notas ? '⚠ CON INDICACIONES' : '',
-    pedido.cliente.dedicatoria ? '✎ DEDICATORIA' : ''].filter(Boolean).join(' ');
+    pedido.cliente.dedicatoria ? '✎ DEDICATORIA' : '',
+    pedido.regalo === 'suscriptor' ? '🎁 REGALO' : ''].filter(Boolean).join(' ');
   const r = await enviar({
     para,
     asunto: `PAGADO · ${referencia} · ${cop(cuentas.total)} — despachar${avisos ? ' · ' + avisos : ''}`,

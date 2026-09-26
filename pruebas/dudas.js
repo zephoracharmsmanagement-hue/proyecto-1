@@ -13,6 +13,12 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ---- 1 · calculadora, con las reglas del negocio ----
   console.log('1 · Calculadora de talla');
+  /* La calculadora vive en un <details> cerrado desde el 2026-09-11. */
+  const des = await p.evaluate(() => {
+    const d = document.getElementById('talla-des');
+    const antes = d.open; d.open = true; return antes;
+  });
+  ok(des === false, 'la calculadora nace plegada');
   const calc = async v => {
     await p.fill('#muneca', String(v));
     await p.waitForTimeout(280);
@@ -41,8 +47,11 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ---- 2 · ficha de producto por familia ----
   console.log('2 · Ficha de producto');
+  // Desde el 2026-09-26 la tarjeta de la portada lleva a la página de la
+  // pieza; la ficha se abre ahí, tocando su foto (galería ampliada).
   const ficha = async id => {
-    await p.evaluate(i => document.querySelector(`.pc[data-id="${i}"] .pc-img`).click(), id);
+    await p.goto(BASE + '/producto-' + id + '.html', { waitUntil: 'networkidle' });
+    await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
     await p.waitForTimeout(250);
     const d = await p.evaluate(() => ({
       abierta: !document.getElementById('ficha').hidden,
@@ -75,6 +84,7 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ---- 3 · buscador ----
   console.log('3 · Buscador');
+  await p.goto(U, { waitUntil: 'networkidle' });
   /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
      llamada que garantiza el estado abierto sin depender de cómo empiece. */
   await p.evaluate(() => { const f = document.querySelector('#full-cat');
@@ -121,6 +131,21 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   await p.waitForTimeout(300);
   const comb2 = await p.evaluate(() => [...document.querySelectorAll('#resto-grid .pc:not([hidden])')].filter(x => x.classList.contains('is-out')).length);
   ok(comb2 === 0, 'sumando "solo disponibles" no queda ningún agotado');
+
+  // ---- 4 · precio de las iniciales ----
+  // Estuvo escrito a mano en $76.000 (tarjeta y botones) mientras se cobraban
+  // $86.000: el alza del 2026-09-13 no lo tocó porque no era un precio de tarjeta.
+  console.log('4 · Precio de las iniciales');
+  const ini = await p.evaluate(async () => {
+    const c = await fetch('assets/catalogo.json').then(r => r.json());
+    const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
+    const b = [...document.querySelectorAll('#letras-grid .lbtn')].find(x => x.getAttribute('aria-disabled') !== 'true');
+    return { esperado: cop(c.precios['letra-a']),
+      meta: document.querySelector('.pc[data-id="letras"] .pc-meta').textContent,
+      boton: b ? b.getAttribute('aria-label') : '' };
+  });
+  ok(ini.meta.includes(ini.esperado), `la tarjeta dice ${ini.esperado}: «${ini.meta}»`);
+  ok(ini.boton.includes(ini.esperado), `y los botones de inicial también: «${ini.boton}»`);
 
   console.log('errores JS: ' + (errs.length ? errs.join(' | ') : 'ninguno ✓'));
   await b.close();

@@ -16,7 +16,10 @@ const U = BASE + '/index.html';
        secundario— la prueba se fue a medir un botón verde a 1.900 px de
        scroll y decía FUERA con el hero intacto. Lo que importa es que la
        acción principal caiga sobre el pliegue, no de qué color es. */
-    const cta = await p.locator('.hero-cta .btn').first().boundingBox();
+    /* La franja con el botón bajo el banner se retiró el 2026-09-25 (encargo
+       de la ficha): si no hay CTA en el hero, no hay nada que medir. */
+    const ctaL = p.locator('.hero-cta .btn').first();
+    const cta = (await ctaL.count()) ? await ctaL.boundingBox() : { y: 0, height: 0 };
     const ann = await p.locator('.ann').first().boundingBox();
     // ¿se corta algún aviso?
     const cortes = await p.$$eval('.ann-slide', (els) =>
@@ -35,20 +38,18 @@ const U = BASE + '/index.html';
   p.on('pageerror', e => errores.push(e.message));
   await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
 
-  /* El catálogo completo ya nace abierto: antes esta prueba lo abría con
-     #more-btn y ahora ese botón lo cerraría, dejando los filtros fuera de
-     pantalla y el resto de comprobaciones midiendo una página plegada. */
-  const abiertoAlCargar = await p.locator('#full-cat').isVisible();
+  /* Desde la poda del 2026-09-11 el catálogo completo nace CERRADO (son 86
+     piezas). Esta sección exigía lo contrario y reventaba antes de su primera
+     comprobación, en cualquier máquina. */
+  const cerradoAlCargar = !(await p.locator('#full-cat').isVisible());
   const rotuloInicial = (await p.locator('#more-btn').textContent()).trim();
   await p.click('#more-btn');
   await p.waitForTimeout(150);
-  const cerradoTrasClic = !(await p.locator('#full-cat').isVisible());
-  await p.click('#more-btn');
-  await p.waitForTimeout(150);
-  out.push('\nCatálogo abierto de entrada'
-    + `\n  visible al cargar: ${abiertoAlCargar ? 'sí ✓' : 'NO ✗'}`
-    + `\n  el botón ofrece cerrarlo: ${/ocultar/i.test(rotuloInicial) ? 'sí ✓' : 'NO ✗'} — "${rotuloInicial}"`
-    + `\n  y al tocarlo se pliega: ${cerradoTrasClic ? 'sí ✓' : 'NO ✗'}`);
+  const abiertoTrasClic = await p.locator('#full-cat').isVisible();
+  out.push('\nCatálogo cerrado de entrada'
+    + `\n  oculto al cargar: ${cerradoAlCargar ? 'sí ✓' : 'NO ✗'}`
+    + `\n  el botón ofrece verlo: ${/ver el cat/i.test(rotuloInicial) ? 'sí ✓' : 'NO ✗'} — "${rotuloInicial}"`
+    + `\n  y al tocarlo se abre: ${abiertoTrasClic ? 'sí ✓' : 'NO ✗'}`);
 
   await p.click('#filters .fbtn[data-f="Disney"]');
   await p.waitForTimeout(200);
@@ -69,11 +70,16 @@ const U = BASE + '/index.html';
     `\n  total: ${destacados + revelados}\n  rótulo actual del botón: "${rotulo.trim()}"`);
 
   // ---- 4. Categorías ----
-  await p.click('.cat[data-cat="Marvel"]');
+  /* La primera tarjeta que todavía filtra. No se clava el nombre: una
+     categoría que gana página propia pierde su data-cat —Marvel el
+     2026-09-19— y esta prueba se quedaba esperando un elemento que ya no
+     existe. */
+  const cat = await p.getAttribute('.cat[data-cat]', 'data-cat');
+  await p.click(`.cat[data-cat="${cat}"]`);
   await p.waitForTimeout(400);
-  const marvelOn = await p.locator('#filters .fbtn[data-f="Marvel"].is-on').count();
-  const cuentaMarvel = await p.locator('#count').textContent();
-  out.push(`\nTarjeta de categoría "Marvel"\n  filtro aplicado: ${marvelOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaMarvel}"`);
+  const catOn = await p.locator(`#filters .fbtn[data-f="${cat}"].is-on`).count();
+  const cuentaCat = await p.locator('#count').textContent();
+  out.push(`\nTarjeta de categoría "${cat}"\n  filtro aplicado: ${catOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaCat}"`);
 
   // ---- 5. Eventos del pixel en clic a WhatsApp ----
   await p.evaluate(() => { window.__ev = []; window.fbq = (a, b, c) => window.__ev.push([a, b, c]); });
@@ -154,11 +160,12 @@ const U = BASE + '/index.html';
   //      error: la ficha abre, el hueco queda en blanco, y solo se ve mirando.
   //      Es el mismo patrón que dejó una foto sin cargar por un carácter
   //      invisible en el nombre.
-  const declaradas = await p.evaluate(() => {
-    const F = window.__FOTOS || null;
-    if (F) return F;
-    // FOTOS vive dentro de la IIFE del armador; se lee del propio fuente.
-    const m = document.documentElement.innerHTML.match(/const FOTOS = (\{[\s\S]*?\n\};)/);
+  // FOTOS vive dentro de la IIFE de tienda.js (salió de index.html el
+  // 2026-09-18); se lee del fuente. Buscándolo en el HTML esta sección daba
+  // «NO ✗» y la comprobación de fotos existentes no revisaba ninguna.
+  const declaradas = await p.evaluate(async () => {
+    const src = await fetch('tienda.js').then(r => r.text());
+    const m = src.match(/const FOTOS = (\{[\s\S]*?\n\};)/);
     return m ? JSON.parse(m[1].replace(/'/g, '"').replace(/,(\s*[}\]])/g, '$1').replace(/;$/, '')) : null;
   });
   let rotas = [];
@@ -176,36 +183,37 @@ const U = BASE + '/index.html';
     + `\n  todas las fotos declaradas existen: ${rotas.length === 0 ? 'sí ✓' : 'NO ✗ — ' + rotas.join(', ')}`);
 
   // Una pieza con varias fotos abre con tira y miniaturas; una con una sola, no.
+  // Desde el 2026-09-26 la tarjeta de la portada lleva a la página de la
+  // pieza, y la ficha es la galería ampliada de esa página: se abre tocando
+  // su foto.
+  const galeriaDe = async id => {
+    await p.goto(BASE + '/producto-' + encodeURIComponent(id) + '.html', { waitUntil: 'networkidle' });
+    await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
+    await p.waitForFunction(() => !document.getElementById('ficha').hidden, null, { timeout: 5000 }).catch(() => {});
+    await p.waitForTimeout(200);
+  };
   const conVarias = declaradas ? Object.keys(declaradas)[0] : null;
   if (conVarias) {
-    await p.evaluate(id => {
-      const t = document.querySelector(`.pc[data-id="${id}"] .pc-img`);
-      if (t) t.click();
-    }, conVarias);
-    await p.waitForTimeout(300);
+    await galeriaDe(conVarias);
     const n = await p.locator('#fx-gal figure').count();
     const minis = await p.locator('#fx-mini button').count();
     out.push(`  «${conVarias}» abre con ${n} fotos y ${minis} miniaturas: `
       + `${n === declaradas[conVarias].length + 1 && minis === n ? 'sí ✓' : 'NO ✗'}`);
-    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
-    await p.waitForTimeout(200);
   }
+  await p.goto(U, { waitUntil: 'networkidle' });
   const sinExtra = await p.evaluate(decl => {
     const c = [...document.querySelectorAll('#charms .pc[data-id]')]
       .map(e => e.dataset.id).find(i => !(i in decl) && i !== 'letras');
-    if (!c) return null;
-    document.querySelector(`.pc[data-id="${c}"] .pc-img`).click();
-    return c;
+    return c || null;
   }, declaradas || {});
   if (sinExtra) {
-    await p.waitForTimeout(300);
+    await galeriaDe(sinExtra);
     const galería = await p.locator('#fx-gal').count();
     const miniVisible = await p.locator('#fx-mini').isVisible();
     out.push(`  «${sinExtra}», con una sola foto, no pinta tira ni miniaturas: `
       + `${galería === 0 && !miniVisible ? 'sí ✓' : 'NO ✗'}`);
-    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
-    await p.waitForTimeout(200);
   }
+  await p.goto(U, { waitUntil: 'networkidle' });
 
   // ---- 7b. Lupa de la cabecera ----
   //
@@ -231,20 +239,17 @@ const U = BASE + '/index.html';
       + `\n  trae brazaletes: ${hayB ? 'sí ✓' : 'NO ✗'}   y charms: ${hayC ? 'sí ✓' : 'NO ✗'}`);
 
     /* Y que llevar a la pieza funcione: el resultado de buscar algo concreto
-       es esa pieza, no una parrilla filtrada. */
+       es esa pieza, no una parrilla filtrada. Desde el 2026-09-26 lleva a su
+       página, como las tarjetas. */
     await p.fill('#busq-q', 'corazon liso');
     await p.waitForTimeout(250);
-    await p.locator('.busq-r').first().click();
-    await p.waitForTimeout(350);
-    const abrio = await p.evaluate(() => ({
-      n: document.querySelector('#fx-n').textContent,
-      tipo: document.querySelector('#fx-tipo').textContent,
-      cerrado: document.querySelector('#busq').hidden,
-    }));
-    out.push(`  tocar un resultado abre su ficha: «${abrio.n}» (${abrio.tipo})`
-      + `   y cierra el panel: ${abrio.cerrado ? 'sí ✓' : 'NO ✗'}`);
-    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
-    await p.waitForTimeout(200);
+    const ir = await p.locator('.busq-r').first().getAttribute('data-ir');
+    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/producto-' + ir + '.html'), { timeout: 8000 }).catch(() => {}),
+      p.locator('.busq-r').first().click()]);
+    const llego = new URL(p.url()).pathname;
+    out.push(`  tocar un resultado lleva a su página: «${ir}» → ${llego} `
+      + `${llego.endsWith('/producto-' + ir + '.html') ? 'sí ✓' : 'NO ✗'}`);
+    await p.goto(U, { waitUntil: 'networkidle' });
   }
 
   // ---- 8. Desbordamiento horizontal ----

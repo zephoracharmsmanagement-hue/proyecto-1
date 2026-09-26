@@ -93,6 +93,8 @@ button{font-family:inherit}
   border-top:1px solid var(--line);margin-top:9px;padding-top:11px}
 .tot-fin span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver)}
 .tot-fin b{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:300}
+.susc-ck{margin:10px 0 0;padding:9px 11px;font-size:13px;line-height:1.45;color:var(--plum,#5C3D63);
+  background:#F3E6EB;border-radius:2px}
 /* Cuánto falta para el envío gratis, dentro del resumen.
    Vive aquí y no en un paso concreto porque el resumen está pegado arriba en
    los tres: el dato sirve mientras se pueda hacer algo con él, y en el último
@@ -769,6 +771,16 @@ function pintarResumen(){
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
   h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
+  /* Regalo de suscriptora. Solo si ESTE navegador confirmó la suscripción
+     (lo marca la página de confirmación): preguntarle al servidor por un
+     correo revelaría quién está suscrita. Quien decide de verdad es
+     crear-pago, con el correo del pedido; esto solo empuja el segundo charm. */
+  let suscrita=false; try{ suscrita=!!localStorage.getItem('zephora.suscrita'); }catch(e){}
+  if(suscrita){
+    const n=c.charms.length;
+    if(n>=2) h+='<p class="susc-ck">🎁 Incluye tu charm de regalo de suscriptora (con el correo con que te suscribiste).</p>';
+    else if(n===1) h+='<p class="susc-ck">🎁 Agrega 1 charm más y te llevas uno de regalo por estar suscrita.</p>';
+  }
   $('#res-totales').innerHTML=h;
 
   /* Cuánto falta para el envío gratis.
@@ -1386,8 +1398,16 @@ Promise.all([
   addEventListener('storage',e=>{ if(e.key===LLAVE) releer(); });
 
   $('#year').textContent=new Date().getFullYear();
-  track('InitiateCheckout',{value:calcular(carrito).total,
-    num_items:carrito.charms.length+(carrito.base?1:0),content_name:'Checkout paso 1'});
+  /* El único InitiateCheckout del sitio (tienda.js dejó de mandarlo al tocar
+     pagar: contaba doble). Lleva los ids de catalogo.json de todo el carrito,
+     con cantidades, para que Meta sepa QUÉ piezas llegaron al checkout. */
+  const ids=(carrito.base?[carrito.base.id]:[]).concat(carrito.charms);
+  const cuenta={}; ids.forEach(i=>{ cuenta[i]=(cuenta[i]||0)+1; });
+  track('InitiateCheckout',{value:calcular(carrito).total,num_items:ids.length,
+    content_type:'product',content_ids:Object.keys(cuenta),
+    contents:Object.keys(cuenta).map(i=>({id:i,quantity:cuenta[i]})),
+    content_name:'Checkout paso 1'},
+    'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
 }).catch(()=>{
   /* Sin catálogo no se puede mostrar un precio, y mostrar uno inventado sería
      peor que no mostrar ninguno. Se manda a WhatsApp, que no depende de esto. */

@@ -129,6 +129,109 @@ let base=null, sel=[];
 /* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
    solos al carrito, solo resaltan la tarjeta para que la clienta decida. */
 let kitSug=[], kitNombre='';
+
+/* Vitrina: el carrusel con pestañas de las páginas de producto y de kits.html
+   (pedido del propietario, 2026-09-26: «la clienta no debe salir de la
+   página» para elegir sus charms). El generador deja el hueco (.vit) con las
+   piezas de la primera pestaña en data-vit; las demás pestañas —cada
+   colección, las iniciales y los brazaletes— salen de assets/catalogo.json, el
+   mismo que lee el checkout. Nombres y precios, de DATA: ninguna cifra se
+   escribe dos veces. Lo agotado no se ofrece. Los brazaletes piden la talla
+   en la misma tarjeta, con los botones [data-talla] de siempre. */
+const VIT=[...document.querySelectorAll('.vit')];
+const ORDEN_GRUPOS=['Disney','Marvel','Pixar','Símbolos','Muranos','Zodiaco','Profesiones','Clips','Cadenas'];
+let CAT=null, vitConStock=false;
+function pestanasDe(v){
+  const sin=v.dataset.vitSin||'', tabs=[];
+  const rel=(v.dataset.vit||'').split(',').filter(id=>id&&id!==sin&&(CH[id]||PU[id]));
+  if(rel.length) tabs.push([v.dataset.vitT||'Relacionados',rel]);
+  const grupos={};
+  DATA.charms.forEach(c=>{ const g=CAT.grupos[c.id]; if(g&&c.id!==sin) (grupos[g]=grupos[g]||[]).push(c.id); });
+  const pos=g=>{ const i=ORDEN_GRUPOS.indexOf(g); return i<0?99:i; };
+  Object.keys(grupos).sort((a,b)=>pos(a)-pos(b)).forEach(g=>tabs.push([g,grupos[g]]));
+  tabs.push(['Iniciales',DATA.charms.map(c=>c.id).filter(id=>/^letra-/.test(id)&&id!==sin)]);
+  if(v.dataset.vitB!=='0') tabs.push(['Brazaletes',DATA.pulseras.map(c=>c.id).filter(id=>id!==sin)]);
+  return tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id))]).filter(([,ids])=>ids.length);
+}
+function itemVit(id){
+  const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id];
+  return '<div class="vit-it" data-vid="'+id+'" role="listitem">'
+    +(f?'<img src="assets/'+f+'" alt="" width="96" height="96" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'">':'<span class="vit-nof"></span>')
+    +'<span class="vit-n">'+escHTML(d.n)+'</span><small>'+cop(d.p)+'</small>'
+    +(esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
+         +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
+         :'<button type="button" class="vit-add" data-add="'+id+'">Agregar</button>')
+    +'</div>';
+}
+function dibujarVit(v,nombre){
+  const tabs=pestanasDe(v);
+  if(!tabs.length){ v.hidden=true; return; }
+  const i=Math.max(0,tabs.findIndex(([t])=>t===(nombre||v.dataset.vitTab)));
+  v.dataset.vitTab=tabs[i][0];
+  v.querySelector('.vit-tabs').innerHTML=tabs.map(([t],k)=>'<button type="button" role="tab" class="vit-tab'
+    +(k===i?' is-on':'')+'" aria-selected="'+(k===i)+'" data-vit-tab="'+escHTML(t)+'">'+escHTML(t)+'</button>').join('');
+  const rail=v.querySelector('.vit-rail');
+  rail.innerHTML=tabs[i][1].map(itemVit).join('');
+  rail.scrollLeft=0;
+  estadoVit();
+}
+function tallasVit(caja,id){
+  const libres=tallasLibres(id)||TALLAS;
+  caja.innerHTML=TALLAS.map(t=>{ const hay=libres.indexOf(t)>=0, on=base&&base.id===id&&base.talla===t;
+    return '<button type="button" class="tbtn'+(on?' is-on':'')+'" data-talla="'+t+'" data-para="'+id+'"'
+      +(hay?'':' aria-disabled="true"')+' aria-label="Talla '+t+' centímetros'+(hay?'':', sin unidades')+'">'+t+'</button>'; }).join('');
+}
+/* Estado de cada tarjeta de la vitrina: lo que ya va en el carrito, el tope
+   de unidades y la talla elegida. Lo llama render(). */
+function estadoVit(){
+  document.querySelectorAll('.kit-tallas[data-para]').forEach(c=>tallasVit(c,c.dataset.para));
+  if(!CAT) return;
+  if(STOCK&&!vitConStock){ vitConStock=true; VIT.forEach(v=>dibujarVit(v)); return; }
+  document.querySelectorAll('.vit-it').forEach(it=>{
+    const id=it.dataset.vid, b=it.querySelector('.vit-add');
+    if(PU[id]){
+      const on=!!(base&&base.id===id);
+      it.classList.toggle('is-sel',on);
+      b.textContent=on?(base.talla?'Talla '+base.talla+' ✓':'Elegido ✓'):'Elegir talla';
+      const c=it.querySelector('.vit-tallas'); if(c&&!c.hidden) tallasVit(c,id);
+      return;
+    }
+    const n=sel.filter(x=>x===id).length, lleno=n>=tope(id);
+    it.classList.toggle('is-sel',n>0);
+    it.dataset.n=n?'×'+n:'';
+    b.textContent=lleno&&n?'En tu carrito ✓':n?'Agregar otro':'Agregar';
+    if(lleno) b.setAttribute('aria-disabled','true'); else b.removeAttribute('aria-disabled');
+  });
+}
+if(VIT.length){
+  const sinVit=()=>VIT.forEach(v=>{ v.hidden=true; });
+  fetch('assets/catalogo.json').then(r=>r.ok?r.json():null)
+    .then(c=>{ if(!c||!c.grupos||!c.fotos) return sinVit(); CAT=c; VIT.forEach(v=>dibujarVit(v)); })
+    .catch(sinVit);
+}
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('.vit-tab');
+  if(tab){ const v=tab.closest('.vit'); dibujarVit(v,tab.dataset.vitTab);
+    const fila=v.querySelector('.vit-tabs'), on=fila.querySelector('.is-on');
+    if(on) fila.scrollTo({left:on.offsetLeft-(fila.clientWidth-on.offsetWidth)/2,behavior:'smooth'});
+    return; }
+  const bt=e.target.closest('[data-vit-talla]');
+  if(bt){ const c=bt.parentNode.querySelector('.vit-tallas');
+    if(c){ c.hidden=!c.hidden; if(!c.hidden) tallasVit(c,bt.dataset.vitTalla); } return; }
+  /* kits.html: cada paso del kit pone sus charms en el carrito sin salir de
+     la página, y pide la talla del brazalete si aún no la tiene. */
+  const kp=e.target.closest('[data-kit-piezas]');
+  if(kp){
+    const [b,...cs]=kp.dataset.kitPiezas.split(',');
+    cs.forEach(id=>{ if(CH[id]&&!sel.includes(id)) sumarCharm(id); });
+    const kit=kp.closest('.kit'), caja=kit&&kit.querySelector('.kit-tallas');
+    if(kit) kit.querySelectorAll('[data-kit-piezas]').forEach(x=>x.classList.toggle('is-on',x===kp));
+    if(caja&&!(base&&base.id===b&&base.talla)){
+      caja.scrollIntoView({behavior:'smooth',block:'center'});
+      caja.classList.remove('is-pide'); void caja.offsetWidth; caja.classList.add('is-pide');
+    }
+  }
+});
 /* Si la clienta cierra el aviso de charms, no vuelve a salir en esa visita.
    En sessionStorage y no en localStorage: cerrarlo hoy no es decir que no
    quiere verlo nunca más. */
@@ -136,19 +239,125 @@ let xsFuera=(()=>{ try{ return sessionStorage.getItem('zephora.xs')==='1'; }catc
 const evId=()=>(window.zcEvId?window.zcEvId():'zc-'+Math.random().toString(36).slice(2,10));
 const track=(ev,d)=>{ if(typeof fbq==='function')
   fbq('track',ev,Object.assign({currency:'COP'},d||{}),{eventID:evId()}); };
+/* ViewContent de UNA pieza. El id es el de catalogo.json —el mismo slug de la
+   página de producto y el que usará el catálogo de Meta—, así que el
+   retargeting dinámico empata sin mapeos. */
+const verPieza=id=>{ const p=PU[id]||CH[id]; if(!p) return;
+  track('ViewContent',{content_type:'product',content_ids:[id],content_name:p.n,value:p.p});
+  suscVista(); };
 
+/* ——— Suscripción por correo con charm de regalo ———
+ * automatizaciones/suscripcion/BRIEF.md. Aparece a los 15 s o tras ver 2
+ * productos, lo primero que pase; nunca encima de la ficha o del carrito
+ * (espera a que se cierren). Cerrada, no vuelve en 30 días. checkout.html no
+ * carga este archivo, así que ahí nunca sale. La casilla de autorización va
+ * SIN marcar (Ley 1581) y el servidor solo la acepta como booleano true. */
+const lsLeer=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const lsPoner=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
+/* navigator.webdriver: un navegador automatizado (las pruebas con Playwright,
+   bots) no recibe la ventana sola —taparía los clics de cualquier batería que
+   pase más de 15 s en la página—. pruebas/suscripcion.js lo apaga para probarla. */
+const suscFuera=()=>navigator.webdriver||lsLeer('zephora.suscrita')
+  ||(Date.now()-(+lsLeer('zephora.susc.cerrado')||0)<30*864e5);
+let suscAbierta=false;
+/* Botón de regalo (pedido del propietario, 2026-09-26): si la clienta cierra
+   la ventana con la X, queda un botón al lado contrario del de WhatsApp para
+   retomar el incentivo. Desaparece en cuanto se suscribe. */
+function botonRegalo(ver){
+  let b=document.querySelector('.susc-fab');
+  if(!ver){ if(b) b.hidden=true; return; }
+  if(lsLeer('zephora.suscrita')||lsLeer('zephora.susc.enviada')) return;
+  if(!b){
+    b=document.createElement('button'); b.type='button'; b.className='susc-fab';
+    b.setAttribute('aria-label','Tu charm de regalo: suscríbete');
+    b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>';
+    b.addEventListener('click',()=>abrirSusc(true));
+    document.body.appendChild(b);
+  }
+  b.hidden=false;
+}
+function suscVista(){
+  let n=0; try{ n=+(sessionStorage.getItem('zephora.vistas')||0)+1; sessionStorage.setItem('zephora.vistas',n); }catch(e){}
+  /* Un instante después: verPieza corre dentro de abrirFicha ANTES de que la
+     ficha se muestre, y sin esperar la ventana creía que no había ficha y se
+     le ponía encima. */
+  if(n>=2) setTimeout(()=>abrirSusc(),600);
+}
+function abrirSusc(forzar){
+  if(suscAbierta||(!forzar&&suscFuera())) return;
+  const ficha=document.getElementById('ficha');
+  if((ficha&&!ficha.hidden)||document.body.classList.contains('sheet-open')){
+    if(!forzar){ setTimeout(()=>abrirSusc(),4000); return; }
+  }
+  suscAbierta=true;
+  botonRegalo(false);
+  const capa=document.createElement('div');
+  capa.className='susc'; capa.setAttribute('role','dialog'); capa.setAttribute('aria-modal','true');
+  capa.setAttribute('aria-labelledby','susc-t');
+  capa.innerHTML='<div class="susc-box"><button type="button" class="susc-x" aria-label="Cerrar">✕</button>'
+    +'<span class="eyebrow">Suscríbete</span>'
+    +'<h2 id="susc-t">Un charm de regalo en tu primera compra</h2>'
+    +'<p class="susc-sub">Te lo llevas en tu primera compra de 2 charms o más. Y te enteras primero cuando lleguen piezas nuevas.</p>'
+    +'<form class="susc-f" novalidate>'
+    +'<input type="email" name="correo" required autocomplete="email" placeholder="Tu correo" aria-label="Tu correo">'
+    +'<input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">'
+    +'<label class="susc-ok"><input type="checkbox" name="acepta"> <span>Acepto recibir correos de Zephora Charms con novedades y ofertas. Puedo darme de baja cuando quiera. <a href="politica-de-privacidad.html" target="_blank" rel="noopener">Política de datos</a></span></label>'
+    +'<button class="btn" type="submit">Quiero mi regalo</button>'
+    +'<p class="susc-msg" aria-live="polite"></p></form></div>';
+  document.body.appendChild(capa);
+  const cerrar=()=>{ capa.remove(); suscAbierta=false; lsPoner('zephora.susc.cerrado',String(Date.now()));
+    document.removeEventListener('keydown',esc); botonRegalo(true); };
+  const esc=e=>{ if(e.key==='Escape') cerrar(); };
+  document.addEventListener('keydown',esc);
+  capa.addEventListener('click',e=>{ if(e.target===capa||e.target.closest('.susc-x')) cerrar(); });
+  const f=capa.querySelector('form'), msg=capa.querySelector('.susc-msg');
+  f.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const correo=f.correo.value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)){ msg.textContent='Revisa tu correo.'; return; }
+    if(!f.acepta.checked){ msg.textContent='Marca la casilla para que podamos escribirte.'; return; }
+    const b=f.querySelector('button[type=submit]'); b.disabled=true; msg.textContent='Enviando…';
+    try{
+      const r=await fetch('suscribir',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({correo,acepta:true,web:f.web.value})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok){ msg.textContent=d.error||'No se pudo. Intenta de nuevo.'; b.disabled=false; return; }
+      track('Lead',{content_name:'suscripcion'});
+      lsPoner('zephora.susc.cerrado',String(Date.now()));
+      lsPoner('zephora.susc.enviada','1');
+      f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». Tu regalo queda guardado para tu primera compra de 2 charms o más.</p>';
+    }catch(err){ msg.textContent='Sin conexión. Intenta de nuevo.'; b.disabled=false; }
+  });
+  f.correo.focus();
+}
+if(!suscFuera()) setTimeout(()=>abrirSusc(),15000);
+/* Quien ya la cerró en otra visita ve el botón de regalo desde el principio. */
+else if(lsLeer('zephora.susc.cerrado')) botonRegalo(true);
+/* Cualquier enlace o botón con data-susc abre la suscripción a pedido. */
+document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); if(a){ e.preventDefault(); abrirSusc(true); } });
+
+/* Desde el 2026-09-25 cada inicial tiene su foto (assets/letra-x.webp), salvo
+   las que no llegaron (hoy Ñ y Q): esas caen a la foto del grupo con onerror,
+   sin una lista escrita aquí que se desincronice de assets/. */
+const fotoLetra=id=>'assets/'+encodeURIComponent(id)+'.webp?v=20260925';
+const fotoGrupoLetras=()=>{ const el=document.querySelector('.pc[data-id="letras"] img');
+  return el?(el.dataset.grupo||el.getAttribute('src')):''; };
 function imgDe(id){
-  /* las 27 iniciales comparten la foto del bloque de letras */
-  const clave=/^letra-/.test(id)?'letras':id;
-  const el=document.querySelector('.pc[data-id="'+CSS.escape(clave)+'"] img');
+  const propia=document.querySelector('.pc[data-id="'+CSS.escape(id)+'"] img');
+  if(propia) return propia.src;
+  if(/^letra-/.test(id)) return fotoLetra(id);
+  const t=tarjetaDe(id), el=t&&t.querySelector('img');
   return el?el.src:'';
 }
+const respaldo=id=>!/^letra-/.test(id) ? ''
+  : fotoGrupoLetras() ? ' onerror="this.onerror=null;this.src=\''+fotoGrupoLetras()+'\'"'
+  : ' onerror="this.style.visibility=\'hidden\'"';
 
 function fila(id,nombre,meta,precio,quitar){
   const r=document.createElement('div'); r.className='srow';
   const src=imgDe(id);
   /* Sin foto va un monograma, no un <img src=""> — eso pedía el HTML otra vez. */
-  const mini = src ? '<img src="'+src+'" alt="">'
+  const mini = src ? '<img src="'+src+'" alt=""'+respaldo(id)+'>'
     : '<span class="srow-nof" aria-hidden="true">'+nombre.trim().charAt(0).toUpperCase()+'</span>';
   r.innerHTML=mini+
     '<div class="srow-n">'+nombre+'<small>'+meta+'</small></div>'+
@@ -353,8 +562,12 @@ function pintarLetras(){
     if(sinStock||veces>=tope(id)) b.setAttribute('aria-disabled','true');
     else b.removeAttribute('aria-disabled');
     b.setAttribute('aria-label','Inicial '+b.dataset.letra.toUpperCase()+
-      (sinStock?', agotada':', $76.000'));
+      (sinStock?', agotada':', '+cop(CH[id].p)));
   });
+  /* El precio de la tarjeta sale de DATA, no del HTML: estuvo escrito a mano
+     en $76.000 mientras se cobraban $86.000 (alza del 2026-09-13). */
+  const meta=document.querySelector('.pc[data-id="letras"] .pc-meta');
+  if(meta&&LETRAS.length) meta.textContent=LETRAS.length+' iniciales · '+cop(CH['letra-'+LETRAS[0]].p)+' cada una';
 }
 
 /* ——— ficha de producto ——— */
@@ -406,36 +619,28 @@ function pintarGaleria(id, img, nombre){
   };
 }
 
-function abrirFicha(id){
-  const esB=!!PU[id], p=esB?PU[id]:CH[id];
-  if(!p) return;
-  fichaId=id;
-  const tarjeta=document.querySelector('.pc[data-id="'+CSS.escape(/^letra-/.test(id)?'letras':id)+'"]');
-  const img=tarjeta&&tarjeta.querySelector('.pc-img img');
-  const inv=STOCK?STOCK[id]:null;
-  const fam=inv&&inv.familia?FAMILIAS[inv.familia]:null;
+/* La tarjeta de una pieza. Las iniciales comparten la tarjeta «letras» en la
+   portada, pero en su propia página de producto tienen una tarjeta suya. */
+function tarjetaDe(id){
+  return document.querySelector('.pc[data-id="'+CSS.escape(id)+'"]')
+    || (/^letra-/.test(id)?document.querySelector('.pc[data-id="letras"]'):null);
+}
+function familiaDe(id){ const s=STOCK?STOCK[id]:null; return s&&s.familia?FAMILIAS[s.familia]:null; }
 
-  pintarGaleria(id, img, p.n);
-  $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
-  $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
-  $('#fx-p').textContent = cop(p.p);
-
-  const est=$('#fx-est');
-  if(!STOCK){ est.textContent=''; est.className='fx-est'; }
-  else if(agotado(id)){ est.textContent='Agotado — puedes pedirlo por encargo'; est.className='fx-est fx-est--out'; }
-  else if(esB){
-    const l=tallasLibres(id)||[];
-    est.textContent='Disponible en talla '+l.join(', ')+' cm';
-    est.className='fx-est fx-est--ok';
-  }else{
-    const u=unidades(id);
-    est.textContent = u!==null&&u<=2 ? (u===1?'Queda 1 unidad':'Quedan '+u+' unidades') : 'Disponible';
-    est.className='fx-est'+(u!==null&&u<=2?' fx-est--few':' fx-est--ok');
-  }
-
-  const filas=[];
+/* Disponibilidad y ficha técnica de una pieza. Las usan la ficha emergente y
+   la página de producto: el material se escribe en UN solo sitio, porque dos
+   copias ya dejaron una vez afirmaciones de 925 en brazaletes. */
+function estadoDe(id){
+  if(!STOCK) return {t:'',k:''};
+  if(agotado(id)) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
+  if(PU[id]) return {t:'Disponible en talla '+(tallasLibres(id)||[]).join(', ')+' cm',k:'ok'};
+  const u=unidades(id);
+  return u!==null&&u<=2 ? {t:u===1?'Queda 1 unidad':'Quedan '+u+' unidades',k:'few'} : {t:'Disponible',k:'ok'};
+}
+function specsDe(id){
+  const filas=[], fam=familiaDe(id);
   const fila=(k,v)=>filas.push('<div><dt>'+k+'</dt><dd>'+v+'</dd></div>');
-  if(esB){
+  if(PU[id]){
     fila('Material','Base de latón de calidad joyería con baño de plata certificado y capa protectora e-coating');
     fila('Tallas','17 a 21 cm. <a href="#talla" class="talla-link" style="margin:0">¿Cuál es la mía?</a>');
   }else{
@@ -448,7 +653,126 @@ function abrirFicha(id){
   }
   fila('Compatible','Con brazaletes Zephora y con pulseras de sistema modular, incluidas las de Pandora');
   fila('Sin níquel','Libre de níquel y plomo — apta para pieles sensibles');
-  $('#fx-specs').innerHTML=filas.join('');
+  return filas.join('');
+}
+/* En una página de producto, su bloque de disponibilidad y ficha técnica.
+   Se repinta al llegar el inventario (la familia de la pieza sale de ahí). */
+/* Disponibilidad real de esta pieza (conteo menos lo vendido y apartado),
+   leída de disponibilidad.mjs una vez. null mientras no llegue o si falla:
+   entonces manda el conteo de stock.json, como en el resto del sitio. */
+let dispReal=null;
+function estadoPagina(id){
+  if(!dispReal) return estadoDe(id);
+  if(PU[id]){
+    const t=Object.keys(dispReal.tallas||{}).filter(k=>dispReal.tallas[k]>0);
+    return t.length?{t:'Disponible en talla '+t.join(', ')+' cm',k:'ok'}:{t:'Agotado — puedes pedirlo por encargo',k:'out'};
+  }
+  const u=dispReal.disponible;
+  if(u<=0) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
+  return u<=2?{t:u===1?'Queda 1 unidad':'Quedan '+u+' unidades',k:'few'}:{t:'Disponible',k:'ok'};
+}
+function pintarPagina(){
+  const id=document.body.dataset.producto, specs=$('#pp-specs'), est=$('#pp-est');
+  if(!id||!specs||!est) return;
+  specs.innerHTML=specsDe(id);
+  const fam=familiaDe(id), desc=$('#pp-desc');
+  if(desc) desc.textContent=fam?fam.n+' — '+fam.d:'';
+  const e2=estadoPagina(id), fuera=e2.k==='out';
+  const compra=$('#pp-compra'), sin=$('#pp-agotado'), enc=$('#pp-encargo');
+  if(compra) compra.hidden=fuera;
+  if(sin) sin.hidden=!fuera;
+  if(enc) enc.href=waEncargo((PU[id]||CH[id]).n);
+  /* En la página de un brazalete, la talla es lo primero que hay que elegir:
+     el panel sale abierto en vez de esconderse tras «Elegir». */
+  const t=tarjetaDe(id), tallas=t&&t.querySelector('.tallas');
+  if(tallas&&!t.dataset.abierta){ tallas.hidden=false; t.dataset.abierta='1'; }
+  est.textContent=e2.t; est.className='fx-est'+(e2.k?' fx-est--'+e2.k:'');
+}
+
+/* ——— Página de producto: datos reales, paquetes y reseñas ——— */
+const PP=document.body.dataset.producto;
+const estrellasHTML=n=>{ let s=''; for(let i=1;i<=5;i++) s+='<svg viewBox="0 0 24 24" width="15" height="15"'
+  +(i<=Math.round(n)?'':' class="est-off"')+' aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg>';
+  return s; };
+const escHTML=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+if(PP&&(CH[PP]||PU[PP])){
+  fetch('.netlify/functions/disponibilidad',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||d.fuente!=='conteo-menos-apartado') return;
+    dispReal=(d.piezas||[]).concat(d.brazaletes||[]).find(x=>x.id===PP)||null;
+    if(dispReal){ pintarPagina(); render(); }
+  }).catch(()=>{});
+  /* «N personas compraron esta pieza este mes»: de pedidos reales, y solo con
+     N ≥ 3 (lo filtra el servidor). Sin dato, no se dice nada. */
+  fetch('.netlify/functions/vendidas').then(r=>r.ok?r.json():null).then(d=>{
+    const n=d&&d.ventas&&d.ventas[PP], el=$('#pp-vendidas');
+    if(el&&n>=3){ el.textContent=n+' personas compraron esta pieza este mes'; el.hidden=false; }
+  }).catch(()=>{});
+  const pintarResenas=d=>{
+    if(!d||!d.total) return;
+    const prom=d.promedio.toFixed(1).replace('.',','), txt=' '+prom+' · '+d.total+(d.total===1?' reseña':' reseñas');
+    const top=$('#pp-estrellas');
+    if(top){ top.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>'; top.hidden=false; }
+    const res=$('#rp-resumen'); if(res) res.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>';
+    const lista=$('#rp-lista');
+    if(lista) lista.innerHTML=d.resenas.map(r=>'<figure class="rp-it"><div class="estrellas">'+estrellasHTML(r.estrellas)+'</div>'
+      +'<blockquote>'+escHTML(r.texto)+'</blockquote><figcaption><b>'+escHTML(r.nombre)+'</b>'
+      +(r.ciudad?' · '+escHTML(r.ciudad):'')+(r.verificada?' · <span class="rp-ok">✓ Compra verificada</span>':'')
+      +'</figcaption></figure>').join('');
+  };
+  fetch('.netlify/functions/resenas?producto='+encodeURIComponent(PP)).then(r=>r.ok?r.json():null)
+    .then(pintarResenas).catch(()=>{});
+
+  /* Paquetes: al elegir 2, 3 o 4, se abren los charms para completarlo. */
+  const pq=document.querySelector('.pq');
+  const verPq=()=>{ const m=$('#pq-mas'), v=+((document.querySelector('.pq input:checked')||{}).value||1);
+    if(m){ m.hidden=v<2; const f=$('#pq-faltan'); if(f) f.textContent=(v-1)+(v===2?' charm':' charms'); } };
+  if(pq){ pq.addEventListener('change',verPq); verPq(); }
+
+  /* Reseña: se manda a moderación. El enlace del correo de entrega trae
+     ?resena=<referencia>.<firma> y eso la marca como compra verificada. */
+  const f=$('#rp-form');
+  if(f){
+    const q=new URL(location.href).searchParams.get('resena');
+    if(q){ const d=$('#rp-escribir'); if(d){ d.open=true; setTimeout(()=>d.scrollIntoView({block:'start'}),300); } }
+    f.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const msg=f.querySelector('.rp-msg'), est=+((f.querySelector('input[name=estrellas]:checked')||{}).value||0);
+      if(!est){ msg.textContent='Elige de 1 a 5 estrellas.'; return; }
+      if(f.texto.value.trim().length<10){ msg.textContent='Cuéntanos un poco más (10 letras o más).'; return; }
+      if(f.nombre.value.trim().length<2){ msg.textContent='Falta tu nombre.'; return; }
+      const b=f.querySelector('button[type=submit]'); b.disabled=true; msg.textContent='Enviando…';
+      try{
+        const r=await fetch('resenas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+          producto:PP,estrellas:est,texto:f.texto.value,nombre:f.nombre.value,ciudad:f.ciudad.value,web:f.web.value,resena:q||''})});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok){ msg.textContent=d.error||'No se pudo enviar. Intenta de nuevo.'; b.disabled=false; return; }
+        f.innerHTML='<p class="rp-gracias"><b>¡Gracias!</b> Tu reseña queda en revisión y la publicamos en cuanto la aprobemos.</p>';
+      }catch(err){ msg.textContent='Sin conexión. Intenta de nuevo.'; b.disabled=false; }
+    });
+  }
+}
+
+function abrirFicha(id){
+  const esB=!!PU[id], p=esB?PU[id]:CH[id];
+  if(!p) return;
+  /* Se repinta abierta tras agregar y al llegar el inventario: eso no es
+     otra vista. Y en su propia página de producto ya se contó al cargar. */
+  const yaAbierta=!$('#ficha').hidden;
+  if((!yaAbierta||fichaId!==id) && id!==document.body.dataset.producto) verPieza(id);
+  fichaId=id;
+  const tarjeta=tarjetaDe(id);
+  const img=tarjeta&&tarjeta.querySelector('.pc-img img');
+  const fam=familiaDe(id);
+
+  pintarGaleria(id, img, p.n);
+  $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
+  $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
+  $('#fx-p').textContent = cop(p.p);
+
+  const e=estadoDe(id), est=$('#fx-est');
+  est.textContent=e.t; est.className='fx-est'+(e.k?' fx-est--'+e.k:'');
+
+  $('#fx-specs').innerHTML=specsDe(id);
   $('#fx-nota').textContent = esB ? '' : 'Medidas aproximadas por tipo de pieza, no medición individual.';
 
   const add=$('#fx-add'), sinStock=agotado(id);
@@ -458,13 +782,18 @@ function abrirFicha(id){
     add.textContent = sinStock ? 'Agotado' : (lleno?'Sin más unidades':'Agregar a mi pulsera');
     if(sinStock||lleno) add.setAttribute('aria-disabled','true'); else add.removeAttribute('aria-disabled');
   }
+  const pag=$('#fx-pag');
+  pag.href='producto-'+encodeURIComponent(id)+'.html';
+  pag.hidden = id===document.body.dataset.producto;
   const fw=$('#fx-wa');
   fw.hidden=!sinStock;
   if(sinStock) fw.href=waEncargo(p.n);
 
   $('#ficha').hidden=false;
-  bloquearFondo(true);
-  $('#fx-x').focus();
+  /* Solo al abrirse: repintada (tras agregar o al llegar el inventario) ya
+     tiene su bloqueo, y sumar otro dejaba el fondo trabado —sin scroll y con
+     la suscripción esperando para siempre— al cerrarla. */
+  if(!yaAbierta){ bloquearFondo(true); $('#fx-x').focus(); }
 }
 /* Bloqueo del fondo mientras hay una capa abierta (ficha o carrito).
  *
@@ -642,6 +971,7 @@ function render(){
 
   pintarTarjetas();
   pintarLetras();
+  estadoVit();
 
   const piezas=nC+(base?1:0);
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
@@ -654,6 +984,13 @@ function render(){
         :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
     : 'Tu selección está vacía';
   $('#dock-p').textContent=cop(total);
+  /* En la página de una pieza, con el carrito vacío, la barra fija es el
+     llamado a la acción constante (encargo de la ficha): nombre, precio y
+     «Agregar». Con algo en el carrito vuelve a ser la barra de siempre. */
+  const pp=document.body.dataset.producto, ppP=pp&&(CH[pp]||PU[pp]);
+  const ppVacio=!piezas&&ppP&&!agotado(pp);
+  if(ppVacio){ $('#dock-n').textContent=ppP.n; $('#dock-p').textContent=cop(ppP.p); }
+  $('#dock-send').textContent=ppVacio?(PU[pp]?'Elegir talla':'Agregar'):'Comprar';
 
   const dbar=$('#dock-bar');
   dbar.classList.toggle('is-ok',libre);
@@ -980,16 +1317,29 @@ function recuperar(){
 }
 
 /* Al checkout con lo que haya en el carrito. */
+/* En la página de un brazalete, la talla se elige en su tarjeta: se abre el
+   panel y se lleva la vista ahí. */
+function pedirTalla(id){
+  const t=tarjetaDe(id), panel=t&&t.querySelector('.tallas');
+  if(panel){ panel.hidden=false; panel.scrollIntoView({behavior:'smooth',block:'center'});
+    panel.classList.remove('is-pide'); void panel.offsetWidth; panel.classList.add('is-pide'); }
+}
 function comprar(){
   if(!base&&!sel.length){
+    /* En una página de producto la barra dice «Agregar»: agrega la pieza (o
+       pide la talla del brazalete) en vez de mandar a otra sección. */
+    const pp=document.body.dataset.producto;
+    if(pp&&CH[pp]){ sumarCharm(pp); return; }
+    if(pp&&PU[pp]){ pedirTalla(pp); return; }
     document.getElementById('brazaletes').scrollIntoView({behavior:'smooth'});
     return;
   }
   tocado=true;
   guardar();
-  const piezas=sel.length+(base?1:0);
-  const val=+$('#v-tot').textContent.replace(/[^0-9]/g,'')||0;
-  track('InitiateCheckout',{content_name:'Checkout web',num_items:piezas,value:val});
+  /* Sin InitiateCheckout aquí: lo manda checkout.html al cargar, con los ids
+     del carrito. Con los dos, cada checkout contaba doble —cada uno con su
+     eventID, así que Meta no los deduplicaba—. Decisión del propietario,
+     2026-09-24. */
   location.href='checkout.html';
 }
 
@@ -1023,20 +1373,62 @@ function sumarCharm(id){
     content_name:CH[id].n,value:CH[id].p});
 }
 
+/* La página de cada pieza: producto-<id>.html, la misma regla de
+   gen_productos.py (archivo_de/href_de). La tarjeta de letras lleva a la
+   inicial que enseña, que es la última que se tocó. */
+const paginaDe=id=>'producto-'+encodeURIComponent(id)+'.html';
+let letraVista='letra-a';
+
 document.addEventListener('click',e=>{
-  /* La foto y el nombre abren la ficha. El bloque de letras no: cada inicial se
-     agrega desde su propia casilla y no tiene ficha propia. */
+  /* La foto y el nombre llevan a la página de la pieza (decisión del
+     propietario, 2026-09-26: con la vitrina, la página ya permite elegir y
+     agregar todo sin salir; antes abrían la ficha emergente). En la página
+     de la propia pieza, su foto sigue abriendo la ficha, que ahí hace de
+     galería ampliada. Los botones de la tarjeta —agregar, tallas, letras,
+     encargo— siguen agregando sin salir. */
   const ver=e.target.closest('.pc-img, .pc-name');
   if(ver && !e.target.closest('.pc-add, .tbtn, .lbtn, .pc-encargo')){
-    const t=ver.closest('.pc');
-    if(t && t.dataset.id && t.dataset.id!=='letras'){ abrirFicha(t.dataset.id); return; }
+    const t=ver.closest('.pc'), id=t&&t.dataset.id;
+    if(id && t.classList.contains('pc--pp')){ e.preventDefault(); abrirFicha(id); return; }
+    const destino=id==='letras'?letraVista:id;
+    if(destino && (CH[destino]||PU[destino])){
+      /* El nombre ya es un enlace: el navegador hace lo suyo, también con
+         Ctrl/Cmd/Mayús o rueda. La foto se lleva a mano. */
+      if(e.target.closest('a[href]')) return;
+      e.preventDefault();
+      if(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1) window.open(paginaDe(destino),'_blank');
+      else location.href=paginaDe(destino);
+      return;
+    }
   }
 
   const add=e.target.closest('[data-add]');
   if(add){ if(!bloqueado(add)) sumarCharm(add.dataset.add); return; }
 
+  /* «Comprar ahora» de la página de producto: agrega la pieza si no está y va
+     al checkout. El brazalete necesita talla: si no hay, se la pide. */
+  const ya=e.target.closest('[data-comprar]');
+  if(ya){
+    const id=ya.dataset.comprar;
+    if(PU[id]){ if(base&&base.id===id) comprar(); else pedirTalla(id); return; }
+    if(!sel.includes(id)) sumarCharm(id);
+    if(sel.includes(id)) comprar();
+    return;
+  }
+
   const L=e.target.closest('[data-letra]');
-  if(L){ if(!bloqueado(L)) sumarCharm('letra-'+L.dataset.letra); return; }
+  if(L){
+    const id='letra-'+L.dataset.letra;
+    letraVista=id;
+    /* La tarjeta de letras enseña la inicial que se acaba de tocar, con su
+       foto propia; si esa letra no tiene, vuelve a la del grupo. */
+    const img=document.querySelector('.pc[data-id="letras"] .pc-img img');
+    if(img){ if(!img.dataset.grupo) img.dataset.grupo=img.getAttribute('src');
+      img.onerror=()=>{ img.onerror=null; img.src=img.dataset.grupo; };
+      img.src=fotoLetra(id); img.alt='Charm '+CH[id].n; }
+    if(!bloqueado(L)) sumarCharm(id);
+    return;
+  }
 
   /* Elegir talla fija el brazalete; volver a tocarla lo quita. */
   const t=e.target.closest('[data-talla]');
@@ -1353,14 +1745,9 @@ function abrirBusqueda(v) {
 
 function irAPieza(id) {
   abrirBusqueda(false);
-  if (id === 'letras') {
-    /* Las iniciales no tienen ficha: se eligen en su propio bloque, así que
-       ahí es donde hay que dejar a la clienta. */
-    const c = document.querySelector('.pc[data-id="letras"]');
-    if (c) { c.hidden = false; c.scrollIntoView({ block: 'center' }); }
-    return;
-  }
-  abrirFicha(id);
+  /* Como las tarjetas: el resultado lleva a la página de la pieza. «Letras»
+     lleva a la de la A, que trae la tira con todas las iniciales. */
+  location.href = paginaDe(id === 'letras' ? 'letra-a' : id);
 }
 
 lupa.addEventListener('click', () => abrirBusqueda(busq.hidden));
@@ -1459,15 +1846,18 @@ fetch('assets/stock.json',{cache:'no-cache'})
     aplicarFiltro(filtroActual);
     pintarCalculadora();   /* ahora sí puede marcar las tallas sin unidades */
     marcarKits();
+    pintarPagina();
     if(fichaId) abrirFicha(fichaId);
     const n=document.getElementById('stock-fecha');
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
   })
   .catch(()=>{});
 
-/* ViewContent con los ids de los charms destacados. Son los mismos slugs de las
-   tarjetas, así que cuando se suba el catálogo a Meta usando esos slugs como id
-   de producto, el retargeting dinámico empata sin tocar nada. */
-track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',
+/* En una página de producto (`<body data-producto="id">`, la escribe
+   gen_productos.py) la vista es de esa pieza. En el resto, ViewContent de
+   grupo con los ids de los charms destacados. */
+pintarPagina();
+if(document.body.dataset.producto) verPieza(document.body.dataset.producto);
+else track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',
   content_ids:[...document.querySelectorAll('.pc--top')].map(p=>p.dataset.id)});
 })();

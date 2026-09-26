@@ -2,6 +2,9 @@
   --bone:#F6F3F4; --ink:#2A1F2E; --plum:#5C3D63; --rose:#B4657F; --rose-soft:#F3E6EB;
   --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a; --pagar:#9E4E68;
   --w:1180px; --dock:64px;
+  /* Estrellas de reseñas: amarillas en todo el sitio (encargo de la ficha).
+     El CSS le gana al atributo fill de cada <svg>. */
+  --estrella:#F5B301;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -122,6 +125,10 @@ button{font-family:inherit}
   color:var(--bone);text-decoration:none;font:400 13.5px/1 Jost;letter-spacing:.09em;
   text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s}
 .btn:hover{background:var(--plum);border-color:var(--plum)}
+/* `display` de .btn le ganaba a [hidden]: la ficha ofrecía «Pedir por
+   encargo» en piezas con unidades y «Agregar» en brazaletes, que se eligen
+   por talla. Misma familia que .pc[hidden] y .xs[hidden]. */
+.btn[hidden]{display:none}
 .btn--ghost{background:transparent;color:var(--ink)}
 .btn--ghost:hover{background:var(--ink);color:var(--bone)}
 .btn--wa{background:var(--wa);border-color:var(--wa);color:#fff}
@@ -159,13 +166,6 @@ button{font-family:inherit}
 .hbanner-fixed .hero-badges .dot{color:#cbb9c9}
 .hbanner-fixed .hero-badge-n{color:#e7dfe4}
 .hbanner-fixed .hero-badges a{text-decoration:none;font-weight:400;color:#fff}
-.cta-strip{background:var(--bone);border-bottom:1px solid var(--line);padding:20px 0 22px}
-.cta-strip-in{text-align:center}
-.cta-strip-t{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(21px,5vw,26px);
-  margin:0 0 6px;color:var(--ink)}
-.cta-strip .hero-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:0}
-.cta-strip .hero-hint{font-size:13px;color:#6d6070;margin:0 auto 14px;max-width:52ch}
-.cta-strip .hero-hint a{color:var(--plum)}
 /* Rotación 100% CSS, mismo mecanismo que .ann/.ann-slide. Los porcentajes
    de abajo están calculados a mano para 2 slides (5s cada uno, 10s de
    ciclo total). Si se agrega un tercer slide, hay que recalcular: ciclo
@@ -999,15 +999,21 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .pbtn small.pb-gratis,.pbtn.is-on small.pb-gratis{color:#7fc7ae;font-weight:500;
   letter-spacing:.04em}
 
-/* escritorio */
-@media(min-width:700px){
-  .wrap{padding:0 24px}
-  .top-in{padding:0 24px;height:60px}
+/* La navegación completa necesita ~800px con la lupa y el ☰ al lado: desde
+   700px empujaba el ☰ 27px fuera de la pantalla y la página entera se
+   deslizaba en tableta. Por debajo de esto el ☰ ya lleva a las secciones. */
+@media(min-width:960px){
   .tnav{display:flex}
   /* Con la navegación a la vista es ella la que empuja a la derecha; si la
      lupa conservara su propio margen automático, el espacio libre se
      repartiría entre las dos y el menú quedaría flotando en el medio. */
   .top-lupa{margin-left:0}
+}
+
+/* escritorio */
+@media(min-width:700px){
+  .wrap{padding:0 24px}
+  .top-in{padding:0 24px;height:60px}
   .grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:16px}
   .hbanner{height:78dvh}
   .hbanner-copy{padding:48px 16px 0}
@@ -1081,7 +1087,9 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
    es portada → precio → piezas, sin nada que obligue a desplazarse antes de
    entender qué se vende y cuánto cuesta. */
 
-.col-hero{padding:30px 0 26px;text-align:center}
+/* Solo arriba y abajo: el lateral es el de .wrap. Un `padding` abreviado lo
+   pisaba y el texto de las colecciones y de kits.html iba pegado al borde. */
+.col-hero{padding-top:30px;padding-bottom:26px;text-align:center}
 .col-hero h1{font-size:clamp(30px,8vw,52px);line-height:1.08;margin:10px 0 14px}
 .col-entrada{margin:0 auto;max-width:54ch;color:#6d6070;font-size:15.5px;line-height:1.6}
 .col-cta{display:flex;flex-direction:column;gap:10px;margin:22px auto 0;max-width:320px}
@@ -1194,3 +1202,217 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .kit-piezas img{width:76px;height:76px}
 }
 
+
+/* ── Página de producto (producto-<id>.html, generada por
+   herramientas/gen_productos.py). La pieza es su tarjeta de la portada con la
+   clase pc--pp: mismo botón, mismas tallas, mismas marcas de agotado. ── */
+.migas{padding-top:14px;font-size:12px;letter-spacing:.04em;color:var(--silver)}
+.migas ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 6px}
+.migas li+li::before{content:'›';margin-right:6px}
+.migas a{color:#6d6070;text-decoration:none;border-bottom:1px solid transparent}
+.migas a:hover{border-color:var(--rose)}
+.migas [aria-current]{color:var(--ink)}
+/* Solo arriba y abajo: el relleno lateral es el de .wrap, y un `padding`
+   abreviado lo pisaba y dejaba la pieza pegada al borde de la pantalla. */
+.pp{padding-top:12px;padding-bottom:30px}
+/* En la página de un brazalete el panel de tallas ya sale abierto: «Elegir»
+   sobraba, y tocarlo lo cerraba. La talla elegida la marca su propio botón. */
+.pc--pp:has(.tallas) .pc-add[data-base]{display:none}
+.pp-in{display:grid;gap:20px}
+.pc--pp .pc-body{padding:16px 16px 18px}
+.pc--pp .pc-name{font-size:clamp(28px,7.5vw,40px);line-height:1.08;margin:0 0 6px}
+.pc--pp .pc-meta{font-size:11.5px;margin:0 0 14px}
+.pc--pp .pc-price{font-size:22px}
+.pc--pp .pc-add{min-height:46px;font-size:12px}
+.pc--pp .pc-mark{font-size:10px;padding:4px 8px;top:10px;left:10px}
+.pp-info .fx-est{margin:0 0 14px}
+.pp-info .fx-est:empty{display:none}
+.pp-envio{margin:16px 0 0;font-size:13.5px;line-height:1.5;color:var(--plum)}
+@media(min-width:700px){
+  .pp{padding-top:18px;padding-bottom:44px}
+  /* La pieza a 440px como mucho: más ancha, la foto cuadrada empujaba nombre,
+     precio y botón por debajo de la pantalla en escritorio. 440 es además el
+     tamaño real de las fotos del catálogo: más grande, se estiraban. */
+  .pp-in{grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:48px;align-items:start}
+  .pp-info{padding-top:8px}
+}
+
+/* El nombre de la tarjeta enlaza a su página de producto, pero se ve igual que
+   antes: el clic normal abre la ficha (tienda.js). */
+.pc-name a{color:inherit;text-decoration:none}
+.fx-pag{display:block;margin:14px 0 0;font-size:12.5px;letter-spacing:.04em;color:var(--plum);
+  text-align:center;text-decoration:underline;text-underline-offset:3px}
+.fx-pag[hidden]{display:none}
+.letras-ver{display:inline-block;margin:8px 0 0;font-size:12px;color:var(--plum);
+  text-decoration:underline;text-underline-offset:3px}
+/* Las 27 iniciales, en la página de cada una. */
+.pp-letras{padding-bottom:26px}
+.pp-letras ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:7px}
+.pp-letras a{display:flex;align-items:center;justify-content:center;width:38px;height:38px;
+  border:1px solid var(--line);border-radius:2px;background:var(--white);color:var(--ink);
+  text-decoration:none;font-size:14px}
+.pp-letras a[aria-current]{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum);color:var(--plum)}
+@media(hover:hover){.pp-letras a:hover{border-color:var(--silver)}}
+/* Foto de portada de colección en vertical: a lo ancho mediría más de una pantalla. */
+.col-foto--vertical{max-height:460px;object-fit:cover;object-position:center 55%}
+
+/* ── Suscripción por correo (ventana que abre tienda.js: abrirSusc) ── */
+.susc{position:fixed;inset:0;z-index:90;background:rgba(42,31,46,.55);display:flex;
+  align-items:flex-end;justify-content:center;padding:0}
+.susc-box{position:relative;width:100%;max-width:440px;background:var(--bone);
+  border-radius:12px 12px 0 0;padding:26px 20px 22px;box-shadow:0 -10px 40px rgba(42,31,46,.25)}
+.susc-box h2{font-size:28px;line-height:1.12;margin:8px 0 8px;font-weight:400}
+.susc-sub{margin:0 0 16px;font-size:14.5px;line-height:1.55;color:#5a4d5e}
+.susc-x{position:absolute;top:10px;right:10px;width:38px;height:38px;border:0;background:none;
+  font-size:18px;color:var(--ink);cursor:pointer}
+.susc-f{display:grid;gap:12px}
+.susc-f input[type=email]{font:inherit;font-size:16px;padding:13px 14px;border:1px solid var(--line);
+  border-radius:2px;background:var(--white);color:var(--ink)}
+.susc-trampa{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0}
+.susc-ok{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;line-height:1.5;color:#5a4d5e}
+.susc-ok input{margin:3px 0 0;width:17px;height:17px;flex:0 0 auto}
+.susc-ok a{color:var(--plum)}
+.susc-f .btn{width:100%}
+.susc-msg{margin:0;min-height:1em;font-size:13px;color:var(--rose)}
+.susc-listo{margin:0;font-size:15px;line-height:1.55;color:var(--ink)}
+@media(min-width:700px){
+  .susc{align-items:center;padding:16px}
+  .susc-box{border-radius:6px;padding:30px 28px 26px}
+}
+
+/* Estrellas de reseñas, un solo color en todo el sitio (token --estrella). */
+.stars svg,.estrellas svg{fill:var(--estrella)}
+
+/* ── Ficha de producto que vende más (automatizaciones/tienda/ENCARGO-FICHA.md) ── */
+/* El «Agregar» de la tarjeta queda repetido con el del bloque de compra. */
+.pc--pp .pc-foot .pc-add[data-add]{display:none}
+.pp-estrellas{display:inline-flex;align-items:center;gap:6px;margin:0 0 10px;font-size:13px;
+  color:#5a4d5e;text-decoration:none}
+.pp-estrellas[hidden],.pp-vendidas[hidden],.pp-agotado[hidden],.pp-compra[hidden]{display:none}
+.estrellas svg.est-off{fill:#E4DDE0}
+.pp-vendidas{margin:-6px 0 14px;font-size:13px;color:var(--plum)}
+.pq{border:0;margin:0 0 14px;padding:0;display:grid;gap:8px}
+.pq-t{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver);margin:0 0 4px;padding:0}
+.pq-o{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 10px;padding:12px 14px;
+  background:var(--white);border:1px solid var(--line);border-radius:4px;cursor:pointer}
+.pq--b .pq-o{grid-template-columns:1fr auto;cursor:default}
+.pq-o input{margin:0;width:18px;height:18px;accent-color:var(--plum)}
+.pq-o:has(input:checked){border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
+.pq-n{font-size:14.5px}
+.pq-p{text-align:right;white-space:nowrap}
+.pq-p s{color:var(--silver);font-size:12.5px;margin-right:4px}
+.pq-p b{font-weight:500;font-size:15.5px}
+.pq-a{grid-column:1/-1;justify-self:end;font-size:12px;color:#1F7A5C;font-weight:500}
+.pq--b .pq-a{grid-row:2;grid-column:2}
+.pq-o--best{border-color:var(--rose)}
+.pq-o--best .pq-n{font-weight:500;color:var(--pagar)}
+.pq-nota{margin:2px 0 0;font-size:12px;line-height:1.5;color:#8a8290}
+.pq-mas{margin-top:8px;padding:14px 0 6px;border-top:1px solid var(--line);display:grid;gap:10px}
+.pq-mas[hidden]{display:none}
+.pq-mas--b{margin-top:10px}
+.pq-mas-t{margin:0;font-size:14px}
+/* Compra: botones apilados a lo ancho, con aire entre cada grupo (pedido del
+   propietario, 2026-09-26: la zona se veía «arrejuntada»). */
+.pp-cta{display:grid;gap:10px;margin:18px 0 0}
+.pp-cta .btn{width:100%;padding:16px 12px}
+.pp-nota-t{margin:8px 0 0;font-size:12.5px;color:#8a8290}
+.pp-pago{margin:18px 0 0;padding:14px 14px 12px;border:1px solid var(--line);border-radius:4px;background:var(--white);
+  text-align:center}
+.pp-addi{margin:10px 0 0;font-size:13px;line-height:1.5;color:#5a4d5e}
+.pp-addi a,.pp-susc a{color:var(--plum)}
+.pp-susc{display:flex;align-items:center;gap:12px;margin:12px 0 0;padding:12px 14px;background:var(--rose-soft);
+  border-radius:4px;font-size:13.5px;line-height:1.45;color:#4a3d4e}
+.pp-susc svg{flex:0 0 auto;color:var(--rose)}
+.pp-agotado{margin:0 0 14px;padding:12px 14px;background:var(--rose-soft);border-radius:4px;font-size:14px}
+.pp-agotado a{color:var(--plum)}
+.pp-bens{list-style:none;margin:24px 0 8px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}
+.pp-bens li{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;line-height:1.4;color:#4a3d4e}
+.pp-bens svg{flex:0 0 auto;color:var(--plum);margin-top:1px}
+.pp-acc{border-bottom:1px solid var(--line)}
+.pp-acc summary{list-style:none;cursor:pointer;padding:14px 0;font-size:14.5px;display:flex;justify-content:space-between}
+.pp-acc summary::-webkit-details-marker{display:none}
+.pp-acc summary::after{content:'+';color:var(--silver);font-size:18px;line-height:1}
+.pp-acc[open] summary::after{content:'−'}
+.pp-acc-in{padding:0 0 14px;font-size:14px;line-height:1.6;color:#4a3d4e}
+.pp-acc-in p{margin:0 0 8px}
+.pp-acc-in .fx-specs{margin:0}
+.tallas.is-pide{animation:pide 1.2s ease}
+@keyframes pide{0%,100%{background:transparent}30%{background:var(--rose-soft)}}
+/* Reseñas de la pieza */
+.rp-resumen{display:flex;align-items:center;gap:8px;margin:6px 0 14px;font-size:14px;color:#5a4d5e}
+.rp-resumen:empty{display:none}
+.rp-lista{display:grid;gap:12px;margin:0 0 16px}
+.rp-vacio{margin:0;font-size:14px;color:#8a8290}
+.rp-it{margin:0;padding:14px;background:var(--white);border:1px solid var(--line);border-radius:3px}
+.rp-it blockquote{margin:8px 0;font-size:15px;line-height:1.55}
+.rp-it figcaption{font-size:12.5px;color:#8a8290}
+.rp-ok{color:#1F7A5C}
+.rp-escribir summary{display:inline-block;cursor:pointer;list-style:none;padding:12px 18px;border:1px solid var(--ink);
+  border-radius:2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.rp-escribir summary::-webkit-details-marker{display:none}
+.rp-form{display:grid;gap:12px;margin-top:14px;max-width:560px}
+.rp-form label{display:grid;gap:5px;font-size:12.5px;color:#5a4d5e}
+.rp-form textarea,.rp-form input:not([type=radio]){font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);
+  border-radius:2px;background:var(--white);color:var(--ink)}
+.rp-est{border:0;margin:0;padding:0;display:flex;gap:8px;flex-wrap:wrap}
+.rp-est legend{font-size:12.5px;color:#5a4d5e;margin-bottom:6px;padding:0}
+.rp-est label{display:flex;flex-direction:row;align-items:center;gap:4px;padding:8px 12px;border:1px solid var(--line);
+  border-radius:2px;background:var(--white);font-size:14px;cursor:pointer}
+.rp-est label::after{content:'★';color:var(--estrella)}
+.rp-est label:has(input:checked){border-color:var(--plum)}
+.rp-dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rp-nota{margin:0;font-size:12px;color:#8a8290}
+.rp-msg{margin:0;min-height:1em;font-size:13px;color:var(--rose)}
+.rp-gracias{margin:0;font-size:15px}
+@media(min-width:700px){ .pp-bens{grid-template-columns:1fr 1fr 1fr} }
+
+/* ── Ajustes de la ficha pedidos por el propietario (2026-09-26) ── */
+/* Vitrina: carrusel con pestañas por colección (tienda.js, «Vitrina»). */
+.vit{display:grid;gap:10px;min-width:0}
+.vit[hidden]{display:none}
+.vit-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:1px;margin:0 -1px}
+.vit-tabs::-webkit-scrollbar{display:none}
+.vit-tab{flex:0 0 auto;font:400 12.5px/1 Jost;padding:9px 14px;min-height:36px;border:1px solid var(--line);
+  border-radius:999px;background:var(--white);color:var(--ink);cursor:pointer;white-space:nowrap}
+.vit-tab.is-on{background:var(--ink);border-color:var(--ink);color:#fff}
+.vit-rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 8px;margin:0 -2px;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin;min-height:236px}
+.vit-it{position:relative;flex:0 0 136px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;
+  gap:4px;text-align:center;padding:10px 8px;background:var(--white);border:1px solid var(--line);border-radius:4px}
+.vit-it.is-sel{border-color:var(--plum)}
+.vit-it[data-n]:not([data-n=""])::after{content:attr(data-n);position:absolute;top:6px;right:6px;min-width:22px;
+  padding:3px 6px;border-radius:999px;background:var(--plum);color:#fff;font-size:11px;line-height:1.2}
+.vit-it img,.vit-nof{width:96px;height:96px;object-fit:contain}
+.vit-n{font-size:12.5px;line-height:1.25;min-height:2.5em}
+.vit-it small{color:#8a8290;font-size:12px}
+.vit-add{width:100%;margin-top:auto;font:400 11px/1 Jost;letter-spacing:.06em;text-transform:uppercase;padding:9px 6px;
+  min-height:36px;border:1px solid var(--ink);background:transparent;color:var(--ink);border-radius:2px;cursor:pointer}
+.vit-it.is-sel .vit-add{background:var(--plum);border-color:var(--plum);color:#fff}
+.vit-add[aria-disabled="true"]{cursor:default}
+.vit-tallas{justify-content:center;gap:4px}
+.vit-tallas[hidden]{display:none}
+.vit-tallas .tbtn{min-width:34px;min-height:34px;padding:7px 4px;font-size:11.5px}
+.vit-desliza{margin:0;font-size:11.5px;color:#8a8290}
+/* Kits: talla y charms en la misma tarjeta del kit. */
+.kit-paso{font:inherit;color:inherit;text-align:left;width:100%;cursor:pointer;background:transparent}
+.kit-paso.is-on{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
+.kit-arma{display:grid;gap:10px;margin:18px 0 6px;padding-top:16px;border-top:1px solid var(--line);min-width:0}
+.kit-arma-t{margin:6px 0 0;font-size:14px;display:flex;align-items:center;gap:10px}
+.kit-arma-t b{flex:0 0 auto;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;
+  background:var(--ink);color:#fff;font-size:12px;font-weight:400}
+.kit-arma-ayuda{margin:0;font-size:12px;color:#6d6070}
+.kit-arma-ayuda a{color:var(--plum)}
+.kit-tallas.is-pide{animation:pide 1.2s ease}
+/* Medios de pago, sutiles, sobre la línea de Addi. */
+.pp-pagos{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 16px;margin:0;opacity:.8}
+.pp-pagos img{height:15px;width:auto}
+.pp-lista{margin:0 0 8px;padding-left:18px}
+.pp-lista li{margin:0 0 6px}
+/* Botón de regalo: vuelve a abrir la suscripción si la clienta cerró la
+   ventana. Al lado contrario del botón de WhatsApp, a la misma altura. */
+.susc-fab{position:fixed;left:14px;bottom:calc(var(--dock) + 14px);z-index:70;width:52px;height:52px;
+  border:0;border-radius:50%;background:var(--rose);color:#fff;display:inline-flex;align-items:center;
+  justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(42,31,46,.22)}
+.susc-fab[hidden]{display:none}
+@media(hover:hover){.susc-fab:hover{background:var(--pagar)}}
