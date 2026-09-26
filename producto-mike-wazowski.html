@@ -136,18 +136,180 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
 <div class="pc-img"><img src="assets/mike-wazowski.webp?v=20260822" alt="Mike Wazowski" width="440" height="440" fetchpriority="high" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h1 class="pc-name">Mike Wazowski</h1><p class="pc-meta">Monsters Inc.</p>
 <div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="mike-wazowski" aria-label="Agregar Mike Wazowski">Agregar</button></div></div></article>
+    <!-- El orden de la ficha es el de automatizaciones/tienda/ENCARGO-FICHA.md:
+         estrellas, disponibilidad real, paquetes, botones, Addi, beneficios,
+         acordeones. Estrellas, disponibilidad y «N compraron este mes» los
+         escribe tienda.js con datos reales (reseñas aprobadas, disponibilidad,
+         pedidos); si no hay dato, no se muestra nada: nunca un número fijo. -->
     <div class="pp-info">
+      <a class="pp-estrellas estrellas" id="pp-estrellas" href="#resenas-pieza" hidden></a>
       <p class="fx-est" id="pp-est" aria-live="polite"></p>
-      <dl class="fx-specs" id="pp-specs"></dl>
-      <p class="pp-envio">Envío <b>GRATIS</b> a toda Colombia pagando en línea · contraentrega disponible</p>
+      <p class="pp-vendidas" id="pp-vendidas" hidden></p>
+      <div class="pp-compra" id="pp-compra">
+      <fieldset class="pq">
+        <legend class="pq-t">Elige cuántos charms llevas</legend>
+        <label class="pq-o"><input type="radio" name="pq" value="1"><span class="pq-n">Compra 1</span><span class="pq-p"><b data-total="95000">$95.000</b></span></label>
+        <label class="pq-o"><input type="radio" name="pq" value="2" checked><span class="pq-n">Compra 2</span><span class="pq-p"><s>$190.000</s> <b data-total="174800">$174.800</b></span><span class="pq-a">Ahorras $15.200</span></label>
+        <label class="pq-o"><input type="radio" name="pq" value="3"><span class="pq-n">Compra 3</span><span class="pq-p"><s>$285.000</s> <b data-total="242250">$242.250</b></span><span class="pq-a">Ahorras $42.750</span></label>
+        <label class="pq-o pq-o--best"><input type="radio" name="pq" value="4"><span class="pq-n">Lleva 4, paga 3</span><span class="pq-p"><s>$380.000</s> <b data-total="285000">$285.000</b></span><span class="pq-a">Ahorras $95.000</span></label>
+        <p class="pq-nota">El descuento se aplica solo en el carrito, con cualquier combinación de charms. Totales con charms de este mismo precio y pago en línea.</p>
+        <div class="pq-mas" id="pq-mas" hidden>
+          <p class="pq-mas-t">Completa tu paquete: elige <b id="pq-faltan">1 charm</b> más</p>
+          <div class="pq-it"><img src="assets/buzz-lightyear.webp" alt="" width="56" height="56" loading="lazy" decoding="async"><span>Buzz Lightyear<small>$95.000</small></span><button type="button" class="pq-add" data-add="buzz-lightyear">Agregar</button></div>
+          <div class="pq-it"><img src="assets/casa-de-los-globos.webp" alt="" width="56" height="56" loading="lazy" decoding="async"><span>Casa de los Globos<small>$95.000</small></span><button type="button" class="pq-add" data-add="casa-de-los-globos">Agregar</button></div>
+          <div class="pq-it"><img src="assets/sulley.webp" alt="" width="56" height="56" loading="lazy" decoding="async"><span>Sulley<small>$95.000</small></span><button type="button" class="pq-add" data-add="sulley">Agregar</button></div>
+          <div class="pq-it"><img src="assets/mickey-mouse.webp" alt="" width="56" height="56" loading="lazy" decoding="async"><span>Mickey Mouse<small>$95.000</small></span><button type="button" class="pq-add" data-add="mickey-mouse">Agregar</button></div>
+          <div class="pq-it"><img src="assets/stitch.webp" alt="" width="56" height="56" loading="lazy" decoding="async"><span>Stitch<small>$95.000</small></span><button type="button" class="pq-add" data-add="stitch">Agregar</button></div>
+          <div class="pq-it"><img src="assets/guantelete-del-infinito.webp" alt="" width="56" height="56" loading="lazy" decoding="async"><span>Guantelete del Infinito<small>$95.000</small></span><button type="button" class="pq-add" data-add="guantelete-del-infinito">Agregar</button></div>
+        </div>
+      </fieldset>
+      <div class="pp-cta">
+        <button class="btn btn--ghost" type="button" data-add="mike-wazowski">Agregar al carrito</button>
+        <button class="btn" type="button" data-comprar="mike-wazowski">Comprar ahora</button>
+      </div>
+        <p class="pp-addi">También a cuotas con Addi: <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">pregúntanos por WhatsApp</a></p>
+        <p class="pp-susc"><a href="#" data-susc>Suscríbete y llévate un charm de regalo</a> en tu primera compra de 2 charms o más.</p>
+      </div>
+      <p class="pp-agotado" id="pp-agotado" hidden>Esta pieza está agotada. <a data-wa="encargo" id="pp-encargo" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Vi%20en%20la%20p%C3%A1gina%20que%20%C2%ABMike%20Wazowski%C2%BB%20est%C3%A1%20agotado.%20%C2%BFMe%20pueden%20avisar%20cu%C3%A1ndo%20vuelve%20o%20pedirlo%20por%20encargo%3F">Pídela por encargo por WhatsApp</a> y te avisamos cuando vuelva.</p>
+      <ul class="pp-bens">
+        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>Envío gratis pagando en línea</li>
+        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.6"/></svg>Pago contraentrega (+$20.000)</li>
+        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/></svg>Plata Esterlina 925 con sello grabado</li>
+        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>Empaque de regalo incluido</li>
+        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13l-3-3M20 15H7l3 3"/></svg>Cambio de talla o retracto en 5 días hábiles</li>
+      </ul>
+      <details class="pp-acc" open><summary>Descripción</summary><div class="pp-acc-in"><p>Colección Pixar.</p><p id="pp-desc"></p></div></details>
+      <details class="pp-acc"><summary>Materiales</summary><div class="pp-acc-in"><dl class="fx-specs" id="pp-specs"></dl></div></details>
+      <details class="pp-acc"><summary>Envíos gratis</summary><div class="pp-acc-in"><p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los tiempos se cuentan en días hábiles desde que despachamos: Bogotá y municipios cercanos 1 – 2 días; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de guía por WhatsApp o correo.</p></div></details>
+      <details class="pp-acc"><summary>Contraentrega</summary><div class="pp-acc-in"><p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta $20.000: lo cobra la transportadora al recaudar.</p></div></details>
+      <details class="pp-acc"><summary>Consejos y cuidados</summary><div class="pp-acc-in"><p>La Plata 925 de los charms sí se oxida con el tiempo al contacto con el aire. Es la naturaleza de la plata, no un defecto, y el brillo se recupera con un paño de joyería.</p><p>Guárdala en su bolsa cuando no la uses, quítatela para bañarte, nadar o hacer ejercicio, y evita el contacto con perfumes y cremas. Para limpiarla, un paño suave y seco.</p></div></details>
     </div>
   </div>
 </section>
 
-<!-- PRUEBA SOCIAL, justo debajo de la pieza: reseñas y los videos de
-     clientas, los mismos bloques de index.html (se actualizan solos al
-     regenerar). Los videos no descargan nada hasta entrar en pantalla: los
-     arranca el IntersectionObserver de tienda.js. -->
+<section class="talla-sec" id="talla">
+  <div class="wrap">
+    <div class="sec-head sec-head--c">
+      <span class="eyebrow">Guía de tallas</span>
+      <h2>¿Qué talla es la mía?</h2>
+    </div>
+    <!-- La calculadora va plegada: buena parte de las clientas ya sabe su
+         talla y no necesita medirse otra vez. El titulo de la seccion se queda
+         fuera para que la sección siga anunciándose sola al pasar.
+         El menu superior enlaza aquí, asi que el script de mas abajo la abre
+         cuando se llega por #talla: caer en una calculadora cerrada despues de
+         pedir "Tallas" seria peor que no tener el enlace. -->
+    <details class="talla-des" id="talla-des">
+      <summary>
+        <span class="talla-des-t">Calcular mi talla</span>
+        <span class="talla-des-r">Mide tu muñeca ajustada y te decimos cuál pedir y cuántos charms caben.</span>
+      </summary>
+      <div class="talla-des-in">
+        <div class="calc">
+          <div class="calc-in">
+            <label for="muneca">Medida de tu muñeca</label>
+            <div class="calc-campo">
+              <input type="number" id="muneca" min="10" max="26" step="0.5" inputmode="decimal" placeholder="17" aria-describedby="calc-hint">
+              <span>cm</span>
+            </div>
+            <p class="calc-hint" id="calc-hint">Ajustada, sin apretar. Acepta medios centímetros: 16,5</p>
+          </div>
+          <div class="calc-out" id="calc-out" aria-live="polite">
+            <p class="calc-vacia">Escribe tu medida y te mostramos las cinco tallas con lo que cabe en cada una.</p>
+          </div>
+        </div>
+        <div class="porque">
+          <h3>¿Por qué se le suman 2 cm?</h3>
+          <p>No es sobrante vacío. Cuando la pulsera se llena de charms, el grosor de las piezas se come el diámetro interior útil de la cadena —unos 2 cm—. Esos 2 cm son justo el espacio que van a ocupar tus charms para que la pulsera cierre cómoda en tu muñeca real.</p>
+        </div>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- 2 · CERCANAS. Tarjetas de index.html por data-id. -->
+<section class="sec">
+  <div class="wrap">
+    <span class="eyebrow">Pixar</span>
+    <h2>Más de Pixar</h2>
+    <p class="col-sub">Juntos rinden más: llevando dos charms de $95.000 ahorras $15.200, y el descuento sigue subiendo con cada uno.</p>
+    <div class="grid">
+      <article class="pc" data-id="buzz-lightyear" data-g="Pixar">
+<div class="pc-img"><img src="assets/buzz-lightyear.webp?v=20260822" alt="Buzz Lightyear" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-buzz-lightyear.html">Buzz Lightyear</a></h3><p class="pc-meta">Toy Story</p>
+<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="buzz-lightyear" aria-label="Agregar Buzz Lightyear">Agregar</button></div></div></article>
+      <article class="pc" data-id="casa-de-los-globos" data-g="Pixar">
+<div class="pc-img"><img src="assets/casa-de-los-globos.webp?v=20260822" alt="Casa de los Globos" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-casa-de-los-globos.html">Casa de los Globos</a></h3><p class="pc-meta">UP</p>
+<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="casa-de-los-globos" aria-label="Agregar Casa de los Globos">Agregar</button></div></div></article>
+      <article class="pc" data-id="sulley" data-g="Pixar">
+<div class="pc-img"><img src="assets/sulley.webp?v=20260822" alt="Sulley" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-sulley.html">Sulley</a></h3><p class="pc-meta">Monsters Inc.</p>
+<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="sulley" aria-label="Agregar Sulley">Agregar</button></div></div></article>
+      <article class="pc" data-id="walle" data-g="Pixar">
+<div class="pc-img"><img src="assets/wall-e.webp?v=20260822" alt="WALL·E" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-walle.html">WALL·E</a></h3><p class="pc-meta">Dije</p>
+<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="walle" aria-label="Agregar WALL·E">Agregar</button></div></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · LA BASE. Un charm necesita brazalete; estos tienen tallas con unidades. -->
+<section class="sec" id="brazaletes">
+  <div class="wrap">
+    <span class="eyebrow">La base</span>
+    <h2>Llévalo en un brazalete</h2>
+    <p class="col-sub">Con brazalete y tres charms, el brazalete baja un 30%. El descuento se aplica solo en el carrito.</p>
+    <div class="grid">
+      <article class="pc pc--b" data-id="pulsera-corona-con-cristales" data-cg="corona">
+<div class="pc-img"><img src="assets/pulsera-corona-con-cristales.webp?v=20260822" alt="Pulsera Corona con Cristales" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-pulsera-corona-con-cristales.html">Corona con Cristales</a></h3><p class="pc-meta">Cierre corona</p>
+<div class="pc-foot"><span class="pc-price">$82.000</span><button class="pc-add" type="button" data-base="pulsera-corona-con-cristales" aria-label="Elegir Pulsera Corona con Cristales">Elegir</button></div></div></article>
+      <article class="pc pc--b" data-id="pulsera-avengers" data-cg="clasico">
+<div class="pc-img"><img src="assets/pulsera-avengers.webp?v=20260822" alt="Pulsera Avengers" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-pulsera-avengers.html">Avengers</a></h3><p class="pc-meta">Edición Marvel</p>
+<div class="pc-foot"><span class="pc-price">$78.000</span><button class="pc-add" type="button" data-base="pulsera-avengers" aria-label="Elegir Pulsera Avengers">Elegir</button></div></div></article>
+      <article class="pc pc--b" data-id="pulsera-corazon-con-diamante" data-cg="corazon">
+<div class="pc-img"><img src="assets/pulsera-corazon-con-diamante.webp?v=20260822" alt="Pulsera Corazón con Diamante" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-pulsera-corazon-con-diamante.html">Corazón con Diamante</a></h3><p class="pc-meta">Cierre corazón</p>
+<div class="pc-foot"><span class="pc-price">$78.000</span><button class="pc-add" type="button" data-base="pulsera-corazon-con-diamante" aria-label="Elegir Pulsera Corazón con Diamante">Elegir</button></div></div></article>
+      <article class="pc pc--b" data-id="pulsera-corazon-liso" data-cg="corazon">
+<div class="pc-img"><img src="assets/pulsera-corazon-liso.webp?v=20260822" alt="Pulsera Corazón Liso" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-pulsera-corazon-liso.html">Corazón Liso</a></h3><p class="pc-meta">Clásica</p>
+<div class="pc-foot"><span class="pc-price">$78.000</span><button class="pc-add" type="button" data-base="pulsera-corazon-liso" aria-label="Elegir Pulsera Corazón Liso">Elegir</button></div></div></article>
+    </div>
+  </div>
+</section>
+
+
+<!-- 3 · RESEÑAS DE ESTA PIEZA (las aprobadas, con su promedio real) y el
+     formulario para dejar una. Luego la prueba social general y los videos de
+     clientas, los mismos bloques de index.html. Los videos no descargan nada
+     hasta entrar en pantalla (IntersectionObserver de tienda.js). -->
+<section class="sec" id="resenas-pieza">
+  <div class="wrap">
+    <span class="eyebrow">Reseñas</span>
+    <h2>Opiniones de Mike Wazowski</h2>
+    <div class="rp-resumen estrellas" id="rp-resumen"></div>
+    <div class="rp-lista" id="rp-lista"><p class="rp-vacio">Todavía no hay reseñas publicadas de esta pieza.</p></div>
+    <details class="rp-escribir" id="rp-escribir">
+      <summary>Escribir una reseña</summary>
+      <form class="rp-form" id="rp-form" novalidate>
+        <fieldset class="rp-est"><legend>Tu calificación</legend>
+          <label><input type="radio" name="estrellas" value="5">5</label><label><input type="radio" name="estrellas" value="4">4</label><label><input type="radio" name="estrellas" value="3">3</label><label><input type="radio" name="estrellas" value="2">2</label><label><input type="radio" name="estrellas" value="1">1</label>
+        </fieldset>
+        <label>Tu reseña<textarea name="texto" rows="4" maxlength="800" required></textarea></label>
+        <div class="rp-dos"><label>Nombre<input name="nombre" maxlength="40" required autocomplete="given-name"></label>
+        <label>Ciudad<input name="ciudad" maxlength="40" autocomplete="address-level2"></label></div>
+        <input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="btn" type="submit">Enviar reseña</button>
+        <p class="rp-nota">Revisamos cada reseña antes de publicarla. Publicamos también las de pocas estrellas.</p>
+        <p class="rp-msg" aria-live="polite"></p>
+      </form>
+    </details>
+  </div>
+</section>
+
 <section class="social" id="reseñas">
   <div class="wrap">
     <div class="sec-head">
@@ -211,99 +373,6 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
       </div>
     </div>
     <p class="rail-hint">Desliza para ver más &rarr;</p>
-  </div>
-</section>
-
-<!-- 2 · CERCANAS. Tarjetas de index.html por data-id. -->
-<section class="sec">
-  <div class="wrap">
-    <span class="eyebrow">Pixar</span>
-    <h2>Más de Pixar</h2>
-    <div class="grid">
-      <article class="pc" data-id="buzz-lightyear" data-g="Pixar">
-<div class="pc-img"><img src="assets/buzz-lightyear.webp?v=20260822" alt="Buzz Lightyear" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-buzz-lightyear.html">Buzz Lightyear</a></h3><p class="pc-meta">Toy Story</p>
-<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="buzz-lightyear" aria-label="Agregar Buzz Lightyear">Agregar</button></div></div></article>
-      <article class="pc" data-id="casa-de-los-globos" data-g="Pixar">
-<div class="pc-img"><img src="assets/casa-de-los-globos.webp?v=20260822" alt="Casa de los Globos" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-casa-de-los-globos.html">Casa de los Globos</a></h3><p class="pc-meta">UP</p>
-<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="casa-de-los-globos" aria-label="Agregar Casa de los Globos">Agregar</button></div></div></article>
-      <article class="pc" data-id="sulley" data-g="Pixar">
-<div class="pc-img"><img src="assets/sulley.webp?v=20260822" alt="Sulley" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-sulley.html">Sulley</a></h3><p class="pc-meta">Monsters Inc.</p>
-<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="sulley" aria-label="Agregar Sulley">Agregar</button></div></div></article>
-      <article class="pc" data-id="walle" data-g="Pixar">
-<div class="pc-img"><img src="assets/wall-e.webp?v=20260822" alt="WALL·E" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-walle.html">WALL·E</a></h3><p class="pc-meta">Dije</p>
-<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="walle" aria-label="Agregar WALL·E">Agregar</button></div></div></article>
-    </div>
-  </div>
-</section>
-
-<!-- 3 · LA BASE. Un charm necesita brazalete; estos tienen tallas con unidades. -->
-<section class="sec" id="brazaletes">
-  <div class="wrap">
-    <span class="eyebrow">La base</span>
-    <h2>Llévalo en un brazalete</h2>
-    <p class="col-sub">Con brazalete y tres charms, el brazalete baja un 30%. El descuento se aplica solo en el carrito.</p>
-    <div class="grid">
-      <article class="pc pc--b" data-id="pulsera-corona-con-cristales" data-cg="corona">
-<div class="pc-img"><img src="assets/pulsera-corona-con-cristales.webp?v=20260822" alt="Pulsera Corona con Cristales" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-pulsera-corona-con-cristales.html">Corona con Cristales</a></h3><p class="pc-meta">Cierre corona</p>
-<div class="pc-foot"><span class="pc-price">$82.000</span><button class="pc-add" type="button" data-base="pulsera-corona-con-cristales" aria-label="Elegir Pulsera Corona con Cristales">Elegir</button></div></div></article>
-      <article class="pc pc--b" data-id="pulsera-avengers" data-cg="clasico">
-<div class="pc-img"><img src="assets/pulsera-avengers.webp?v=20260822" alt="Pulsera Avengers" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-pulsera-avengers.html">Avengers</a></h3><p class="pc-meta">Edición Marvel</p>
-<div class="pc-foot"><span class="pc-price">$78.000</span><button class="pc-add" type="button" data-base="pulsera-avengers" aria-label="Elegir Pulsera Avengers">Elegir</button></div></div></article>
-      <article class="pc pc--b" data-id="pulsera-corazon-con-diamante" data-cg="corazon">
-<div class="pc-img"><img src="assets/pulsera-corazon-con-diamante.webp?v=20260822" alt="Pulsera Corazón con Diamante" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-pulsera-corazon-con-diamante.html">Corazón con Diamante</a></h3><p class="pc-meta">Cierre corazón</p>
-<div class="pc-foot"><span class="pc-price">$78.000</span><button class="pc-add" type="button" data-base="pulsera-corazon-con-diamante" aria-label="Elegir Pulsera Corazón con Diamante">Elegir</button></div></div></article>
-      <article class="pc pc--b" data-id="pulsera-corazon-liso" data-cg="corazon">
-<div class="pc-img"><img src="assets/pulsera-corazon-liso.webp?v=20260822" alt="Pulsera Corazón Liso" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark pc-mark--b">Baño de plata</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-pulsera-corazon-liso.html">Corazón Liso</a></h3><p class="pc-meta">Clásica</p>
-<div class="pc-foot"><span class="pc-price">$78.000</span><button class="pc-add" type="button" data-base="pulsera-corazon-liso" aria-label="Elegir Pulsera Corazón Liso">Elegir</button></div></div></article>
-    </div>
-  </div>
-</section>
-
-<section class="talla-sec" id="talla">
-  <div class="wrap">
-    <div class="sec-head sec-head--c">
-      <span class="eyebrow">Guía de tallas</span>
-      <h2>¿Qué talla es la mía?</h2>
-    </div>
-    <!-- La calculadora va plegada: buena parte de las clientas ya sabe su
-         talla y no necesita medirse otra vez. El titulo de la seccion se queda
-         fuera para que la sección siga anunciándose sola al pasar.
-         El menu superior enlaza aquí, asi que el script de mas abajo la abre
-         cuando se llega por #talla: caer en una calculadora cerrada despues de
-         pedir "Tallas" seria peor que no tener el enlace. -->
-    <details class="talla-des" id="talla-des">
-      <summary>
-        <span class="talla-des-t">Calcular mi talla</span>
-        <span class="talla-des-r">Mide tu muñeca ajustada y te decimos cuál pedir y cuántos charms caben.</span>
-      </summary>
-      <div class="talla-des-in">
-        <div class="calc">
-          <div class="calc-in">
-            <label for="muneca">Medida de tu muñeca</label>
-            <div class="calc-campo">
-              <input type="number" id="muneca" min="10" max="26" step="0.5" inputmode="decimal" placeholder="17" aria-describedby="calc-hint">
-              <span>cm</span>
-            </div>
-            <p class="calc-hint" id="calc-hint">Ajustada, sin apretar. Acepta medios centímetros: 16,5</p>
-          </div>
-          <div class="calc-out" id="calc-out" aria-live="polite">
-            <p class="calc-vacia">Escribe tu medida y te mostramos las cinco tallas con lo que cabe en cada una.</p>
-          </div>
-        </div>
-        <div class="porque">
-          <h3>¿Por qué se le suman 2 cm?</h3>
-          <p>No es sobrante vacío. Cuando la pulsera se llena de charms, el grosor de las piezas se come el diámetro interior útil de la cadena —unos 2 cm—. Esos 2 cm son justo el espacio que van a ocupar tus charms para que la pulsera cierre cómoda en tu muñeca real.</p>
-        </div>
-      </div>
-    </details>
   </div>
 </section>
 

@@ -215,6 +215,13 @@
   to = "/.netlify/functions/suscribir"
   status = 200
 
+# Reseñas de producto: el formulario de la página hace POST aquí, y los enlaces
+# de moderación del correo a la tienda son GET a esta misma ruta.
+[[redirects]]
+  from = "/resenas"
+  to = "/.netlify/functions/resenas"
+  status = 200
+
 # La lista de suscriptoras confirmadas para n8n. Protegida por header
 # (SUSCRIPTORES_KEY), ver suscriptores-export.mjs.
 [[redirects]]

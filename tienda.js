@@ -523,16 +523,99 @@ function specsDe(id){
 }
 /* En una página de producto, su bloque de disponibilidad y ficha técnica.
    Se repinta al llegar el inventario (la familia de la pieza sale de ahí). */
+/* Disponibilidad real de esta pieza (conteo menos lo vendido y apartado),
+   leída de disponibilidad.mjs una vez. null mientras no llegue o si falla:
+   entonces manda el conteo de stock.json, como en el resto del sitio. */
+let dispReal=null;
+function estadoPagina(id){
+  if(!dispReal) return estadoDe(id);
+  if(PU[id]){
+    const t=Object.keys(dispReal.tallas||{}).filter(k=>dispReal.tallas[k]>0);
+    return t.length?{t:'Disponible en talla '+t.join(', ')+' cm',k:'ok'}:{t:'Agotado — puedes pedirlo por encargo',k:'out'};
+  }
+  const u=dispReal.disponible;
+  if(u<=0) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
+  return u<=2?{t:u===1?'Queda 1 unidad':'Quedan '+u+' unidades',k:'few'}:{t:'Disponible',k:'ok'};
+}
 function pintarPagina(){
   const id=document.body.dataset.producto, specs=$('#pp-specs'), est=$('#pp-est');
   if(!id||!specs||!est) return;
   specs.innerHTML=specsDe(id);
+  const fam=familiaDe(id), desc=$('#pp-desc');
+  if(desc) desc.textContent=fam?fam.n+' — '+fam.d:'';
+  const e2=estadoPagina(id), fuera=e2.k==='out';
+  const compra=$('#pp-compra'), sin=$('#pp-agotado'), enc=$('#pp-encargo');
+  if(compra) compra.hidden=fuera;
+  if(sin) sin.hidden=!fuera;
+  if(enc) enc.href=waEncargo((PU[id]||CH[id]).n);
   /* En la página de un brazalete, la talla es lo primero que hay que elegir:
      el panel sale abierto en vez de esconderse tras «Elegir». */
   const t=tarjetaDe(id), tallas=t&&t.querySelector('.tallas');
   if(tallas&&!t.dataset.abierta){ tallas.hidden=false; t.dataset.abierta='1'; }
-  const e=estadoDe(id);
-  est.textContent=e.t; est.className='fx-est'+(e.k?' fx-est--'+e.k:'');
+  est.textContent=e2.t; est.className='fx-est'+(e2.k?' fx-est--'+e2.k:'');
+}
+
+/* ——— Página de producto: datos reales, paquetes y reseñas ——— */
+const PP=document.body.dataset.producto;
+const estrellasHTML=n=>{ let s=''; for(let i=1;i<=5;i++) s+='<svg viewBox="0 0 24 24" width="15" height="15"'
+  +(i<=Math.round(n)?'':' class="est-off"')+' aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg>';
+  return s; };
+const escHTML=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+if(PP&&(CH[PP]||PU[PP])){
+  fetch('.netlify/functions/disponibilidad',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||d.fuente!=='conteo-menos-apartado') return;
+    dispReal=(d.piezas||[]).concat(d.brazaletes||[]).find(x=>x.id===PP)||null;
+    if(dispReal){ pintarPagina(); render(); }
+  }).catch(()=>{});
+  /* «N personas compraron esta pieza este mes»: de pedidos reales, y solo con
+     N ≥ 3 (lo filtra el servidor). Sin dato, no se dice nada. */
+  fetch('.netlify/functions/vendidas').then(r=>r.ok?r.json():null).then(d=>{
+    const n=d&&d.ventas&&d.ventas[PP], el=$('#pp-vendidas');
+    if(el&&n>=3){ el.textContent=n+' personas compraron esta pieza este mes'; el.hidden=false; }
+  }).catch(()=>{});
+  const pintarResenas=d=>{
+    if(!d||!d.total) return;
+    const prom=d.promedio.toFixed(1).replace('.',','), txt=' '+prom+' · '+d.total+(d.total===1?' reseña':' reseñas');
+    const top=$('#pp-estrellas');
+    if(top){ top.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>'; top.hidden=false; }
+    const res=$('#rp-resumen'); if(res) res.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>';
+    const lista=$('#rp-lista');
+    if(lista) lista.innerHTML=d.resenas.map(r=>'<figure class="rp-it"><div class="estrellas">'+estrellasHTML(r.estrellas)+'</div>'
+      +'<blockquote>'+escHTML(r.texto)+'</blockquote><figcaption><b>'+escHTML(r.nombre)+'</b>'
+      +(r.ciudad?' · '+escHTML(r.ciudad):'')+(r.verificada?' · <span class="rp-ok">✓ Compra verificada</span>':'')
+      +'</figcaption></figure>').join('');
+  };
+  fetch('.netlify/functions/resenas?producto='+encodeURIComponent(PP)).then(r=>r.ok?r.json():null)
+    .then(pintarResenas).catch(()=>{});
+
+  /* Paquetes: al elegir 2, 3 o 4, se abren los charms para completarlo. */
+  const pq=document.querySelector('.pq');
+  const verPq=()=>{ const m=$('#pq-mas'), v=+((document.querySelector('.pq input:checked')||{}).value||1);
+    if(m){ m.hidden=v<2; const f=$('#pq-faltan'); if(f) f.textContent=(v-1)+(v===2?' charm':' charms'); } };
+  if(pq){ pq.addEventListener('change',verPq); verPq(); }
+
+  /* Reseña: se manda a moderación. El enlace del correo de entrega trae
+     ?resena=<referencia>.<firma> y eso la marca como compra verificada. */
+  const f=$('#rp-form');
+  if(f){
+    const q=new URL(location.href).searchParams.get('resena');
+    if(q){ const d=$('#rp-escribir'); if(d){ d.open=true; setTimeout(()=>d.scrollIntoView({block:'start'}),300); } }
+    f.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const msg=f.querySelector('.rp-msg'), est=+((f.querySelector('input[name=estrellas]:checked')||{}).value||0);
+      if(!est){ msg.textContent='Elige de 1 a 5 estrellas.'; return; }
+      if(f.texto.value.trim().length<10){ msg.textContent='Cuéntanos un poco más (10 letras o más).'; return; }
+      if(f.nombre.value.trim().length<2){ msg.textContent='Falta tu nombre.'; return; }
+      const b=f.querySelector('button[type=submit]'); b.disabled=true; msg.textContent='Enviando…';
+      try{
+        const r=await fetch('resenas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+          producto:PP,estrellas:est,texto:f.texto.value,nombre:f.nombre.value,ciudad:f.ciudad.value,web:f.web.value,resena:q||''})});
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok){ msg.textContent=d.error||'No se pudo enviar. Intenta de nuevo.'; b.disabled=false; return; }
+        f.innerHTML='<p class="rp-gracias"><b>¡Gracias!</b> Tu reseña queda en revisión y la publicamos en cuanto la aprobemos.</p>';
+      }catch(err){ msg.textContent='Sin conexión. Intenta de nuevo.'; b.disabled=false; }
+    });
+  }
 }
 
 function abrirFicha(id){
@@ -763,6 +846,13 @@ function render(){
         :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
     : 'Tu selección está vacía';
   $('#dock-p').textContent=cop(total);
+  /* En la página de una pieza, con el carrito vacío, la barra fija es el
+     llamado a la acción constante (encargo de la ficha): nombre, precio y
+     «Agregar». Con algo en el carrito vuelve a ser la barra de siempre. */
+  const pp=document.body.dataset.producto, ppP=pp&&(CH[pp]||PU[pp]);
+  const ppVacio=!piezas&&ppP&&!agotado(pp);
+  if(ppVacio){ $('#dock-n').textContent=ppP.n; $('#dock-p').textContent=cop(ppP.p); }
+  $('#dock-send').textContent=ppVacio?(PU[pp]?'Elegir talla':'Agregar'):'Comprar';
 
   const dbar=$('#dock-bar');
   dbar.classList.toggle('is-ok',libre);
@@ -1089,8 +1179,20 @@ function recuperar(){
 }
 
 /* Al checkout con lo que haya en el carrito. */
+/* En la página de un brazalete, la talla se elige en su tarjeta: se abre el
+   panel y se lleva la vista ahí. */
+function pedirTalla(id){
+  const t=tarjetaDe(id), panel=t&&t.querySelector('.tallas');
+  if(panel){ panel.hidden=false; panel.scrollIntoView({behavior:'smooth',block:'center'});
+    panel.classList.remove('is-pide'); void panel.offsetWidth; panel.classList.add('is-pide'); }
+}
 function comprar(){
   if(!base&&!sel.length){
+    /* En una página de producto la barra dice «Agregar»: agrega la pieza (o
+       pide la talla del brazalete) en vez de mandar a otra sección. */
+    const pp=document.body.dataset.producto;
+    if(pp&&CH[pp]){ sumarCharm(pp); return; }
+    if(pp&&PU[pp]){ pedirTalla(pp); return; }
     document.getElementById('brazaletes').scrollIntoView({behavior:'smooth'});
     return;
   }
@@ -1151,6 +1253,17 @@ document.addEventListener('click',e=>{
 
   const add=e.target.closest('[data-add]');
   if(add){ if(!bloqueado(add)) sumarCharm(add.dataset.add); return; }
+
+  /* «Comprar ahora» de la página de producto: agrega la pieza si no está y va
+     al checkout. El brazalete necesita talla: si no hay, se la pide. */
+  const ya=e.target.closest('[data-comprar]');
+  if(ya){
+    const id=ya.dataset.comprar;
+    if(PU[id]){ if(base&&base.id===id) comprar(); else pedirTalla(id); return; }
+    if(!sel.includes(id)) sumarCharm(id);
+    if(sel.includes(id)) comprar();
+    return;
+  }
 
   const L=e.target.closest('[data-letra]');
   if(L){ if(!bloqueado(L)) sumarCharm('letra-'+L.dataset.letra); return; }

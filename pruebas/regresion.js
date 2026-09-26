@@ -16,7 +16,10 @@ const U = BASE + '/index.html';
        secundario— la prueba se fue a medir un botón verde a 1.900 px de
        scroll y decía FUERA con el hero intacto. Lo que importa es que la
        acción principal caiga sobre el pliegue, no de qué color es. */
-    const cta = await p.locator('.hero-cta .btn').first().boundingBox();
+    /* La franja con el botón bajo el banner se retiró el 2026-09-25 (encargo
+       de la ficha): si no hay CTA en el hero, no hay nada que medir. */
+    const ctaL = p.locator('.hero-cta .btn').first();
+    const cta = (await ctaL.count()) ? await ctaL.boundingBox() : { y: 0, height: 0 };
     const ann = await p.locator('.ann').first().boundingBox();
     // ¿se corta algún aviso?
     const cortes = await p.$$eval('.ann-slide', (els) =>

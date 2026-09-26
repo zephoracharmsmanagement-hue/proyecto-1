@@ -95,10 +95,31 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ['inicial', primero(i => i.startsWith('letra-'))],
   ].filter(([, id]) => id);
 
+  /* Las funciones de Netlify no existen en el servidor local: se responden con
+     datos de prueba (disponibilidad = el conteo de stock.json). Así además se
+     prueba cómo se pintan las reseñas y «N compraron», que en local serían un
+     404 en la consola. */
+  const rutasFalsas = async (ctx, { resenas, vendidas } = {}) => {
+    await ctx.route('**/.netlify/functions/disponibilidad', r => r.fulfill({ json: {
+      fuente: 'conteo-menos-apartado',
+      piezas: Object.entries(stock).filter(([, v]) => !v.tallas).map(([i, v]) => ({ id: i, disponible: v.stock })),
+      brazaletes: Object.entries(stock).filter(([, v]) => v.tallas).map(([i, v]) => ({ id: i, tallas: v.tallas })) } }));
+    await ctx.route('**/.netlify/functions/vendidas', r => r.fulfill({ json: { ventas: vendidas || {} } }));
+    await ctx.route('**/.netlify/functions/resenas?*', r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
+  };
+  const { calcular } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
+
   const b = await chromium.launch();
   for (const [tipo, id] of tipos) {
     console.log(`2 · ${tipo}: ${archivoDe(id)}`);
     const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+    const conDatos = tipo === 'charm con unidades';
+    await rutasFalsas(ctx, conDatos ? {
+      vendidas: { [id]: 4 },
+      resenas: { total: 2, promedio: 4.5, resenas: [
+        { estrellas: 5, texto: '<b>Hermoso</b>, llegó rápido', nombre: 'Ana', ciudad: 'Cali', verificada: true },
+        { estrellas: 4, texto: 'Muy bonito', nombre: 'Eva', ciudad: '', verificada: false }] },
+    } : { vendidas: { [id]: 2 } });
     const ev = [];
     await ctx.exposeBinding('__rec', (_, a) => ev.push(a));
     await ctx.addInitScript(() => { window.fbq = (...a) => window.__rec(JSON.parse(JSON.stringify(a))); });
@@ -140,14 +161,53 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
     if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}.png`), fullPage: false });
 
+    // Los paquetes que se publican son los que cobra el servidor.
+    const pq = await p.$$eval('.pq [data-total]', bs => bs.map(x => +x.dataset.total));
+    if (cat.pulseras.includes(id)) {
+      const nota = await p.textContent('.pq-nota');
+      const refP = +((nota.match(/charms de \$([\d.]+)/) || [])[1] || '0').replace(/\./g, '');
+      const ref = Object.keys(cat.precios).find(i => cat.precios[i] === refP && !cat.pulseras.includes(i));
+      const esperado = [1, 2, 3, 4].map(n => calcular({ base: { id, talla: null }, charms: Array(n).fill(ref), pago: 'anticipado' }).total);
+      ok(ref && JSON.stringify(pq) === JSON.stringify(esperado), `paquetes brazalete + 1–4 charms = calcular() (${pq.join(' · ')})`);
+    } else if (hay(id)) {
+      const esperado = [1, 2, 3, 4].map(n => calcular({ base: null, charms: Array(n).fill(id), pago: 'anticipado' }).total);
+      ok(JSON.stringify(pq) === JSON.stringify(esperado), `paquetes 1–4 = calcular() (${pq.join(' · ')})`);
+      await p.check('.pq input[value="3"]');
+      const mas = await p.evaluate(() => ({ v: !document.getElementById('pq-mas').hidden, f: document.getElementById('pq-faltan').textContent,
+        n: document.querySelectorAll('#pq-mas [data-add]').length }));
+      ok(mas.v && mas.f === '2 charms' && mas.n > 0, `al elegir 3 se abre «completa tu paquete: elige ${mas.f} más» con ${mas.n} opciones`);
+      const dock0 = { n: (await p.textContent('#dock-n')).trim(), b: (await p.textContent('#dock-send')).trim() };
+      ok(dock0.n === (await p.evaluate(() => document.querySelector('.pc--pp .pc-name').textContent)).trim() && dock0.b === 'Agregar',
+        `con el carrito vacío la barra fija ofrece «${dock0.b}» esta pieza`);
+    }
+
+    if (conDatos) {
+      const r = await p.evaluate(() => ({ top: document.getElementById('pp-estrellas').hidden ? '' : document.getElementById('pp-estrellas').textContent,
+        items: document.querySelectorAll('#rp-lista .rp-it').length, txt: document.getElementById('rp-lista').textContent,
+        html: document.getElementById('rp-lista').innerHTML, vend: document.getElementById('pp-vendidas').textContent }));
+      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2, `estrellas con el promedio y conteo reales («${r.top.trim()}»)`);
+      ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
+      ok((r.html.match(/Compra verificada/g) || []).length === 1, 'solo la reseña con pedido lleva «Compra verificada»');
+      ok(/4 personas compraron/.test(r.vend), `«${r.vend}»`);
+    } else {
+      const v = await p.evaluate(() => document.getElementById('pp-vendidas').hidden);
+      ok(v, 'con menos de 3 compras no se dice nada');
+    }
+
     if (tipo === 'charm con unidades' || tipo === 'inicial' && hay(id)) {
-      await p.click(`.pc--pp [data-add="${id}"]`);
+      await p.click(`.pp-cta [data-add="${id}"]`);
       await p.waitForTimeout(250);
       const atc = ev.filter(e => e[1] === 'AddToCart');
       ok(atc.length === 1 && atc[0][2].content_ids[0] === id && atc[0][2].value === cat.precios[id],
         `Agregar desde la página → AddToCart [${id}]`);
       const dock = (await p.textContent('#dock-n')).trim();
-      ok(/1 pieza/.test(dock), `el carrito lo recibe: «${dock}»`);
+      ok(/1 pieza/.test(dock) && (await p.textContent('#dock-send')).trim() === 'Comprar', `el carrito lo recibe: «${dock}», y la barra vuelve a «Comprar»`);
+      if (conDatos) {
+        if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}-completa.png`), fullPage: true });
+        await Promise.all([p.waitForURL(/checkout\.html/, { timeout: 8000 }), p.click(`.pp-cta [data-comprar="${id}"]`)]).catch(() => {});
+        ok(/checkout\.html/.test(p.url()) && ev.filter(e => e[1] === 'AddToCart').length === 1,
+          '«Comprar ahora» lleva al checkout sin agregar la pieza dos veces');
+      }
     }
     if (tipo === 'brazalete') {
       const abiertas = await p.locator('.pc--pp .tallas:not([hidden])').count();
@@ -162,8 +222,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       const enc = await p.locator('.pc--pp .pc-encargo').count();
       const bloq = await p.getAttribute(`.pc--pp .pc-add`, 'aria-disabled');
       ok(enc === 1 && bloq === 'true', 'agotado: botón bloqueado y «Pedir por encargo»');
+      const ag = await p.evaluate(() => ({ compra: document.getElementById('pp-compra').hidden,
+        aviso: !document.getElementById('pp-agotado').hidden, href: document.getElementById('pp-encargo').href }));
+      ok(ag.compra && ag.aviso && /wa\.me/.test(ag.href), 'sin paquetes ni botones de compra, y con el encargo por WhatsApp');
     }
-    if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}-completa.png`), fullPage: true });
+    if (process.env.CAPTURAS && !conDatos) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}-completa.png`), fullPage: true });
     ok(!rotos.length, '(d) sin recursos rotos' + lista(rotos));
     ok(!errs.length, '(d) consola limpia' + lista(errs));
     await ctx.close();
@@ -174,7 +237,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
   // la página y la ficha trae «Ver la página completa».
   console.log('3 · Portada → página de producto');
   {
-    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    const ctx3 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx3);
+    const p = await ctx3.newPage();
     const errs = [];
     p.on('pageerror', e => errs.push(e.message));
     await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });

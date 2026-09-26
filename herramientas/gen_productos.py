@@ -39,6 +39,7 @@ o si el precio que muestra la tarjeta no es el de catalogo.json.
 import html as H
 import json
 import re
+import subprocess
 import sys
 import urllib.parse
 
@@ -50,6 +51,12 @@ MAX_BRAZALETES = 4
 
 # Ids que tienda.js crea él mismo; no tienen que venir en el HTML.
 IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res'}
+# Ids de la ficha de producto que tienda.js usa SOLO tras comprobar que
+# existen (el selector de paquetes no existe en un brazalete, por ejemplo).
+# Si se agrega aquí uno que se use sin comprobar, la página se queda sin
+# carrito en silencio: cada uno de estos va con su `if(el)` en tienda.js.
+IDS_OPCIONALES = {'pq-mas', 'pq-faltan', 'pp-estrellas', 'pp-vendidas', 'pp-compra', 'pp-agotado',
+                  'pp-encargo', 'pp-desc', 'rp-resumen', 'rp-lista', 'rp-form', 'rp-escribir'}
 
 
 def archivo_de(pid):
@@ -69,7 +76,7 @@ def cop(n):
 def ids_que_exige_tiendajs():
     t = (RAIZ / 'tienda.js').read_text(encoding='utf-8')
     ids = set(re.findall(r"\$\('#([\w-]+)'\)", t)) | set(re.findall(r"getElementById\('([\w-]+)'\)", t))
-    return ids - IDS_DINAMICOS
+    return ids - IDS_DINAMICOS - IDS_OPCIONALES
 
 
 def unidades(item):
@@ -206,34 +213,48 @@ PAGINA = '''<!DOCTYPE html>
 <section class="pp wrap" id="top">
   <div class="pp-in">
 {tarjeta}
+    <!-- El orden de la ficha es el de automatizaciones/tienda/ENCARGO-FICHA.md:
+         estrellas, disponibilidad real, paquetes, botones, Addi, beneficios,
+         acordeones. Estrellas, disponibilidad y «N compraron este mes» los
+         escribe tienda.js con datos reales (reseñas aprobadas, disponibilidad,
+         pedidos); si no hay dato, no se muestra nada: nunca un número fijo. -->
     <div class="pp-info">
+      <a class="pp-estrellas estrellas" id="pp-estrellas" href="#resenas-pieza" hidden></a>
       <p class="fx-est" id="pp-est" aria-live="polite"></p>
-      <dl class="fx-specs" id="pp-specs"></dl>
-      <p class="pp-envio">Envío <b>GRATIS</b> a toda Colombia pagando en línea · contraentrega disponible</p>
+      <p class="pp-vendidas" id="pp-vendidas" hidden></p>
+{bloque_compra}
+      <ul class="pp-bens">
+{beneficios}
+      </ul>
+{acordeones}
     </div>
   </div>
 </section>
 {bloque_letras}
-<!-- PRUEBA SOCIAL, justo debajo de la pieza: reseñas y los videos de
-     clientas, los mismos bloques de index.html (se actualizan solos al
-     regenerar). Los videos no descargan nada hasta entrar en pantalla: los
-     arranca el IntersectionObserver de tienda.js. -->
-{resenas}
-
-{historia}
+{talla}
 
 <!-- 2 · CERCANAS. Tarjetas de index.html por data-id. -->
 <section class="sec"{id_rel}>
   <div class="wrap">
     <span class="eyebrow">{rel_eyebrow}</span>
     <h2>{rel_titulo}</h2>
+    {rel_sub}
     <div class="grid">
 {tarjetas_rel}
     </div>
   </div>
 </section>
 {bloque_brazaletes}
-{talla}
+
+<!-- 3 · RESEÑAS DE ESTA PIEZA (las aprobadas, con su promedio real) y el
+     formulario para dejar una. Luego la prueba social general y los videos de
+     clientas, los mismos bloques de index.html. Los videos no descargan nada
+     hasta entrar en pantalla (IntersectionObserver de tienda.js). -->
+{bloque_resenas}
+
+{resenas}
+
+{historia}
 
 {confianza}
 
@@ -290,6 +311,186 @@ def tira_letras(pid, cat):
             '  <span class="eyebrow">Todas las iniciales</span>\n  <ul>%s</ul>\n</nav>\n' % items)
 
 
+# ── Paquetes: todos los números salen de calcular() ─────────────────────────
+
+def calcular_paquetes(pedidos):
+    """Totales de los paquetes 1–4 de cada página, con calcular() de verdad y en
+    una sola corrida de node para las 135. Nunca una tabla escrita a mano: si el
+    precio y el cobro se separan, esto cambia solo y pruebas/paginas.js compara
+    lo publicado contra calcular() otra vez.
+
+    `pedidos` es una lista de {pid, base, ref}: con `base` el paquete es
+    brazalete + N charms de `ref`; sin ella, N unidades de `pid`."""
+    guion = '''
+const {calcular} = require('./netlify/functions/_precios.js');
+const cat = require('./assets/catalogo.json');
+const pedidos = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+const out = {};
+for (const p of pedidos) {
+  out[p.pid] = [1, 2, 3, 4].map(n => {
+    const charms = Array(n).fill(p.ref || p.pid);
+    const c = calcular({ base: p.base ? { id: p.base, talla: null } : null, charms, pago: 'anticipado' });
+    const lista = (p.base ? cat.precios[p.base] : 0) + n * cat.precios[p.ref || p.pid];
+    return { n, total: c.total, lista, ahorro: lista - c.total };
+  });
+}
+console.log(JSON.stringify(out));
+'''
+    r = subprocess.run(['node', '-e', guion], cwd=RAIZ, input=json.dumps(pedidos),
+                       capture_output=True, text=True, encoding='utf-8')
+    if r.returncode != 0:
+        raise SystemExit('calcular() falló al armar los paquetes:\n' + r.stderr)
+    return json.loads(r.stdout)
+
+
+def charm_de_referencia(cat, stock):
+    """Para el paquete de un brazalete hace falta el precio de «un charm». Se
+    toma el precio más común entre los charms con unidades, y se dice en la
+    página con qué precio se calculó: un total sin esa aclaración prometería
+    un número que con otros charms no sale."""
+    precios = {}
+    for p, v in cat['precios'].items():
+        if p in cat['pulseras'] or (unidades(stock.get(p)) or 0) <= 0:
+            continue
+        precios.setdefault(v, []).append(p)
+    v = max(precios, key=lambda k: (len(precios[k]), k))
+    return precios[v][0], v
+
+
+WA = 'https://wa.me/573018990672?text='
+WA_ADDI = WA + 'Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.'
+
+
+def fila_paquete(p, rotulo, radio, marcado):
+    tachado = '<s>%s</s> ' % cop(p['lista']) if p['ahorro'] > 0 else ''
+    ahorro = '<span class="pq-a">Ahorras %s</span>' % cop(p['ahorro']) if p['ahorro'] > 0 else ''
+    entrada = ('<input type="radio" name="pq" value="%d"%s>' % (p['n'], ' checked' if marcado else '')) if radio else ''
+    tag = 'label' if radio else 'div'
+    return ('        <%s class="pq-o%s">%s<span class="pq-n">%s</span>'
+            '<span class="pq-p">%s<b data-total="%d">%s</b></span>%s</%s>'
+            % (tag, ' pq-o--best' if p['n'] == 4 else '', entrada, rotulo, tachado, p['total'],
+               cop(p['total']), ahorro, tag))
+
+
+def bloque_compra(pid, tipo, nombre, precio, paquetes, hay, ref_precio, completar, cat):
+    """Selector de paquetes, botones, Addi y suscripción. Todo el bloque se
+    esconde si la pieza está agotada (lo decide tienda.js con la disponibilidad
+    real, y aquí con el conteo de stock.json para quien no tiene JavaScript)."""
+    if tipo == 'brazalete':
+        filas = '\n'.join(fila_paquete(p, 'Brazalete + %d charm%s' % (p['n'], 's' if p['n'] > 1 else ''), False, False)
+                          for p in paquetes)
+        selector = ('      <div class="pq pq--b">\n        <p class="pq-t">Arma tu pulsera: el descuento sube con cada charm</p>\n'
+                    + filas + '\n        <p class="pq-nota">Desde 3 charms el brazalete baja 30%%. Totales calculados con '
+                    'charms de %s, con pago en línea; con otros charms cambia el total, y el descuento se aplica '
+                    'solo en el carrito.</p>\n      </div>' % cop(ref_precio))
+        botones = ('      <div class="pp-cta"><button class="btn" type="button" data-comprar="%s">Comprar ahora</button></div>\n'
+                   '      <p class="pp-nota-t">Elige tu talla en la pieza de arriba para agregarla al carrito.</p>' % pid)
+    else:
+        cuatro_por_tres = paquetes[3]['total'] == 3 * precio
+        rotulos = ['Compra 1', 'Compra 2', 'Compra 3', 'Lleva 4, paga 3' if cuatro_por_tres else 'Compra 4']
+        filas = '\n'.join(fila_paquete(p, rotulos[i], True, hay and p['n'] == 2) for i, p in enumerate(paquetes))
+        minis = '\n'.join(
+            '          <div class="pq-it"><img src="assets/%s" alt="" width="56" height="56" loading="lazy" decoding="async">'
+            '<span>%s<small>%s</small></span><button type="button" class="pq-add" data-add="%s">Agregar</button></div>'
+            % (cat['fotos'][c], H.escape(cat['nombres'][c]), cop(cat['precios'][c]), c) for c in completar)
+        selector = ('      <fieldset class="pq">\n        <legend class="pq-t">Elige cuántos charms llevas</legend>\n'
+                    + filas + '\n        <p class="pq-nota">El descuento se aplica solo en el carrito, con cualquier '
+                    'combinación de charms. Totales con charms de este mismo precio y pago en línea.</p>\n'
+                    '        <div class="pq-mas" id="pq-mas" hidden>\n          <p class="pq-mas-t">Completa tu paquete: '
+                    'elige <b id="pq-faltan">1 charm</b> más</p>\n' + minis + '\n        </div>\n      </fieldset>')
+        botones = ('      <div class="pp-cta">\n        <button class="btn btn--ghost" type="button" data-add="%s">Agregar al carrito</button>\n'
+                   '        <button class="btn" type="button" data-comprar="%s">Comprar ahora</button>\n      </div>' % (pid, pid))
+    oculto = '' if hay else ' hidden'
+    return ('      <div class="pp-compra" id="pp-compra"%s>\n%s\n%s\n'
+            '        <p class="pp-addi">También a cuotas con Addi: <a data-wa="pagos" href="%s">pregúntanos por WhatsApp</a></p>\n'
+            '        <p class="pp-susc"><a href="#" data-susc>Suscríbete y llévate un charm de regalo</a> en tu primera compra de 2 charms o más.</p>\n'
+            '      </div>\n'
+            '      <p class="pp-agotado" id="pp-agotado"%s>Esta pieza está agotada. <a data-wa="encargo" id="pp-encargo" href="%s">Pídela por encargo por WhatsApp</a> y te avisamos cuando vuelva.</p>'
+            % (oculto, selector, botones, WA_ADDI, '' if not hay else ' hidden',
+               WA + urllib.parse.quote('Hola, Zephora Charms. Vi en la página que «%s» está agotado. '
+                                        '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?' % nombre)))
+
+
+ICONO = {
+    'envio': '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/>',
+    'contra': '<rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.6"/>',
+    'sello': '<path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/>',
+    'regalo': '<rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/>',
+    'cambio': '<path d="M4 9h13l-3-3M20 15H7l3 3"/>',
+}
+
+
+def beneficios(tipo, cat):
+    """Solo lo que es cierto hoy, con las mismas palabras que ya usa el sitio
+    (preguntas-frecuentes.html, envios-y-devoluciones.html)."""
+    material = ('Baño de plata con capa e-coating' if tipo == 'brazalete'
+                else 'Plata Esterlina 925 con sello grabado')
+    items = [('envio', 'Envío gratis pagando en línea'),
+             ('contra', 'Pago contraentrega (+%s)' % cop(cat['reglas']['envio']['contraentrega'])),
+             ('sello', material),
+             ('regalo', 'Empaque de regalo incluido'),
+             ('cambio', 'Cambio de talla o retracto en 5 días hábiles')]
+    return '\n'.join('        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
+                     'stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">%s</svg>%s</li>' % (ICONO[k], H.escape(t))
+                     for k, t in items)
+
+
+def acordeones(tipo, meta, grupo, cat):
+    """Descripción · Materiales · Envíos · Contraentrega · Cuidados. Los textos
+    salen de lo que el sitio ya publica en preguntas-frecuentes.html; no se
+    inventa ni se amplía una promesa aquí. La ficha técnica (#pp-specs) y la
+    descripción por familia (#pp-desc) las escribe tienda.js desde el mismo
+    specsDe()/FAMILIAS que la ficha emergente."""
+    contra = cop(cat['reglas']['envio']['contraentrega'])
+    if tipo == 'brazalete':
+        cuidado = ('El baño de los brazaletes no se oxida solo gracias al e-coating, pero puede perder brillo si se '
+                   'expone a humedad, perfumes, cremas o sudor.')
+    else:
+        cuidado = ('La Plata 925 de los charms sí se oxida con el tiempo al contacto con el aire. Es la naturaleza de '
+                   'la plata, no un defecto, y el brillo se recupera con un paño de joyería.')
+    secciones = [
+        ('Descripción', '<p>%s.</p><p id="pp-desc"></p>' % (
+            H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo)), True),
+        ('Materiales', '<dl class="fx-specs" id="pp-specs"></dl>', False),
+        ('Envíos gratis', '<p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los '
+                          'tiempos se cuentan en días hábiles desde que despachamos: Bogotá y municipios cercanos 1 – 2 '
+                          'días; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de guía por '
+                          'WhatsApp o correo.</p>', False),
+        ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta '
+                          '%s: lo cobra la transportadora al recaudar.</p>' % contra, False),
+        ('Consejos y cuidados', '<p>%s</p><p>Guárdala en su bolsa cuando no la uses, quítatela para bañarte, nadar o '
+                                'hacer ejercicio, y evita el contacto con perfumes y cremas. Para limpiarla, un paño '
+                                'suave y seco.</p>' % cuidado, False),
+    ]
+    return '\n'.join('      <details class="pp-acc"%s><summary>%s</summary><div class="pp-acc-in">%s</div></details>'
+                     % (' open' if abierto else '', t, c) for t, c, abierto in secciones)
+
+
+BLOQUE_RESENAS = '''<section class="sec" id="resenas-pieza">
+  <div class="wrap">
+    <span class="eyebrow">Reseñas</span>
+    <h2>Opiniones de {nombre}</h2>
+    <div class="rp-resumen estrellas" id="rp-resumen"></div>
+    <div class="rp-lista" id="rp-lista"><p class="rp-vacio">Todavía no hay reseñas publicadas de esta pieza.</p></div>
+    <details class="rp-escribir" id="rp-escribir">
+      <summary>Escribir una reseña</summary>
+      <form class="rp-form" id="rp-form" novalidate>
+        <fieldset class="rp-est"><legend>Tu calificación</legend>
+          <label><input type="radio" name="estrellas" value="5">5</label><label><input type="radio" name="estrellas" value="4">4</label><label><input type="radio" name="estrellas" value="3">3</label><label><input type="radio" name="estrellas" value="2">2</label><label><input type="radio" name="estrellas" value="1">1</label>
+        </fieldset>
+        <label>Tu reseña<textarea name="texto" rows="4" maxlength="800" required></textarea></label>
+        <div class="rp-dos"><label>Nombre<input name="nombre" maxlength="40" required autocomplete="given-name"></label>
+        <label>Ciudad<input name="ciudad" maxlength="40" autocomplete="address-level2"></label></div>
+        <input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="btn" type="submit">Enviar reseña</button>
+        <p class="rp-nota">Revisamos cada reseña antes de publicarla. Publicamos también las de pocas estrellas.</p>
+        <p class="rp-msg" aria-live="polite"></p>
+      </form>
+    </details>
+  </div>
+</section>'''
+
+
 def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
     """Datos estructurados de producto. La disponibilidad es la del conteo de
     stock.json al generar, igual que el resto de tienda.js: no ve lo apartado
@@ -305,7 +506,7 @@ def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
     return json.dumps(d, ensure_ascii=False).replace('</', '<\\/')
 
 
-def generar(pid, html, cat, stock, b, exigidos):
+def generar(pid, html, cat, stock, b, exigidos, paquetes, ref):
     tipo = ('brazalete' if pid in cat['pulseras']
             else 'inicial' if pid.startswith('letra-') else 'charm')
     grupo = {'brazalete': 'Brazaletes', 'inicial': 'Iniciales'}.get(tipo) or cat['grupos'].get(pid, 'Charms')
@@ -325,10 +526,15 @@ def generar(pid, html, cat, stock, b, exigidos):
     hay = (unidades(stock.get(pid)) or 0) > 0
 
     rel = relacionadas(pid, tipo, grupo, cat, stock)
+    pq = paquetes[pid]
+    rel_sub = ''
     if tipo == 'brazalete':
         rel_eyebrow, rel_titulo, id_rel = 'Brazaletes', 'Más brazaletes', ' id="brazaletes"'
         bloque_b = ''
     else:
+        # La venta cruzada dice el ahorro de llevar dos, calculado, no prometido.
+        rel_sub = ('<p class="col-sub">Juntos rinden más: llevando dos charms de %s ahorras %s, y el descuento '
+                   'sigue subiendo con cada uno.</p>' % (cop(precio), cop(pq[1]['ahorro']))) if pq[1]['ahorro'] > 0 else ''
         mismo = tipo == 'charm' and any(cat['grupos'].get(p) == grupo for p in rel)
         rel_eyebrow = grupo if mismo else 'Zephora'
         rel_titulo = ('Más de %s' % grupo) if mismo else 'Las más pedidas'
@@ -345,7 +551,13 @@ def generar(pid, html, cat, stock, b, exigidos):
         titulo=H.escape(titulo), desc=H.escape(desc), canon=canon, imagen=imagen, precio=precio,
         jsonld=jsonld(pid, nombre, imagen, precio, grupo, hay, canon), pid=pid,
         head=b['head'], ann=b['ann'], header=b['header'], migas=migas(tipo, grupo, nombre),
-        tarjeta='    ' + tarjeta, id_rel=id_rel,
+        tarjeta='    ' + tarjeta, id_rel=id_rel, rel_sub=rel_sub,
+        bloque_compra=bloque_compra(pid, tipo, nombre, precio, pq, hay, ref[1],
+                                    [c for c in (rel + cat['destacados'])
+                                     if c != pid and c in cat['precios'] and c not in cat['pulseras']
+                                     and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0][:6], cat),
+        beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat),
+        bloque_resenas=BLOQUE_RESENAS.format(nombre=H.escape(nombre)),
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
@@ -426,9 +638,12 @@ def main():
 
     # Primero se generan y comprueban TODAS; solo después se escribe. Una sola
     # página rota para la tanda entera en vez de dejar la mitad escrita.
+    ref = charm_de_referencia(cat, stock)
+    paquetes = calcular_paquetes([
+        {'pid': p, 'base': p, 'ref': ref[0]} if p in cat['pulseras'] else {'pid': p} for p in todos])
     salida, cuenta = [], {}
     for pid in todos:
-        pagina, tipo = generar(pid, html, cat, stock, b, exigidos)
+        pagina, tipo = generar(pid, html, cat, stock, b, exigidos, paquetes, ref)
         salida.append((pid, pagina))
         cuenta[tipo] = cuenta.get(tipo, 0) + 1
 
