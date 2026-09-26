@@ -518,7 +518,7 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
     await p.click('#menu-btn');
     await p.click('.menu-cat summary');
-    await Promise.all([p.waitForURL(u => /index\.html$/.test(u.pathname) && u.searchParams.get('cat') === 'Zodiaco'), p.click('.menu-cat-l a:text-is("Zodiaco")')]);
+    await Promise.all([p.waitForURL(u => /^\/(index(\.html)?)?$/.test(u.pathname) && u.searchParams.get('cat') === 'Zodiaco'), p.click('.menu-cat-l a:text-is("Zodiaco")')]);
     await p.waitForLoadState('networkidle');
     await p.waitForTimeout(500);
     const z = await p.evaluate(() => ({ on: (document.querySelector('#filters .fbtn.is-on') || {}).textContent,
