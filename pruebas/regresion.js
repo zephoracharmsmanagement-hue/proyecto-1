@@ -183,36 +183,37 @@ const U = BASE + '/index.html';
     + `\n  todas las fotos declaradas existen: ${rotas.length === 0 ? 'sí ✓' : 'NO ✗ — ' + rotas.join(', ')}`);
 
   // Una pieza con varias fotos abre con tira y miniaturas; una con una sola, no.
+  // Desde el 2026-09-26 la tarjeta de la portada lleva a la página de la
+  // pieza, y la ficha es la galería ampliada de esa página: se abre tocando
+  // su foto.
+  const galeriaDe = async id => {
+    await p.goto(BASE + '/producto-' + encodeURIComponent(id) + '.html', { waitUntil: 'networkidle' });
+    await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
+    await p.waitForFunction(() => !document.getElementById('ficha').hidden, null, { timeout: 5000 }).catch(() => {});
+    await p.waitForTimeout(200);
+  };
   const conVarias = declaradas ? Object.keys(declaradas)[0] : null;
   if (conVarias) {
-    await p.evaluate(id => {
-      const t = document.querySelector(`.pc[data-id="${id}"] .pc-img`);
-      if (t) t.click();
-    }, conVarias);
-    await p.waitForTimeout(300);
+    await galeriaDe(conVarias);
     const n = await p.locator('#fx-gal figure').count();
     const minis = await p.locator('#fx-mini button').count();
     out.push(`  «${conVarias}» abre con ${n} fotos y ${minis} miniaturas: `
       + `${n === declaradas[conVarias].length + 1 && minis === n ? 'sí ✓' : 'NO ✗'}`);
-    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
-    await p.waitForTimeout(200);
   }
+  await p.goto(U, { waitUntil: 'networkidle' });
   const sinExtra = await p.evaluate(decl => {
     const c = [...document.querySelectorAll('#charms .pc[data-id]')]
       .map(e => e.dataset.id).find(i => !(i in decl) && i !== 'letras');
-    if (!c) return null;
-    document.querySelector(`.pc[data-id="${c}"] .pc-img`).click();
-    return c;
+    return c || null;
   }, declaradas || {});
   if (sinExtra) {
-    await p.waitForTimeout(300);
+    await galeriaDe(sinExtra);
     const galería = await p.locator('#fx-gal').count();
     const miniVisible = await p.locator('#fx-mini').isVisible();
     out.push(`  «${sinExtra}», con una sola foto, no pinta tira ni miniaturas: `
       + `${galería === 0 && !miniVisible ? 'sí ✓' : 'NO ✗'}`);
-    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
-    await p.waitForTimeout(200);
   }
+  await p.goto(U, { waitUntil: 'networkidle' });
 
   // ---- 7b. Lupa de la cabecera ----
   //
@@ -238,20 +239,17 @@ const U = BASE + '/index.html';
       + `\n  trae brazaletes: ${hayB ? 'sí ✓' : 'NO ✗'}   y charms: ${hayC ? 'sí ✓' : 'NO ✗'}`);
 
     /* Y que llevar a la pieza funcione: el resultado de buscar algo concreto
-       es esa pieza, no una parrilla filtrada. */
+       es esa pieza, no una parrilla filtrada. Desde el 2026-09-26 lleva a su
+       página, como las tarjetas. */
     await p.fill('#busq-q', 'corazon liso');
     await p.waitForTimeout(250);
-    await p.locator('.busq-r').first().click();
-    await p.waitForTimeout(350);
-    const abrio = await p.evaluate(() => ({
-      n: document.querySelector('#fx-n').textContent,
-      tipo: document.querySelector('#fx-tipo').textContent,
-      cerrado: document.querySelector('#busq').hidden,
-    }));
-    out.push(`  tocar un resultado abre su ficha: «${abrio.n}» (${abrio.tipo})`
-      + `   y cierra el panel: ${abrio.cerrado ? 'sí ✓' : 'NO ✗'}`);
-    await p.evaluate(() => { const x = document.querySelector('#fx-x'); if (x) x.click(); });
-    await p.waitForTimeout(200);
+    const ir = await p.locator('.busq-r').first().getAttribute('data-ir');
+    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/producto-' + ir + '.html'), { timeout: 8000 }).catch(() => {}),
+      p.locator('.busq-r').first().click()]);
+    const llego = new URL(p.url()).pathname;
+    out.push(`  tocar un resultado lleva a su página: «${ir}» → ${llego} `
+      + `${llego.endsWith('/producto-' + ir + '.html') ? 'sí ✓' : 'NO ✗'}`);
+    await p.goto(U, { waitUntil: 'networkidle' });
   }
 
   // ---- 8. Desbordamiento horizontal ----

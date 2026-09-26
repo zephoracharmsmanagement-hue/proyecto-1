@@ -189,10 +189,18 @@ async function main() {
       body: JSON.stringify({ ok: true, mensaje: 'x' }) }));
     await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
     comprobar(!(await p.locator('.susc').count()), 'no aparece al entrar');
-    await p.evaluate(() => { document.querySelectorAll('.pc--top .pc-img')[0].click(); });
-    await p.keyboard.press('Escape');
-    await p.evaluate(() => { document.querySelectorAll('.pc--top .pc-img')[1].click(); });
-    await p.waitForTimeout(300);
+    /* Desde el 2026-09-26 tocar una joya lleva a su página: cada página vista
+       cuenta. En la segunda se abre en seguida su galería (la ficha), y la
+       invitación tiene que esperar a que se cierre. */
+    await Promise.all([p.waitForURL(/producto-.+\.html/), p.evaluate(() => { document.querySelectorAll('.pc--top .pc-img')[0].click(); })]);
+    await p.waitForTimeout(900);
+    comprobar(!(await p.locator('.susc').count()), 'con 1 producto visto todavía no aparece');
+    await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
+    const segunda = await p.evaluate(() => document.querySelectorAll('.pc--top')[1].dataset.id);
+    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/producto-' + segunda + '.html'), { waitUntil: 'domcontentloaded' }),
+      p.evaluate(() => { document.querySelectorAll('.pc--top .pc-img')[1].click(); })]);
+    await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
+    await p.waitForTimeout(900);
     comprobar(!(await p.locator('.susc').count()), 'con la ficha abierta no se sobrepone');
     await p.keyboard.press('Escape');
     await p.waitForTimeout(4500);

@@ -757,7 +757,8 @@ function abrirFicha(id){
   if(!p) return;
   /* Se repinta abierta tras agregar y al llegar el inventario: eso no es
      otra vista. Y en su propia página de producto ya se contó al cargar. */
-  if(($('#ficha').hidden||fichaId!==id) && id!==document.body.dataset.producto) verPieza(id);
+  const yaAbierta=!$('#ficha').hidden;
+  if((!yaAbierta||fichaId!==id) && id!==document.body.dataset.producto) verPieza(id);
   fichaId=id;
   const tarjeta=tarjetaDe(id);
   const img=tarjeta&&tarjeta.querySelector('.pc-img img');
@@ -789,8 +790,10 @@ function abrirFicha(id){
   if(sinStock) fw.href=waEncargo(p.n);
 
   $('#ficha').hidden=false;
-  bloquearFondo(true);
-  $('#fx-x').focus();
+  /* Solo al abrirse: repintada (tras agregar o al llegar el inventario) ya
+     tiene su bloqueo, y sumar otro dejaba el fondo trabado —sin scroll y con
+     la suscripción esperando para siempre— al cerrarla. */
+  if(!yaAbierta){ bloquearFondo(true); $('#fx-x').focus(); }
 }
 /* Bloqueo del fondo mientras hay una capa abierta (ficha o carrito).
  *
@@ -1370,19 +1373,32 @@ function sumarCharm(id){
     content_name:CH[id].n,value:CH[id].p});
 }
 
+/* La página de cada pieza: producto-<id>.html, la misma regla de
+   gen_productos.py (archivo_de/href_de). La tarjeta de letras lleva a la
+   inicial que enseña, que es la última que se tocó. */
+const paginaDe=id=>'producto-'+encodeURIComponent(id)+'.html';
+let letraVista='letra-a';
+
 document.addEventListener('click',e=>{
-  /* La foto y el nombre abren la ficha. El bloque de letras no: cada inicial se
-     agrega desde su propia casilla y no tiene ficha propia. */
+  /* La foto y el nombre llevan a la página de la pieza (decisión del
+     propietario, 2026-09-26: con la vitrina, la página ya permite elegir y
+     agregar todo sin salir; antes abrían la ficha emergente). En la página
+     de la propia pieza, su foto sigue abriendo la ficha, que ahí hace de
+     galería ampliada. Los botones de la tarjeta —agregar, tallas, letras,
+     encargo— siguen agregando sin salir. */
   const ver=e.target.closest('.pc-img, .pc-name');
   if(ver && !e.target.closest('.pc-add, .tbtn, .lbtn, .pc-encargo')){
-    const t=ver.closest('.pc');
-    /* El nombre es un enlace a la página de la pieza. El clic normal sigue
-       abriendo la ficha —decisión del propietario: el flujo que hoy lleva a
-       agregar no se toca—; con Ctrl/Cmd/Mayús o rueda, el navegador abre la
-       página como cualquier enlace. */
-    const conTecla=e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0;
-    if(t && t.dataset.id && t.dataset.id!=='letras' && !(conTecla&&e.target.closest('a'))){
-      e.preventDefault(); abrirFicha(t.dataset.id); return;
+    const t=ver.closest('.pc'), id=t&&t.dataset.id;
+    if(id && t.classList.contains('pc--pp')){ e.preventDefault(); abrirFicha(id); return; }
+    const destino=id==='letras'?letraVista:id;
+    if(destino && (CH[destino]||PU[destino])){
+      /* El nombre ya es un enlace: el navegador hace lo suyo, también con
+         Ctrl/Cmd/Mayús o rueda. La foto se lleva a mano. */
+      if(e.target.closest('a[href]')) return;
+      e.preventDefault();
+      if(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1) window.open(paginaDe(destino),'_blank');
+      else location.href=paginaDe(destino);
+      return;
     }
   }
 
@@ -1403,6 +1419,7 @@ document.addEventListener('click',e=>{
   const L=e.target.closest('[data-letra]');
   if(L){
     const id='letra-'+L.dataset.letra;
+    letraVista=id;
     /* La tarjeta de letras enseña la inicial que se acaba de tocar, con su
        foto propia; si esa letra no tiene, vuelve a la del grupo. */
     const img=document.querySelector('.pc[data-id="letras"] .pc-img img');
@@ -1728,14 +1745,9 @@ function abrirBusqueda(v) {
 
 function irAPieza(id) {
   abrirBusqueda(false);
-  if (id === 'letras') {
-    /* Las iniciales no tienen ficha: se eligen en su propio bloque, así que
-       ahí es donde hay que dejar a la clienta. */
-    const c = document.querySelector('.pc[data-id="letras"]');
-    if (c) { c.hidden = false; c.scrollIntoView({ block: 'center' }); }
-    return;
-  }
-  abrirFicha(id);
+  /* Como las tarjetas: el resultado lleva a la página de la pieza. «Letras»
+     lleva a la de la A, que trae la tira con todas las iniciales. */
+  location.href = paginaDe(id === 'letras' ? 'letra-a' : id);
 }
 
 lupa.addEventListener('click', () => abrirBusqueda(busq.hidden));

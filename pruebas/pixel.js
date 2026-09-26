@@ -5,8 +5,9 @@
 // llamada queda anotada, también a través de la navegación al checkout.
 //
 // Lo que vigila, porque ninguna otra batería lo ve y un fallo aquí no da error:
-//   · la ficha manda ViewContent de producto con el id de catalogo.json, una
-//     vez por apertura (no al repintarse tras agregar);
+//   · tocar una joya de la portada lleva a su página, que manda ViewContent
+//     de producto con el id de catalogo.json, una sola vez (no al abrir su
+//     galería ni al repintarse tras agregar);
 //   · AddToCart lleva el mismo id y su precio;
 //   · InitiateCheckout sale UNA sola vez por checkout —antes salía dos, desde
 //     tienda.js y desde checkout.html, con eventID distintos— y lleva los ids
@@ -39,29 +40,37 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   ok(vcG.length === 1 && vcG[0].a[2].content_type === 'product_group',
     `un ViewContent de grupo al cargar (${vcG.length})`);
 
-  console.log('2 · Ficha');
+  // Desde el 2026-09-26 tocar la joya lleva a su página, y es la página la que
+  // cuenta la vista.
+  console.log('2 · Página de la pieza');
   const id = await p.evaluate(() => {
     const libre = [...document.querySelectorAll('#charms .pc[data-id] [data-add]')]
       .find(x => x.getAttribute('aria-disabled') !== 'true');
     return libre && libre.dataset.add;
   });
   ok(!!id, `charm con unidades para la prueba: ${id}`);
-  await p.evaluate(i => document.querySelector(`.pc[data-id="${i}"] .pc-img`).click(), id);
-  await p.waitForTimeout(250);
-  let vc = de('ViewContent').slice(1);
+  await Promise.all([p.waitForURL(u => u.pathname.endsWith(`/producto-${id}.html`)),
+    p.evaluate(i => document.querySelector(`.pc[data-id="${i}"] .pc-img`).click(), id)]);
+  await p.waitForLoadState('networkidle');
+  let vc = de('ViewContent', `/producto-${id}.html`);
   const d = vc[0] && vc[0].a[2];
   ok(vc.length === 1 && d.content_type === 'product' && d.content_ids.length === 1 && d.content_ids[0] === id,
-    `abrir la ficha manda ViewContent de producto con content_ids [${id}]`);
+    `tocar la joya lleva a su página y manda ViewContent de producto con content_ids [${id}]`);
   ok(d && d.value === cat.precios[id] && d.currency === 'COP',
     `con su precio de catalogo.json (${d && d.value} = ${cat.precios[id]}) en COP`);
   ok(vc[0] && vc[0].a[3] && /^zc-/.test(vc[0].a[3].eventID), 'y con eventID de zcEvId');
 
-  await p.click('#fx-add');
+  await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
+  await p.waitForTimeout(250);
+  ok(de('ViewContent', `/producto-${id}.html`).length === 1, 'abrir la galería de su propia página NO cuenta otra vista');
+  await p.keyboard.press('Escape');
+  await p.waitForTimeout(150);
+  await p.click(`.pp-cta [data-add="${id}"]`);
   await p.waitForTimeout(250);
   const atc = de('AddToCart');
   ok(atc.length === 1 && atc[0].a[2].content_type === 'product' && atc[0].a[2].content_ids[0] === id
-    && atc[0].a[2].value === cat.precios[id], `agregar desde la ficha manda AddToCart [${id}] a ${cat.precios[id]}`);
-  ok(de('ViewContent').length === 2, 'repintar la ficha tras agregar NO cuenta otra vista');
+    && atc[0].a[2].value === cat.precios[id], `agregar desde la página manda AddToCart [${id}] a ${cat.precios[id]}`);
+  ok(de('ViewContent', `/producto-${id}.html`).length === 1, 'repintar tras agregar NO cuenta otra vista');
   await p.keyboard.press('Escape');
   await p.waitForTimeout(150);
 

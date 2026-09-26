@@ -231,10 +231,10 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(!errs.length, '(d) consola limpia' + lista(errs));
     await ctx.close();
   }
-  // ── 3 · Cómo se llega: el nombre de la tarjeta y la ficha ──
-  // Decisión del propietario: tocar la tarjeta sigue abriendo la ficha (el
-  // flujo que hoy lleva a agregar no cambia); el nombre es un enlace real a
-  // la página y la ficha trae «Ver la página completa».
+  // ── 3 · Cómo se llega: tocar la joya lleva a su página ──
+  // Decisión del propietario (2026-09-26), con la vitrina ya en cada página:
+  // la foto y el nombre de cualquier tarjeta llevan a la página de la pieza.
+  // En su propia página, la foto abre la ficha como galería ampliada.
   console.log('3 · Portada → página de producto');
   {
     const ctx3 = await b.newContext({ viewport: { width: 390, height: 844 } });
@@ -247,23 +247,40 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i)).length,
       `${enlazadas} nombres de tarjeta enlazan a su página`);
     const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
-    await p.click(`.pc[data-id="${id}"] .pc-name a`);
-    await p.waitForTimeout(300);
-    ok(p.url().endsWith('/index.html') && !(await p.locator('#ficha').isHidden()),
-      `clic normal en el nombre abre la ficha y no sale de la portada`);
-    // .btn{display:…} le ganaba a [hidden]: toda ficha ofrecía «Pedir por
-    // encargo», también con unidades. Se mide lo que se VE, no el atributo.
-    const encargoVisible = await p.locator('#fx-wa').isVisible();
-    const agotadaId = await p.evaluate(() => document.querySelector('#fx-est').textContent);
-    ok(!encargoVisible || /Agotado/.test(agotadaId), `la ficha de una pieza con unidades no ofrece encargo («${agotadaId}»)`);
-    const pag = await p.getAttribute('#fx-pag', 'href');
-    ok(pag === archivoDe(id) && await p.locator('#fx-pag').isVisible(), `la ficha enlaza a ${pag}`);
-    await Promise.all([p.waitForURL(u => u.pathname.endsWith(archivoDe(id))), p.click('#fx-pag')]);
-    ok(true, 'y ese enlace lleva a la página de la pieza');
+    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/' + archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
+    ok(true, `tocar la foto de ${id} en la portada lleva a ${archivoDe(id)}`);
+    await p.goBack({ waitUntil: 'networkidle' });
+    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/' + archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-name a`)]);
+    ok(true, 'y tocar su nombre, también');
+    await p.goBack({ waitUntil: 'networkidle' });
+    const conBoton = await p.evaluate(() => {
+      const b = [...document.querySelectorAll('#charms .pc[data-id] .pc-add[data-add]')].find(x => x.getAttribute('aria-disabled') !== 'true');
+      return b && b.dataset.add;
+    });
+    const antes = p.url();
+    await p.click(`.pc[data-id="${conBoton}"] .pc-add[data-add]`);
+    await p.waitForTimeout(250);
+    ok(p.url() === antes, `«Agregar» de la tarjeta agrega sin salir de la portada (${conBoton})`);
+    await p.evaluate(() => { const L = document.querySelector('[data-letra="m"]'); if (L) L.click(); });
+    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/producto-letra-m.html')),
+      p.evaluate(() => document.querySelector('.pc[data-id="letras"] .pc-img').click())]);
+    ok(true, 'la tarjeta de letras lleva a la inicial que se tocó (M)');
+    const rel = await p.$eval('.sec .pc[data-id]:not(.pc--pp):not([data-id="letras"])', e => e.dataset.id).catch(() => null);
+    if (rel) {
+      await Promise.all([p.waitForURL(u => u.pathname.endsWith('/' + archivoDe(rel))), p.click(`.pc[data-id="${rel}"]:not(.pc--pp) .pc-img`)]);
+      ok(true, `desde una página de producto, una pieza relacionada lleva a la suya (${rel})`);
+    }
     await p.click('.pc--pp .pc-img');
     await p.waitForTimeout(300);
-    ok(await p.locator('#fx-pag').isHidden(), 'en su propia página, la ficha no se enlaza a sí misma');
+    ok(!(await p.locator('#ficha').isHidden()) && await p.locator('#fx-pag').isHidden(),
+      'en su propia página, la foto abre la galería y no se enlaza a sí misma');
+    // Repintarla abierta (al agregar, al llegar el inventario) sumaba otro
+    // bloqueo del fondo: al cerrarla, la página quedaba sin scroll.
+    if (await p.locator('#fx-add').isVisible()) { await p.click('#fx-add'); await p.waitForTimeout(200); }
     await p.keyboard.press('Escape');
+    await p.waitForTimeout(200);
+    ok(!(await p.evaluate(() => document.body.classList.contains('sheet-open'))),
+      'agregar desde la galería y cerrarla deja la página con scroll');
     await p.goto(BASE + '/' + archivoDe(cat.pulseras[0]), { waitUntil: 'networkidle' });
     await p.click('.pc--pp .pc-img');
     await p.waitForTimeout(300);

@@ -47,8 +47,11 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ---- 2 · ficha de producto por familia ----
   console.log('2 · Ficha de producto');
+  // Desde el 2026-09-26 la tarjeta de la portada lleva a la página de la
+  // pieza; la ficha se abre ahí, tocando su foto (galería ampliada).
   const ficha = async id => {
-    await p.evaluate(i => document.querySelector(`.pc[data-id="${i}"] .pc-img`).click(), id);
+    await p.goto(BASE + '/producto-' + id + '.html', { waitUntil: 'networkidle' });
+    await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
     await p.waitForTimeout(250);
     const d = await p.evaluate(() => ({
       abierta: !document.getElementById('ficha').hidden,
@@ -81,6 +84,7 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ---- 3 · buscador ----
   console.log('3 · Buscador');
+  await p.goto(U, { waitUntil: 'networkidle' });
   /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
      llamada que garantiza el estado abierto sin depender de cómo empiece. */
   await p.evaluate(() => { const f = document.querySelector('#full-cat');
