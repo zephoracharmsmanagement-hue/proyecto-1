@@ -295,7 +295,8 @@ ENVIOS = '''  <p>Aquí encuentras cómo enviamos, cuánto cuesta y qué hacer si
   confirmado el pedido, y los tiempos se cuentan en días hábiles desde el despacho:</p>
   <table>
     <tr><th>Destino</th><th>Llega en</th></tr>
-    <tr><td>Bogotá y municipios cercanos</td><td>1 – 2 días hábiles</td></tr>
+    <tr><td>Bogotá</td><td>1 día hábil</td></tr>
+    <tr><td>Municipios cercanos a Bogotá</td><td>1 – 2 días hábiles</td></tr>
     <tr><td>Ciudades principales (Medellín, Cali, Barranquilla…)</td><td>2 – 4 días hábiles</td></tr>
     <tr><td>Resto del país y reexpedidos</td><td>3 – 6 días hábiles</td></tr>
   </table>
@@ -417,7 +418,8 @@ FAQS = [
      '<p>Enviamos por <b>Inter Rapidísimo</b> a todo el país. Los tiempos se cuentan en días '
      'hábiles desde que despachamos:</p>'
      '<table><tr><th>Destino</th><th>Llega en</th></tr>'
-     '<tr><td>Bogotá y municipios cercanos</td><td>1 – 2 días hábiles</td></tr>'
+     '<tr><td>Bogotá</td><td>1 día hábil</td></tr>'
+     '<tr><td>Municipios cercanos a Bogotá</td><td>1 – 2 días hábiles</td></tr>'
      '<tr><td>Ciudades principales (Medellín, Cali, Barranquilla…)</td><td>2 – 4 días hábiles</td></tr>'
      '<tr><td>Resto del país y reexpedidos</td><td>3 – 6 días hábiles</td></tr></table>'),
     ('¿Cómo puedo rastrear mi pedido?',

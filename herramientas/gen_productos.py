@@ -426,6 +426,10 @@ def beneficios(tipo, cat):
     material = ('Baño de plata con capa e-coating' if tipo == 'brazalete'
                 else 'Plata Esterlina 925 con sello grabado')
     items = [('envio', 'Envío gratis pagando en línea'),
+             # Confirmado por el propietario el 2026-09-26. Sin hora de corte no se
+             # promete «pide hoy y llega mañana»: se cuenta desde el despacho,
+             # igual que la tabla de envios-y-devoluciones.html.
+             ('envio', 'Bogotá: llega en 1 día hábil desde el despacho'),
              ('contra', 'Pago contraentrega (+%s)' % cop(cat['reglas']['envio']['contraentrega'])),
              ('sello', material),
              ('regalo', 'Empaque de regalo incluido'),
@@ -453,9 +457,9 @@ def acordeones(tipo, meta, grupo, cat):
             H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo)), True),
         ('Materiales', '<dl class="fx-specs" id="pp-specs"></dl>', False),
         ('Envíos gratis', '<p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los '
-                          'tiempos se cuentan en días hábiles desde que despachamos: Bogotá y municipios cercanos 1 – 2 '
-                          'días; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de guía por '
-                          'WhatsApp o correo.</p>', False),
+                          'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
+                          'a Bogotá 1 – 2; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de '
+                          'guía por WhatsApp o correo.</p>', False),
         ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta '
                           '%s: lo cobra la transportadora al recaudar.</p>' % contra, False),
         ('Consejos y cuidados', '<p>%s</p><p>Guárdala en su bolsa cuando no la uses, quítatela para bañarte, nadar o '
