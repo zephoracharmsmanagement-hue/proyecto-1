@@ -37,7 +37,6 @@ import pathlib
 import re
 import subprocess
 import sys
-import urllib.parse
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 INDEX = RAIZ / 'index.html'
@@ -485,21 +484,17 @@ console.log(JSON.stringify(pasos));
     return json.loads(r.stdout)
 
 
-def enlace(nombre_kit, base, charms_sugeridos):
-    """El enlace que pone el brazalete y sugiere los dijes, sin elegirlos.
-
-    `p=` solo trae el brazalete —formato que ya valida tienda.js, y **sin
-    `@talla` a propósito**: la clienta la elige en el carrito, y prometerle
-    una que quizá no le sirva es peor que no elegir ninguna—. Los dijes van en
-    `sug=`, que tienda.js no agrega al carrito: solo resalta esas tarjetas en
-    el catálogo para que ella misma decida. `k=` es el nombre del kit, para el
-    aviso que ve al aterrizar.
-    """
-    qs = 'p=' + base
-    if charms_sugeridos:
-        qs += '&sug=' + ','.join(charms_sugeridos)
-    qs += '&k=' + urllib.parse.quote(nombre_kit)
-    return 'index.html?' + qs + '&via=kit'
+def vitrina(primeras, titulo='Relacionados', sin='', brazaletes=True):
+    """El hueco del carrusel con pestañas que llena tienda.js (ver «Vitrina»
+    allí). Aquí solo van las piezas de la primera pestaña, en orden; las demás
+    salen en vivo de assets/catalogo.json, así que ni un nombre ni un precio se
+    copia en el HTML."""
+    return ('<div class="vit" data-vit="%s" data-vit-t="%s"%s%s>'
+            '<div class="vit-tabs" role="tablist" aria-label="Elige una colección"></div>'
+            '<div class="vit-rail" role="list"></div>'
+            '<p class="vit-desliza">Toca una colección y desliza para ver más</p></div>'
+            % (','.join(primeras), titulo, ' data-vit-sin="%s"' % sin if sin else '',
+               '' if brazaletes else ' data-vit-b="0"'))
 
 
 TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
@@ -514,16 +509,23 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
       <div class="kit-escalera">
 {pasos}
       </div>
-      <p class="kit-nota">En el carrito verás los dijes de este kit ya resaltados para
-      que elijas cuáles agregar, y tu talla. Envío gratis pagando en línea.</p>
+      <div class="kit-arma">
+        <p class="kit-arma-t"><b>1</b> Elige la talla de tu brazalete {base_nombre}</p>
+        <div class="kit-tallas tallas-row" data-para="{base}"></div>
+        <p class="kit-arma-ayuda">Mide tu muñeca y súmale 2 cm. <a href="#talla">¿Qué talla es la mía?</a></p>
+        <p class="kit-arma-t"><b>2</b> Elige tus charms: los del kit o los que más te gusten</p>
+        {vitrina}
+      </div>
+      <p class="kit-nota">Toca un paso para poner sus charms en tu carrito, o elígelos uno a uno aquí
+      mismo. El descuento se aplica solo. Envío gratis pagando en línea.</p>
     </article>
 '''
 
-PASO_KIT = ('        <a class="kit-paso{clase}" href="{enlace}" data-piezas="{piezas}">'
+PASO_KIT = ('        <button type="button" class="kit-paso{clase}" data-kit-piezas="{piezas}">'
             '<span class="kit-paso-n">Brazalete + {n} dije{s}</span>'
             '<span class="kit-paso-p"><b>{total}</b>'
             '<s>{lista}</s></span>'
-            '<span class="kit-paso-d">{marca}</span></a>')
+            '<span class="kit-paso-d">{marca}</span></button>')
 
 PAGINA_KITS = '''<!DOCTYPE html>
 <html lang="es-CO">
@@ -645,7 +647,6 @@ def generar_kits(html, escribir):
             mejor = (p['n'] == 3)
             filas.append(PASO_KIT.format(
                 clase=' kit-paso--best' if mejor else '',
-                enlace=enlace(k['nombre'], k['base'], p['piezas'][1:]),
                 piezas=','.join(p['piezas']),
                 n=p['n'], s='s' if p['n'] > 1 else '',
                 total=p['totalTexto'],
@@ -661,6 +662,8 @@ def generar_kits(html, escribir):
             fotos=''.join(miniaturas),
             tercer_dije=tercero['esteDije'], tercer_lista=tercero['listaDije'],
             pasos='\n'.join(filas),
+            base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
+            vitrina=vitrina(k['charms'], 'De este kit', brazaletes=False),
         ))
 
     b = bloques(html)

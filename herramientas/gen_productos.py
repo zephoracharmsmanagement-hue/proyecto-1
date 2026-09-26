@@ -43,7 +43,7 @@ import subprocess
 import sys
 import urllib.parse
 
-from gen_colecciones import RAIZ, INDEX, COLECCIONES, bloques, tarjetas, arregla_nav
+from gen_colecciones import RAIZ, INDEX, COLECCIONES, bloques, tarjetas, arregla_nav, vitrina
 
 SITIO = 'https://zephoracharms.com/'
 MAX_RELACIONADAS = 8
@@ -380,47 +380,51 @@ def fila_paquete(p, rotulo, radio, marcado):
                cop(p['total']), ahorro, tag))
 
 
-def bloque_compra(pid, tipo, nombre, precio, paquetes, hay, ref_precio, completar, cat):
-    """Selector de paquetes, botones, Addi y suscripción. Todo el bloque se
-    esconde si la pieza está agotada (lo decide tienda.js con la disponibilidad
-    real, y aquí con el conteo de stock.json para quien no tiene JavaScript)."""
+def bloque_compra(pid, tipo, nombre, precio, paquetes, hay, ref_precio, primeras, cat):
+    """Selector de paquetes, vitrina, botones, medios de pago y suscripción.
+    Todo el bloque se esconde si la pieza está agotada (lo decide tienda.js con
+    la disponibilidad real, y aquí con el conteo de stock.json para quien no
+    tiene JavaScript).
+
+    La vitrina (pedido del propietario, 2026-09-26) va en TODAS las fichas: la
+    clienta elige charms de cualquier colección sin salir de la página. En los
+    charms se abre al elegir 2, 3 o 4; en los brazaletes está siempre, porque
+    ahí es donde se arma la pulsera. Sin pestaña de brazaletes en la ficha de
+    un brazalete: el carrito lleva uno solo, y ofrecer otro ahí lo cambiaría."""
     if tipo == 'brazalete':
         filas = '\n'.join(fila_paquete(p, 'Brazalete + %d charm%s' % (p['n'], 's' if p['n'] > 1 else ''), False, False)
                           for p in paquetes)
         selector = ('      <div class="pq pq--b">\n        <p class="pq-t">Arma tu pulsera: el descuento sube con cada charm</p>\n'
                     + filas + '\n        <p class="pq-nota">Desde 3 charms el brazalete baja 30%%. Totales calculados con '
                     'charms de %s, con pago en línea; con otros charms cambia el total, y el descuento se aplica '
-                    'solo en el carrito.</p>\n      </div>' % cop(ref_precio))
+                    'solo en el carrito.</p>\n'
+                    '        <div class="pq-mas pq-mas--b">\n          <p class="pq-mas-t">Elige los charms de tu pulsera aquí mismo</p>\n'
+                    '          %s\n        </div>\n      </div>' % (cop(ref_precio), vitrina(primeras, 'Más pedidos', sin=pid, brazaletes=False)))
         botones = ('      <div class="pp-cta"><button class="btn" type="button" data-comprar="%s">Comprar ahora</button></div>\n'
                    '      <p class="pp-nota-t">Elige tu talla en la pieza de arriba para agregarla al carrito.</p>' % pid)
     else:
         cuatro_por_tres = paquetes[3]['total'] == 3 * precio
         rotulos = ['Compra 1', 'Compra 2', 'Compra 3', 'Lleva 4, paga 3' if cuatro_por_tres else 'Compra 4']
         filas = '\n'.join(fila_paquete(p, rotulos[i], True, hay and p['n'] == 2) for i, p in enumerate(paquetes))
-        # Carrusel (pedido del propietario, 2026-09-26): primero los de su
-        # colección, luego las demás opciones con unidades, y al final la salida
-        # al catálogo completo.
-        minis = ('          <div class="pq-rail" role="list">\n' + '\n'.join(
-            '            <div class="pq-it" role="listitem"><img src="assets/%s" alt="" width="96" height="96" loading="lazy" '
-            'decoding="async"><span class="pq-it-n">%s</span><small>%s</small><button type="button" class="pq-add" '
-            'data-add="%s">Agregar</button></div>'
-            % (cat['fotos'][c], H.escape(cat['nombres'][c]), cop(cat['precios'][c]), c) for c in completar)
-            + '\n            <a class="pq-it pq-todo" role="listitem" href="index.html#charms">Ver todo el catálogo<span aria-hidden="true">→</span></a>'
-            '\n          </div>\n          <p class="pq-desliza">Primero los de esta colección · desliza para ver más</p>')
         selector = ('      <fieldset class="pq">\n        <legend class="pq-t">Elige cuántos charms llevas</legend>\n'
                     + filas + '\n        <p class="pq-nota">El descuento se aplica solo en el carrito, con cualquier '
                     'combinación de charms. Totales con charms de este mismo precio y pago en línea.</p>\n'
                     '        <div class="pq-mas" id="pq-mas" hidden>\n          <p class="pq-mas-t">Completa tu paquete: '
-                    'elige <b id="pq-faltan">1 charm</b> más</p>\n' + minis + '\n        </div>\n      </fieldset>')
+                    'elige <b id="pq-faltan">1 charm</b> más</p>\n          ' + vitrina(primeras, 'Relacionados', sin=pid)
+                    + '\n        </div>\n      </fieldset>')
         botones = ('      <div class="pp-cta">\n        <button class="btn btn--ghost" type="button" data-add="%s">Agregar al carrito</button>\n'
                    '        <button class="btn" type="button" data-comprar="%s">Comprar ahora</button>\n      </div>' % (pid, pid))
     oculto = '' if hay else ' hidden'
-    return ('      <div class="pp-compra" id="pp-compra"%s>\n%s\n%s\n%s'
-            '        <p class="pp-addi">También a cuotas con Addi: <a data-wa="pagos" href="%s">pregúntanos por WhatsApp</a></p>\n'
-            '        <p class="pp-susc"><a href="#" data-susc>Suscríbete y llévate un charm de regalo</a> en tu primera compra de 2 charms o más.</p>\n'
+    return ('      <div class="pp-compra" id="pp-compra"%s>\n%s\n%s\n'
+            '        <div class="pp-pago">\n%s'
+            '        <p class="pp-addi">También a cuotas con Addi · <a data-wa="pagos" href="%s">pregúntanos por WhatsApp</a></p>\n'
+            '        </div>\n'
+            '        <p class="pp-susc"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
+            'stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">%s</svg><span><a href="#" data-susc>Suscríbete y '
+            'llévate un charm de regalo</a> en tu primera compra de 2 charms o más.</span></p>\n'
             '      </div>\n'
             '      <p class="pp-agotado" id="pp-agotado"%s>Esta pieza está agotada. <a data-wa="encargo" id="pp-encargo" href="%s">Pídela por encargo por WhatsApp</a> y te avisamos cuando vuelva.</p>'
-            % (oculto, selector, botones, PAGOS, WA_ADDI, '' if not hay else ' hidden',
+            % (oculto, selector, botones, PAGOS, WA_ADDI, ICONO['regalo'], '' if not hay else ' hidden',
                WA + urllib.parse.quote('Hola, Zephora Charms. Vi en la página que «%s» está agotado. '
                                         '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?' % nombre)))
 
@@ -584,7 +588,7 @@ def generar(pid, html, cat, stock, b, exigidos, paquetes, ref):
                                     list(dict.fromkeys(
                                         c for c in (rel + cat['destacados'] + list(cat['precios']))
                                         if c != pid and c in cat['precios'] and c not in cat['pulseras']
-                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:24], cat),
+                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16], cat),
         beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat),
         bloque_resenas=BLOQUE_RESENAS.format(nombre=H.escape(nombre)),
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),

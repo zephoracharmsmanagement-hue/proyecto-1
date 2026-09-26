@@ -272,8 +272,77 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await p.close();
   }
 
-  console.log('4 · Colecciones');
-  for (const f of htmlRaiz.filter(x => x.startsWith('coleccion-'))) {
+  // ── 4 · Vitrina: elegir de todo el catálogo sin salir de la página ──
+  // Pedido del propietario (2026-09-26): el carrusel no saca a la clienta de
+  // la ficha —sin «Ver todo el catálogo»—, trae pestañas por colección y está
+  // en todas las fichas, brazaletes incluidos, y en los kits.
+  console.log('4 · Vitrina en fichas y kits');
+  {
+    const ctx5 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx5);
+    const p = await ctx5.newPage();
+    const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    const sinSalida = paginas.filter(f => /pq-todo|Ver todo el catálogo/.test(leer(f)));
+    ok(!sinSalida.length, 'ninguna ficha tiene «Ver todo el catálogo»' + lista(sinSalida));
+    const sinVit = paginas.filter(f => !leer(f).includes('class="vit"'));
+    ok(!sinVit.length, `las ${paginas.length} fichas traen la vitrina` + lista(sinVit));
+    const grupos = [...new Set(Object.entries(cat.grupos).filter(([i]) => cat.precios[i]).map(([, g]) => g))];
+
+    const charm = tipos.find(t => t[0] === 'charm con unidades')[1];
+    await p.goto(BASE + '/' + archivoDe(charm), { waitUntil: 'networkidle' });
+    await p.check('.pq input[value="2"]');
+    const tabs = await p.$$eval('.vit-tab', x => x.map(t => t.textContent));
+    ok(tabs[0] === 'Relacionados' && grupos.every(g => tabs.includes(g)) && tabs.includes('Iniciales') && tabs.includes('Brazaletes'),
+      `pestañas: ${tabs.join(' · ')}`);
+    ok(!(await p.$$eval('.vit-it', x => x.map(i => i.dataset.vid))).includes(charm), 'la vitrina no ofrece la misma pieza');
+    const otra = grupos.find(g => g !== cat.grupos[charm]);
+    await p.click(`.vit-tab:text-is("${otra}")`);
+    const enOtra = await p.$$eval('.vit-it', x => x.map(i => i.dataset.vid));
+    ok(enOtra.length > 0 && enOtra.every(i => cat.grupos[i] === otra && hay(i)), `«${otra}» muestra solo sus piezas con unidades (${enOtra.length})`);
+    const antes = p.url();
+    await p.click('.vit-it >> nth=0 >> .vit-add');
+    await p.waitForTimeout(200);
+    const tras = await p.evaluate(() => { const d = JSON.parse(localStorage.getItem('zephora.carrito.v1') || '{}'); return d.charms || []; });
+    ok(p.url() === antes && tras.includes(enOtra[0]) && (await p.getAttribute('.vit-it', 'data-n')) === '×1',
+      `«Agregar» suma ${enOtra[0]} al carrito sin salir de la página`);
+    await p.click('.vit-tab:text-is("Brazaletes")');
+    const br = await p.getAttribute('.vit-it', 'data-vid');
+    await p.click('.vit-it >> nth=0 >> .vit-add');
+    const t = await p.getAttribute('.vit-it .vit-tallas .tbtn:not([aria-disabled])', 'data-talla');
+    await p.click(`.vit-it .vit-tallas .tbtn[data-talla="${t}"]`);
+    await p.waitForTimeout(200);
+    ok((await p.textContent('.vit-it .vit-add')) === `Talla ${t} ✓`, `un brazalete se elige con su talla en la misma vitrina (${br}, ${t} cm)`);
+
+    const pul = tipos.find(x => x[0] === 'brazalete')[1];
+    await p.goto(BASE + '/' + archivoDe(pul), { waitUntil: 'networkidle' });
+    const tb = await p.$$eval('.vit-tab', x => x.map(t => t.textContent));
+    ok(await p.locator('.pq-mas--b .vit-rail').isVisible() && !tb.includes('Brazaletes') && (await p.$$('.vit-it [data-add]')).length > 0,
+      `la ficha del brazalete trae la vitrina de charms, sin cambiar de brazalete (${tb.join(' · ')})`);
+
+    await p.goto(BASE + '/kits.html', { waitUntil: 'networkidle' });
+    ok(!(await p.$$('a.kit-paso, .kit a[href^="index.html"]')).length, 'los kits no mandan a la portada');
+    const kit = p.locator('.kit').first();
+    const piezas = (await kit.locator('.kit-paso').nth(1).getAttribute('data-kit-piezas')).split(',');
+    await p.evaluate(() => localStorage.removeItem('zephora.carrito.v1'));
+    await p.reload({ waitUntil: 'networkidle' });
+    await kit.locator('.kit-paso').nth(1).click();
+    await p.waitForTimeout(300);
+    const k = await p.evaluate(() => JSON.parse(localStorage.getItem('zephora.carrito.v1') || '{}'));
+    ok(p.url().endsWith('/kits.html') && JSON.stringify(k.charms) === JSON.stringify(piezas.slice(1)) && !k.base,
+      `«Brazalete + 2» pone sus 2 charms y pide la talla aquí mismo (${piezas.slice(1).join(', ')})`);
+    const tk = await kit.locator('.kit-tallas .tbtn:not([aria-disabled])').first().getAttribute('data-talla');
+    await kit.locator(`.kit-tallas .tbtn[data-talla="${tk}"]`).click();
+    await p.waitForTimeout(200);
+    const k2 = await p.evaluate(() => JSON.parse(localStorage.getItem('zephora.carrito.v1') || '{}'));
+    ok(k2.base && k2.base.id === piezas[0] && k2.base.talla === tk, `la talla del kit pone su brazalete (${piezas[0]}, ${tk} cm)`);
+    ok((await kit.locator('.vit-tab').first().textContent()) === 'De este kit', 'la vitrina del kit empieza por sus propios charms');
+    ok(!errs.length, 'consola limpia' + lista(errs));
+    await ctx5.close();
+  }
+
+  console.log('5 · Colecciones y kits');
+  for (const f of htmlRaiz.filter(x => x.startsWith('coleccion-') || x === 'kits.html')) {
     const p = await b.newPage({ viewport: { width: 390, height: 844 } });
     const errs = [], rotos = [];
     p.on('pageerror', e => errs.push(e.message));

@@ -129,6 +129,109 @@ let base=null, sel=[];
 /* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
    solos al carrito, solo resaltan la tarjeta para que la clienta decida. */
 let kitSug=[], kitNombre='';
+
+/* Vitrina: el carrusel con pestañas de las páginas de producto y de kits.html
+   (pedido del propietario, 2026-09-26: «la clienta no debe salir de la
+   página» para elegir sus charms). El generador deja el hueco (.vit) con las
+   piezas de la primera pestaña en data-vit; las demás pestañas —cada
+   colección, las iniciales y los brazaletes— salen de assets/catalogo.json, el
+   mismo que lee el checkout. Nombres y precios, de DATA: ninguna cifra se
+   escribe dos veces. Lo agotado no se ofrece. Los brazaletes piden la talla
+   en la misma tarjeta, con los botones [data-talla] de siempre. */
+const VIT=[...document.querySelectorAll('.vit')];
+const ORDEN_GRUPOS=['Disney','Marvel','Pixar','Símbolos','Muranos','Zodiaco','Profesiones','Clips','Cadenas'];
+let CAT=null, vitConStock=false;
+function pestanasDe(v){
+  const sin=v.dataset.vitSin||'', tabs=[];
+  const rel=(v.dataset.vit||'').split(',').filter(id=>id&&id!==sin&&(CH[id]||PU[id]));
+  if(rel.length) tabs.push([v.dataset.vitT||'Relacionados',rel]);
+  const grupos={};
+  DATA.charms.forEach(c=>{ const g=CAT.grupos[c.id]; if(g&&c.id!==sin) (grupos[g]=grupos[g]||[]).push(c.id); });
+  const pos=g=>{ const i=ORDEN_GRUPOS.indexOf(g); return i<0?99:i; };
+  Object.keys(grupos).sort((a,b)=>pos(a)-pos(b)).forEach(g=>tabs.push([g,grupos[g]]));
+  tabs.push(['Iniciales',DATA.charms.map(c=>c.id).filter(id=>/^letra-/.test(id)&&id!==sin)]);
+  if(v.dataset.vitB!=='0') tabs.push(['Brazaletes',DATA.pulseras.map(c=>c.id).filter(id=>id!==sin)]);
+  return tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id))]).filter(([,ids])=>ids.length);
+}
+function itemVit(id){
+  const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id];
+  return '<div class="vit-it" data-vid="'+id+'" role="listitem">'
+    +(f?'<img src="assets/'+f+'" alt="" width="96" height="96" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'">':'<span class="vit-nof"></span>')
+    +'<span class="vit-n">'+escHTML(d.n)+'</span><small>'+cop(d.p)+'</small>'
+    +(esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
+         +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
+         :'<button type="button" class="vit-add" data-add="'+id+'">Agregar</button>')
+    +'</div>';
+}
+function dibujarVit(v,nombre){
+  const tabs=pestanasDe(v);
+  if(!tabs.length){ v.hidden=true; return; }
+  const i=Math.max(0,tabs.findIndex(([t])=>t===(nombre||v.dataset.vitTab)));
+  v.dataset.vitTab=tabs[i][0];
+  v.querySelector('.vit-tabs').innerHTML=tabs.map(([t],k)=>'<button type="button" role="tab" class="vit-tab'
+    +(k===i?' is-on':'')+'" aria-selected="'+(k===i)+'" data-vit-tab="'+escHTML(t)+'">'+escHTML(t)+'</button>').join('');
+  const rail=v.querySelector('.vit-rail');
+  rail.innerHTML=tabs[i][1].map(itemVit).join('');
+  rail.scrollLeft=0;
+  estadoVit();
+}
+function tallasVit(caja,id){
+  const libres=tallasLibres(id)||TALLAS;
+  caja.innerHTML=TALLAS.map(t=>{ const hay=libres.indexOf(t)>=0, on=base&&base.id===id&&base.talla===t;
+    return '<button type="button" class="tbtn'+(on?' is-on':'')+'" data-talla="'+t+'" data-para="'+id+'"'
+      +(hay?'':' aria-disabled="true"')+' aria-label="Talla '+t+' centímetros'+(hay?'':', sin unidades')+'">'+t+'</button>'; }).join('');
+}
+/* Estado de cada tarjeta de la vitrina: lo que ya va en el carrito, el tope
+   de unidades y la talla elegida. Lo llama render(). */
+function estadoVit(){
+  document.querySelectorAll('.kit-tallas[data-para]').forEach(c=>tallasVit(c,c.dataset.para));
+  if(!CAT) return;
+  if(STOCK&&!vitConStock){ vitConStock=true; VIT.forEach(v=>dibujarVit(v)); return; }
+  document.querySelectorAll('.vit-it').forEach(it=>{
+    const id=it.dataset.vid, b=it.querySelector('.vit-add');
+    if(PU[id]){
+      const on=!!(base&&base.id===id);
+      it.classList.toggle('is-sel',on);
+      b.textContent=on?(base.talla?'Talla '+base.talla+' ✓':'Elegido ✓'):'Elegir talla';
+      const c=it.querySelector('.vit-tallas'); if(c&&!c.hidden) tallasVit(c,id);
+      return;
+    }
+    const n=sel.filter(x=>x===id).length, lleno=n>=tope(id);
+    it.classList.toggle('is-sel',n>0);
+    it.dataset.n=n?'×'+n:'';
+    b.textContent=lleno&&n?'En tu carrito ✓':n?'Agregar otro':'Agregar';
+    if(lleno) b.setAttribute('aria-disabled','true'); else b.removeAttribute('aria-disabled');
+  });
+}
+if(VIT.length){
+  const sinVit=()=>VIT.forEach(v=>{ v.hidden=true; });
+  fetch('assets/catalogo.json').then(r=>r.ok?r.json():null)
+    .then(c=>{ if(!c||!c.grupos||!c.fotos) return sinVit(); CAT=c; VIT.forEach(v=>dibujarVit(v)); })
+    .catch(sinVit);
+}
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('.vit-tab');
+  if(tab){ const v=tab.closest('.vit'); dibujarVit(v,tab.dataset.vitTab);
+    const fila=v.querySelector('.vit-tabs'), on=fila.querySelector('.is-on');
+    if(on) fila.scrollTo({left:on.offsetLeft-(fila.clientWidth-on.offsetWidth)/2,behavior:'smooth'});
+    return; }
+  const bt=e.target.closest('[data-vit-talla]');
+  if(bt){ const c=bt.parentNode.querySelector('.vit-tallas');
+    if(c){ c.hidden=!c.hidden; if(!c.hidden) tallasVit(c,bt.dataset.vitTalla); } return; }
+  /* kits.html: cada paso del kit pone sus charms en el carrito sin salir de
+     la página, y pide la talla del brazalete si aún no la tiene. */
+  const kp=e.target.closest('[data-kit-piezas]');
+  if(kp){
+    const [b,...cs]=kp.dataset.kitPiezas.split(',');
+    cs.forEach(id=>{ if(CH[id]&&!sel.includes(id)) sumarCharm(id); });
+    const kit=kp.closest('.kit'), caja=kit&&kit.querySelector('.kit-tallas');
+    if(kit) kit.querySelectorAll('[data-kit-piezas]').forEach(x=>x.classList.toggle('is-on',x===kp));
+    if(caja&&!(base&&base.id===b&&base.talla)){
+      caja.scrollIntoView({behavior:'smooth',block:'center'});
+      caja.classList.remove('is-pide'); void caja.offsetWidth; caja.classList.add('is-pide');
+    }
+  }
+});
 /* Si la clienta cierra el aviso de charms, no vuelve a salir en esa visita.
    En sessionStorage y no en localStorage: cerrarlo hoy no es decir que no
    quiere verlo nunca más. */
@@ -865,6 +968,7 @@ function render(){
 
   pintarTarjetas();
   pintarLetras();
+  estadoVit();
 
   const piezas=nC+(base?1:0);
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
