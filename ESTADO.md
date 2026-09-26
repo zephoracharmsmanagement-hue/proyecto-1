@@ -38,6 +38,43 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > `index.html`, `tienda.js`, `tienda.css`, `herramientas/gen_colecciones.py`
 > ni páginas generadas**.
 
+> **2026-09-26 · Traspaso (antes de compactar la sesión).** Todo está en
+> `claude/tienda-paginas-producto`, empujado (`0e802cd`), **PR #5 en borrador,
+> SIN fusionar a `main`**. Vista previa:
+> `deploy-preview-5--fanciful-trifle-64ca74.netlify.app`. Suite local 842 ✓.
+>
+> **Hecho en la rama:** 135 páginas `producto-<id>.html` (gen_productos.py) con
+> píxel por pieza; `InitiateCheckout` único desde checkout.html; colección
+> Símbolos; sitemap/robots; `force = true` en las reglas 404 de `netlify.toml`
+> (hoy `zephoracharms.com` sirve ESTADO.md, CLAUDE.md, docs/… con 200 — se
+> arregla al fusionar); iniciales a $86.000 (se anunciaban a $76.000); fotos
+> propias de 25 iniciales (faltan Ñ y Q); encargos de `automatizaciones/tienda/
+> ORDEN.md`: `registrar-venta.mjs`, suscripción (`suscribir.mjs`,
+> `suscriptores-export.mjs`, regalo en crear-pago/webhook), ficha que vende
+> (paquetes con `calcular()`, `resenas.mjs` con moderación, `vendidas.mjs`);
+> Bogotá 1 día hábil. Fusionada `charming-sagan-l4q2eq` (incluye su revert del
+> stock doble).
+>
+> **Decisiones del propietario:** paleta original (no se aplica la viva);
+> «+2.400 pulseras» y «Compra verificada» se sostienen; Addi pendiente de
+> credenciales (sigue por WhatsApp).
+>
+> **Variables de Netlify ya creadas (secretas):** `VENTA_MANUAL_KEY`,
+> `SUSCRIPCION_SECRETO`, `SUSCRIPTORES_KEY`. Las dos que usa n8n están en
+> `material-sin-publicar/claves-para-n8n.txt` (fuera de git; borrar tras copiar).
+>
+> **Pendiente, pedido tras revisar la vista previa:**
+> 1. Carrusel «Completa tu paquete» **sin salir de la página**: pestañas arriba
+>    (Relacionados, Marvel, Disney… todas las colecciones) con todas las joyas;
+>    **quitar «Ver todo el catálogo»**.
+> 2. Limpiar el bloque logos de pago / beneficios / botones: se ve amontonado.
+> 3. `kits.html`: elegir los charms del kit en la misma página.
+> 4. Brazaletes y todas las fichas: el mismo carrusel de venta cruzada.
+>
+> Después: vista previa → confirmación del propietario → merge único a `main`.
+> El prompt del bot de WhatsApp aún dice «Bogotá 1-2 días» (lo lleva la sesión
+> del bot).
+
 **Rama de trabajo:** `claude/tienda-paginas-producto` (antes
 `claude/zephoracharms-conversion-funnel-nom9ph`)
 **Alcance:** todo el frente de tienda. Por eso, **regla 1 de `CLAUDE.md` en
