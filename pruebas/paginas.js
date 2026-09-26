@@ -89,7 +89,10 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
   // El empaque es caja, paño y dedicatoria escrita a mano (confirmado por el
   // propietario el 2026-09-26): ni bolsa, ni «caja de lujo», ni el Premium
   // retirado el 2026-09-13, en ninguna página que se publica.
-  const empaqueViejo = htmlRaiz.filter(f => /bolsa|bolsita|caja de lujo|empaque premium/i.test(leer(f)));
+  // Se mira lo que se publica: el texto y los datos para Google (ld+json), no
+  // los comentarios del código que explican el retiro.
+  const publicado = h => h.replace(/<script(?![^>]*ld\+json)[\s\S]*?<\/script>/g, '').replace(/<!--[\s\S]*?-->/g, '');
+  const empaqueViejo = htmlRaiz.filter(f => /bolsa|bolsita|caja de lujo|empaque premium/i.test(publicado(leer(f))));
   ok(!empaqueViejo.length, 'ninguna página promete bolsa, «caja de lujo» ni Empaque Premium' + lista(empaqueViejo));
 
   // ── Renderizadas: una por tipo ──
