@@ -25,6 +25,13 @@ async function main() {
   comprobar(/immutable/.test(r.headers.get('cache-control')) && /durable/.test(r.headers.get('netlify-cdn-cache-control')) && r.headers.get('vary') === 'Range',
     'caché de un año en navegador y CDN, separada por Range');
 
+  // Así llega de verdad en Netlify: la regla /media/* reescribe, pero la
+  // función v2 recibe la URL original, sin el ?f= (vista previa, 2026-09-26).
+  r = await mod.default(new Request('https://tienda.test/media/bloque-prueba-v1.mp4'));
+  comprobar(r.status === 200 && (await r.arrayBuffer()).byteLength === 1000, 'por la ruta /media/<archivo>, sin ?f= → 200');
+  r = await mod.default(new Request('https://tienda.test/media/..%2FESTADO.md'));
+  comprobar(r.status === 404, 'por la ruta, un nombre raro → 404');
+
   console.log('2 · Rangos (Safari)');
   r = await pedir('bloque-prueba-v1.mp4', { Range: 'bytes=0-1' });
   b = new Uint8Array(await r.arrayBuffer());

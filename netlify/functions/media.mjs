@@ -31,7 +31,13 @@ export const _interno = { usar: a => { almacen = a; } };
 
 export default async (req) => {
   if (req.method !== 'GET' && req.method !== 'HEAD') return new Response('', { status: 405 });
-  const f = new URL(req.url).searchParams.get('f') || '';
+  /* En las funciones v2, la regla de netlify.toml reescribe la ruta pero
+     `req.url` llega con la URL ORIGINAL (/media/<archivo>): el `?f=` de la
+     regla no aparece. Se toma el nombre de la ruta, y `?f=` queda para la
+     llamada directa a /.netlify/functions/media. */
+  const url = new URL(req.url);
+  let f = url.searchParams.get('f') || '';
+  if (!f && url.pathname.startsWith('/media/')) { try { f = decodeURIComponent(url.pathname.slice(7)); } catch { f = ''; } }
   if (!NOMBRE.test(f)) return new Response('', { status: 404 });
 
   let datos;
