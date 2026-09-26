@@ -199,6 +199,14 @@
   to = "/.netlify/functions/armar-carrito"
   status = 200
 
+# Ventas cerradas por WhatsApp y pagadas por fuera: las registra el formulario
+# de n8n para que descuenten inventario como una venta web. Protegido por
+# header (VENTA_MANUAL_KEY), ver registrar-venta.mjs.
+[[redirects]]
+  from = "/registrar-venta"
+  to = "/.netlify/functions/registrar-venta"
+  status = 200
+
 # El que recibe el aviso de estado de envío desde n8n, después de que n8n
 # reconoce un correo de Skydropx. Va con nombre propio por el mismo motivo
 # que /armar-carrito: lo llama n8n desde un workflow y se lee en su
