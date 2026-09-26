@@ -737,11 +737,22 @@ if(PP&&(CH[PP]||PU[PP])){
     const res=$('#rp-resumen'); if(res) res.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>';
     const lista=$('#rp-lista');
     if(lista) lista.innerHTML=d.resenas.map(r=>'<figure class="rp-it"><div class="estrellas">'+estrellasHTML(r.estrellas)+'</div>'
-      +'<blockquote>'+escHTML(r.texto)+'</blockquote><figcaption><b>'+escHTML(r.nombre)+'</b>'
+      +'<blockquote>'+escHTML(r.texto)+'</blockquote>'+mediosResena(r)+'<figcaption><b>'+escHTML(r.nombre)+'</b>'
       +(r.ciudad?' · '+escHTML(r.ciudad):'')+(r.verificada?' · <span class="rp-ok">✓ Compra verificada</span>':'')
       +'</figcaption></figure>').join('');
   };
-  fetch('.netlify/functions/resenas?producto='+encodeURIComponent(PP)).then(r=>r.ok?r.json():null)
+  /* Fotos y video de una reseña (ENCARGO-FICHA-2 § 3). Solo rutas de la propia
+     función: nada que venga en el JSON se pinta como URL ajena. */
+  const propia=u=>typeof u==='string'&&/^\/resenas\?medio=[^"'<>\s]+$/.test(u);
+  const mediosResena=r=>{
+    const fotos=(r.fotos||[]).filter(propia);
+    return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<a href="'+u+'" target="_blank" rel="noopener"><img src="'+u
+        +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></a>').join('')+'</div>':'')
+      +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none"></video>':'');
+  };
+  /* Todas las reseñas de la tienda, en cualquier ficha (decisión del
+     propietario, 2026-09-26): el promedio de arriba es el de la tienda. */
+  fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
     .then(pintarResenas).catch(()=>{});
 
   /* Paquetes: al elegir 2, 3 o 4, se abren los charms para completarlo. */
@@ -752,6 +763,17 @@ if(PP&&(CH[PP]||PU[PP])){
 
   /* Reseña: se manda a moderación. El enlace del correo de entrega trae
      ?resena=<referencia>.<firma> y eso la marca como compra verificada. */
+  const aDataURL=file=>new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=no; r.readAsDataURL(file); });
+  const reducirFoto=file=>new Promise((ok,no)=>{
+    const u=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{ const k=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)), c=document.createElement('canvas');
+      c.width=Math.round(img.naturalWidth*k); c.height=Math.round(img.naturalHeight*k);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg',0.82)); };
+    img.onerror=()=>{ URL.revokeObjectURL(u); no(new Error('foto')); };
+    img.src=u; });
+  const duracion=file=>new Promise(ok=>{ const u=URL.createObjectURL(file), v=document.createElement('video');
+    v.preload='metadata'; v.onloadedmetadata=()=>{ URL.revokeObjectURL(u); ok(v.duration||0); };
+    v.onerror=()=>{ URL.revokeObjectURL(u); ok(0); }; v.src=u; });
   const f=$('#rp-form');
   if(f){
     const q=new URL(location.href).searchParams.get('resena');
@@ -762,10 +784,21 @@ if(PP&&(CH[PP]||PU[PP])){
       if(!est){ msg.textContent='Elige de 1 a 5 estrellas.'; return; }
       if(f.texto.value.trim().length<10){ msg.textContent='Cuéntanos un poco más (10 letras o más).'; return; }
       if(f.nombre.value.trim().length<2){ msg.textContent='Falta tu nombre.'; return; }
+      /* Adjuntos: hasta 3 fotos, reducidas aquí a 1600 px (una función de
+         Netlify recibe ~6 MB por envío), y un video de hasta 20 s y 3,5 MB. */
+      const archivosFoto=[...(f.fotos&&f.fotos.files||[])], archivoVideo=f.video&&f.video.files[0];
+      if(archivosFoto.length>3){ msg.textContent='Puedes adjuntar hasta 3 fotos.'; return; }
+      if(archivoVideo&&archivoVideo.size>3.5*1024*1024){
+        msg.textContent='Tu video pesa '+(archivoVideo.size/1048576).toFixed(1).replace('.',',')+' MB y el máximo es 3,5 MB. Prueba con uno más corto, o envía tu reseña con fotos.'; return; }
+      if(archivoVideo&&(await duracion(archivoVideo))>20.5){ msg.textContent='El video puede durar hasta 20 segundos.'; return; }
       const b=f.querySelector('button[type=submit]'); b.disabled=true; msg.textContent='Enviando…';
+      let fotos, video=null;
+      try{ fotos=await Promise.all(archivosFoto.map(reducirFoto)); if(archivoVideo) video=await aDataURL(archivoVideo); }
+      catch(err){ msg.textContent='No pudimos leer una de las fotos. Prueba con una foto JPG o PNG.'; b.disabled=false; return; }
       try{
         const r=await fetch('resenas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-          producto:PP,estrellas:est,texto:f.texto.value,nombre:f.nombre.value,ciudad:f.ciudad.value,web:f.web.value,resena:q||''})});
+          producto:PP,estrellas:est,texto:f.texto.value,nombre:f.nombre.value,ciudad:f.ciudad.value,web:f.web.value,resena:q||'',
+          fotos:fotos,video:video})});
         const d=await r.json().catch(()=>({}));
         if(!r.ok){ msg.textContent=d.error||'No se pudo enviar. Intenta de nuevo.'; b.disabled=false; return; }
         f.innerHTML='<p class="rp-gracias"><b>¡Gracias!</b> Tu reseña queda en revisión y la publicamos en cuanto la aprobemos.</p>';

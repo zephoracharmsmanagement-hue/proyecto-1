@@ -19,6 +19,7 @@
  * producción ven los mismos videos, como debe ser con un archivo versionado.
  */
 import { getStore } from '@netlify/blobs';
+import { responderBytes } from './_rango.mjs';
 
 const NOMBRE = /^[a-z0-9][a-z0-9-]{0,80}\.(mp4|webm)$/;
 const TIPOS = { mp4: 'video/mp4', webm: 'video/webm' };
@@ -42,28 +43,9 @@ export default async (req) => {
   }
   if (!datos) return new Response('', { status: 404 });
 
-  const total = datos.byteLength;
-  const cab = {
-    'Content-Type': TIPOS[f.split('.').pop()],
-    'Accept-Ranges': 'bytes',
+  return responderBytes(req, datos, TIPOS[f.split('.').pop()], {
     'Cache-Control': CACHE,
     'Netlify-CDN-Cache-Control': 'public, durable, max-age=31536000, immutable',
     'Vary': 'Range',
-  };
-
-  const rango = /^bytes=(\d*)-(\d*)$/.exec(req.headers.get('range') || '');
-  if (!rango) {
-    return new Response(req.method === 'HEAD' ? null : datos, { status: 200, headers: { ...cab, 'Content-Length': String(total) } });
-  }
-  let ini, fin;
-  if (rango[1] === '') { ini = Math.max(0, total - Number(rango[2])); fin = total - 1; }   // bytes=-N: los últimos N
-  else { ini = Number(rango[1]); fin = rango[2] === '' ? total - 1 : Math.min(Number(rango[2]), total - 1); }
-  if (!(ini <= fin) || ini >= total) {
-    return new Response('', { status: 416, headers: { ...cab, 'Content-Range': `bytes */${total}` } });
-  }
-  const trozo = datos.slice(ini, fin + 1);
-  return new Response(req.method === 'HEAD' ? null : trozo, {
-    status: 206,
-    headers: { ...cab, 'Content-Range': `bytes ${ini}-${fin}/${total}`, 'Content-Length': String(trozo.byteLength) },
   });
 };

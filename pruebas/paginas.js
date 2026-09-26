@@ -112,6 +112,10 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     }
   }
   ok(!malBloques.length, `las ${paginas.length} fichas traen los 4 bloques con el texto de su tipo` + lista(malBloques));
+  // Las reseñas son de la tienda, no de cada pieza: no van como AggregateRating
+  // del producto (Google lo penaliza). ENCARGO-FICHA-2 § 3.
+  const conRating = paginas.filter(f => /aggregateRating/i.test(leer(f)));
+  ok(!conRating.length, 'ninguna ficha publica AggregateRating con reseñas de la tienda' + lista(conRating));
   ok(!malVideo.length, 'cada video de bloque: preload="none", portada que existe y archivo en /media/' + lista([...new Set(malVideo)]));
 
   // ── Renderizadas: una por tipo ──
@@ -134,7 +138,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       piezas: Object.entries(stock).filter(([, v]) => !v.tallas).map(([i, v]) => ({ id: i, disponible: v.stock })),
       brazaletes: Object.entries(stock).filter(([, v]) => v.tallas).map(([i, v]) => ({ id: i, tallas: v.tallas })) } }));
     await ctx.route('**/.netlify/functions/vendidas', r => r.fulfill({ json: { ventas: vendidas || {} } }));
-    await ctx.route('**/.netlify/functions/resenas?*', r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
+    // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
+    await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
   const { calcular } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
 
@@ -146,7 +151,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await rutasFalsas(ctx, conDatos ? {
       vendidas: { [id]: 4 },
       resenas: { total: 2, promedio: 4.5, resenas: [
-        { estrellas: 5, texto: '<b>Hermoso</b>, llegó rápido', nombre: 'Ana', ciudad: 'Cali', verificada: true },
+        { estrellas: 5, texto: '<b>Hermoso</b>, llegó rápido', nombre: 'Ana', ciudad: 'Cali', verificada: true,
+          fotos: ['/resenas?medio=hulk%2Fabc-123456%2Ff1.jpg', 'javascript:alert(1)'], video: 'https://otro.sitio/v.mp4' },
         { estrellas: 4, texto: 'Muy bonito', nombre: 'Eva', ciudad: '', verificada: false }] },
     } : { vendidas: { [id]: 2 } });
     const ev = [];
@@ -216,6 +222,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
         html: document.getElementById('rp-lista').innerHTML, vend: document.getElementById('pp-vendidas').textContent }));
       ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2, `estrellas con el promedio y conteo reales («${r.top.trim()}»)`);
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
+      ok((r.html.match(/<img /g) || []).length === 1 && r.html.includes('/resenas?medio=hulk') && !/javascript:|otro\.sitio/.test(r.html),
+        'las fotos de la reseña salen, y solo las servidas por la propia tienda');
       ok((r.html.match(/Compra verificada/g) || []).length === 1, 'solo la reseña con pedido lleva «Compra verificada»');
       ok(/4 personas compraron/.test(r.vend), `«${r.vend}»`);
     } else {
@@ -434,6 +442,47 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
         + (errs.length ? ', errores ' + errs.join(' | ') : ''));
       await ctx6.close();
     }
+  }
+
+  // ── 7 · Reseña con foto desde la ficha (ENCARGO-FICHA-2 § 3) ──
+  // La foto se reduce en el navegador antes de subir: una función de Netlify
+  // recibe ~6 MB por envío, y una foto de celular sola ya pesa eso.
+  console.log('7 · Reseña con foto');
+  {
+    const ctx7 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx7);
+    let enviado = null;
+    await ctx7.route('**/resenas', r => { if (r.request().method() === 'POST') { enviado = r.request().postDataJSON(); return r.fulfill({ json: { ok: true } }); } return r.continue(); });
+    const p = await ctx7.newPage();
+    const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
+    await p.evaluate(() => { document.getElementById('rp-escribir').open = true; });
+    const poner = (nombre, archivo) => p.evaluate(([n, a]) => new Promise(ok => {
+      const dt = new DataTransfer();
+      if (a.tipo.startsWith('image/')) {
+        const c = document.createElement('canvas'); c.width = 3000; c.height = 2000;
+        const g = c.getContext('2d'); g.fillStyle = '#b4657f'; g.fillRect(0, 0, 3000, 2000);
+        c.toBlob(bl => { dt.items.add(new File([bl], 'foto.png', { type: 'image/png' })); document.querySelector(`#rp-form [name=${n}]`).files = dt.files; ok(); }, 'image/png');
+      } else { dt.items.add(new File([new Uint8Array(a.peso)], 'v.mp4', { type: 'video/mp4' })); document.querySelector(`#rp-form [name=${n}]`).files = dt.files; ok(); }
+    }), [nombre, archivo]);
+    await p.check('#rp-form input[name=estrellas][value="5"]', { force: true });
+    await p.fill('#rp-form textarea[name=texto]', 'Me encantó, llegó perfecto y brilla muchísimo');
+    await p.fill('#rp-form input[name=nombre]', 'Carla');
+    await poner('video', { tipo: 'video/mp4', peso: 4 * 1024 * 1024 });
+    await p.click('#rp-form button[type=submit]');
+    await p.waitForTimeout(300);
+    const aviso = await p.textContent('#rp-form .rp-msg');
+    ok(!enviado && /máximo es 3,5 MB/.test(aviso), `un video de 4 MB no se envía y se dice por qué («${aviso.trim()}»)`);
+    await p.evaluate(() => { document.querySelector('#rp-form [name=video]').value = ''; });
+    await poner('fotos', { tipo: 'image/png' });
+    await p.click('#rp-form button[type=submit]');
+    await p.waitForTimeout(1500);
+    const dims = enviado && enviado.fotos && enviado.fotos[0] ? await p.evaluate(u => new Promise(ok => { const i = new Image(); i.onload = () => ok([i.naturalWidth, i.naturalHeight]); i.src = u; }), enviado.fotos[0]) : [];
+    ok(enviado && enviado.producto === 'hulk' && enviado.fotos.length === 1 && /^data:image\/jpeg;base64,/.test(enviado.fotos[0]) && dims[0] === 1600 && dims[1] === 1067,
+      `la foto de 3000×2000 viaja como JPG de ${dims.join('×')}`);
+    ok(/Gracias/.test(await p.textContent('#rp-escribir')) && !errs.length, 'y la clienta ve el agradecimiento, consola limpia' + lista(errs));
+    await ctx7.close();
   }
 
   await b.close();

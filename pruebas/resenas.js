@@ -12,6 +12,11 @@ const mal = (m, d) => { fallos++; console.log(`  ✗ FALLA ${m}${d ? ' — ' + d
 const comprobar = (c, m, d) => (c ? ok(m, d) : mal(m, d));
 const copia = v => (v == null ? v : JSON.parse(JSON.stringify(v)));
 
+function almacenBinario() {
+  const d = {};
+  return { async set(k, v) { d[k] = v.slice(0); }, async get(k) { return d[k] ? d[k].slice(0) : null; } };
+}
+
 function almacen() {
   const d = {};
   return {
@@ -33,6 +38,7 @@ async function main() {
   ped._interno.usarAlmacen(almacen());
   const mod = await import(F + 'resenas.mjs');
   mod._interno.usar(almacen());
+  mod._interno.usarMedios(almacenBinario());
   const vend = await import(F + 'vendidas.mjs');
 
   /* Una IP distinta por petición: el freno de 5 por hora dejaba la sexta en
@@ -104,6 +110,58 @@ async function main() {
     const codigos = [];
     for (let i = 0; i < 6; i++) codigos.push((await pedir({ ip: '10.9.9.9', cuerpo: Object.assign({}, base, { nombre: 'Rep' + i }) })).status);
     comprobar(codigos.slice(0, 5).every(c => c === 200) && codigos[5] === 429, 'la sexta reseña seguida desde la misma IP → 429', codigos.join(','));
+  }
+
+  console.log('\n5 · Todas en cualquier ficha, con fotos y video (ENCARGO-FICHA-2 § 3)');
+  {
+    // Una reseña de otra pieza sale igual en la ficha de Mickey: una sola
+    // lista para toda la tienda (decisión del propietario, 2026-09-26).
+    await pedir({ cuerpo: Object.assign({}, base, { producto: 'hulk', nombre: 'Gil', texto: 'El Hulk quedó perfecto en mi pulsera' }) });
+    const [aGil] = enlaces(correos[correos.length - 1].html);
+    await pedir({ metodo: 'GET', q: '?moderar=' + encodeURIComponent(aGil) });
+    const enMickey = await listar(P), sinPieza = (await leerJ(await pedir({ metodo: 'GET' }))).d;
+    comprobar(enMickey.resenas.some(r => r.nombre === 'Gil') && sinPieza.total === enMickey.total,
+      'la reseña del Hulk también sale en la ficha de Mickey; el conteo es el de la tienda', `${sinPieza.total}`);
+
+    const jpg = 'data:image/jpeg;base64,' + Buffer.from('\xff\xd8\xff\xe0 foto de prueba').toString('base64');
+    const mp4 = 'data:video/mp4;base64,' + Buffer.from(new Uint8Array(4000).map((_, i) => i % 256)).toString('base64');
+    comprobar((await pedir({ cuerpo: Object.assign({}, base, { fotos: [jpg, jpg, jpg, jpg] }) })).status === 400, '4 fotos → 400');
+    comprobar((await pedir({ cuerpo: Object.assign({}, base, { fotos: ['data:text/html;base64,PGI+'] }) })).status === 400, 'algo que no es foto → 400');
+    const grande = 'data:video/mp4;base64,' + Buffer.alloc(3.6 * 1024 * 1024).toString('base64');
+    comprobar((await pedir({ cuerpo: Object.assign({}, base, { video: grande }) })).status === 400, 'video de más de 3,5 MB → 400 con el tope dicho');
+
+    const r = await pedir({ cuerpo: Object.assign({}, base, { nombre: 'Flor', texto: 'Mira cómo me quedó, me encantó', fotos: [jpg, jpg], video: mp4 }) });
+    const correo = correos[correos.length - 1];
+    const firmados = [...correo.html.matchAll(/href="([^"]*medio=[^"]+)"/g)].map(m => m[1].replace(/&amp;/g, '&'));
+    comprobar(r.status === 200 && firmados.length === 3 && /con 3 adjuntos/.test(correo.subject),
+      'con 2 fotos y 1 video: el correo trae 3 enlaces para verlos antes de publicar', correo.subject);
+    const q = u => '?' + new URL(u).searchParams.toString();
+    const sinFirma = u => { const x = new URL(u); x.searchParams.delete('f'); return '?' + x.searchParams.toString(); };
+    comprobar((await pedir({ metodo: 'GET', q: sinFirma(firmados[0]) })).status === 404, 'pendiente: la foto NO se ve sin firma');
+    const vista = await pedir({ metodo: 'GET', q: q(firmados[0]) });
+    comprobar(vista.status === 200 && vista.headers.get('content-type') === 'image/jpeg' && /no-store/.test(vista.headers.get('cache-control')),
+      'con el enlace firmado del correo, la tienda la ve (sin caché)');
+    const falsa = await pedir({ metodo: 'GET', q: sinFirma(firmados[0]) + '&f=firmafalsa' });
+    comprobar(falsa.status === 404, 'firma falsa → 404');
+
+    const [aFlor] = enlaces(correo.html);
+    await pedir({ metodo: 'GET', q: '?moderar=' + encodeURIComponent(aFlor) });
+    const flor = (await listar('minnie-mouse')).resenas.find(x => x.nombre === 'Flor');
+    comprobar(flor && flor.fotos.length === 2 && /^\/resenas\?medio=/.test(flor.fotos[0]) && /^\/resenas\?medio=.*v\.mp4$/.test(decodeURIComponent(flor.video)),
+      'aprobada: la lista trae sus 2 fotos y el video');
+    const pub = await pedir({ metodo: 'GET', q: '?' + flor.fotos[0].split('?')[1] });
+    comprobar(pub.status === 200 && /public/.test(pub.headers.get('cache-control')), 'y la foto ya es pública');
+    const trozo = await mod.default({ method: 'GET', url: 'https://tienda.test' + flor.video,
+      headers: new Headers({ Range: 'bytes=0-99' }), text: async () => '' });
+    comprobar(trozo.status === 206 && trozo.headers.get('content-range') === 'bytes 0-99/4000', 'el video responde por rangos (Safari)');
+
+    await pedir({ cuerpo: Object.assign({}, base, { nombre: 'Noa', texto: 'Foto que no debería salir nunca', fotos: [jpg] }) });
+    const cNoa = correos[correos.length - 1];
+    const [, rNoa] = enlaces(cNoa.html);
+    await pedir({ metodo: 'GET', q: '?moderar=' + encodeURIComponent(rNoa) });
+    const fNoa = [...cNoa.html.matchAll(/href="([^"]*medio=[^"]+)"/g)].map(m => m[1].replace(/&amp;/g, '&'))[0];
+    comprobar((await pedir({ metodo: 'GET', q: sinFirma(fNoa) })).status === 404, 'rechazada: su foto nunca se publica');
+    comprobar((await pedir({ metodo: 'GET', q: '?medio=' + encodeURIComponent('../../ESTADO.md') })).status === 404, 'una clave rara → 404');
   }
 
   console.log('\n4 · «N personas compraron esta pieza este mes»');
