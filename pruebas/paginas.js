@@ -138,6 +138,7 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       piezas: Object.entries(stock).filter(([, v]) => !v.tallas).map(([i, v]) => ({ id: i, disponible: v.stock })),
       brazaletes: Object.entries(stock).filter(([, v]) => v.tallas).map(([i, v]) => ({ id: i, tallas: v.tallas })) } }));
     await ctx.route('**/.netlify/functions/vendidas', r => r.fulfill({ json: { ventas: vendidas || {} } }));
+    await ctx.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: { ventasRegistradas: 0, tope: 12, minimoLibres: 3, vendidas: [], disponibles: {} } }));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
@@ -397,7 +398,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
   console.log('5 · Colecciones y kits');
   for (const f of htmlRaiz.filter(x => x.startsWith('coleccion-') || x === 'kits.html')) {
-    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    const ctxC = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctxC);
+    const p = await ctxC.newPage();
     const errs = [], rotos = [];
     p.on('pageerror', e => errs.push(e.message));
     p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE)) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
@@ -483,6 +486,45 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       `la foto de 3000×2000 viaja como JPG de ${dims.join('×')}`);
     ok(/Gracias/.test(await p.textContent('#rp-escribir')) && !errs.length, 'y la clienta ve el agradecimiento, consola limpia' + lista(errs));
     await ctx7.close();
+  }
+
+  // ── 8 · Menú «Categorías» y «Más vendidos» (ENCARGO-FICHA-2 § 5) ──
+  console.log('8 · Menú de categorías y Más vendidos');
+  {
+    const ix = leer('index.html');
+    const menu = (ix.match(/<div class="tnav-cat-m"[\s\S]*?<\/div>/) || [''])[0];
+    const acordeon = (ix.match(/<div class="menu-cat-l">[\s\S]*?<\/div>/) || [''])[0];
+    const grupos = [...new Set(Object.values(cat.grupos))];
+    const falta = grupos.filter(g => !menu.includes('>' + g + '<') || !acordeon.includes('>' + g + '<'));
+    ok(!falta.length && menu.split('</a>')[0].endsWith('>Más vendidos'),
+      `el desplegable y el acordeón traen «Más vendidos» primero y las ${grupos.length} colecciones del catálogo` + lista(falta));
+    const ctx8 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx8);
+    await ctx8.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: {
+      ventasRegistradas: 2, tope: 12, minimoLibres: 3, vendidas: [{ id: 'hulk', unidades: 2 }],
+      disponibles: { hulk: 5, 'iron-man': 6, 'letra-a': 9, 'mickey-mouse': 4 } } }));
+    const p = await ctx8.newPage();
+    const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(BASE + '/coleccion-mas-vendidos.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(300);
+    const r = await p.evaluate(() => ({
+      v: [...document.querySelectorAll('#mv-vendidas .mv-it')].map(x => x.dataset.vid + (x.querySelector('.mv-sello') ? '★' : '')),
+      rel: [...document.querySelectorAll('#mv-relleno .mv-it')].map(x => x.dataset.vid + (x.querySelector('.mv-sello') ? '★' : '')) }));
+    ok(r.v.join() === 'hulk★' && r.rel[0] === 'iron-man' && !r.rel.some(x => x.includes('★')) && !r.rel.some(x => x.startsWith('letra-')),
+      `solo lleva el sello lo que vendió (${r.v.join()}); el relleno va aparte, sin sello ni iniciales (${r.rel.join(', ')})`);
+    await Promise.all([p.waitForURL(llegaA(archivoDe('hulk'))), p.click('#mv-vendidas .mv-ir')]);
+    ok(!errs.length, 'la tarjeta lleva a la página de la pieza, consola limpia' + lista(errs));
+    await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
+    await p.click('#menu-btn');
+    await p.click('.menu-cat summary');
+    await Promise.all([p.waitForURL(u => /index\.html$/.test(u.pathname) && u.searchParams.get('cat') === 'Zodiaco'), p.click('.menu-cat-l a:text-is("Zodiaco")')]);
+    await p.waitForLoadState('networkidle');
+    await p.waitForTimeout(500);
+    const z = await p.evaluate(() => ({ on: (document.querySelector('#filters .fbtn.is-on') || {}).textContent,
+      g: [...new Set([...document.querySelectorAll('#resto-grid .pc:not([hidden])')].map(x => x.dataset.g))] }));
+    ok(z.on === 'Zodiaco' && z.g.join() === 'Zodiaco', `«Zodiaco» desde una ficha abre la portada filtrada (${z.g.join()})`);
+    await ctx8.close();
   }
 
   await b.close();

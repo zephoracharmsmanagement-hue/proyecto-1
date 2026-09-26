@@ -207,12 +207,10 @@ function estadoVit(){
 /* El catálogo se carga en TODAS las páginas: además de la vitrina, da la
    foto de cada pieza al carrito (imgDe). Al llegar se repinta el carrito,
    por si ya tenía filas pintadas sin foto. */
-{
-  const sinVit=()=>VIT.forEach(v=>{ v.hidden=true; });
-  fetch('assets/catalogo.json').then(r=>r.ok?r.json():null)
-    .then(c=>{ if(!c||!c.grupos||!c.fotos) return sinVit(); CAT=c; VIT.forEach(v=>dibujarVit(v)); render(); })
-    .catch(sinVit);
-}
+const sinVit=()=>{ VIT.forEach(v=>{ v.hidden=true; }); return null; };
+const catalogoListo=fetch('assets/catalogo.json').then(r=>r.ok?r.json():null)
+  .then(c=>{ if(!c||!c.grupos||!c.fotos) return sinVit(); CAT=c; VIT.forEach(v=>dibujarVit(v)); render(); return c; })
+  .catch(sinVit);
 document.addEventListener('click',e=>{
   const tab=e.target.closest('.vit-tab');
   if(tab){ const v=tab.closest('.vit'); dibujarVit(v,tab.dataset.vitTab);
@@ -1652,16 +1650,80 @@ document.getElementById('filters').addEventListener('click',e=>{
   i.addEventListener('change',pintarCalculadora);
 })();
 
-/* tarjetas de categoría → abren el catálogo ya filtrado */
-document.querySelectorAll('.cat[data-cat]').forEach(a=>{
-  a.addEventListener('click',e=>{
-    e.preventDefault();
-    abrirCat(true);
-    aplicarFiltro(a.dataset.cat);
-    full.scrollIntoView({behavior:'smooth',block:'start'});
-    track('ViewContent',{content_type:'product_group',content_name:'Categoría '+a.dataset.cat});
-  });
+/* Tarjetas de categoría y enlaces del menú «Categorías» → el catálogo ya
+   filtrado. En la portada se filtra ahí mismo; desde cualquier otra página
+   el enlace lleva a index.html?cat=<grupo>#charms y la portada lo aplica al
+   cargar (ENCARGO-FICHA-2 § 5). */
+const EN_PORTADA=!!document.getElementById('charms');
+function verCategoria(cat){
+  abrirCat(true);
+  aplicarFiltro(cat);
+  full.scrollIntoView({behavior:'smooth',block:'start'});
+  track('ViewContent',{content_type:'product_group',content_name:'Categoría '+cat});
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-cat]');
+  if(!a||!EN_PORTADA) return;
+  e.preventDefault();
+  cerrarCatMenu();
+  verCategoria(a.dataset.cat);
 });
+if(EN_PORTADA){
+  const c=new URL(location.href).searchParams.get('cat');
+  if(c&&document.querySelector('#filters [data-f="'+CSS.escape(c)+'"]')) requestAnimationFrame(()=>verCategoria(c));
+}
+
+/* Desplegable «Categorías» del menú de escritorio: se abre con clic o toque
+   —no solo al pasar el ratón, que en una tableta no existe— y se cierra al
+   elegir, al tocar fuera o con Escape. */
+const catBtn=$('#cat-btn'), catMenu=$('#cat-menu');
+function cerrarCatMenu(){ if(catMenu&&!catMenu.hidden){ catMenu.hidden=true; catBtn.setAttribute('aria-expanded','false'); } }
+if(catBtn&&catMenu){
+  catBtn.addEventListener('click',()=>{ const v=catMenu.hidden; catMenu.hidden=!v; catBtn.setAttribute('aria-expanded',v?'true':'false'); });
+  document.addEventListener('click',e=>{ if(!e.target.closest('.tnav-cat')) cerrarCatMenu(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarCatMenu(); });
+}
+
+/* «Más vendidos» (coleccion-mas-vendidos.html): ventas reales de
+   netlify/functions/mas-vendidos. Solo lleva el sello «Más vendido» una pieza
+   que vendió. Mientras haya menos de 30 ventas registradas, se completa en
+   una sección aparte con las de más unidades de las colecciones que más se
+   venden —sin iniciales: se eligen, no se sugieren—. */
+const mvVendidas=$('#mv-vendidas');
+if(mvVendidas){
+  const tarjetaMV=(id,vendio)=>{
+    const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id];
+    if(!d) return '';
+    return '<div class="vit-it mv-it" data-vid="'+id+'" role="listitem">'
+      +(vendio?'<span class="mv-sello">Más vendido</span>':'')
+      +'<a class="mv-ir" href="'+paginaDe(id)+'">'
+      +(f?'<img src="assets/'+f+'" alt="" width="160" height="160" loading="lazy" decoding="async">':'<span class="vit-nof"></span>')
+      +'<span class="vit-n">'+escHTML(d.n)+'</span></a><small>'+cop(d.p)+'</small>'
+      +(esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
+           +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
+           :'<button type="button" class="vit-add" data-add="'+id+'">Agregar</button>')
+      +'</div>';
+  };
+  const grupoDe=id=>PU[id]?'Brazaletes':(CAT.grupos[id]||'');
+  Promise.all([fetch('.netlify/functions/mas-vendidos').then(r=>r.ok?r.json():null).catch(()=>null),catalogoListo])
+    .then(([d,c])=>{
+      const aviso=$('#mv-aviso'), sec2=$('#mv-relleno-sec'), relleno=$('#mv-relleno');
+      if(!d||!c){ mvVendidas.innerHTML=''; aviso.textContent='No pudimos cargar las ventas en este momento. Mira el catálogo completo mientras tanto.'; aviso.hidden=false; return; }
+      const vendidas=(d.vendidas||[]).filter(v=>CH[v.id]||PU[v.id]);
+      mvVendidas.innerHTML=vendidas.map(v=>tarjetaMV(v.id,true)).join('');
+      if(!vendidas.length){ aviso.textContent='Todavía estamos juntando ventas: pronto verás aquí las piezas que más se llevan.'; aviso.hidden=false; }
+      if(d.ventasRegistradas<30){
+        const peso={}; vendidas.forEach(v=>{ const g=grupoDe(v.id); peso[g]=(peso[g]||0)+v.unidades; });
+        const ya=new Set(vendidas.map(v=>v.id));
+        const cand=Object.keys(d.disponibles||{}).filter(id=>!ya.has(id)&&(CH[id]||PU[id])&&!/^letra-/.test(id));
+        cand.sort((a,b)=>(peso[grupoDe(b)]||0)-(peso[grupoDe(a)]||0)||d.disponibles[b]-d.disponibles[a]);
+        const ids=cand.slice(0,Math.max(0,(d.tope||12)-vendidas.length));
+        relleno.innerHTML=ids.map(id=>tarjetaMV(id,false)).join('');
+        sec2.hidden=!ids.length;
+      }
+      estadoVit();
+    });
+}
 
 /* Flechas de los carruseles.
  *

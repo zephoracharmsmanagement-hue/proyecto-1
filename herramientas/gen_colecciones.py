@@ -694,6 +694,64 @@ def generar_kits(html, escribir):
               ' · '.join('%dd %s (-%d%%)' % (p['n'], p['totalTexto'], p['dto']) for p in e)))
 
 
+MV_CUERPO = '''<section class="col-hero wrap" id="top">
+  <span class="eyebrow">Más vendidos</span>
+  <h1>Las piezas que más se llevan</h1>
+  <p class="col-entrada">Ordenadas por unidades vendidas de verdad, contadas de los pedidos
+  de la tienda. Solo aparecen las que tienen 3 unidades o más disponibles.</p>
+</section>
+
+<!-- Lo llena tienda.js («Más vendidos») desde netlify/functions/mas-vendidos:
+     ventas reales, nunca un número fijo. El sello «Más vendido» solo va en
+     piezas que vendieron; el relleno, mientras haya pocas ventas, va aparte. -->
+<section class="mv wrap" aria-label="Más vendidos">
+  <p class="mv-aviso" id="mv-aviso" hidden></p>
+  <div class="mv-grid" id="mv-vendidas" role="list"><p class="mv-cargando">Cargando las ventas…</p></div>
+</section>
+
+<section class="mv wrap" id="mv-relleno-sec" hidden>
+  <h2>De las colecciones favoritas</h2>
+  <p class="col-sub">Mientras juntamos más ventas, estas son las piezas con más unidades
+  disponibles de las colecciones que más se venden.</p>
+  <div class="mv-grid" id="mv-relleno" role="list"></div>
+</section>
+
+<section class="col-resto wrap">
+  <h2>¿Buscas algo en particular?</h2>
+  <p class="col-sub">Todo el catálogo, por colección, con disponibilidad al día.</p>
+  <a class="btn btn--ghost" href="index.html#charms">Ver el catálogo completo</a>
+</section>
+
+'''
+
+
+def generar_mas_vendidos(html, escribir):
+    """coleccion-mas-vendidos.html (ENCARGO-FICHA-2 § 5). La carcasa es la de
+    kits.html —cabecera, pie y bloques de la portada—; el contenido lo pinta
+    tienda.js con las ventas reales, así que la página no se queda vieja
+    entre despliegues."""
+    ini = PAGINA_KITS.index('<section class="col-hero wrap" id="top">')
+    fin = PAGINA_KITS.index('{talla}')
+    cabeza = re.sub(r'<title>[^<]*</title>', '<title>Más vendidos · Zephora Charms</title>', PAGINA_KITS[:ini])
+    cabeza = cabeza.replace('https://zephoracharms.com/kits.html', 'https://zephoracharms.com/coleccion-mas-vendidos.html')
+    cabeza = cabeza.replace('Kits Zephora · Dijes de Plata 925 y brazalete', 'Más vendidos · Zephora Charms')
+    assert 'kits.html' not in cabeza and 'Kits Zephora' not in cabeza
+    b = bloques(html)
+    desc = ('Las piezas de Zephora que más se venden, contadas de pedidos reales: charms en Plata '
+            'Esterlina 925 y brazaletes con baño de plata, con 3 unidades o más disponibles.')
+    pagina = (cabeza + MV_CUERPO + PAGINA_KITS[fin:]).format(
+        head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+        resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
+        footer=b['footer'], chrome=b['chrome'], desc=desc)
+    pagina = arregla_nav(pagina)
+    destino = RAIZ / 'coleccion-mas-vendidos.html'
+    if escribir:
+        destino.write_text(pagina, encoding='utf-8')
+        print('  escrito  coleccion-mas-vendidos.html  (%d KB)' % (len(pagina) // 1024))
+    else:
+        print('  se escribiría  coleccion-mas-vendidos.html  (%d KB)' % (len(pagina) // 1024))
+
+
 def main():
     escribir = '--escribir' in sys.argv
     html = INDEX.read_text(encoding='utf-8')
@@ -702,6 +760,8 @@ def main():
         generar(col, html, escribir)
     print('\nKits:')
     generar_kits(html, escribir)
+    print('\nMás vendidos:')
+    generar_mas_vendidos(html, escribir)
     if not escribir:
         print('\nNo se escribió nada. Repite con --escribir.')
 

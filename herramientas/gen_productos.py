@@ -56,7 +56,9 @@ IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res'}
 # Si se agrega aquí uno que se use sin comprobar, la página se queda sin
 # carrito en silencio: cada uno de estos va con su `if(el)` en tienda.js.
 IDS_OPCIONALES = {'pq-mas', 'pq-faltan', 'pp-estrellas', 'pp-vendidas', 'pp-compra', 'pp-agotado',
-                  'pp-encargo', 'pp-desc', 'rp-resumen', 'rp-lista', 'rp-form', 'rp-escribir'}
+                  'pp-encargo', 'pp-desc', 'rp-resumen', 'rp-lista', 'rp-form', 'rp-escribir',
+                  # Solo en la portada (EN_PORTADA) y en coleccion-mas-vendidos.html.
+                  'charms', 'mv-aviso', 'mv-relleno', 'mv-relleno-sec', 'mv-vendidas'}
 
 
 def archivo_de(pid):
