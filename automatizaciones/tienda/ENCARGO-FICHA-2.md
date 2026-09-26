@@ -29,15 +29,16 @@ de pieza está marcado. Negritas tal cual.
 ### Bloque 2 · ♡ Para llevarla todos los días
 **Medio:** video de la luciérnaga con el brazalete.
 
-> La Plata 925 es de los metales **mejor tolerados por la piel**, hecha para
-> **usarse a diario**. Si con el tiempo se oscurece, es natural en la plata real:
-> **un paño le devuelve el brillo** en segundos.
+> Plata 925 **hipoalergénica y libre de níquel**, hecha para **usarse a diario**,
+> incluso en piel sensible. Si con el tiempo se oscurece, es natural en la plata
+> real: **un paño le devuelve el brillo** en segundos.
 
-- **Condición:** «**libre de níquel**» e «**hipoalergénica**» solo se agregan si
-  el proveedor entrega certificado escrito de la aleación. Sin certificado, no se
-  escriben: es una promesa de salud.
-- *En la ficha de un brazalete* este bloque **no dice nada de piel ni
-  hipoalergénico** (es baño de plata, otra base metálica). Texto alterno:
+- **Confirmado por el propietario el 2026-09-26:** el proveedor certifica que la
+  plata de los charms es hipoalergénica y libre de níquel.
+- *En la ficha de un brazalete* (baño de plata, otra base metálica) no se usa
+  «hipoalergénica» ni «libre de níquel» **salvo que el propietario confirme que
+  la certificación del proveedor cubre también los brazaletes**. Mientras tanto,
+  texto alterno:
   > **Liviano y cómodo** para el día a día. Guárdalo seco y lejos de perfumes
   > para que el **baño conserve su brillo** por más tiempo.
 
@@ -60,8 +61,13 @@ llevando 4**».
 > **dedicatoria escrita a mano** con las palabras que tú elijas. Solo falta
 > entregarla… o quedártela.
 
-- **Confirmar con el propietario** qué trae hoy el empaque. Nada de «caja de
-  lujo rígida» ni «bolsa de microfibra» si no es exactamente eso.
+- **Confirmado por el propietario el 2026-09-26:** el empaque trae **caja, paño
+  y dedicatoria**. Nada más: ni «caja de lujo rígida» ni «bolsa».
+- **Corregir el texto que ya está en el sitio.** El beneficio «Empaque de regalo
+  incluido» dice hoy «caja, **bolsa** y tarjeta con tu dedicatoria, sin costo»
+  (`index.html` l. 991, `kits.html` l. 350, `coleccion-marvel.html` l. 414).
+  Debe decir: «**Empaque de regalo incluido** — caja, paño y dedicatoria escrita
+  a mano, sin costo». Mismo texto en el ícono de beneficios de la ficha.
 
 Botón bajo el texto: **«Agregar al carrito»** (mismo que arriba). Es otro de los
 llamados a la acción constantes.
@@ -93,12 +99,14 @@ Amplía la sección de reseñas de `ENCARGO-FICHA.md`.
   acepta ~6 MB por petición, así que el **video va con un tope de ~20 s y
   comprimido**, o se sube directo a un almacenamiento externo (requiere cuenta;
   **pendiente del propietario**). Todo pasa por moderación antes de publicarse.
-- **Todas las reseñas en todas las fichas:** la sección muestra primero las de
-  esta pieza y después **todas las de la tienda**, con un filtro «Esta pieza /
-  Todas». Las estrellas y el promedio de arriba de la ficha dicen de dónde salen:
-  «4,9 · 38 reseñas de la tienda» cuando no son de esa pieza. El dato
-  estructurado para Google (`AggregateRating`) va **solo con las reseñas de esa
-  pieza**: Google penaliza mezclar.
+- **Todas las reseñas aparecen en cualquier ficha, sin distinguir la pieza**
+  (decisión del propietario, 2026-09-26). Una sola lista para toda la tienda,
+  las más recientes primero; sin filtro por pieza. Las estrellas y el promedio de
+  arriba de la ficha son los de la tienda: «4,9 · 38 reseñas».
+- Detalle técnico, no visible: **no** publicar esas reseñas como
+  `AggregateRating` del producto en el dato estructurado para Google (penaliza
+  poner reseñas de la tienda como si fueran de la pieza). Omitirlo o marcarlo a
+  nivel de tienda (`Organization`).
 - Chulo de verificación solo con pedido real (ya especificado).
 
 ## 4. Relacionados: tocar una joya abre su ficha
@@ -131,7 +139,9 @@ envío.
 - Los 4 bloques se ven en fichas de charm y de brazalete con el texto que
   corresponde a cada uno, y los videos no bloquean la carga (póster primero).
 - Carrito sin fotos rotas desde las tres páginas.
-- Una reseña con 3 fotos pasa por moderación y se ve en todas las fichas; el
-  `AggregateRating` de cada ficha cuenta solo las suyas.
+- Una reseña con 3 fotos pasa por moderación y se ve en todas las fichas, sin
+  importar de qué pieza sea.
+- El texto del empaque dice «caja, paño y dedicatoria» en las tres páginas y en
+  la ficha; ya no dice «bolsa».
 - Tocar un relacionado cambia la ficha sin recargar; atrás vuelve.
 - «Más vendidos» no muestra piezas con menos de 3 unidades.

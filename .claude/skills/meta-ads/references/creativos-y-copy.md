@@ -68,6 +68,9 @@ producto, 1 de problema. Los de decisión van en personalizados y ascensión.
 - **Materiales exactos**: «Plata 925» solo para charms. Los brazaletes son
   «baño de plata». Describir un charm como enchapado o un brazalete como plata
   es publicidad engañosa.
+- **Charms: hipoalergénicos y libres de níquel** (certificado del proveedor,
+  confirmado el 2026-09-26). No extenderlo a los brazaletes sin confirmación.
+- **Empaque:** caja, paño y dedicatoria escrita a mano. Nada más.
 - **Precios del sitio el día del anuncio**, con la escalera real de descuento
   (1 charm 0%, 2 charms 8%, 3 charms 15%, 4 o más 25%; brazalete −30% desde 3
   charms). Un número de precio que no se pueda reproducir con `calcular()` no se
