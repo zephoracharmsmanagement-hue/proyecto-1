@@ -110,6 +110,11 @@ def tarjeta_inicial(html, pid, cat):
         raise SystemExit('No se encontró la tarjeta «letras» en index.html.')
     letras = m.group(0)
     img = re.search(r'<img src="([^"]+)"', letras).group(1)
+    # Foto propia de la inicial si existe (catalogo.json ya la apunta); si no,
+    # la del grupo. `?v=` con la fecha en que entraron, por la caché de una
+    # semana de las .webp (netlify.toml).
+    if cat['fotos'][pid] != img.split('/')[-1].split('?')[0]:
+        img = 'assets/%s?v=20260925' % cat['fotos'][pid]
     sello = re.search(r'<span class="pc-mark[^"]*">[^<]*</span>', letras).group(0)
     n = H.escape(cat['nombres'][pid])
     return ('<article class="pc" data-id="%s" data-g="Letras">\n'
