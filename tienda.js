@@ -86,6 +86,16 @@ if(hbPause && hbTrack){
  * A quien pidio "reducir movimiento" no se le reproduce nada: se le dejan los
  * controles para que decida. Es la misma regla que ya respetan el banner y el
  * ticker de avisos. */
+/* Fotos y videos: sin clic derecho, sin arrastrarlos y sin «guardar
+   imagen» al mantener presionado en el celular (pedido del propietario,
+   2026-09-26; lo del celular lo hace tienda.css con -webkit-touch-callout).
+   No es una protección absoluta —una captura de pantalla o las herramientas
+   del navegador siempre pueden—: quita el camino fácil, que es el que usa
+   casi todo el mundo. Los videos, además, van sin botón de descarga ni
+   ventana flotante (controlslist / disablepictureinpicture). */
+document.addEventListener('contextmenu',e=>{ if(e.target.closest('img,video,picture,.pc-img,.fx-ph')) e.preventDefault(); });
+document.addEventListener('dragstart',e=>{ if(e.target.closest('img,video')) e.preventDefault(); });
+
 const quietoPorPreferencia = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* También los videos de los bloques de la ficha (.bv-v), con la misma regla. */
 const ugcVideos = document.querySelectorAll('.ugc-v, .bv-v');
@@ -746,7 +756,7 @@ if(PP&&(CH[PP]||PU[PP])){
     const fotos=(r.fotos||[]).filter(propia);
     return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<a href="'+u+'" target="_blank" rel="noopener"><img src="'+u
         +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></a>').join('')+'</div>':'')
-      +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none"></video>':'');
+      +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>':'');
   };
   /* Todas las reseñas de la tienda, en cualquier ficha (decisión del
      propietario, 2026-09-26): el promedio de arriba es el de la tienda. */

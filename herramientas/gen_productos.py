@@ -546,7 +546,7 @@ def bloques_media(pid, tipo, hay, cat):
         agregar = '<button class="btn" type="button" data-add="%s">Agregar al carrito</button>' % pid
 
     def video(nombre, alto):
-        return ('<video class="bv-v" muted loop playsinline preload="none" width="720" height="%d" '
+        return ('<video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="%d" '
                 'poster="assets/%s.webp" aria-hidden="true"><source src="media/%s.mp4" type="video/mp4"></video>'
                 % (alto, nombre, nombre))
 

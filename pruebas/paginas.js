@@ -527,5 +527,28 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await ctx8.close();
   }
 
+  // ── 9 · Fotos y videos sin descarga fácil (pedido del propietario, 2026-09-26) ──
+  // No es protección absoluta (una captura siempre puede); se vigila que el
+  // camino fácil siga cerrado: menú del clic derecho, arrastre y botón de
+  // descarga del video.
+  console.log('9 · Fotos y videos sin descarga fácil');
+  {
+    const sueltos = htmlRaiz.filter(f => (publicado(leer(f)).match(/<video\b[^>]*>/g) || [])
+      .some(v => !/controlslist="[^"]*nodownload/.test(v) || !/disablepictureinpicture/.test(v)));
+    ok(!sueltos.length, 'todo <video> publicado va sin botón de descarga ni ventana flotante' + lista(sueltos));
+    ok(/img,video\{[^}]*-webkit-touch-callout:none/.test(css), 'en el celular, mantener presionada una foto no ofrece «guardar imagen»');
+    const ctx9 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx9);
+    const p = await ctx9.newPage();
+    await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
+    const r = await p.evaluate(() => {
+      const ev = (el, tipo) => { const e = new MouseEvent(tipo, { bubbles: true, cancelable: true }); el.dispatchEvent(e); return e.defaultPrevented; };
+      return { foto: ev(document.querySelector('.pc--pp .pc-img img'), 'contextmenu'), video: ev(document.querySelector('.bv-v'), 'contextmenu'),
+        texto: ev(document.querySelector('h1'), 'contextmenu'), arrastre: ev(document.querySelector('.pc--pp .pc-img img'), 'dragstart') };
+    });
+    ok(r.foto && r.video && r.arrastre && !r.texto, `clic derecho y arrastre bloqueados en fotos y videos, no en el texto (${JSON.stringify(r)})`);
+    await ctx9.close();
+  }
+
   await b.close();
 })();
