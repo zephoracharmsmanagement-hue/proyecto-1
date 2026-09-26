@@ -25,62 +25,67 @@ convertidor**, trabajando en bucle: revisar, arreglar, desplegar, volver a
 mirar. No es una tarea con final escrito — es un ciclo.
 
 > **2026-09-24 · Cambio de mano: la sesión de terminal toma la tienda.** Por
-> decisión del propietario, **la sesión web deja de tocar la tienda** y el
-> encargo sigue desde una terminal local, en la rama
-> **`claude/tienda-paginas-producto`** (salida de `origin/main` en `b63a35c`).
-> `claude/zephoracharms-conversion-funnel-nom9ph` ya está fusionada entera en
-> `main` (+0 commits), así que no queda trabajo suyo pendiente.
-> **Tarea en curso:** una página generada por producto (135: 117 charms + 18
-> brazaletes), páginas de colección y navegación entre ellas, para que el
-> píxel mida por pieza —`ViewContent`/`AddToCart` con `content_type
-> 'product'` y `content_ids` del id de `catalogo.json`, `InitiateCheckout`
-> con los ids del carrito—. Mientras esto esté abierto, **nadie más toca
-> `index.html`, `tienda.js`, `tienda.css`, `herramientas/gen_colecciones.py`
-> ni páginas generadas**.
+> decisión del propietario, la sesión web dejó de tocar la tienda y el encargo
+> siguió desde una terminal local, en la rama `claude/tienda-paginas-producto`
+> (salida de `origin/main` en `b63a35c`).
 
-> **2026-09-26 · Traspaso (antes de compactar la sesión).** Todo está en
-> `claude/tienda-paginas-producto`, empujado (`0e802cd`), **PR #5 en borrador,
-> SIN fusionar a `main`**. Vista previa:
-> `deploy-preview-5--fanciful-trifle-64ca74.netlify.app`. Suite local 842 ✓.
+> **2026-09-26 · Páginas por producto: FUSIONADO a `main` (PR #5, un solo
+> despliegue) con confirmación explícita del propietario («deploy»).** La
+> tienda queda **liberada**: otra sesión puede tocar `index.html`, `tienda.js`,
+> `tienda.css` y los generadores, leyendo antes lo de abajo. Suite local 860 ✓,
+> 0 ✗; `pruebas/paginas.js` 95 ✓ contra la vista previa.
 >
-> **Hecho en la rama:** 135 páginas `producto-<id>.html` (gen_productos.py) con
-> píxel por pieza; `InitiateCheckout` único desde checkout.html; colección
-> Símbolos; sitemap/robots; `force = true` en las reglas 404 de `netlify.toml`
-> (hoy `zephoracharms.com` sirve ESTADO.md, CLAUDE.md, docs/… con 200 — se
-> arregla al fusionar); iniciales a $86.000 (se anunciaban a $76.000); fotos
-> propias de 25 iniciales (faltan Ñ y Q); encargos de `automatizaciones/tienda/
-> ORDEN.md`: `registrar-venta.mjs`, suscripción (`suscribir.mjs`,
-> `suscriptores-export.mjs`, regalo en crear-pago/webhook), ficha que vende
-> (paquetes con `calcular()`, `resenas.mjs` con moderación, `vendidas.mjs`);
-> Bogotá 1 día hábil. Fusionada `charming-sagan-l4q2eq` (incluye su revert del
-> stock doble).
+> **Qué entró:**
+> - 135 páginas `producto-<id>.html` generadas por `herramientas/gen_productos.py`
+>   (nunca a mano; slug = id de `catalogo.json`), con píxel por pieza:
+>   `ViewContent`/`AddToCart` `content_type 'product'` y `InitiateCheckout`
+>   **solo** desde checkout.html con los ids del carrito (antes contaba doble).
+> - **Tocar una joya lleva a su página** (portada, colecciones, relacionadas y
+>   lupa); la ficha emergente quedó como galería ampliada dentro de la página
+>   de la propia pieza. Decisión del propietario, 2026-09-26.
+> - **Vitrina** (`.vit`): carrusel con pestañas —Relacionados, cada colección,
+>   Iniciales, Brazaletes— en todas las fichas y en cada kit de `kits.html`. El
+>   generador deja el hueco (`vitrina()` en gen_colecciones.py) y tienda.js lo
+>   llena desde `assets/catalogo.json` con nombres y precios de `DATA`. En la
+>   ficha de un brazalete no hay pestaña de brazaletes (el carrito lleva uno).
+>   Los pasos de los kits son botones que agregan sin ir a la portada.
+> - Colección Símbolos, sitemap (144 URL) y robots; `force = true` en las
+>   reglas 404 de `netlify.toml` (antes el sitio servía ESTADO.md, CLAUDE.md,
+>   docs/… con 200); iniciales a $86.000 (se anunciaban a $76.000); fotos de 25
+>   iniciales (faltan Ñ y Q, caen a la del grupo); Bogotá 1 día hábil.
+> - Encargos de `automatizaciones/tienda/ORDEN.md`: `registrar-venta.mjs`,
+>   suscripción con charm de regalo (`suscribir`, `suscriptores-export`,
+>   regalo en crear-pago/webhook, botón de regalo flotante), `resenas.mjs` con
+>   moderación y `vendidas.mjs`. Variables secretas ya en Netlify:
+>   `VENTA_MANUAL_KEY`, `SUSCRIPCION_SECRETO`, `SUSCRIPTORES_KEY` (las de n8n
+>   están en `material-sin-publicar/claves-para-n8n.txt`, fuera de git: el
+>   propietario debe borrarlo tras copiarlas).
 >
-> **Decisiones del propietario:** paleta original (no se aplica la viva);
-> «+2.400 pulseras» y «Compra verificada» se sostienen; Addi pendiente de
-> credenciales (sigue por WhatsApp).
+> **Aprendido (no redescubrir):**
+> - `abrirFicha` sumaba un `bloquearFondo(true)` cada vez que se repintaba
+>   abierta (al agregar desde ella, al llegar el inventario) y cerrarla quitaba
+>   uno: la página quedaba sin scroll y la suscripción esperando para siempre.
+>   Estaba en producción. Ahora solo bloquea al abrirse; lo vigila paginas.js.
+> - Netlify sirve y redirige las páginas **sin `.html`**: una prueba que espere
+>   la URL exacta pasa en local y falla en la vista previa (`llegaA()`).
+> - Los generadores: no escribir su código con heredocs de bash (convierten
+>   `\n` de Python en saltos reales); escribir a archivo y empalmar.
+> - `display` gana a `[hidden]` (`.btn[hidden]{display:none}`); un `padding`
+>   abreviado pisa el lateral de `.wrap`; CSS `fill` gana al atributo del SVG.
 >
-> **Variables de Netlify ya creadas (secretas):** `VENTA_MANUAL_KEY`,
-> `SUSCRIPCION_SECRETO`, `SUSCRIPTORES_KEY`. Las dos que usa n8n están en
-> `material-sin-publicar/claves-para-n8n.txt` (fuera de git; borrar tras copiar).
->
-> **Pendiente, pedido tras revisar la vista previa:**
-> 1. Carrusel «Completa tu paquete» **sin salir de la página**: pestañas arriba
->    (Relacionados, Marvel, Disney… todas las colecciones) con todas las joyas;
->    **quitar «Ver todo el catálogo»**.
-> 2. Limpiar el bloque logos de pago / beneficios / botones: se ve amontonado.
-> 3. `kits.html`: elegir los charms del kit en la misma página.
-> 4. Brazaletes y todas las fichas: el mismo carrusel de venta cruzada.
->
-> Después: vista previa → confirmación del propietario → merge único a `main`.
-> El prompt del bot de WhatsApp aún dice «Bogotá 1-2 días» (lo lleva la sesión
-> del bot).
+> **Pendiente (espera datos del propietario):** credenciales de Addi (hoy
+> sigue por WhatsApp); fotos y textos de reseñas; hora de corte de Bogotá si
+> se quiere «pide hoy, llega mañana»; fotos de Ñ y Q. El prompt del bot de
+> WhatsApp aún dice «Bogotá 1-2 días» (lo lleva la sesión del bot). **No
+> fusionar** `claude/zephora-charms-automation-rzbthc` (rama del bot: toca
+> `catalogo.json`, `_precios.js` y `disponibilidad.mjs`).
 
 **Rama de trabajo:** `claude/tienda-paginas-producto` (antes
 `claude/zephoracharms-conversion-funnel-nom9ph`)
-**Alcance:** todo el frente de tienda. Por eso, **regla 1 de `CLAUDE.md` en
-pleno**: una sola sesión toca la tienda mientras este encargo esté abierto.
-Otra sesión en paralelo sobre `index.html`, `tienda.js`, `tienda.css` o
-`herramientas/gen_colecciones.py` duplicará trabajo.
+**Alcance:** todo el frente de tienda. **Regla 1 de `CLAUDE.md`**: una sola
+sesión a la vez sobre `index.html`, `tienda.js`, `tienda.css` y los
+generadores; quien los tome, que lo anote aquí antes de empezar (hoy, desde
+el 2026-09-26, nadie los tiene reclamados).
 
 ### Lo primero que hay que entender: qué NO detectan las pruebas
 
