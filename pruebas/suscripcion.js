@@ -198,6 +198,15 @@ async function main() {
     await p.waitForTimeout(4500);
     comprobar(await p.locator('.susc').isVisible(), 'tras ver 2 productos, aparece al cerrar la ficha');
     comprobar(!(await p.locator('.susc input[name=acepta]').isChecked()), 'la casilla de autorización va sin marcar');
+    await p.click('.susc-x');
+    await p.waitForTimeout(200);
+    comprobar(!(await p.locator('.susc').count()) && await p.locator('.susc-fab').isVisible(),
+      'al cerrarla con la X queda el botón de regalo');
+    const wa = await p.locator('.wa-float').boundingBox(), fab = await p.locator('.susc-fab').boundingBox();
+    comprobar(fab.x < 60 && wa.x > 300 && Math.abs(fab.y - wa.y) < 4, 'al lado contrario del de WhatsApp, a su altura');
+    await p.click('.susc-fab');
+    await p.waitForTimeout(200);
+    comprobar(await p.locator('.susc').isVisible() && !(await p.locator('.susc-fab').isVisible()), 'y el botón la vuelve a abrir');
     await p.fill('.susc input[name=correo]', 'cami@ejemplo.com');
     await p.click('.susc button[type=submit]');
     await p.waitForTimeout(300);
@@ -208,6 +217,9 @@ async function main() {
     const lead = ev.filter(e => e[1] === 'Lead');
     comprobar(lead.length === 1 && lead[0][2].content_name === 'suscripcion', 'al suscribirse manda Lead content_name «suscripcion»');
     comprobar(/Revisa tu correo/.test(await p.textContent('.susc')), 'y le dice que revise su correo');
+    await p.click('.susc-x');
+    await p.waitForTimeout(200);
+    comprobar(!(await p.locator('.susc-fab').isVisible()), 'ya suscrita, el botón de regalo no vuelve');
     const des = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     comprobar(des <= 0 && !errs.length, `sin desborde a 390 px (${des}) y consola ${errs.length ? 'con errores: ' + errs.join(' | ') : 'limpia'}`);
     if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, 'suscripcion.png') });

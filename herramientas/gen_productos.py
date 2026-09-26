@@ -357,6 +357,14 @@ def charm_de_referencia(cat, stock):
     return precios[v][0], v
 
 
+# Medios de pago, sutiles, encima de la línea de Addi (pedido del propietario,
+# 2026-09-26). Los mismos archivos oficiales que ya usa la sección de pagos de
+# la portada (assets/pagos/, misma versión de caché).
+PAGOS = ('        <p class="pp-pagos" aria-label="Medios de pago">' + ''.join(
+    '<img src="assets/pagos/%s.webp?v=20260913" alt="%s" height="18" loading="lazy" decoding="async">' % (f, n)
+    for f, n in [('visa', 'Visa'), ('mastercard', 'Mastercard'), ('pse', 'PSE'), ('nequi', 'Nequi'),
+                 ('daviplata', 'Daviplata'), ('bancolombia', 'Bancolombia'), ('addi', 'Addi')]) + '</p>\n')
+
 WA = 'https://wa.me/573018990672?text='
 WA_ADDI = WA + 'Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.'
 
@@ -389,10 +397,16 @@ def bloque_compra(pid, tipo, nombre, precio, paquetes, hay, ref_precio, completa
         cuatro_por_tres = paquetes[3]['total'] == 3 * precio
         rotulos = ['Compra 1', 'Compra 2', 'Compra 3', 'Lleva 4, paga 3' if cuatro_por_tres else 'Compra 4']
         filas = '\n'.join(fila_paquete(p, rotulos[i], True, hay and p['n'] == 2) for i, p in enumerate(paquetes))
-        minis = '\n'.join(
-            '          <div class="pq-it"><img src="assets/%s" alt="" width="56" height="56" loading="lazy" decoding="async">'
-            '<span>%s<small>%s</small></span><button type="button" class="pq-add" data-add="%s">Agregar</button></div>'
+        # Carrusel (pedido del propietario, 2026-09-26): primero los de su
+        # colección, luego las demás opciones con unidades, y al final la salida
+        # al catálogo completo.
+        minis = ('          <div class="pq-rail" role="list">\n' + '\n'.join(
+            '            <div class="pq-it" role="listitem"><img src="assets/%s" alt="" width="96" height="96" loading="lazy" '
+            'decoding="async"><span class="pq-it-n">%s</span><small>%s</small><button type="button" class="pq-add" '
+            'data-add="%s">Agregar</button></div>'
             % (cat['fotos'][c], H.escape(cat['nombres'][c]), cop(cat['precios'][c]), c) for c in completar)
+            + '\n            <a class="pq-it pq-todo" role="listitem" href="index.html#charms">Ver todo el catálogo<span aria-hidden="true">→</span></a>'
+            '\n          </div>\n          <p class="pq-desliza">Primero los de esta colección · desliza para ver más</p>')
         selector = ('      <fieldset class="pq">\n        <legend class="pq-t">Elige cuántos charms llevas</legend>\n'
                     + filas + '\n        <p class="pq-nota">El descuento se aplica solo en el carrito, con cualquier '
                     'combinación de charms. Totales con charms de este mismo precio y pago en línea.</p>\n'
@@ -401,18 +415,19 @@ def bloque_compra(pid, tipo, nombre, precio, paquetes, hay, ref_precio, completa
         botones = ('      <div class="pp-cta">\n        <button class="btn btn--ghost" type="button" data-add="%s">Agregar al carrito</button>\n'
                    '        <button class="btn" type="button" data-comprar="%s">Comprar ahora</button>\n      </div>' % (pid, pid))
     oculto = '' if hay else ' hidden'
-    return ('      <div class="pp-compra" id="pp-compra"%s>\n%s\n%s\n'
+    return ('      <div class="pp-compra" id="pp-compra"%s>\n%s\n%s\n%s'
             '        <p class="pp-addi">También a cuotas con Addi: <a data-wa="pagos" href="%s">pregúntanos por WhatsApp</a></p>\n'
             '        <p class="pp-susc"><a href="#" data-susc>Suscríbete y llévate un charm de regalo</a> en tu primera compra de 2 charms o más.</p>\n'
             '      </div>\n'
             '      <p class="pp-agotado" id="pp-agotado"%s>Esta pieza está agotada. <a data-wa="encargo" id="pp-encargo" href="%s">Pídela por encargo por WhatsApp</a> y te avisamos cuando vuelva.</p>'
-            % (oculto, selector, botones, WA_ADDI, '' if not hay else ' hidden',
+            % (oculto, selector, botones, PAGOS, WA_ADDI, '' if not hay else ' hidden',
                WA + urllib.parse.quote('Hola, Zephora Charms. Vi en la página que «%s» está agotado. '
                                         '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?' % nombre)))
 
 
 ICONO = {
     'envio': '<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/>',
+    'rapido': '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.8 1.8M9.5 2.5h5"/>',
     'contra': '<rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.6"/>',
     'sello': '<path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/>',
     'regalo': '<rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/>',
@@ -429,7 +444,7 @@ def beneficios(tipo, cat):
              # Confirmado por el propietario el 2026-09-26. Sin hora de corte no se
              # promete «pide hoy y llega mañana»: se cuenta desde el despacho,
              # igual que la tabla de envios-y-devoluciones.html.
-             ('envio', 'Bogotá: llega en 1 día hábil desde el despacho'),
+             ('rapido', 'Bogotá: llega en 1 día hábil desde el despacho'),
              ('contra', 'Pago contraentrega (+%s)' % cop(cat['reglas']['envio']['contraentrega'])),
              ('sello', material),
              ('regalo', 'Empaque de regalo incluido'),
@@ -446,12 +461,23 @@ def acordeones(tipo, meta, grupo, cat):
     descripción por familia (#pp-desc) las escribe tienda.js desde el mismo
     specsDe()/FAMILIAS que la ficha emergente."""
     contra = cop(cat['reglas']['envio']['contraentrega'])
+    # Texto del propietario (2026-09-26): el anterior «sí se oxida» asustaba.
+    # En los brazaletes cambia solo el primer párrafo: son baño de plata con
+    # e-coating, no Plata 925, y decir lo contrario ya costó una corrección.
     if tipo == 'brazalete':
-        cuidado = ('El baño de los brazaletes no se oxida solo gracias al e-coating, pero puede perder brillo si se '
-                   'expone a humedad, perfumes, cremas o sudor.')
+        cuidado = ('El baño de plata de tu brazalete lleva una capa protectora e-coating que lo cuida de la '
+                   'oxidación. Con el tiempo puede perder algo de brillo por la humedad, los perfumes o las cremas, '
+                   'y se lo devuelves frotándolo con un paño suave.')
     else:
-        cuidado = ('La Plata 925 de los charms sí se oxida con el tiempo al contacto con el aire. Es la naturaleza de '
-                   'la plata, no un defecto, y el brillo se recupera con un paño de joyería.')
+        cuidado = ('La Plata Ley 925 es un metal precioso genuino que experimenta un proceso natural de '
+                   'oscurecimiento u opacidad con el tiempo debido al contacto con el aire y la piel. Esto es una '
+                   'característica propia de la plata auténtica (no un defecto) y se soluciona fácilmente frotando '
+                   'tu joya con un paño de limpieza suave para devolverle su brillo original.')
+    consejos = ('<p>Para conservar tu joya como el primer día:</p><ul class="pp-lista">'
+                '<li><b>Úsala con cuidado:</b> póntela después de aplicar perfumes, cremas, lociones o maquillaje.</li>'
+                '<li><b>Evita la humedad:</b> quítatela antes de bañarte, nadar en la piscina o el mar, o hacer ejercicio.</li>'
+                '<li><b>Guardado ideal:</b> guárdala en su bolsita o estuche protector, en un lugar seco, cuando no la uses.</li>'
+                '<li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul>')
     secciones = [
         ('Descripción', '<p>%s.</p><p id="pp-desc"></p>' % (
             H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo)), True),
@@ -462,9 +488,7 @@ def acordeones(tipo, meta, grupo, cat):
                           'guía por WhatsApp o correo.</p>', False),
         ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta '
                           '%s: lo cobra la transportadora al recaudar.</p>' % contra, False),
-        ('Consejos y cuidados', '<p>%s</p><p>Guárdala en su bolsa cuando no la uses, quítatela para bañarte, nadar o '
-                                'hacer ejercicio, y evita el contacto con perfumes y cremas. Para limpiarla, un paño '
-                                'suave y seco.</p>' % cuidado, False),
+        ('Consejos y cuidados', '<p>%s</p>%s' % (cuidado, consejos), False),
     ]
     return '\n'.join('      <details class="pp-acc"%s><summary>%s</summary><div class="pp-acc-in">%s</div></details>'
                      % (' open' if abierto else '', t, c) for t, c, abierto in secciones)
@@ -557,9 +581,10 @@ def generar(pid, html, cat, stock, b, exigidos, paquetes, ref):
         head=b['head'], ann=b['ann'], header=b['header'], migas=migas(tipo, grupo, nombre),
         tarjeta='    ' + tarjeta, id_rel=id_rel, rel_sub=rel_sub,
         bloque_compra=bloque_compra(pid, tipo, nombre, precio, pq, hay, ref[1],
-                                    [c for c in (rel + cat['destacados'])
-                                     if c != pid and c in cat['precios'] and c not in cat['pulseras']
-                                     and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0][:6], cat),
+                                    list(dict.fromkeys(
+                                        c for c in (rel + cat['destacados'] + list(cat['precios']))
+                                        if c != pid and c in cat['precios'] and c not in cat['pulseras']
+                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:24], cat),
         beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat),
         bloque_resenas=BLOQUE_RESENAS.format(nombre=H.escape(nombre)),
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),

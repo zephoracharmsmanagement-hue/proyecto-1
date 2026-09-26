@@ -157,6 +157,22 @@ const lsPoner=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
 const suscFuera=()=>navigator.webdriver||lsLeer('zephora.suscrita')
   ||(Date.now()-(+lsLeer('zephora.susc.cerrado')||0)<30*864e5);
 let suscAbierta=false;
+/* Botón de regalo (pedido del propietario, 2026-09-26): si la clienta cierra
+   la ventana con la X, queda un botón al lado contrario del de WhatsApp para
+   retomar el incentivo. Desaparece en cuanto se suscribe. */
+function botonRegalo(ver){
+  let b=document.querySelector('.susc-fab');
+  if(!ver){ if(b) b.hidden=true; return; }
+  if(lsLeer('zephora.suscrita')||lsLeer('zephora.susc.enviada')) return;
+  if(!b){
+    b=document.createElement('button'); b.type='button'; b.className='susc-fab';
+    b.setAttribute('aria-label','Tu charm de regalo: suscríbete');
+    b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>';
+    b.addEventListener('click',()=>abrirSusc(true));
+    document.body.appendChild(b);
+  }
+  b.hidden=false;
+}
 function suscVista(){
   let n=0; try{ n=+(sessionStorage.getItem('zephora.vistas')||0)+1; sessionStorage.setItem('zephora.vistas',n); }catch(e){}
   /* Un instante después: verPieza corre dentro de abrirFicha ANTES de que la
@@ -171,6 +187,7 @@ function abrirSusc(forzar){
     if(!forzar){ setTimeout(()=>abrirSusc(),4000); return; }
   }
   suscAbierta=true;
+  botonRegalo(false);
   const capa=document.createElement('div');
   capa.className='susc'; capa.setAttribute('role','dialog'); capa.setAttribute('aria-modal','true');
   capa.setAttribute('aria-labelledby','susc-t');
@@ -186,7 +203,7 @@ function abrirSusc(forzar){
     +'<p class="susc-msg" aria-live="polite"></p></form></div>';
   document.body.appendChild(capa);
   const cerrar=()=>{ capa.remove(); suscAbierta=false; lsPoner('zephora.susc.cerrado',String(Date.now()));
-    document.removeEventListener('keydown',esc); };
+    document.removeEventListener('keydown',esc); botonRegalo(true); };
   const esc=e=>{ if(e.key==='Escape') cerrar(); };
   document.addEventListener('keydown',esc);
   capa.addEventListener('click',e=>{ if(e.target===capa||e.target.closest('.susc-x')) cerrar(); });
@@ -204,26 +221,40 @@ function abrirSusc(forzar){
       if(!r.ok){ msg.textContent=d.error||'No se pudo. Intenta de nuevo.'; b.disabled=false; return; }
       track('Lead',{content_name:'suscripcion'});
       lsPoner('zephora.susc.cerrado',String(Date.now()));
+      lsPoner('zephora.susc.enviada','1');
       f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». Tu regalo queda guardado para tu primera compra de 2 charms o más.</p>';
     }catch(err){ msg.textContent='Sin conexión. Intenta de nuevo.'; b.disabled=false; }
   });
   f.correo.focus();
 }
 if(!suscFuera()) setTimeout(()=>abrirSusc(),15000);
+/* Quien ya la cerró en otra visita ve el botón de regalo desde el principio. */
+else if(lsLeer('zephora.susc.cerrado')) botonRegalo(true);
 /* Cualquier enlace o botón con data-susc abre la suscripción a pedido. */
 document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); if(a){ e.preventDefault(); abrirSusc(true); } });
 
+/* Desde el 2026-09-25 cada inicial tiene su foto (assets/letra-x.webp), salvo
+   las que no llegaron (hoy Ñ y Q): esas caen a la foto del grupo con onerror,
+   sin una lista escrita aquí que se desincronice de assets/. */
+const fotoLetra=id=>'assets/'+encodeURIComponent(id)+'.webp?v=20260925';
+const fotoGrupoLetras=()=>{ const el=document.querySelector('.pc[data-id="letras"] img');
+  return el?(el.dataset.grupo||el.getAttribute('src')):''; };
 function imgDe(id){
-  /* las 27 iniciales comparten la foto del bloque de letras (tarjetaDe) */
+  const propia=document.querySelector('.pc[data-id="'+CSS.escape(id)+'"] img');
+  if(propia) return propia.src;
+  if(/^letra-/.test(id)) return fotoLetra(id);
   const t=tarjetaDe(id), el=t&&t.querySelector('img');
   return el?el.src:'';
 }
+const respaldo=id=>!/^letra-/.test(id) ? ''
+  : fotoGrupoLetras() ? ' onerror="this.onerror=null;this.src=\''+fotoGrupoLetras()+'\'"'
+  : ' onerror="this.style.visibility=\'hidden\'"';
 
 function fila(id,nombre,meta,precio,quitar){
   const r=document.createElement('div'); r.className='srow';
   const src=imgDe(id);
   /* Sin foto va un monograma, no un <img src=""> — eso pedía el HTML otra vez. */
-  const mini = src ? '<img src="'+src+'" alt="">'
+  const mini = src ? '<img src="'+src+'" alt=""'+respaldo(id)+'>'
     : '<span class="srow-nof" aria-hidden="true">'+nombre.trim().charAt(0).toUpperCase()+'</span>';
   r.innerHTML=mini+
     '<div class="srow-n">'+nombre+'<small>'+meta+'</small></div>'+
@@ -1266,7 +1297,17 @@ document.addEventListener('click',e=>{
   }
 
   const L=e.target.closest('[data-letra]');
-  if(L){ if(!bloqueado(L)) sumarCharm('letra-'+L.dataset.letra); return; }
+  if(L){
+    const id='letra-'+L.dataset.letra;
+    /* La tarjeta de letras enseña la inicial que se acaba de tocar, con su
+       foto propia; si esa letra no tiene, vuelve a la del grupo. */
+    const img=document.querySelector('.pc[data-id="letras"] .pc-img img');
+    if(img){ if(!img.dataset.grupo) img.dataset.grupo=img.getAttribute('src');
+      img.onerror=()=>{ img.onerror=null; img.src=img.dataset.grupo; };
+      img.src=fotoLetra(id); img.alt='Charm '+CH[id].n; }
+    if(!bloqueado(L)) sumarCharm(id);
+    return;
+  }
 
   /* Elegir talla fija el brazalete; volver a tocarla lo quita. */
   const t=e.target.closest('[data-talla]');
