@@ -25,6 +25,8 @@ const stock = JSON.parse(leer('assets/stock.json')).items;
 const unidades = it => !it ? 0 : it.tallas ? Object.values(it.tallas).reduce((a, b) => a + b, 0) : (it.stock || 0);
 const css = leer('tienda.css');
 const archivoDe = id => 'producto-' + id + '.html';
+// Netlify sirve la página también sin «.html» (y redirige ahí): vale cualquiera.
+const llegaA = f => u => u.pathname.replace(/\.html$/, '') === '/' + f.replace(/\.html$/, '');
 const paginas = fs.readdirSync(RAIZ).filter(f => /^producto-.+\.html$/.test(f)).sort();
 const htmlRaiz = fs.readdirSync(RAIZ).filter(f => f.endsWith('.html'));
 
@@ -247,10 +249,10 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i)).length,
       `${enlazadas} nombres de tarjeta enlazan a su página`);
     const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
-    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/' + archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
+    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
     ok(true, `tocar la foto de ${id} en la portada lleva a ${archivoDe(id)}`);
     await p.goBack({ waitUntil: 'networkidle' });
-    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/' + archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-name a`)]);
+    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-name a`)]);
     ok(true, 'y tocar su nombre, también');
     await p.goBack({ waitUntil: 'networkidle' });
     const conBoton = await p.evaluate(() => {
@@ -262,12 +264,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await p.waitForTimeout(250);
     ok(p.url() === antes, `«Agregar» de la tarjeta agrega sin salir de la portada (${conBoton})`);
     await p.evaluate(() => { const L = document.querySelector('[data-letra="m"]'); if (L) L.click(); });
-    await Promise.all([p.waitForURL(u => u.pathname.endsWith('/producto-letra-m.html')),
+    await Promise.all([p.waitForURL(llegaA('producto-letra-m.html')),
       p.evaluate(() => document.querySelector('.pc[data-id="letras"] .pc-img').click())]);
     ok(true, 'la tarjeta de letras lleva a la inicial que se tocó (M)');
     const rel = await p.$eval('.sec .pc[data-id]:not(.pc--pp):not([data-id="letras"])', e => e.dataset.id).catch(() => null);
     if (rel) {
-      await Promise.all([p.waitForURL(u => u.pathname.endsWith('/' + archivoDe(rel))), p.click(`.pc[data-id="${rel}"]:not(.pc--pp) .pc-img`)]);
+      await Promise.all([p.waitForURL(llegaA(archivoDe(rel))), p.click(`.pc[data-id="${rel}"]:not(.pc--pp) .pc-img`)]);
       ok(true, `desde una página de producto, una pieza relacionada lleva a la suya (${rel})`);
     }
     await p.click('.pc--pp .pc-img');
