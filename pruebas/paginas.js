@@ -377,5 +377,37 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, f.replace('.html', '.png')) });
     await p.close();
   }
+  // ── 6 · Fotos del carrito en cualquier página (ENCARGO-FICHA-2 § 2) ──
+  // imgDe() buscaba la foto en las tarjetas de la página: en kits, colecciones
+  // y páginas de producto casi ninguna pieza tiene tarjeta, y el carrito salía
+  // sin fotos (y la tira de sugeridos con <img src=""> roto).
+  console.log('6 · Fotos del carrito fuera de la portada');
+  {
+    const ajenas = ['mickey-mouse', 'angel-guardian', 'letra-m', 'aries'];
+    for (const f of ['kits.html', 'coleccion-marvel.html', archivoDe('hulk')]) {
+      const ctx6 = await b.newContext({ viewport: { width: 390, height: 844 } });
+      await rutasFalsas(ctx6);
+      await ctx6.addInitScript(ch => localStorage.setItem('zephora.carrito.v1', JSON.stringify(
+        { v: 1, base: { id: 'pulsera-avengers', talla: '18' }, charms: ch, pago: 'anticipado', cuando: Date.now() })), ajenas);
+      const p = await ctx6.newPage();
+      const errs = [];
+      p.on('pageerror', e => errs.push(e.message));
+      await p.goto(BASE + '/' + f, { waitUntil: 'networkidle' });
+      await p.waitForTimeout(300);
+      const r = await p.evaluate(() => {
+        const filas = [...document.querySelectorAll('#sheet-body .srow')];
+        const sinFoto = filas.filter(x => { const i = x.querySelector('img');
+          return !i || !i.getAttribute('src') || !(i.complete && i.naturalWidth > 0); })
+          .map(x => x.querySelector('.srow-n').firstChild.textContent.trim());
+        const vacias = [...document.querySelectorAll('img')].filter(i => i.hasAttribute('src') && !i.getAttribute('src')).length;
+        return { n: filas.length, sinFoto, vacias };
+      });
+      ok(r.n === ajenas.length + 1 && !r.sinFoto.length && !r.vacias && !errs.length,
+        `${f}: las ${r.n} filas del carrito con foto` + lista(r.sinFoto) + (r.vacias ? `, ${r.vacias} <img src=""> vacías` : '')
+        + (errs.length ? ', errores ' + errs.join(' | ') : ''));
+      await ctx6.close();
+    }
+  }
+
   await b.close();
 })();

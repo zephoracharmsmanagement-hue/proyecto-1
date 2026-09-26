@@ -910,6 +910,10 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   font:inherit;transition:border-color .16s,background .16s}
 @media(hover:hover){.sug-c:hover{border-color:var(--rose);background:rgba(180,101,127,.16)}}
 .sug-ph{position:relative;display:block}
+.mono{display:grid;place-items:center;background:#fff;border-radius:2px;color:var(--plum);
+  font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;line-height:1}
+.sug-c .mono{height:64px}
+.busq-r .mono{width:44px;height:44px;flex:0 0 auto}
 /* La foto va con alto fijo en vez de cuadrada: dentro de la hoja cada píxel de
    alto se lo quita al desglose y a la forma de pago, que quedan debajo. Con
    object-fit:contain la pieza se sigue viendo entera, solo con algo más de

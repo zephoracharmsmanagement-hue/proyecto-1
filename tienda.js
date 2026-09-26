@@ -203,10 +203,13 @@ function estadoVit(){
     if(lleno) b.setAttribute('aria-disabled','true'); else b.removeAttribute('aria-disabled');
   });
 }
-if(VIT.length){
+/* El catálogo se carga en TODAS las páginas: además de la vitrina, da la
+   foto de cada pieza al carrito (imgDe). Al llegar se repinta el carrito,
+   por si ya tenía filas pintadas sin foto. */
+{
   const sinVit=()=>VIT.forEach(v=>{ v.hidden=true; });
   fetch('assets/catalogo.json').then(r=>r.ok?r.json():null)
-    .then(c=>{ if(!c||!c.grupos||!c.fotos) return sinVit(); CAT=c; VIT.forEach(v=>dibujarVit(v)); })
+    .then(c=>{ if(!c||!c.grupos||!c.fotos) return sinVit(); CAT=c; VIT.forEach(v=>dibujarVit(v)); render(); })
     .catch(sinVit);
 }
 document.addEventListener('click',e=>{
@@ -342,12 +345,30 @@ document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); 
 const fotoLetra=id=>'assets/'+encodeURIComponent(id)+'.webp?v=20260925';
 const fotoGrupoLetras=()=>{ const el=document.querySelector('.pc[data-id="letras"] img');
   return el?(el.dataset.grupo||el.getAttribute('src')):''; };
+/* La foto de una pieza. Primero la de su tarjeta, si está en la página (es la
+   que ya se ve, con su versión de caché); si no, la de assets/catalogo.json,
+   que tiene la de las 135 piezas. Antes solo se buscaba en la página, y en
+   kits, colecciones y páginas de producto —donde casi ninguna pieza tiene
+   tarjeta— el carrito salía sin fotos (ENCARGO-FICHA-2 § 2). */
 function imgDe(id){
   const propia=document.querySelector('.pc[data-id="'+CSS.escape(id)+'"] img');
   if(propia) return propia.src;
+  if(id==='letras') return fotoGrupoLetras()||imgDe('letra-a');
+  const f=CAT&&CAT.fotos&&CAT.fotos[id];
+  if(f) return 'assets/'+f;
   if(/^letra-/.test(id)) return fotoLetra(id);
   const t=tarjetaDe(id), el=t&&t.querySelector('img');
   return el?el.src:'';
+}
+/* Miniatura para la tira de sugeridos y la lupa: la foto o, si no hay, el
+   monograma. Nunca un <img src="">, que se ve roto. */
+function miniatura(id,nombre){
+  const src=imgDe(id);
+  if(src){ const im=document.createElement('img');
+    im.src=src; im.alt=''; im.loading='lazy'; im.decoding='async'; return im; }
+  const s=document.createElement('span'); s.className='mono'; s.setAttribute('aria-hidden','true');
+  s.textContent=String(nombre||'').trim().charAt(0).toUpperCase();
+  return s;
 }
 const respaldo=id=>!/^letra-/.test(id) ? ''
   : fotoGrupoLetras() ? ' onerror="this.onerror=null;this.src=\''+fotoGrupoLetras()+'\'"'
@@ -1070,8 +1091,7 @@ function pintarSug(){
     b.type='button'; b.className='sug-c'; b.dataset.sug=id;
     b.setAttribute('aria-label','Agregar '+CH[id].n);
     const ph=document.createElement('span'); ph.className='sug-ph';
-    const im=document.createElement('img');
-    im.src=imgDe(id); im.alt=''; im.loading='lazy'; im.decoding='async';
+    const im=miniatura(id,CH[id].n);
     const mas=document.createElement('span'); mas.className='sug-mas';
     mas.setAttribute('aria-hidden','true'); mas.textContent='+';
     ph.append(im,mas);
@@ -1717,8 +1737,7 @@ function pintarBusqueda() {
     const li = document.createElement('li');
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'busq-r'; b.dataset.ir = x.id; b.setAttribute('role', 'option');
-    const im = document.createElement('img');
-    im.src = imgDe(x.letras ? 'letras' : x.id); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+    const im = miniatura(x.letras ? 'letras' : x.id, x.n);
     const n = document.createElement('span'); n.className = 'busq-n';
     n.textContent = x.n;
     const meta = document.createElement('small');
