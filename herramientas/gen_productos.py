@@ -451,7 +451,7 @@ def beneficios(tipo, cat):
              ('rapido', 'Bogotá: llega en 1 día hábil desde el despacho'),
              ('contra', 'Pago contraentrega (+%s)' % cop(cat['reglas']['envio']['contraentrega'])),
              ('sello', material),
-             ('regalo', 'Empaque de regalo incluido'),
+             ('regalo', 'Empaque de regalo: caja, paño y dedicatoria escrita a mano'),
              ('cambio', 'Cambio de talla o retracto en 5 días hábiles')]
     return '\n'.join('        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
                      'stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">%s</svg>%s</li>' % (ICONO[k], H.escape(t))
@@ -480,7 +480,7 @@ def acordeones(tipo, meta, grupo, cat):
     consejos = ('<p>Para conservar tu joya como el primer día:</p><ul class="pp-lista">'
                 '<li><b>Úsala con cuidado:</b> póntela después de aplicar perfumes, cremas, lociones o maquillaje.</li>'
                 '<li><b>Evita la humedad:</b> quítatela antes de bañarte, nadar en la piscina o el mar, o hacer ejercicio.</li>'
-                '<li><b>Guardado ideal:</b> guárdala en su bolsita o estuche protector, en un lugar seco, cuando no la uses.</li>'
+                '<li><b>Guardado ideal:</b> guárdala en su caja, en un lugar seco, cuando no la uses.</li>'
                 '<li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul>')
     secciones = [
         ('Descripción', '<p>%s.</p><p id="pp-desc"></p>' % (

@@ -86,6 +86,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     .map(r => (r.match(/from\s*=\s*"([^"]+)"/) || [])[1]);
   ok(reglas.some(r => /status\s*=\s*404/.test(r)) && !sinForce.length,
     'toda regla 404 de netlify.toml lleva force = true' + lista(sinForce));
+  // El empaque es caja, paño y dedicatoria escrita a mano (confirmado por el
+  // propietario el 2026-09-26): ni bolsa, ni «caja de lujo», ni el Premium
+  // retirado el 2026-09-13, en ninguna página que se publica.
+  const empaqueViejo = htmlRaiz.filter(f => /bolsa|bolsita|caja de lujo|empaque premium/i.test(leer(f)));
+  ok(!empaqueViejo.length, 'ninguna página promete bolsa, «caja de lujo» ni Empaque Premium' + lista(empaqueViejo));
 
   // ── Renderizadas: una por tipo ──
   const hay = id => unidades(stock[id]) > 0;
