@@ -23,7 +23,7 @@ error visible hoy; puede ir primero.
 - Qué pieza se regala a suscriptores.
 - ~~Certificado de níquel~~ y ~~contenido del empaque~~: confirmados el
   2026-09-26 (charms hipoalergénicos y libres de níquel; empaque = caja, paño y
-  dedicatoria). Falta solo saber si la certificación cubre los brazaletes.
+  dedicatoria). La certificación cubre también los brazaletes.
 - Dónde alojar videos de reseñas, si se quieren videos largos.
 - Si «+2.400 pulseras creadas» y las reseñas fijas con «Compra verificada» se
   pueden sostener.

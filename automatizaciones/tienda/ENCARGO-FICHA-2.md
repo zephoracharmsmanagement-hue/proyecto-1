@@ -35,12 +35,13 @@ de pieza está marcado. Negritas tal cual.
 
 - **Confirmado por el propietario el 2026-09-26:** el proveedor certifica que la
   plata de los charms es hipoalergénica y libre de níquel.
-- *En la ficha de un brazalete* (baño de plata, otra base metálica) no se usa
-  «hipoalergénica» ni «libre de níquel» **salvo que el propietario confirme que
-  la certificación del proveedor cubre también los brazaletes**. Mientras tanto,
-  texto alterno:
-  > **Liviano y cómodo** para el día a día. Guárdalo seco y lejos de perfumes
-  > para que el **baño conserve su brillo** por más tiempo.
+- *En la ficha de un brazalete* (baño de plata), mismo bloque con este texto;
+  la certificación del proveedor **cubre también los brazaletes** (confirmado
+  por el propietario el 2026-09-26):
+  > Brazalete en baño de plata **hipoalergénico y libre de níquel**, liviano y
+  > cómodo para **usarlo a diario**. Guárdalo seco y lejos de perfumes para que
+  > el **baño conserve su brillo** por más tiempo.
+  Nunca decir que el brazalete es plata: es **baño de plata**.
 
 ### Bloque 3 · ✧ Tu historia, un charm a la vez
 **Medio:** video de las joyas pasando.
