@@ -95,6 +95,25 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
   const empaqueViejo = htmlRaiz.filter(f => /bolsa|bolsita|caja de lujo|empaque premium/i.test(publicado(leer(f))));
   ok(!empaqueViejo.length, 'ninguna página promete bolsa, «caja de lujo» ni Empaque Premium' + lista(empaqueViejo));
 
+  // Los 4 bloques con foto o video (ENCARGO-FICHA-2 § 1). El brazalete es
+  // baño de plata: su bloque 2 nunca dice «Plata 925». Los videos viven en
+  // Blobs (/media/) y solo viaja la portada hasta que se ven.
+  const malBloques = [], malVideo = [];
+  for (const f of paginas) {
+    const h = leer(f), id = f.slice(9, -5);
+    const esB = cat.pulseras.includes(decodeURIComponent(id));
+    const n = (h.match(/class="bv-b"/g) || []).length;
+    const texto = esB ? /Brazalete en baño de plata <b>hipoalergénico y libre de níquel/.test(h) && !/Plata 925 <b>hipoalergénica/.test(h)
+      : /Plata 925 <b>hipoalergénica y libre de níquel/.test(h);
+    if (n !== 4 || !texto) malBloques.push(f);
+    for (const v of h.match(/<video class="bv-v"[^>]*>\s*<source[^>]*>/g) || []) {
+      const poster = (v.match(/poster="([^"]+)"/) || [])[1];
+      if (!/preload="none"/.test(v) || !poster || !fs.existsSync(path.join(RAIZ, poster)) || !/src="media\/[a-z0-9-]+\.mp4"/.test(v)) malVideo.push(f);
+    }
+  }
+  ok(!malBloques.length, `las ${paginas.length} fichas traen los 4 bloques con el texto de su tipo` + lista(malBloques));
+  ok(!malVideo.length, 'cada video de bloque: preload="none", portada que existe y archivo en /media/' + lista([...new Set(malVideo)]));
+
   // ── Renderizadas: una por tipo ──
   const hay = id => unidades(stock[id]) > 0;
   const primero = fn => [...idsPagina].find(fn);

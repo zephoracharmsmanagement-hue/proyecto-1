@@ -87,7 +87,8 @@ if(hbPause && hbTrack){
  * controles para que decida. Es la misma regla que ya respetan el banner y el
  * ticker de avisos. */
 const quietoPorPreferencia = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const ugcVideos = document.querySelectorAll('.ugc-v');
+/* También los videos de los bloques de la ficha (.bv-v), con la misma regla. */
+const ugcVideos = document.querySelectorAll('.ugc-v, .bv-v');
 if (quietoPorPreferencia) {
   ugcVideos.forEach(v => { v.controls = true; v.preload = 'metadata'; });
 } else if (ugcVideos.length) {
