@@ -76,7 +76,22 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     <nav class="tnav">
       <a href="kits.html">Kits</a>
       <a href="index.html#promo">Promo</a>
-      <a href="index.html#categorias">Categorías</a>
+      <div class="tnav-cat">
+        <button class="tnav-cat-b" type="button" id="cat-btn" aria-expanded="false" aria-controls="cat-menu">Categorías<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="tnav-cat-m" id="cat-menu" hidden>
+          <a href="coleccion-mas-vendidos.html">Más vendidos</a>
+          <a href="coleccion-marvel.html">Marvel</a>
+          <a href="index.html?cat=Disney#charms" data-cat="Disney">Disney</a>
+          <a href="index.html?cat=Pixar#charms" data-cat="Pixar">Pixar</a>
+          <a href="index.html?cat=Letras#charms" data-cat="Letras">Letras</a>
+          <a href="index.html?cat=Zodiaco#charms" data-cat="Zodiaco">Zodiaco</a>
+          <a href="index.html?cat=Profesiones#charms" data-cat="Profesiones">Profesiones</a>
+          <a href="index.html?cat=Muranos#charms" data-cat="Muranos">Muranos</a>
+          <a href="coleccion-simbolos.html">Símbolos</a>
+          <a href="index.html?cat=Clips#charms" data-cat="Clips">Clips</a>
+          <a href="index.html?cat=Cadenas#charms" data-cat="Cadenas">Cadenas</a>
+        </div>
+      </div>
       <a href="#brazaletes">Brazaletes</a>
       <a href="index.html#charms">Charms</a>
       <a href="#talla">Tallas</a>
@@ -95,8 +110,22 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
        sitio con un solo botón. -->
   <nav class="menu-panel" id="menu-panel" hidden aria-label="Secciones de la tienda">
     <a href="kits.html"><b>Kits</b><small>Armados, con el descuento puesto</small></a>
-    <a href="coleccion-marvel.html"><b>Marvel</b><small>15 piezas</small></a>
-    <a href="coleccion-simbolos.html"><b>Símbolos</b><small>Fe, amor, viajes y suerte</small></a>
+    <details class="menu-cat">
+      <summary><b>Categorías</b><small>Más vendidos, Marvel, Disney, Letras…</small></summary>
+      <div class="menu-cat-l">
+        <a href="coleccion-mas-vendidos.html">Más vendidos</a>
+        <a href="coleccion-marvel.html">Marvel</a>
+        <a href="index.html?cat=Disney#charms" data-cat="Disney">Disney</a>
+        <a href="index.html?cat=Pixar#charms" data-cat="Pixar">Pixar</a>
+        <a href="index.html?cat=Letras#charms" data-cat="Letras">Letras</a>
+        <a href="index.html?cat=Zodiaco#charms" data-cat="Zodiaco">Zodiaco</a>
+        <a href="index.html?cat=Profesiones#charms" data-cat="Profesiones">Profesiones</a>
+        <a href="index.html?cat=Muranos#charms" data-cat="Muranos">Muranos</a>
+        <a href="coleccion-simbolos.html">Símbolos</a>
+        <a href="index.html?cat=Clips#charms" data-cat="Clips">Clips</a>
+        <a href="index.html?cat=Cadenas#charms" data-cat="Cadenas">Cadenas</a>
+      </div>
+    </details>
     <a href="#brazaletes"><b>Brazaletes</b><small>18 modelos</small></a>
     <a href="index.html#charms"><b>Charms</b><small>117 piezas</small></a>
     <a href="envios-y-devoluciones.html"><b>Envíos</b><small>Tiempos, tarifas y devoluciones</small></a>
@@ -174,14 +203,14 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
         <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.8 1.8M9.5 2.5h5"/></svg>Bogotá: llega en 1 día hábil desde el despacho</li>
         <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="1.5"/><circle cx="12" cy="12" r="2.6"/></svg>Pago contraentrega (+$20.000)</li>
         <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/></svg>Plata Esterlina 925 con sello grabado</li>
-        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>Empaque de regalo incluido</li>
+        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>Empaque de regalo: caja, paño y dedicatoria escrita a mano</li>
         <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13l-3-3M20 15H7l3 3"/></svg>Cambio de talla o retracto en 5 días hábiles</li>
       </ul>
       <details class="pp-acc" open><summary>Descripción</summary><div class="pp-acc-in"><p>Colección Clips.</p><p id="pp-desc"></p></div></details>
       <details class="pp-acc"><summary>Materiales</summary><div class="pp-acc-in"><dl class="fx-specs" id="pp-specs"></dl></div></details>
       <details class="pp-acc"><summary>Envíos gratis</summary><div class="pp-acc-in"><p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos a Bogotá 1 – 2; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de guía por WhatsApp o correo.</p></div></details>
       <details class="pp-acc"><summary>Contraentrega</summary><div class="pp-acc-in"><p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta $20.000: lo cobra la transportadora al recaudar.</p></div></details>
-      <details class="pp-acc"><summary>Consejos y cuidados</summary><div class="pp-acc-in"><p>La Plata Ley 925 es un metal precioso genuino que experimenta un proceso natural de oscurecimiento u opacidad con el tiempo debido al contacto con el aire y la piel. Esto es una característica propia de la plata auténtica (no un defecto) y se soluciona fácilmente frotando tu joya con un paño de limpieza suave para devolverle su brillo original.</p><p>Para conservar tu joya como el primer día:</p><ul class="pp-lista"><li><b>Úsala con cuidado:</b> póntela después de aplicar perfumes, cremas, lociones o maquillaje.</li><li><b>Evita la humedad:</b> quítatela antes de bañarte, nadar en la piscina o el mar, o hacer ejercicio.</li><li><b>Guardado ideal:</b> guárdala en su bolsita o estuche protector, en un lugar seco, cuando no la uses.</li><li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul></div></details>
+      <details class="pp-acc"><summary>Consejos y cuidados</summary><div class="pp-acc-in"><p>La Plata Ley 925 es un metal precioso genuino que experimenta un proceso natural de oscurecimiento u opacidad con el tiempo debido al contacto con el aire y la piel. Esto es una característica propia de la plata auténtica (no un defecto) y se soluciona fácilmente frotando tu joya con un paño de limpieza suave para devolverle su brillo original.</p><p>Para conservar tu joya como el primer día:</p><ul class="pp-lista"><li><b>Úsala con cuidado:</b> póntela después de aplicar perfumes, cremas, lociones o maquillaje.</li><li><b>Evita la humedad:</b> quítatela antes de bañarte, nadar en la piscina o el mar, o hacer ejercicio.</li><li><b>Guardado ideal:</b> guárdala en su caja, en un lugar seco, cuando no la uses.</li><li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul></div></details>
     </div>
   </div>
 </section>
@@ -223,6 +252,26 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
         </div>
       </div>
     </details>
+  </div>
+</section>
+<section class="sec bv" aria-label="Por qué Zephora">
+  <div class="wrap bv-in">
+    <article class="bv-b">
+      <div class="bv-m"><img src="assets/bloque-s925.webp" alt="Sello S925 grabado en un charm de Zephora" width="720" height="720" loading="lazy" decoding="async"></div>
+      <div class="bv-t"><h2><span aria-hidden="true">✦</span> Plata 925 que puedes comprobar</h2><p>Cada charm lleva grabado el sello <b>S925</b>: la marca de la <b>Plata Esterlina 925</b>. <b>Búscalo con tus propios ojos</b> apenas la recibas; está ahí para que no tengas que creernos.</p></div>
+    </article>
+    <article class="bv-b">
+      <div class="bv-m"><video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="960" poster="assets/bloque-diario-v1.webp" aria-hidden="true"><source src="media/bloque-diario-v1.mp4" type="video/mp4"></video></div>
+      <div class="bv-t"><h2><span aria-hidden="true">♡</span> Para llevarla todos los días</h2><p>Plata 925 <b>hipoalergénica y libre de níquel</b>, hecha para <b>usarse a diario</b>, incluso en piel sensible. Si con el tiempo se oscurece, es natural en la plata real: <b>un paño le devuelve el brillo</b> en segundos.</p></div>
+    </article>
+    <article class="bv-b">
+      <div class="bv-m"><video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="714" poster="assets/bloque-historia-v1.webp" aria-hidden="true"><source src="media/bloque-historia-v1.mp4" type="video/mp4"></video></div>
+      <div class="bv-t"><h2><span aria-hidden="true">✧</span> Tu historia, un charm a la vez</h2><p>Combina héroes, iniciales y símbolos en <b>un solo brazalete</b>. Desde el tercer charm <b>el brazalete baja 30%</b>, y <b>llevando 4, pagas 25% menos</b> en tus charms.</p><div class="bv-cta"><a class="btn btn--ghost" href="#pp-compra">Arma tu pulsera</a></div></div>
+    </article>
+    <article class="bv-b">
+      <div class="bv-m"><video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="960" poster="assets/bloque-regalo-v1.webp" aria-hidden="true"><source src="media/bloque-regalo-v1.mp4" type="video/mp4"></video></div>
+      <div class="bv-t"><h2><span aria-hidden="true">✦</span> Llega lista para regalar</h2><p>Tu pedido llega en <b>su caja</b>, con <b>paño para limpiar la plata</b> y una <b>dedicatoria escrita a mano</b> con las palabras que tú elijas. Solo falta entregarla… o quedártela.</p><div class="bv-cta"><button class="btn" type="button" data-add="clip-orquideas-moradas">Agregar al carrito</button></div></div>
+    </article>
   </div>
 </section>
 
@@ -284,11 +333,11 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
 <section class="sec" id="resenas-pieza">
   <div class="wrap">
     <span class="eyebrow">Reseñas</span>
-    <h2>Opiniones de Clip Orquídeas Moradas</h2>
+    <h2>Todas las reseñas de la tienda</h2>
     <div class="rp-resumen estrellas" id="rp-resumen"></div>
-    <div class="rp-lista" id="rp-lista"><p class="rp-vacio">Todavía no hay reseñas publicadas de esta pieza.</p></div>
+    <div class="rp-lista" id="rp-lista"><p class="rp-vacio">Todavía no hay reseñas publicadas.</p></div>
     <details class="rp-escribir" id="rp-escribir">
-      <summary>Escribir una reseña</summary>
+      <summary>Escribir una reseña de Clip Orquídeas Moradas</summary>
       <form class="rp-form" id="rp-form" novalidate>
         <fieldset class="rp-est"><legend>Tu calificación</legend>
           <label><input type="radio" name="estrellas" value="5">5</label><label><input type="radio" name="estrellas" value="4">4</label><label><input type="radio" name="estrellas" value="3">3</label><label><input type="radio" name="estrellas" value="2">2</label><label><input type="radio" name="estrellas" value="1">1</label>
@@ -296,6 +345,8 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
         <label>Tu reseña<textarea name="texto" rows="4" maxlength="800" required></textarea></label>
         <div class="rp-dos"><label>Nombre<input name="nombre" maxlength="40" required autocomplete="given-name"></label>
         <label>Ciudad<input name="ciudad" maxlength="40" autocomplete="address-level2"></label></div>
+        <div class="rp-dos"><label>Fotos (opcional, hasta 3)<input type="file" name="fotos" accept="image/*" multiple></label>
+        <label>Video (opcional, hasta 20 s)<input type="file" name="video" accept="video/*"></label></div>
         <input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">
         <button class="btn" type="submit">Enviar reseña</button>
         <p class="rp-nota">Revisamos cada reseña antes de publicarla. Publicamos también las de pocas estrellas.</p>
@@ -353,15 +404,15 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
       <button class="rail-btn rail-btn--prev" type="button" aria-label="Videos anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
       <button class="rail-btn rail-btn--next" type="button" aria-label="Más videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
       <div class="rail">
-        <video class="ugc-v" poster="assets/historia-1-portada.webp?v=20260913" muted loop playsinline preload="none"
+        <video class="ugc-v" poster="assets/historia-1-portada.webp?v=20260913" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback
                width="720" height="1280" aria-label="Una clienta abre su regalo y luce el brazalete Zephora con charms de corazón, mariposa y piedra azul">
           <source src="assets/historia-1.mp4" type="video/mp4">
         </video>
-        <video class="ugc-v" poster="assets/historia-2-portada.webp?v=20260913" muted loop playsinline preload="none"
+        <video class="ugc-v" poster="assets/historia-2-portada.webp?v=20260913" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback
                width="720" height="1280" aria-label="Una clienta muestra su charm de cristal azul recién sacado de la caja y se lo monta en la pulsera">
           <source src="assets/historia-2.mp4" type="video/mp4">
         </video>
-        <video class="ugc-v" poster="assets/historia-3-portada.webp?v=20260913" muted loop playsinline preload="none"
+        <video class="ugc-v" poster="assets/historia-3-portada.webp?v=20260913" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback
                width="720" height="1280" aria-label="Una clienta le pone a su novio un brazalete Zephora con charms de Spider-Man, Iron Man y Capitán América">
           <source src="assets/historia-3.mp4" type="video/mp4">
         </video>
@@ -382,7 +433,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-4h12l2 4M12 12v4M9.5 14.5h5"/></svg><span><b>Pago contraentrega disponible:</b> pagas cuando la tengas en tus manos</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span><b>Paga como prefieras:</b> Nequi, Bancolombia, tarjetas o Addi a cuotas — confirmamos todo antes por chat</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5.3 5.5.6-4.2 3.8 1.2 5.6L12 14.5 7 17.3l1.2-5.6L4 7.9l5.5-.6z"/></svg><span><b>Materiales garantizados:</b> charms en Plata Esterlina 925 legítima con sello grabado; brazaletes con baño de plata de alta calidad</span></div>
-      <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 12h16M12 9v11M12 9c-3 0-4.5-1.5-4.5-3S9 3.5 10.5 4.5 12 9 12 9zm0 0c3 0 4.5-1.5 4.5-3S15 3.5 13.5 4.5 12 9 12 9z"/></svg><span><b>Empaque de regalo incluido</b> — caja, bolsa y tarjeta con tu dedicatoria, sin costo</span></div>
+      <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 12h16M12 9v11M12 9c-3 0-4.5-1.5-4.5-3S9 3.5 10.5 4.5 12 9 12 9zm0 0c3 0 4.5-1.5 4.5-3S15 3.5 13.5 4.5 12 9 12 9z"/></svg><span><b>Empaque de regalo incluido</b> — caja, paño y dedicatoria escrita a mano, sin costo</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></svg><span><b>Garantía de 30 días</b> por defectos de fábrica</span></div>
     </div>
   </div>
@@ -529,7 +580,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
          piezas en 65 px (ver el comentario de arriba); con estas tres dentro
          volvía a ocupar ~290 px y solo se veía un producto y medio. Abajo queda
          únicamente lo que decide la compra. -->
-    <p class="sheet-note sheet-note--regalo">🎁 Incluye caja de lujo, paño para tu plata y tarjeta con dedicatoria — sin costo.</p>
+    <p class="sheet-note sheet-note--regalo">🎁 Incluye caja, paño para limpiar la plata y dedicatoria escrita a mano — sin costo.</p>
     <p class="sheet-note sheet-note--addi">¿Ticket alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Difiere tu compra hasta en 3 cuotas sin interés con Addi</a></p>
     <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</p>
     <p class="stock-nota"><span id="stock-fecha"></span></p>

@@ -86,6 +86,37 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     .map(r => (r.match(/from\s*=\s*"([^"]+)"/) || [])[1]);
   ok(reglas.some(r => /status\s*=\s*404/.test(r)) && !sinForce.length,
     'toda regla 404 de netlify.toml lleva force = true' + lista(sinForce));
+  // El empaque es caja, paño y dedicatoria escrita a mano (confirmado por el
+  // propietario el 2026-09-26): ni bolsa, ni «caja de lujo», ni el Premium
+  // retirado el 2026-09-13, en ninguna página que se publica.
+  // Se mira lo que se publica: el texto y los datos para Google (ld+json), no
+  // los comentarios del código que explican el retiro.
+  const publicado = h => h.replace(/<script(?![^>]*ld\+json)[\s\S]*?<\/script>/g, '').replace(/<!--[\s\S]*?-->/g, '');
+  const empaqueViejo = htmlRaiz.filter(f => /bolsa|bolsita|caja de lujo|empaque premium/i.test(publicado(leer(f))));
+  ok(!empaqueViejo.length, 'ninguna página promete bolsa, «caja de lujo» ni Empaque Premium' + lista(empaqueViejo));
+
+  // Los 4 bloques con foto o video (ENCARGO-FICHA-2 § 1). El brazalete es
+  // baño de plata: su bloque 2 nunca dice «Plata 925». Los videos viven en
+  // Blobs (/media/) y solo viaja la portada hasta que se ven.
+  const malBloques = [], malVideo = [];
+  for (const f of paginas) {
+    const h = leer(f), id = f.slice(9, -5);
+    const esB = cat.pulseras.includes(decodeURIComponent(id));
+    const n = (h.match(/class="bv-b"/g) || []).length;
+    const texto = esB ? /Brazalete en baño de plata <b>hipoalergénico y libre de níquel/.test(h) && !/Plata 925 <b>hipoalergénica/.test(h)
+      : /Plata 925 <b>hipoalergénica y libre de níquel/.test(h);
+    if (n !== 4 || !texto) malBloques.push(f);
+    for (const v of h.match(/<video class="bv-v"[^>]*>\s*<source[^>]*>/g) || []) {
+      const poster = (v.match(/poster="([^"]+)"/) || [])[1];
+      if (!/preload="none"/.test(v) || !poster || !fs.existsSync(path.join(RAIZ, poster)) || !/src="media\/[a-z0-9-]+\.mp4"/.test(v)) malVideo.push(f);
+    }
+  }
+  ok(!malBloques.length, `las ${paginas.length} fichas traen los 4 bloques con el texto de su tipo` + lista(malBloques));
+  // Las reseñas son de la tienda, no de cada pieza: no van como AggregateRating
+  // del producto (Google lo penaliza). ENCARGO-FICHA-2 § 3.
+  const conRating = paginas.filter(f => /aggregateRating/i.test(leer(f)));
+  ok(!conRating.length, 'ninguna ficha publica AggregateRating con reseñas de la tienda' + lista(conRating));
+  ok(!malVideo.length, 'cada video de bloque: preload="none", portada que existe y archivo en /media/' + lista([...new Set(malVideo)]));
 
   // ── Renderizadas: una por tipo ──
   const hay = id => unidades(stock[id]) > 0;
@@ -107,7 +138,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       piezas: Object.entries(stock).filter(([, v]) => !v.tallas).map(([i, v]) => ({ id: i, disponible: v.stock })),
       brazaletes: Object.entries(stock).filter(([, v]) => v.tallas).map(([i, v]) => ({ id: i, tallas: v.tallas })) } }));
     await ctx.route('**/.netlify/functions/vendidas', r => r.fulfill({ json: { ventas: vendidas || {} } }));
-    await ctx.route('**/.netlify/functions/resenas?*', r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
+    await ctx.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: { ventasRegistradas: 0, tope: 12, minimoLibres: 3, vendidas: [], disponibles: {} } }));
+    // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
+    await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
   const { calcular } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
 
@@ -119,7 +152,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await rutasFalsas(ctx, conDatos ? {
       vendidas: { [id]: 4 },
       resenas: { total: 2, promedio: 4.5, resenas: [
-        { estrellas: 5, texto: '<b>Hermoso</b>, llegó rápido', nombre: 'Ana', ciudad: 'Cali', verificada: true },
+        { estrellas: 5, texto: '<b>Hermoso</b>, llegó rápido', nombre: 'Ana', ciudad: 'Cali', verificada: true,
+          fotos: ['/resenas?medio=hulk%2Fabc-123456%2Ff1.jpg', 'javascript:alert(1)'], video: 'https://otro.sitio/v.mp4' },
         { estrellas: 4, texto: 'Muy bonito', nombre: 'Eva', ciudad: '', verificada: false }] },
     } : { vendidas: { [id]: 2 } });
     const ev = [];
@@ -189,6 +223,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
         html: document.getElementById('rp-lista').innerHTML, vend: document.getElementById('pp-vendidas').textContent }));
       ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2, `estrellas con el promedio y conteo reales («${r.top.trim()}»)`);
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
+      ok((r.html.match(/<img /g) || []).length === 1 && r.html.includes('/resenas?medio=hulk') && !/javascript:|otro\.sitio/.test(r.html),
+        'las fotos de la reseña salen, y solo las servidas por la propia tienda');
       ok((r.html.match(/Compra verificada/g) || []).length === 1, 'solo la reseña con pedido lleva «Compra verificada»');
       ok(/4 personas compraron/.test(r.vend), `«${r.vend}»`);
     } else {
@@ -362,7 +398,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
   console.log('5 · Colecciones y kits');
   for (const f of htmlRaiz.filter(x => x.startsWith('coleccion-') || x === 'kits.html')) {
-    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    const ctxC = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctxC);
+    const p = await ctxC.newPage();
     const errs = [], rotos = [];
     p.on('pageerror', e => errs.push(e.message));
     p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE)) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
@@ -377,5 +415,140 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, f.replace('.html', '.png')) });
     await p.close();
   }
+  // ── 6 · Fotos del carrito en cualquier página (ENCARGO-FICHA-2 § 2) ──
+  // imgDe() buscaba la foto en las tarjetas de la página: en kits, colecciones
+  // y páginas de producto casi ninguna pieza tiene tarjeta, y el carrito salía
+  // sin fotos (y la tira de sugeridos con <img src=""> roto).
+  console.log('6 · Fotos del carrito fuera de la portada');
+  {
+    const ajenas = ['mickey-mouse', 'angel-guardian', 'letra-m', 'aries'];
+    for (const f of ['kits.html', 'coleccion-marvel.html', archivoDe('hulk')]) {
+      const ctx6 = await b.newContext({ viewport: { width: 390, height: 844 } });
+      await rutasFalsas(ctx6);
+      await ctx6.addInitScript(ch => localStorage.setItem('zephora.carrito.v1', JSON.stringify(
+        { v: 1, base: { id: 'pulsera-avengers', talla: '18' }, charms: ch, pago: 'anticipado', cuando: Date.now() })), ajenas);
+      const p = await ctx6.newPage();
+      const errs = [];
+      p.on('pageerror', e => errs.push(e.message));
+      await p.goto(BASE + '/' + f, { waitUntil: 'networkidle' });
+      await p.waitForTimeout(300);
+      const r = await p.evaluate(() => {
+        const filas = [...document.querySelectorAll('#sheet-body .srow')];
+        const sinFoto = filas.filter(x => { const i = x.querySelector('img');
+          return !i || !i.getAttribute('src') || !(i.complete && i.naturalWidth > 0); })
+          .map(x => x.querySelector('.srow-n').firstChild.textContent.trim());
+        const vacias = [...document.querySelectorAll('img')].filter(i => i.hasAttribute('src') && !i.getAttribute('src')).length;
+        return { n: filas.length, sinFoto, vacias };
+      });
+      ok(r.n === ajenas.length + 1 && !r.sinFoto.length && !r.vacias && !errs.length,
+        `${f}: las ${r.n} filas del carrito con foto` + lista(r.sinFoto) + (r.vacias ? `, ${r.vacias} <img src=""> vacías` : '')
+        + (errs.length ? ', errores ' + errs.join(' | ') : ''));
+      await ctx6.close();
+    }
+  }
+
+  // ── 7 · Reseña con foto desde la ficha (ENCARGO-FICHA-2 § 3) ──
+  // La foto se reduce en el navegador antes de subir: una función de Netlify
+  // recibe ~6 MB por envío, y una foto de celular sola ya pesa eso.
+  console.log('7 · Reseña con foto');
+  {
+    const ctx7 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx7);
+    let enviado = null;
+    await ctx7.route('**/resenas', r => { if (r.request().method() === 'POST') { enviado = r.request().postDataJSON(); return r.fulfill({ json: { ok: true } }); } return r.continue(); });
+    const p = await ctx7.newPage();
+    const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
+    await p.evaluate(() => { document.getElementById('rp-escribir').open = true; });
+    const poner = (nombre, archivo) => p.evaluate(([n, a]) => new Promise(ok => {
+      const dt = new DataTransfer();
+      if (a.tipo.startsWith('image/')) {
+        const c = document.createElement('canvas'); c.width = 3000; c.height = 2000;
+        const g = c.getContext('2d'); g.fillStyle = '#b4657f'; g.fillRect(0, 0, 3000, 2000);
+        c.toBlob(bl => { dt.items.add(new File([bl], 'foto.png', { type: 'image/png' })); document.querySelector(`#rp-form [name=${n}]`).files = dt.files; ok(); }, 'image/png');
+      } else { dt.items.add(new File([new Uint8Array(a.peso)], 'v.mp4', { type: 'video/mp4' })); document.querySelector(`#rp-form [name=${n}]`).files = dt.files; ok(); }
+    }), [nombre, archivo]);
+    await p.check('#rp-form input[name=estrellas][value="5"]', { force: true });
+    await p.fill('#rp-form textarea[name=texto]', 'Me encantó, llegó perfecto y brilla muchísimo');
+    await p.fill('#rp-form input[name=nombre]', 'Carla');
+    await poner('video', { tipo: 'video/mp4', peso: 4 * 1024 * 1024 });
+    await p.click('#rp-form button[type=submit]');
+    await p.waitForTimeout(300);
+    const aviso = await p.textContent('#rp-form .rp-msg');
+    ok(!enviado && /máximo es 3,5 MB/.test(aviso), `un video de 4 MB no se envía y se dice por qué («${aviso.trim()}»)`);
+    await p.evaluate(() => { document.querySelector('#rp-form [name=video]').value = ''; });
+    await poner('fotos', { tipo: 'image/png' });
+    await p.click('#rp-form button[type=submit]');
+    await p.waitForTimeout(1500);
+    const dims = enviado && enviado.fotos && enviado.fotos[0] ? await p.evaluate(u => new Promise(ok => { const i = new Image(); i.onload = () => ok([i.naturalWidth, i.naturalHeight]); i.src = u; }), enviado.fotos[0]) : [];
+    ok(enviado && enviado.producto === 'hulk' && enviado.fotos.length === 1 && /^data:image\/jpeg;base64,/.test(enviado.fotos[0]) && dims[0] === 1600 && dims[1] === 1067,
+      `la foto de 3000×2000 viaja como JPG de ${dims.join('×')}`);
+    ok(/Gracias/.test(await p.textContent('#rp-escribir')) && !errs.length, 'y la clienta ve el agradecimiento, consola limpia' + lista(errs));
+    await ctx7.close();
+  }
+
+  // ── 8 · Menú «Categorías» y «Más vendidos» (ENCARGO-FICHA-2 § 5) ──
+  console.log('8 · Menú de categorías y Más vendidos');
+  {
+    const ix = leer('index.html');
+    const menu = (ix.match(/<div class="tnav-cat-m"[\s\S]*?<\/div>/) || [''])[0];
+    const acordeon = (ix.match(/<div class="menu-cat-l">[\s\S]*?<\/div>/) || [''])[0];
+    const grupos = [...new Set(Object.values(cat.grupos))];
+    const falta = grupos.filter(g => !menu.includes('>' + g + '<') || !acordeon.includes('>' + g + '<'));
+    ok(!falta.length && menu.split('</a>')[0].endsWith('>Más vendidos'),
+      `el desplegable y el acordeón traen «Más vendidos» primero y las ${grupos.length} colecciones del catálogo` + lista(falta));
+    const ctx8 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx8);
+    await ctx8.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: {
+      ventasRegistradas: 2, tope: 12, minimoLibres: 3, vendidas: [{ id: 'hulk', unidades: 2 }],
+      disponibles: { hulk: 5, 'iron-man': 6, 'letra-a': 9, 'mickey-mouse': 4 } } }));
+    const p = await ctx8.newPage();
+    const errs = [];
+    p.on('pageerror', e => errs.push(e.message));
+    await p.goto(BASE + '/coleccion-mas-vendidos.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(300);
+    const r = await p.evaluate(() => ({
+      v: [...document.querySelectorAll('#mv-vendidas .mv-it')].map(x => x.dataset.vid + (x.querySelector('.mv-sello') ? '★' : '')),
+      rel: [...document.querySelectorAll('#mv-relleno .mv-it')].map(x => x.dataset.vid + (x.querySelector('.mv-sello') ? '★' : '')) }));
+    ok(r.v.join() === 'hulk★' && r.rel[0] === 'iron-man' && !r.rel.some(x => x.includes('★')) && !r.rel.some(x => x.startsWith('letra-')),
+      `solo lleva el sello lo que vendió (${r.v.join()}); el relleno va aparte, sin sello ni iniciales (${r.rel.join(', ')})`);
+    await Promise.all([p.waitForURL(llegaA(archivoDe('hulk'))), p.click('#mv-vendidas .mv-ir')]);
+    ok(!errs.length, 'la tarjeta lleva a la página de la pieza, consola limpia' + lista(errs));
+    await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
+    await p.click('#menu-btn');
+    await p.click('.menu-cat summary');
+    await Promise.all([p.waitForURL(u => /^\/(index(\.html)?)?$/.test(u.pathname) && u.searchParams.get('cat') === 'Zodiaco'), p.click('.menu-cat-l a:text-is("Zodiaco")')]);
+    await p.waitForLoadState('networkidle');
+    await p.waitForTimeout(500);
+    const z = await p.evaluate(() => ({ on: (document.querySelector('#filters .fbtn.is-on') || {}).textContent,
+      g: [...new Set([...document.querySelectorAll('#resto-grid .pc:not([hidden])')].map(x => x.dataset.g))] }));
+    ok(z.on === 'Zodiaco' && z.g.join() === 'Zodiaco', `«Zodiaco» desde una ficha abre la portada filtrada (${z.g.join()})`);
+    await ctx8.close();
+  }
+
+  // ── 9 · Fotos y videos sin descarga fácil (pedido del propietario, 2026-09-26) ──
+  // No es protección absoluta (una captura siempre puede); se vigila que el
+  // camino fácil siga cerrado: menú del clic derecho, arrastre y botón de
+  // descarga del video.
+  console.log('9 · Fotos y videos sin descarga fácil');
+  {
+    const sueltos = htmlRaiz.filter(f => (publicado(leer(f)).match(/<video\b[^>]*>/g) || [])
+      .some(v => !/controlslist="[^"]*nodownload/.test(v) || !/disablepictureinpicture/.test(v)));
+    ok(!sueltos.length, 'todo <video> publicado va sin botón de descarga ni ventana flotante' + lista(sueltos));
+    ok(/img,video\{[^}]*-webkit-touch-callout:none/.test(css), 'en el celular, mantener presionada una foto no ofrece «guardar imagen»');
+    const ctx9 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx9);
+    const p = await ctx9.newPage();
+    await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
+    const r = await p.evaluate(() => {
+      const ev = (el, tipo) => { const e = new MouseEvent(tipo, { bubbles: true, cancelable: true }); el.dispatchEvent(e); return e.defaultPrevented; };
+      return { foto: ev(document.querySelector('.pc--pp .pc-img img'), 'contextmenu'), video: ev(document.querySelector('.bv-v'), 'contextmenu'),
+        texto: ev(document.querySelector('h1'), 'contextmenu'), arrastre: ev(document.querySelector('.pc--pp .pc-img img'), 'dragstart') };
+    });
+    ok(r.foto && r.video && r.arrastre && !r.texto, `clic derecho y arrastre bloqueados en fotos y videos, no en el texto (${JSON.stringify(r)})`);
+    await ctx9.close();
+  }
+
   await b.close();
 })();

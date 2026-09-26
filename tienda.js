@@ -86,8 +86,19 @@ if(hbPause && hbTrack){
  * A quien pidio "reducir movimiento" no se le reproduce nada: se le dejan los
  * controles para que decida. Es la misma regla que ya respetan el banner y el
  * ticker de avisos. */
+/* Fotos y videos: sin clic derecho, sin arrastrarlos y sin «guardar
+   imagen» al mantener presionado en el celular (pedido del propietario,
+   2026-09-26; lo del celular lo hace tienda.css con -webkit-touch-callout).
+   No es una protección absoluta —una captura de pantalla o las herramientas
+   del navegador siempre pueden—: quita el camino fácil, que es el que usa
+   casi todo el mundo. Los videos, además, van sin botón de descarga ni
+   ventana flotante (controlslist / disablepictureinpicture). */
+document.addEventListener('contextmenu',e=>{ if(e.target.closest('img,video,picture,.pc-img,.fx-ph')) e.preventDefault(); });
+document.addEventListener('dragstart',e=>{ if(e.target.closest('img,video')) e.preventDefault(); });
+
 const quietoPorPreferencia = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const ugcVideos = document.querySelectorAll('.ugc-v');
+/* También los videos de los bloques de la ficha (.bv-v), con la misma regla. */
+const ugcVideos = document.querySelectorAll('.ugc-v, .bv-v');
 if (quietoPorPreferencia) {
   ugcVideos.forEach(v => { v.controls = true; v.preload = 'metadata'; });
 } else if (ugcVideos.length) {
@@ -203,12 +214,13 @@ function estadoVit(){
     if(lleno) b.setAttribute('aria-disabled','true'); else b.removeAttribute('aria-disabled');
   });
 }
-if(VIT.length){
-  const sinVit=()=>VIT.forEach(v=>{ v.hidden=true; });
-  fetch('assets/catalogo.json').then(r=>r.ok?r.json():null)
-    .then(c=>{ if(!c||!c.grupos||!c.fotos) return sinVit(); CAT=c; VIT.forEach(v=>dibujarVit(v)); })
-    .catch(sinVit);
-}
+/* El catálogo se carga en TODAS las páginas: además de la vitrina, da la
+   foto de cada pieza al carrito (imgDe). Al llegar se repinta el carrito,
+   por si ya tenía filas pintadas sin foto. */
+const sinVit=()=>{ VIT.forEach(v=>{ v.hidden=true; }); return null; };
+const catalogoListo=fetch('assets/catalogo.json').then(r=>r.ok?r.json():null)
+  .then(c=>{ if(!c||!c.grupos||!c.fotos) return sinVit(); CAT=c; VIT.forEach(v=>dibujarVit(v)); render(); return c; })
+  .catch(sinVit);
 document.addEventListener('click',e=>{
   const tab=e.target.closest('.vit-tab');
   if(tab){ const v=tab.closest('.vit'); dibujarVit(v,tab.dataset.vitTab);
@@ -342,12 +354,30 @@ document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); 
 const fotoLetra=id=>'assets/'+encodeURIComponent(id)+'.webp?v=20260925';
 const fotoGrupoLetras=()=>{ const el=document.querySelector('.pc[data-id="letras"] img');
   return el?(el.dataset.grupo||el.getAttribute('src')):''; };
+/* La foto de una pieza. Primero la de su tarjeta, si está en la página (es la
+   que ya se ve, con su versión de caché); si no, la de assets/catalogo.json,
+   que tiene la de las 135 piezas. Antes solo se buscaba en la página, y en
+   kits, colecciones y páginas de producto —donde casi ninguna pieza tiene
+   tarjeta— el carrito salía sin fotos (ENCARGO-FICHA-2 § 2). */
 function imgDe(id){
   const propia=document.querySelector('.pc[data-id="'+CSS.escape(id)+'"] img');
   if(propia) return propia.src;
+  if(id==='letras') return fotoGrupoLetras()||imgDe('letra-a');
+  const f=CAT&&CAT.fotos&&CAT.fotos[id];
+  if(f) return 'assets/'+f;
   if(/^letra-/.test(id)) return fotoLetra(id);
   const t=tarjetaDe(id), el=t&&t.querySelector('img');
   return el?el.src:'';
+}
+/* Miniatura para la tira de sugeridos y la lupa: la foto o, si no hay, el
+   monograma. Nunca un <img src="">, que se ve roto. */
+function miniatura(id,nombre){
+  const src=imgDe(id);
+  if(src){ const im=document.createElement('img');
+    im.src=src; im.alt=''; im.loading='lazy'; im.decoding='async'; return im; }
+  const s=document.createElement('span'); s.className='mono'; s.setAttribute('aria-hidden','true');
+  s.textContent=String(nombre||'').trim().charAt(0).toUpperCase();
+  return s;
 }
 const respaldo=id=>!/^letra-/.test(id) ? ''
   : fotoGrupoLetras() ? ' onerror="this.onerror=null;this.src=\''+fotoGrupoLetras()+'\'"'
@@ -715,11 +745,22 @@ if(PP&&(CH[PP]||PU[PP])){
     const res=$('#rp-resumen'); if(res) res.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>';
     const lista=$('#rp-lista');
     if(lista) lista.innerHTML=d.resenas.map(r=>'<figure class="rp-it"><div class="estrellas">'+estrellasHTML(r.estrellas)+'</div>'
-      +'<blockquote>'+escHTML(r.texto)+'</blockquote><figcaption><b>'+escHTML(r.nombre)+'</b>'
+      +'<blockquote>'+escHTML(r.texto)+'</blockquote>'+mediosResena(r)+'<figcaption><b>'+escHTML(r.nombre)+'</b>'
       +(r.ciudad?' · '+escHTML(r.ciudad):'')+(r.verificada?' · <span class="rp-ok">✓ Compra verificada</span>':'')
       +'</figcaption></figure>').join('');
   };
-  fetch('.netlify/functions/resenas?producto='+encodeURIComponent(PP)).then(r=>r.ok?r.json():null)
+  /* Fotos y video de una reseña (ENCARGO-FICHA-2 § 3). Solo rutas de la propia
+     función: nada que venga en el JSON se pinta como URL ajena. */
+  const propia=u=>typeof u==='string'&&/^\/resenas\?medio=[^"'<>\s]+$/.test(u);
+  const mediosResena=r=>{
+    const fotos=(r.fotos||[]).filter(propia);
+    return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<a href="'+u+'" target="_blank" rel="noopener"><img src="'+u
+        +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></a>').join('')+'</div>':'')
+      +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>':'');
+  };
+  /* Todas las reseñas de la tienda, en cualquier ficha (decisión del
+     propietario, 2026-09-26): el promedio de arriba es el de la tienda. */
+  fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
     .then(pintarResenas).catch(()=>{});
 
   /* Paquetes: al elegir 2, 3 o 4, se abren los charms para completarlo. */
@@ -730,6 +771,17 @@ if(PP&&(CH[PP]||PU[PP])){
 
   /* Reseña: se manda a moderación. El enlace del correo de entrega trae
      ?resena=<referencia>.<firma> y eso la marca como compra verificada. */
+  const aDataURL=file=>new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.onerror=no; r.readAsDataURL(file); });
+  const reducirFoto=file=>new Promise((ok,no)=>{
+    const u=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{ const k=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)), c=document.createElement('canvas');
+      c.width=Math.round(img.naturalWidth*k); c.height=Math.round(img.naturalHeight*k);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg',0.82)); };
+    img.onerror=()=>{ URL.revokeObjectURL(u); no(new Error('foto')); };
+    img.src=u; });
+  const duracion=file=>new Promise(ok=>{ const u=URL.createObjectURL(file), v=document.createElement('video');
+    v.preload='metadata'; v.onloadedmetadata=()=>{ URL.revokeObjectURL(u); ok(v.duration||0); };
+    v.onerror=()=>{ URL.revokeObjectURL(u); ok(0); }; v.src=u; });
   const f=$('#rp-form');
   if(f){
     const q=new URL(location.href).searchParams.get('resena');
@@ -740,10 +792,21 @@ if(PP&&(CH[PP]||PU[PP])){
       if(!est){ msg.textContent='Elige de 1 a 5 estrellas.'; return; }
       if(f.texto.value.trim().length<10){ msg.textContent='Cuéntanos un poco más (10 letras o más).'; return; }
       if(f.nombre.value.trim().length<2){ msg.textContent='Falta tu nombre.'; return; }
+      /* Adjuntos: hasta 3 fotos, reducidas aquí a 1600 px (una función de
+         Netlify recibe ~6 MB por envío), y un video de hasta 20 s y 3,5 MB. */
+      const archivosFoto=[...(f.fotos&&f.fotos.files||[])], archivoVideo=f.video&&f.video.files[0];
+      if(archivosFoto.length>3){ msg.textContent='Puedes adjuntar hasta 3 fotos.'; return; }
+      if(archivoVideo&&archivoVideo.size>3.5*1024*1024){
+        msg.textContent='Tu video pesa '+(archivoVideo.size/1048576).toFixed(1).replace('.',',')+' MB y el máximo es 3,5 MB. Prueba con uno más corto, o envía tu reseña con fotos.'; return; }
+      if(archivoVideo&&(await duracion(archivoVideo))>20.5){ msg.textContent='El video puede durar hasta 20 segundos.'; return; }
       const b=f.querySelector('button[type=submit]'); b.disabled=true; msg.textContent='Enviando…';
+      let fotos, video=null;
+      try{ fotos=await Promise.all(archivosFoto.map(reducirFoto)); if(archivoVideo) video=await aDataURL(archivoVideo); }
+      catch(err){ msg.textContent='No pudimos leer una de las fotos. Prueba con una foto JPG o PNG.'; b.disabled=false; return; }
       try{
         const r=await fetch('resenas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-          producto:PP,estrellas:est,texto:f.texto.value,nombre:f.nombre.value,ciudad:f.ciudad.value,web:f.web.value,resena:q||''})});
+          producto:PP,estrellas:est,texto:f.texto.value,nombre:f.nombre.value,ciudad:f.ciudad.value,web:f.web.value,resena:q||'',
+          fotos:fotos,video:video})});
         const d=await r.json().catch(()=>({}));
         if(!r.ok){ msg.textContent=d.error||'No se pudo enviar. Intenta de nuevo.'; b.disabled=false; return; }
         f.innerHTML='<p class="rp-gracias"><b>¡Gracias!</b> Tu reseña queda en revisión y la publicamos en cuanto la aprobemos.</p>';
@@ -1070,8 +1133,7 @@ function pintarSug(){
     b.type='button'; b.className='sug-c'; b.dataset.sug=id;
     b.setAttribute('aria-label','Agregar '+CH[id].n);
     const ph=document.createElement('span'); ph.className='sug-ph';
-    const im=document.createElement('img');
-    im.src=imgDe(id); im.alt=''; im.loading='lazy'; im.decoding='async';
+    const im=miniatura(id,CH[id].n);
     const mas=document.createElement('span'); mas.className='sug-mas';
     mas.setAttribute('aria-hidden','true'); mas.textContent='+';
     ph.append(im,mas);
@@ -1598,16 +1660,80 @@ document.getElementById('filters').addEventListener('click',e=>{
   i.addEventListener('change',pintarCalculadora);
 })();
 
-/* tarjetas de categoría → abren el catálogo ya filtrado */
-document.querySelectorAll('.cat[data-cat]').forEach(a=>{
-  a.addEventListener('click',e=>{
-    e.preventDefault();
-    abrirCat(true);
-    aplicarFiltro(a.dataset.cat);
-    full.scrollIntoView({behavior:'smooth',block:'start'});
-    track('ViewContent',{content_type:'product_group',content_name:'Categoría '+a.dataset.cat});
-  });
+/* Tarjetas de categoría y enlaces del menú «Categorías» → el catálogo ya
+   filtrado. En la portada se filtra ahí mismo; desde cualquier otra página
+   el enlace lleva a index.html?cat=<grupo>#charms y la portada lo aplica al
+   cargar (ENCARGO-FICHA-2 § 5). */
+const EN_PORTADA=!!document.getElementById('charms');
+function verCategoria(cat){
+  abrirCat(true);
+  aplicarFiltro(cat);
+  full.scrollIntoView({behavior:'smooth',block:'start'});
+  track('ViewContent',{content_type:'product_group',content_name:'Categoría '+cat});
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest('[data-cat]');
+  if(!a||!EN_PORTADA) return;
+  e.preventDefault();
+  cerrarCatMenu();
+  verCategoria(a.dataset.cat);
 });
+if(EN_PORTADA){
+  const c=new URL(location.href).searchParams.get('cat');
+  if(c&&document.querySelector('#filters [data-f="'+CSS.escape(c)+'"]')) requestAnimationFrame(()=>verCategoria(c));
+}
+
+/* Desplegable «Categorías» del menú de escritorio: se abre con clic o toque
+   —no solo al pasar el ratón, que en una tableta no existe— y se cierra al
+   elegir, al tocar fuera o con Escape. */
+const catBtn=$('#cat-btn'), catMenu=$('#cat-menu');
+function cerrarCatMenu(){ if(catMenu&&!catMenu.hidden){ catMenu.hidden=true; catBtn.setAttribute('aria-expanded','false'); } }
+if(catBtn&&catMenu){
+  catBtn.addEventListener('click',()=>{ const v=catMenu.hidden; catMenu.hidden=!v; catBtn.setAttribute('aria-expanded',v?'true':'false'); });
+  document.addEventListener('click',e=>{ if(!e.target.closest('.tnav-cat')) cerrarCatMenu(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarCatMenu(); });
+}
+
+/* «Más vendidos» (coleccion-mas-vendidos.html): ventas reales de
+   netlify/functions/mas-vendidos. Solo lleva el sello «Más vendido» una pieza
+   que vendió. Mientras haya menos de 30 ventas registradas, se completa en
+   una sección aparte con las de más unidades de las colecciones que más se
+   venden —sin iniciales: se eligen, no se sugieren—. */
+const mvVendidas=$('#mv-vendidas');
+if(mvVendidas){
+  const tarjetaMV=(id,vendio)=>{
+    const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id];
+    if(!d) return '';
+    return '<div class="vit-it mv-it" data-vid="'+id+'" role="listitem">'
+      +(vendio?'<span class="mv-sello">Más vendido</span>':'')
+      +'<a class="mv-ir" href="'+paginaDe(id)+'">'
+      +(f?'<img src="assets/'+f+'" alt="" width="160" height="160" loading="lazy" decoding="async">':'<span class="vit-nof"></span>')
+      +'<span class="vit-n">'+escHTML(d.n)+'</span></a><small>'+cop(d.p)+'</small>'
+      +(esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
+           +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
+           :'<button type="button" class="vit-add" data-add="'+id+'">Agregar</button>')
+      +'</div>';
+  };
+  const grupoDe=id=>PU[id]?'Brazaletes':(CAT.grupos[id]||'');
+  Promise.all([fetch('.netlify/functions/mas-vendidos').then(r=>r.ok?r.json():null).catch(()=>null),catalogoListo])
+    .then(([d,c])=>{
+      const aviso=$('#mv-aviso'), sec2=$('#mv-relleno-sec'), relleno=$('#mv-relleno');
+      if(!d||!c){ mvVendidas.innerHTML=''; aviso.textContent='No pudimos cargar las ventas en este momento. Mira el catálogo completo mientras tanto.'; aviso.hidden=false; return; }
+      const vendidas=(d.vendidas||[]).filter(v=>CH[v.id]||PU[v.id]);
+      mvVendidas.innerHTML=vendidas.map(v=>tarjetaMV(v.id,true)).join('');
+      if(!vendidas.length){ aviso.textContent='Todavía estamos juntando ventas: pronto verás aquí las piezas que más se llevan.'; aviso.hidden=false; }
+      if(d.ventasRegistradas<30){
+        const peso={}; vendidas.forEach(v=>{ const g=grupoDe(v.id); peso[g]=(peso[g]||0)+v.unidades; });
+        const ya=new Set(vendidas.map(v=>v.id));
+        const cand=Object.keys(d.disponibles||{}).filter(id=>!ya.has(id)&&(CH[id]||PU[id])&&!/^letra-/.test(id));
+        cand.sort((a,b)=>(peso[grupoDe(b)]||0)-(peso[grupoDe(a)]||0)||d.disponibles[b]-d.disponibles[a]);
+        const ids=cand.slice(0,Math.max(0,(d.tope||12)-vendidas.length));
+        relleno.innerHTML=ids.map(id=>tarjetaMV(id,false)).join('');
+        sec2.hidden=!ids.length;
+      }
+      estadoVit();
+    });
+}
 
 /* Flechas de los carruseles.
  *
@@ -1717,8 +1843,7 @@ function pintarBusqueda() {
     const li = document.createElement('li');
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'busq-r'; b.dataset.ir = x.id; b.setAttribute('role', 'option');
-    const im = document.createElement('img');
-    im.src = imgDe(x.letras ? 'letras' : x.id); im.alt = ''; im.loading = 'lazy'; im.decoding = 'async';
+    const im = miniatura(x.letras ? 'letras' : x.id, x.n);
     const n = document.createElement('span'); n.className = 'busq-n';
     n.textContent = x.n;
     const meta = document.createElement('small');

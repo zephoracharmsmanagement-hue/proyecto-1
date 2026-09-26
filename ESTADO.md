@@ -80,12 +80,75 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > fusionar** `claude/zephora-charms-automation-rzbthc` (rama del bot: toca
 > `catalogo.json`, `_precios.js` y `disponibilidad.mjs`).
 
+> **2026-09-26 (tarde) · Ficha, segunda parte — rama `claude/tienda-ficha-2`,
+> PR #6.** Reclamada por la sesión de terminal hasta fusionar. Encargo:
+> `automatizaciones/tienda/ENCARGO-FICHA-2.md` (llegó con la rama de
+> documentación `claude/charming-sagan-l4q2eq`, ya mezclada: solo docs y la
+> skill de pauta). Suite local 914 ✓ · 0 ✗; `paginas.js` 111 ✓ contra la
+> vista previa.
+>
+> **Qué entra:**
+> - **Carrito sin fotos** (el error que ya veían las clientas): `imgDe()`
+>   buscaba la foto en las tarjetas de la página; en kits, colecciones y
+>   fichas casi no hay tarjetas. Ahora lee `assets/catalogo.json`, que se
+>   carga en todas las páginas (`catalogoListo`), y nunca pinta
+>   `<img src="">` (`miniatura()`: foto o monograma).
+> - **Empaque** = «caja, paño y dedicatoria escrita a mano, sin costo» en todo
+>   el sitio (confirmado por el propietario). Se fueron «bolsa», «caja de
+>   lujo» y una pregunta frecuente que aún ofrecía el Empaque Premium
+>   retirado. `paginas.js` lo vigila en lo publicado.
+> - **Cuatro bloques con foto o video** en cada ficha (entre tallas y
+>   relacionadas), con los textos del propietario; en brazaletes, «baño de
+>   plata hipoalergénico», nunca «plata». Las cifras del bloque 3 salen de
+>   `reglas`.
+> - **Reseñas**: una sola lista para toda la tienda en cualquier ficha
+>   (decisión del propietario); hasta 3 fotos (el navegador las reduce a
+>   1600 px) y 1 video (≤ 20 s, 3,5 MB), moderados; los medios se sirven solo
+>   si la reseña está aprobada (o con el enlace firmado del correo). Nunca
+>   como `AggregateRating` del producto.
+> - **Menú «Categorías»** desplegable (clic/toque) y acordeón en el celular;
+>   colecciones sin página propia van a `index.html?cat=<grupo>#charms`.
+> - **Más vendidos** (`coleccion-mas-vendidos.html` +
+>   `netlify/functions/mas-vendidos.mjs`): unidades de pedidos que salieron,
+>   solo piezas con ≥ 3 libres; el sello solo en lo que vendió; con < 30
+>   ventas, relleno aparte sin sello ni iniciales.
+> - § 4 del encargo (relacionados que cambian la ficha en el mismo panel) no
+>   se construyó: lo resolvió la decisión de que tocar una joya lleva a su
+>   página (y «atrás» vuelve).
+>
+> **Videos: dónde viven y cómo se suben (no se comitean).** Almacén `media`
+> de Netlify Blobs, de todo el sitio (vista previa y producción ven los
+> mismos). Comprimir con la receta de § videos más `cropdetect` (los del
+> celular traen franjas negras grabadas), subir con
+> `node herramientas/subir_media.mjs <archivo-vN.mp4>` (no pisa claves) y
+> referenciar `media/<archivo>`. Cambiar un video = subir `-v2` y cambiar la
+> referencia: se cachea un año. Las portadas `.webp` sí van en `assets/`.
+>
+> **Aprendido (no redescubrir):**
+> - **Funciones v2 + regla de `netlify.toml`: `req.url` llega con la URL
+>   ORIGINAL**, sin los parámetros que agrega la regla (`?f=:splat` no
+>   aparece). Los videos daban 404 solo en la vista previa. Leer de la ruta.
+> - Netlify redirige `index.html?x` → `/?x` y `pagina.html` → `pagina`: una
+>   prueba que espere la URL exacta pasa en local y falla en la vista previa.
+> - El Chromium de Playwright no trae H.264: los `.mp4` salen en pausa y con
+>   controles. Para comprobar la reproducción, `chromium.launch({ channel:
+>   'chrome' })` (el Chrome instalado sí reproduce).
+> - Los heredocs de bash convierten `\n` de Python en saltos reales (pasó dos
+>   veces): escribir el código con Write y empalmar con un script.
+> - `mas-vendidos` en la vista previa ya muestra ventas reales (19 pedidos
+>   registrados al 2026-09-26).
+>
+> **Espera datos del propietario:** credenciales de Addi (el botón sigue a
+> WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
+> sin eso); qué pieza se regala a quien se suscribe; almacenamiento externo
+> si se quieren videos largos en reseñas. Paleta: se mantiene la original.
+
 **Rama de trabajo:** `claude/tienda-paginas-producto` (antes
 `claude/zephoracharms-conversion-funnel-nom9ph`)
 **Alcance:** todo el frente de tienda. **Regla 1 de `CLAUDE.md`**: una sola
 sesión a la vez sobre `index.html`, `tienda.js`, `tienda.css` y los
 generadores; quien los tome, que lo anote aquí antes de empezar (hoy, desde
-el 2026-09-26, nadie los tiene reclamados).
+el 2026-09-26 (tarde), los tiene la sesión de terminal por el PR #6).
 
 ### Lo primero que hay que entender: qué NO detectan las pruebas
 

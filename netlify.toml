@@ -222,6 +222,13 @@
   to = "/.netlify/functions/resenas"
   status = 200
 
+# Videos de la tienda (bloques de la ficha), desde Netlify Blobs: los videos
+# no se comitean. Ver netlify/functions/media.mjs y herramientas/subir_media.mjs.
+[[redirects]]
+  from = "/media/*"
+  to = "/.netlify/functions/media?f=:splat"
+  status = 200
+
 # La lista de suscriptoras confirmadas para n8n. Protegida por header
 # (SUSCRIPTORES_KEY), ver suscriptores-export.mjs.
 [[redirects]]
