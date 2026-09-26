@@ -23,6 +23,7 @@ import { guardar, marcar } from './_pedidos.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
 import { purchase, hashearCliente } from './_meta.js';
 import { guardar as guardarSenales } from './_atribucion.mjs';
+import { regaloPara, usarRegalo } from './_suscriptores.mjs';
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -251,6 +252,19 @@ export default async (req) => {
 
   const sitio = (process.env.URL_SITIO || process.env.URL || '').replace(/\/$/, '');
 
+  /* Charm de regalo de suscriptora (automatizaciones/suscripcion/BRIEF.md).
+   * NO toca el total: `cuentas` ya está calculado y no se vuelve a mirar. Solo
+   * marca el pedido para que la hoja de despacho diga qué incluir. El regalo
+   * se gasta al CONFIRMARSE el pedido: contraentrega aquí mismo (se confirma
+   * al crearse), pago en línea en wompi-webhook al aprobarse. Si no se puede
+   * gastar —otro pedido lo usó primero—, este va sin regalo. */
+  let regalo = null;
+  try { regalo = await regaloPara(cliente.correo, pedido); } catch (_) { regalo = null; }
+  if (regalo && pedido.pago === 'contraentrega') {
+    const uso = await usarRegalo(cliente.correo, ref);
+    if (!uso.ok) regalo = null;
+  }
+
   /* Queda en el log de la función: es el registro de que el pedido se creó, y
      con qué total, antes de que la clienta llegue a la pasarela. Al conciliar,
      esto es lo que se compara contra lo que Wompi diga que cobró. */
@@ -267,6 +281,7 @@ export default async (req) => {
        saltó por lo que fuera. Al conciliar un sobreventa, esto es lo primero
        que hay que mirar. */
     reserva: reserva.modo,
+    regalo,
     /* Qué se pidió, en el propio log. Sin esto, la primera venta real obligó a
        reconstruir el pedido desde el total porque el detalle solo existía en un
        correo. Van las piezas y la talla —lo que hace falta para alistar— y no
@@ -279,7 +294,7 @@ export default async (req) => {
      se pierde, esto sigue diciendo qué despachar y a dónde. */
   const registro = await guardar(ref, {
     estado: pedido.pago === 'contraentrega' ? 'confirmado' : 'esperando-pago',
-    pago: pedido.pago, lineas, cuentas, cliente,
+    pago: pedido.pago, lineas, cuentas, cliente, regalo,
   });
   if (!registro.ok) {
     console.error(JSON.stringify({
@@ -300,7 +315,7 @@ export default async (req) => {
 
   /* Comprobante a la clienta y copia a la tienda. En paralelo y sin dejar que
      un fallo de correo tumbe el pedido: allSettled, no all. */
-  const correos = { referencia: ref, lineas, cuentas, pago: pedido.pago, cliente };
+  const correos = { referencia: ref, lineas, cuentas, pago: pedido.pago, cliente, regalo };
   const [aCliente, aTienda] = await Promise.allSettled([
     pedidoRecibido(correos), avisoTienda(correos),
   ]);
@@ -318,6 +333,7 @@ export default async (req) => {
     envioGratis: cuentas.envioGratis,
     descuento: cuentas.descuento,
     lineas: detallar(pedido),
+    regalo,
   };
 
   /* Las señales de atribución del navegador.

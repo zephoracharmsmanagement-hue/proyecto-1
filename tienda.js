@@ -139,8 +139,79 @@ const track=(ev,d)=>{ if(typeof fbq==='function')
 /* ViewContent de UNA pieza. El id es el de catalogo.json —el mismo slug de la
    página de producto y el que usará el catálogo de Meta—, así que el
    retargeting dinámico empata sin mapeos. */
-const verPieza=id=>{ const p=PU[id]||CH[id]; if(p) track('ViewContent',
-  {content_type:'product',content_ids:[id],content_name:p.n,value:p.p}); };
+const verPieza=id=>{ const p=PU[id]||CH[id]; if(!p) return;
+  track('ViewContent',{content_type:'product',content_ids:[id],content_name:p.n,value:p.p});
+  suscVista(); };
+
+/* ——— Suscripción por correo con charm de regalo ———
+ * automatizaciones/suscripcion/BRIEF.md. Aparece a los 15 s o tras ver 2
+ * productos, lo primero que pase; nunca encima de la ficha o del carrito
+ * (espera a que se cierren). Cerrada, no vuelve en 30 días. checkout.html no
+ * carga este archivo, así que ahí nunca sale. La casilla de autorización va
+ * SIN marcar (Ley 1581) y el servidor solo la acepta como booleano true. */
+const lsLeer=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const lsPoner=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
+/* navigator.webdriver: un navegador automatizado (las pruebas con Playwright,
+   bots) no recibe la ventana sola —taparía los clics de cualquier batería que
+   pase más de 15 s en la página—. pruebas/suscripcion.js lo apaga para probarla. */
+const suscFuera=()=>navigator.webdriver||lsLeer('zephora.suscrita')
+  ||(Date.now()-(+lsLeer('zephora.susc.cerrado')||0)<30*864e5);
+let suscAbierta=false;
+function suscVista(){
+  let n=0; try{ n=+(sessionStorage.getItem('zephora.vistas')||0)+1; sessionStorage.setItem('zephora.vistas',n); }catch(e){}
+  /* Un instante después: verPieza corre dentro de abrirFicha ANTES de que la
+     ficha se muestre, y sin esperar la ventana creía que no había ficha y se
+     le ponía encima. */
+  if(n>=2) setTimeout(()=>abrirSusc(),600);
+}
+function abrirSusc(forzar){
+  if(suscAbierta||(!forzar&&suscFuera())) return;
+  const ficha=document.getElementById('ficha');
+  if((ficha&&!ficha.hidden)||document.body.classList.contains('sheet-open')){
+    if(!forzar){ setTimeout(()=>abrirSusc(),4000); return; }
+  }
+  suscAbierta=true;
+  const capa=document.createElement('div');
+  capa.className='susc'; capa.setAttribute('role','dialog'); capa.setAttribute('aria-modal','true');
+  capa.setAttribute('aria-labelledby','susc-t');
+  capa.innerHTML='<div class="susc-box"><button type="button" class="susc-x" aria-label="Cerrar">✕</button>'
+    +'<span class="eyebrow">Suscríbete</span>'
+    +'<h2 id="susc-t">Un charm de regalo en tu primera compra</h2>'
+    +'<p class="susc-sub">Te lo llevas en tu primera compra de 2 charms o más. Y te enteras primero cuando lleguen piezas nuevas.</p>'
+    +'<form class="susc-f" novalidate>'
+    +'<input type="email" name="correo" required autocomplete="email" placeholder="Tu correo" aria-label="Tu correo">'
+    +'<input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">'
+    +'<label class="susc-ok"><input type="checkbox" name="acepta"> <span>Acepto recibir correos de Zephora Charms con novedades y ofertas. Puedo darme de baja cuando quiera. <a href="politica-de-privacidad.html" target="_blank" rel="noopener">Política de datos</a></span></label>'
+    +'<button class="btn" type="submit">Quiero mi regalo</button>'
+    +'<p class="susc-msg" aria-live="polite"></p></form></div>';
+  document.body.appendChild(capa);
+  const cerrar=()=>{ capa.remove(); suscAbierta=false; lsPoner('zephora.susc.cerrado',String(Date.now()));
+    document.removeEventListener('keydown',esc); };
+  const esc=e=>{ if(e.key==='Escape') cerrar(); };
+  document.addEventListener('keydown',esc);
+  capa.addEventListener('click',e=>{ if(e.target===capa||e.target.closest('.susc-x')) cerrar(); });
+  const f=capa.querySelector('form'), msg=capa.querySelector('.susc-msg');
+  f.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const correo=f.correo.value.trim();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correo)){ msg.textContent='Revisa tu correo.'; return; }
+    if(!f.acepta.checked){ msg.textContent='Marca la casilla para que podamos escribirte.'; return; }
+    const b=f.querySelector('button[type=submit]'); b.disabled=true; msg.textContent='Enviando…';
+    try{
+      const r=await fetch('suscribir',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({correo,acepta:true,web:f.web.value})});
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok){ msg.textContent=d.error||'No se pudo. Intenta de nuevo.'; b.disabled=false; return; }
+      track('Lead',{content_name:'suscripcion'});
+      lsPoner('zephora.susc.cerrado',String(Date.now()));
+      f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». Tu regalo queda guardado para tu primera compra de 2 charms o más.</p>';
+    }catch(err){ msg.textContent='Sin conexión. Intenta de nuevo.'; b.disabled=false; }
+  });
+  f.correo.focus();
+}
+if(!suscFuera()) setTimeout(()=>abrirSusc(),15000);
+/* Cualquier enlace o botón con data-susc abre la suscripción a pedido. */
+document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); if(a){ e.preventDefault(); abrirSusc(true); } });
 
 function imgDe(id){
   /* las 27 iniciales comparten la foto del bloque de letras (tarjetaDe) */

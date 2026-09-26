@@ -207,6 +207,21 @@
   to = "/.netlify/functions/registrar-venta"
   status = 200
 
+# Suscripción por correo con doble confirmación: el formulario del sitio hace
+# POST aquí, y los enlaces de los correos (confirmar / darse de baja) son GET a
+# esta misma ruta. Nombre propio porque viaja en correos a clientas.
+[[redirects]]
+  from = "/suscribir"
+  to = "/.netlify/functions/suscribir"
+  status = 200
+
+# La lista de suscriptoras confirmadas para n8n. Protegida por header
+# (SUSCRIPTORES_KEY), ver suscriptores-export.mjs.
+[[redirects]]
+  from = "/suscriptores-export"
+  to = "/.netlify/functions/suscriptores-export"
+  status = 200
+
 # El que recibe el aviso de estado de envío desde n8n, después de que n8n
 # reconoce un correo de Skydropx. Va con nombre propio por el mismo motivo
 # que /armar-carrito: lo llama n8n desde un workflow y se lee en su
