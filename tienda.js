@@ -152,6 +152,11 @@ let kitSug=[], kitNombre='';
 const VIT=[...document.querySelectorAll('.vit')];
 const ORDEN_GRUPOS=['Disney','Marvel','Pixar','Símbolos','Muranos','Zodiaco','Profesiones','Clips','Cadenas'];
 let CAT=null, vitConStock=false;
+/* Versión de caché de las fotos que salen de catalogo.json (vitrina, carrito,
+   Más vendidos). Las fotos se sirven con una semana de caché y conservan el
+   nombre al cambiar: al reemplazar fotos hay que subir esta fecha, igual que
+   el ?v= de las tarjetas de index.html. */
+const VFOTO='?v=20260926';
 function pestanasDe(v){
   const sin=v.dataset.vitSin||'', tabs=[];
   const rel=(v.dataset.vit||'').split(',').filter(id=>id&&id!==sin&&(CH[id]||PU[id]));
@@ -167,7 +172,7 @@ function pestanasDe(v){
 function itemVit(id){
   const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id];
   return '<div class="vit-it" data-vid="'+id+'" role="listitem">'
-    +(f?'<img src="assets/'+f+'" alt="" width="96" height="96" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'">':'<span class="vit-nof"></span>')
+    +(f?'<img src="assets/'+f+VFOTO+'" alt="" width="96" height="96" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'">':'<span class="vit-nof"></span>')
     +'<span class="vit-n">'+escHTML(d.n)+'</span><small>'+cop(d.p)+'</small>'
     +(esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
          +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
@@ -364,7 +369,7 @@ function imgDe(id){
   if(propia) return propia.src;
   if(id==='letras') return fotoGrupoLetras()||imgDe('letra-a');
   const f=CAT&&CAT.fotos&&CAT.fotos[id];
-  if(f) return 'assets/'+f;
+  if(f) return 'assets/'+f+VFOTO;
   if(/^letra-/.test(id)) return fotoLetra(id);
   const t=tarjetaDe(id), el=t&&t.querySelector('img');
   return el?el.src:'';
@@ -1707,7 +1712,7 @@ if(mvVendidas){
     return '<div class="vit-it mv-it" data-vid="'+id+'" role="listitem">'
       +(vendio?'<span class="mv-sello">Más vendido</span>':'')
       +'<a class="mv-ir" href="'+paginaDe(id)+'">'
-      +(f?'<img src="assets/'+f+'" alt="" width="160" height="160" loading="lazy" decoding="async">':'<span class="vit-nof"></span>')
+      +(f?'<img src="assets/'+f+VFOTO+'" alt="" width="160" height="160" loading="lazy" decoding="async">':'<span class="vit-nof"></span>')
       +'<span class="vit-n">'+escHTML(d.n)+'</span></a><small>'+cop(d.p)+'</small>'
       +(esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
            +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
