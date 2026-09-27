@@ -295,7 +295,7 @@ function botonRegalo(ver){
   if(lsLeer('zephora.suscrita')||lsLeer('zephora.susc.enviada')) return;
   if(!b){
     b=document.createElement('button'); b.type='button'; b.className='susc-fab';
-    b.setAttribute('aria-label','Tu charm de regalo: suscríbete');
+    b.setAttribute('aria-label','El charm de tu inicial de regalo: suscríbete');
     b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>';
     b.addEventListener('click',()=>abrirSusc(true));
     document.body.appendChild(b);
@@ -322,8 +322,8 @@ function abrirSusc(forzar){
   capa.setAttribute('aria-labelledby','susc-t');
   capa.innerHTML='<div class="susc-box"><button type="button" class="susc-x" aria-label="Cerrar">✕</button>'
     +'<span class="eyebrow">Suscríbete</span>'
-    +'<h2 id="susc-t">Un charm de regalo en tu primera compra</h2>'
-    +'<p class="susc-sub">Te lo llevas en tu primera compra de 2 charms o más. Y te enteras primero cuando lleguen piezas nuevas.</p>'
+    +'<h2 id="susc-t">El charm de tu inicial, de regalo</h2>'
+    +'<p class="susc-sub">Suscríbete y en tu primera compra de 2 charms o más te llevas de regalo el charm de la letra que elijas. Y te enteras primero cuando lleguen piezas nuevas.</p>'
     +'<form class="susc-f" novalidate>'
     +'<input type="email" name="correo" required autocomplete="email" placeholder="Tu correo" aria-label="Tu correo">'
     +'<input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">'
@@ -351,7 +351,7 @@ function abrirSusc(forzar){
       track('Lead',{content_name:'suscripcion'});
       lsPoner('zephora.susc.cerrado',String(Date.now()));
       lsPoner('zephora.susc.enviada','1');
-      f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». Tu regalo queda guardado para tu primera compra de 2 charms o más.</p>';
+      f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». El charm de tu inicial queda guardado para tu primera compra de 2 charms o más.</p>';
     }catch(err){ msg.textContent='Sin conexión. Intenta de nuevo.'; b.disabled=false; }
   });
   f.correo.focus();

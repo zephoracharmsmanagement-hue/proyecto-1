@@ -16,7 +16,7 @@
  */
 import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario } from './_precios.js';
+  PedidoInvalido, SinInventario, nombres } from './_precios.js';
 import { reservar, confirmar, liberar } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
@@ -75,6 +75,12 @@ function leerCliente(c) {
     barrio: txt(c.barrio, 80),
     notas: txt(c.notas, 400),
     dedicatoria: txt(c.dedicatoria, 200),
+    /* La inicial que eligió para su regalo de suscriptora (una letra del
+       catálogo; cualquier otra cosa se descarta). Solo cuenta si crear-pago
+       le concede el regalo; si llega vacía, la hoja de despacho dice que hay
+       que preguntarle. */
+    regaloInicial: (() => { const l = txt(c.regaloInicial, 2).toLowerCase();
+      return /^[a-zñ]$/.test(l) && nombres['letra-' + l] ? l : ''; })(),
     /* Autorización de comunicaciones comerciales, separada de la compra.
      *
      * Se guarda con el pedido porque es la prueba de la autorización: la Ley

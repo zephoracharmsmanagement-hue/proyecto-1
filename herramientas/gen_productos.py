@@ -424,7 +424,7 @@ def bloque_compra(pid, tipo, nombre, precio, paquetes, hay, ref_precio, primeras
             '        </div>\n'
             '        <p class="pp-susc"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
             'stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">%s</svg><span><a href="#" data-susc>Suscríbete y '
-            'llévate un charm de regalo</a> en tu primera compra de 2 charms o más.</span></p>\n'
+            'llévate de regalo el charm de tu inicial</a> en tu primera compra de 2 charms o más.</span></p>\n'
             '      </div>\n'
             '      <p class="pp-agotado" id="pp-agotado"%s>Esta pieza está agotada. <a data-wa="encargo" id="pp-encargo" href="%s">Pídela por encargo por WhatsApp</a> y te avisamos cuando vuelva.</p>'
             % (oculto, selector, botones, PAGOS, WA_ADDI, ICONO['regalo'], '' if not hay else ' hidden',

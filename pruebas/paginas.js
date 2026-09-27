@@ -562,5 +562,40 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await ctx9.close();
   }
 
+  // ── 10 · Checkout: la inicial de regalo de suscriptora (2026-09-27) ──
+  console.log('10 · Checkout: elegir la inicial de regalo');
+  {
+    const conUnidades = Object.keys(cat.precios).filter(i => i.startsWith('letra-') && unidades(stock[i]) > 0).map(i => i.slice(6));
+    const dos = Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i) && hay(i)).slice(0, 2);
+    const abrir = async (charms, suscrita) => {
+      const ctx10 = await b.newContext({ viewport: { width: 390, height: 844 } });
+      await rutasFalsas(ctx10);
+      await ctx10.addInitScript(([ch, s]) => {
+        localStorage.setItem('zephora.carrito.v1', JSON.stringify({ v: 1, base: null, charms: ch, pago: 'anticipado', cuando: Date.now() }));
+        if (s) localStorage.setItem('zephora.suscrita', '1');
+      }, [charms, suscrita]);
+      const p = await ctx10.newPage();
+      const errs = []; p.on('pageerror', e => errs.push(e.message));
+      await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+      await p.waitForTimeout(300);
+      return { ctx10, p, errs };
+    };
+    let { ctx10, p, errs } = await abrir(dos, true);
+    const r = await p.evaluate(() => ({ ver: !document.getElementById('campo-regalo').hidden,
+      letras: [...document.querySelectorAll('#regalo-inicial option')].map(o => o.value).filter(Boolean) }));
+    ok(r.ver && JSON.stringify(r.letras) === JSON.stringify(conUnidades),
+      `suscrita con 2 charms: aparece «Elige la inicial de tu regalo», solo con las ${r.letras.length} letras que tienen unidades`);
+    // El campo vive en el paso de datos (oculto hasta llegar ahí): se elige por valor.
+    await p.evaluate(l => { document.getElementById('regalo-inicial').value = l; }, conUnidades[0]);
+    ok(!errs.length, 'consola limpia' + lista(errs));  // que la letra viaja lo prueba checkout.js § 4b
+    await ctx10.close();
+    ({ ctx10, p, errs } = await abrir(dos.slice(0, 1), true));
+    ok(await p.evaluate(() => document.getElementById('campo-regalo').hidden), 'con 1 charm no se ofrece');
+    await ctx10.close();
+    ({ ctx10, p, errs } = await abrir(dos, false));
+    ok(await p.evaluate(() => document.getElementById('campo-regalo').hidden), 'sin suscripción en este navegador, no aparece');
+    await ctx10.close();
+  }
+
   await b.close();
 })();

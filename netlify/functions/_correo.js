@@ -199,7 +199,10 @@ async function enviar({ para, asunto, html, txt, responder }) {
    para pago en línea es el «lo estamos esperando» previo al pago aprobado. */
 async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente, regalo }) {
   const contra = pago === 'contraentrega';
-  const conRegalo = regalo === 'suscriptor' ? ' Tu pedido incluye tu charm de regalo por estar suscrita.' : '';
+  const conRegalo = regalo === 'suscriptor'
+    ? ' Tu pedido incluye de regalo el charm de tu inicial' + (cliente && cliente.regaloInicial ? ' «' + cliente.regaloInicial.toUpperCase() + '»' : '')
+      + ' por estar suscrita.' + (cliente && cliente.regaloInicial ? '' : ' Te escribimos para que nos digas qué letra quieres.')
+    : '';
   const datos = {
     titulo: contra ? 'Pedido confirmado' : 'Recibimos tu pedido',
     entrada: (contra
@@ -332,9 +335,13 @@ const BLOQUE = (rotulo, valor, destacado) => !valor ? '' : `
    indicaciones: es de lo que se olvida si se empaca leyendo en diagonal. La
    pieza la escoge quien empaca y la descuenta con registrar-venta (pago
    «regalo»), ver automatizaciones/suscripcion/BRIEF.md. */
-const TXT_REGALO = 'Un charm de regalo por ser suscriptora (su primera compra de 2 charms o más). '
-  + 'Escógelo al empacar —nunca una pieza con menos de 3 unidades— y descuéntalo con el formulario '
-  + 'de ventas manuales, pago «regalo», total 0.';
+/* El regalo de suscriptora es el charm de su inicial (decisión del
+   propietario, 2026-09-27). Con la letra que eligió en el checkout, o el aviso
+   de que hay que preguntarle. */
+const txtRegalo = cliente => (cliente && cliente.regaloInicial
+  ? 'Charm de la inicial «' + cliente.regaloInicial.toUpperCase() + '» (letra-' + cliente.regaloInicial + ') de regalo por ser suscriptora. '
+  : 'Charm de inicial de regalo por ser suscriptora: NO eligió la letra, pregúntale por WhatsApp antes de despachar. ')
+  + 'Regístralo en el formulario de ventas manuales, pago «regalo», total 0, para que salga del inventario.';
 
 function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regalo }) {
   const contra = pago === 'contraentrega';
@@ -379,7 +386,7 @@ function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado, r
   ${BLOQUE('⚠ Indicaciones para la entrega', esc(cliente.notas).replace(/\n/g, '<br>'), true)}
   ${BLOQUE('✎ Dedicatoria — va escrita a mano',
     esc(cliente.dedicatoria).replace(/\n/g, '<br>'), true)}
-  ${regalo === 'suscriptor' ? BLOQUE('🎁 INCLUIR REGALO DE SUSCRIPTOR', esc(TXT_REGALO), true) : ''}
+  ${regalo === 'suscriptor' ? BLOQUE('🎁 INCLUIR REGALO DE SUSCRIPTOR', esc(txtRegalo(cliente)), true) : ''}
   ${BLOQUE('Qué empacar', piezas)}
   ${BLOQUE('Para la guía — destinatario', contacto)}
   ${BLOQUE('Para la guía — dirección', direccion)}
@@ -409,7 +416,7 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regal
     '',
     ...bloque('>> INDICACIONES PARA LA ENTREGA:', cliente.notas),
     ...bloque('>> DEDICATORIA (va escrita a mano):', cliente.dedicatoria),
-    ...bloque('>> INCLUIR REGALO DE SUSCRIPTOR:', regalo === 'suscriptor' ? TXT_REGALO : ''),
+    ...bloque('>> INCLUIR REGALO DE SUSCRIPTOR:', regalo === 'suscriptor' ? txtRegalo(cliente) : ''),
     'QUÉ EMPACAR:',
     ...lineas.map(l => `- ${l.nombre}${l.talla ? ` (talla ${l.talla} cm)` : ''}`
       + `${l.unidades > 1 ? ` x${l.unidades}` : ''}`),
