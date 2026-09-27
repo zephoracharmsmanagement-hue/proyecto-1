@@ -81,7 +81,8 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > `catalogo.json`, `_precios.js` y `disponibilidad.mjs`).
 
 > **2026-09-26 (tarde) · Ficha, segunda parte — rama `claude/tienda-ficha-2`,
-> PR #6.** Reclamada por la sesión de terminal hasta fusionar. Encargo:
+> PR #6.** **Fusionado a `main` el 2026-09-26 con confirmación del propietario
+> («Hagamos deploy»); la tienda queda liberada.** Encargo:
 > `automatizaciones/tienda/ENCARGO-FICHA-2.md` (llegó con la rama de
 > documentación `claude/charming-sagan-l4q2eq`, ya mezclada: solo docs y la
 > skill de pauta). Suite local 914 ✓ · 0 ✗; `paginas.js` 111 ✓ contra la
@@ -138,6 +139,25 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > - `mas-vendidos` en la vista previa ya muestra ventas reales (19 pedidos
 >   registrados al 2026-09-26).
 >
+> **Después, en el mismo PR:**
+> - **Fotos y videos sin descarga fácil**: sin clic derecho ni arrastre
+>   (tienda.js), sin «guardar imagen» al mantener presionado
+>   (`-webkit-touch-callout`), videos con `controlslist="nodownload"` y sin
+>   ventana flotante. No es protección absoluta (una captura siempre puede).
+> - **Fotos mejoradas en Flow por el propietario**: 40 piezas. Flow devuelve el
+>   nombre con una fecha pegada (`x.jpg_20260926193134.jpg`) o con nombres
+>   propios («Jewelry_piece…»): esas se identifican a ojo contra el catálogo.
+>   Su fondo es gris (224–243): se lleva a blanco subiendo el punto blanco de
+>   toda la foto antes de `entrar_fotos.py`. Al cambiar fotos, subir el `?v=`
+>   de sus tarjetas en index.html y `VFOTO` en tienda.js (fotos que salen de
+>   catalogo.json).
+> - **Paquete para Flow**: `material-sin-publicar/fotos-para-flow/` y
+>   `Fotos-Zephora-para-Flow.zip` (169 fotos en JPG, con índice). Las de
+>   producto de la web miden 440 px.
+> - **Marca**: el propietario tiene **permiso de Pandora**; las fotos con
+>   «PANDORA» grabado (Buzz, Lilo & Stitch, Hulk, Jasmine, Jack y Sally…) se
+>   dejan tal cual. No volver a señalarlo.
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso); qué pieza se regala a quien se suscribe; almacenamiento externo
@@ -148,7 +168,7 @@ mirar. No es una tarea con final escrito — es un ciclo.
 **Alcance:** todo el frente de tienda. **Regla 1 de `CLAUDE.md`**: una sola
 sesión a la vez sobre `index.html`, `tienda.js`, `tienda.css` y los
 generadores; quien los tome, que lo anote aquí antes de empezar (hoy, desde
-el 2026-09-26 (tarde), los tiene la sesión de terminal por el PR #6).
+el 2026-09-26, tras fusionar el PR #6, nadie los tiene reclamados).
 
 ### Lo primero que hay que entender: qué NO detectan las pruebas
 
