@@ -158,9 +158,37 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   «PANDORA» grabado (Buzz, Lilo & Stitch, Hulk, Jasmine, Jack y Sally…) se
 >   dejan tal cual. No volver a señalarlo.
 >
+> **2026-09-27 · PR #7 (`claude/tienda-ajustes-3`), fusionado con
+> confirmación del propietario («Deploy»):**
+> - **Fotos de reseñas**: eran enlaces a `/resenas?medio=…` en otra pestaña y
+>   algunos celulares las descargaban; ahora son botones que abren el visor
+>   `#lb` de la propia página.
+> - **Regalo de suscripción = el charm de la inicial** que elija la clienta
+>   (decisión del propietario: ninguna pieza fija aguanta la promoción; las
+>   iniciales suman 66 unidades). Checkout: campo `#regalo-inicial` (solo
+>   letras con unidades) si este navegador está suscrito y hay 2+ charms;
+>   viaja en `cliente.regaloInicial`; la hoja de despacho dice la letra o
+>   que hay que preguntarle. La letra NO se aparta al pedir: sale del
+>   inventario al registrar la venta manual «regalo».
+> - **Kit Luz y Sueños** (primero en `assets/kits.json`; nombre y lema
+>   propuestos por la sesión, el propietario puede cambiarlos).
+> - **kits.html y Más vendidos** traen al bajar lo mismo que una ficha:
+>   bloques con foto/video, reseñas de la tienda (sin formulario) y videos
+>   de clientas. Las reseñas se cargan en cualquier página con `#rp-lista`.
+> - **Vitrina → ficha**: en los carruseles de fichas y kits, tocar foto o
+>   nombre abre la ficha emergente (con «Ver la página completa»); la ficha
+>   toma la foto del catálogo si la pieza no tiene tarjeta en la página.
+>   En Más vendidos la tarjeta sigue siendo enlace a la página.
+> - **Addi, en pausa** por decisión del propietario (2026-09-27). Pasos que
+>   se le dieron: registrarse como aliado, pedir integración por API para
+>   e-commerce propio, credenciales de sandbox y producción (Client ID/Secret
+>   y usuario/contraseña de notificaciones), callback
+>   `/.netlify/functions/addi-webhook`, regreso `/gracias.html`; las claves
+>   van a `material-sin-publicar/claves-addi.txt`, nunca al chat.
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
-> sin eso); qué pieza se regala a quien se suscribe; almacenamiento externo
+> sin eso);  almacenamiento externo
 > si se quieren videos largos en reseñas. Paleta: se mantiene la original.
 
 **Rama de trabajo:** `claude/tienda-paginas-producto` (antes
