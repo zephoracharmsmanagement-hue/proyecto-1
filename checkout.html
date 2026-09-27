@@ -497,6 +497,15 @@ button{font-family:inherit}
               <textarea id="dedicatoria" name="dedicatoria" maxlength="200" placeholder="«Para Ana, por todo lo que aguantaste este año.»"></textarea>
               <span class="pista">Opcional. Todos los pedidos llevan tarjeta: si escribes algo aquí, va escrito a mano.</span>
             </div>
+            <!-- Regalo de suscriptora: el charm de su inicial (decisión del
+                 propietario, 2026-09-27). Solo se muestra si este navegador
+                 confirmó la suscripción y el pedido lleva 2 charms o más;
+                 quien decide si hay regalo es crear-pago, con el correo. -->
+            <div class="campo" data-c="regalo" id="campo-regalo" hidden>
+              <label for="regalo-inicial">🎁 Elige la inicial de tu regalo</label>
+              <select id="regalo-inicial" name="regalo-inicial"><option value="">Elige una letra</option></select>
+              <span class="pista">Por estar suscrita, tu primera compra de 2 charms o más lleva de regalo el charm de tu inicial. Solo aparecen las letras con unidades; si no eliges, te escribimos para preguntarte.</span>
+            </div>
           </div>
 
           <div class="nav">
@@ -778,10 +787,11 @@ function pintarResumen(){
   let suscrita=false; try{ suscrita=!!localStorage.getItem('zephora.suscrita'); }catch(e){}
   if(suscrita){
     const n=c.charms.length;
-    if(n>=2) h+='<p class="susc-ck">🎁 Incluye tu charm de regalo de suscriptora (con el correo con que te suscribiste).</p>';
-    else if(n===1) h+='<p class="susc-ck">🎁 Agrega 1 charm más y te llevas uno de regalo por estar suscrita.</p>';
+    if(n>=2) h+='<p class="susc-ck">🎁 Incluye el charm de tu inicial de regalo, por estar suscrita (con el correo con que te suscribiste). La eliges en tus datos de entrega.</p>';
+    else if(n===1) h+='<p class="susc-ck">🎁 Agrega 1 charm más y te llevas de regalo el charm de tu inicial, por estar suscrita.</p>';
   }
   $('#res-totales').innerHTML=h;
+  pintarRegalo(suscrita&&c.charms.length>=2);
 
   /* Cuánto falta para el envío gratis.
    *
@@ -1035,6 +1045,22 @@ const marcar=(nombre,mal)=>{
 };
 const val=id=>$('#'+id).value.trim();
 
+/* La inicial de regalo: solo letras con unidades (stock.json; sin él, todas
+   las del catálogo —el servidor y la tienda confirman al despachar—). Las
+   opciones se llenan una vez y la elección sobrevive a los repintados del
+   resumen, que no tocan este campo. */
+function pintarRegalo(ver){
+  const campo=$('#campo-regalo'), sel=$('#regalo-inicial');
+  if(!campo||!sel) return;
+  campo.hidden=!ver;
+  if(!ver||sel.options.length>1||!CAT) return;
+  Object.keys(CAT.precios).filter(id=>/^letra-/.test(id)).forEach(id=>{
+    const it=STOCK&&STOCK.items&&STOCK.items[id];
+    if(STOCK&&!(it&&typeof it.stock==='number'&&it.stock>0)) return;
+    const o=document.createElement('option'); o.value=id.slice(6); o.textContent=id.slice(6).toUpperCase(); sel.appendChild(o);
+  });
+}
+
 /* Una regla por campo, en un solo sitio. La usan las dos cosas que validan:
    el «Continuar», que mira el paso entero, y el aviso en vivo, que mira el
    campo que la clienta acaba de dejar. Dos listas separadas acabarían
@@ -1108,6 +1134,7 @@ function datos(){
     depto:val('depto'), ciudad:ciu, direccion:val('direccion'),
     adicional:val('adicional'), barrio:val('barrio'),
     notas:val('notas'), dedicatoria:val('dedicatoria'),
+    regaloInicial:$('#campo-regalo').hidden?'':$('#regalo-inicial').value,
     /* Autorización para escribirle por algo que no sea este pedido. Viaja con
        el resto y la guarda el registro: es lo que decide, más adelante, si un
        checkout sin pagar se puede recuperar escribiéndole a ella o solo

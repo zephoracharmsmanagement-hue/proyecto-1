@@ -35,8 +35,8 @@ function almacen() {
   };
 }
 
-const CLIENTE = correo => ({ nombre: 'Prueba', apellido: 'Suscrita', tipodoc: 'CC', documento: '1234567',
-  celular: '3001234567', correo, depto: 'Bogotá D.C.', ciudad: 'Bogotá', direccion: 'Calle 1 # 2-3' });
+const CLIENTE = (correo, extra) => Object.assign({ nombre: 'Prueba', apellido: 'Suscrita', tipodoc: 'CC', documento: '1234567',
+  celular: '3001234567', correo, depto: 'Bogotá D.C.', ciudad: 'Bogotá', direccion: 'Calle 1 # 2-3' }, extra || {});
 
 async function main() {
   Object.assign(process.env, {
@@ -109,9 +109,12 @@ async function main() {
   console.log(`\n3 · El regalo en el pedido (charms de prueba: ${c1}, ${c2})`);
   /* Inventario limpio en cada pedido: aquí se prueba el regalo, no el stock, y
      varios pedidos seguidos agotarían las piezas de prueba. */
-  const crear = async (correo, charms, pago) => {
+  // `inicial`: la letra que eligió para el charm de regalo (desde el 2026-09-27
+  // el regalo de suscriptora es el charm de su inicial).
+  const crear = async (correo, charms, pago, inicial) => {
     inv._interno.usarAlmacen(almacen());
-    const r = await pedir(crearPago, { cuerpo: { charms, base: null, pago, cliente: CLIENTE(correo) } });
+    const r = await pedir(crearPago, { cuerpo: { charms, base: null, pago,
+      cliente: CLIENTE(correo, inicial === undefined ? null : { regaloInicial: inicial }) } });
     return leerJ(r);
   };
   {
@@ -119,14 +122,18 @@ async function main() {
     comprobar(r.s === 200 && !r.d.regalo, 'suscrita con 1 charm → sin regalo');
     const sinSus = await crear('nadie@ejemplo.com', [c1, c2], 'contraentrega');
     const n = correos.length;
-    r = await crear('ana@ejemplo.com', [c1, c2], 'contraentrega');
+    // Una «letra» que no es letra del catálogo se descarta: la tienda pregunta.
+    r = await crear('ana@ejemplo.com', [c1, c2], 'contraentrega', '<b>');
     comprobar(r.s === 200 && r.d.regalo === 'suscriptor', 'suscrita con 2 charms → pedido marcado con regalo');
     comprobar(r.d.total === sinSus.d.total, `el total cobrado es idéntico con y sin suscripción (${r.d.total})`);
     const tienda = correos.slice(n).find(c => c.to[0] === 'tienda@ejemplo.com');
     const cliente = correos.slice(n).find(c => c.to[0] === 'ana@ejemplo.com');
     comprobar(tienda && /INCLUIR REGALO DE SUSCRIPTOR/.test(tienda.html) && /INCLUIR REGALO/.test(tienda.text)
       && /REGALO/.test(tienda.subject), 'la hoja de despacho dice INCLUIR REGALO (html, texto y asunto)');
-    comprobar(cliente && /charm de regalo por estar suscrita/.test(cliente.html), 'y el comprobante de la clienta lo menciona');
+    comprobar(cliente && /charm de tu inicial/.test(cliente.html) && /qué letra quieres/.test(cliente.html),
+      'y el comprobante de la clienta lo menciona (sin letra válida: le escribimos para preguntarle)');
+    comprobar(/NO eligió la letra/.test(tienda.html) && !/&lt;b&gt;|<b>b/.test(tienda.text),
+      'una letra inválida no llega a la hoja: dice que hay que preguntarle');
     comprobar((await sus.leer('ana@ejemplo.com')).regaloUsado === r.d.referencia, 'contraentrega gasta el regalo al crearse');
     r = await crear('ana@ejemplo.com', [c1, c2], 'contraentrega');
     comprobar(!r.d.regalo, 'el segundo pedido ya no lleva regalo');
@@ -150,11 +157,12 @@ async function main() {
     comprobar(await avisar(r.d.referencia, r.d.total, 'DECLINED') === 200
       && (await sus.leer('bea@ejemplo.com')).regaloUsado === null, 'pago rechazado → el regalo sigue sin usar');
     const n = correos.length;
-    r = await crear('bea@ejemplo.com', [c1, c2], 'anticipado');
+    r = await crear('bea@ejemplo.com', [c1, c2], 'anticipado', 'B');
     comprobar(await avisar(r.d.referencia, r.d.total, 'APPROVED') === 200
       && (await sus.leer('bea@ejemplo.com')).regaloUsado === r.d.referencia, 'pago aprobado → regalo usado');
     const pagado = correos.slice(n).find(c => c.to[0] === 'tienda@ejemplo.com' && /^PAGADO/.test(c.subject));
-    comprobar(pagado && /INCLUIR REGALO DE SUSCRIPTOR/.test(pagado.html), 'la hoja de «PAGADO» lo pide');
+    comprobar(pagado && /INCLUIR REGALO DE SUSCRIPTOR/.test(pagado.html) && /inicial «B» \(letra-b\)/.test(pagado.html),
+      'la hoja de «PAGADO» lo pide, con la inicial que eligió (B)');
     r = await crear('bea@ejemplo.com', [c1, c2], 'anticipado');
     comprobar(!r.d.regalo, 'el pedido siguiente ya no lleva regalo');
   }
@@ -192,6 +200,7 @@ async function main() {
     /* Desde el 2026-09-26 tocar una joya lleva a su página: cada página vista
        cuenta. En la segunda se abre en seguida su galería (la ficha), y la
        invitación tiene que esperar a que se cierre. */
+    await p.waitForSelector('.pc--top .pc-img', { state: 'attached' });
     await Promise.all([p.waitForURL(/producto-.+\.html/), p.evaluate(() => { document.querySelectorAll('.pc--top .pc-img')[0].click(); })]);
     await p.waitForTimeout(900);
     comprobar(!(await p.locator('.susc').count()), 'con 1 producto visto todavía no aparece');

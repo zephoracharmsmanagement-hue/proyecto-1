@@ -61,14 +61,14 @@ async function correoConfirmacion(correo) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fff;border:1px solid #E4DDE0">
 <tr><td style="padding:26px">
 <p style="margin:0 0 6px;font:400 24px/1.2 Georgia,serif">Confirma tu suscripción</p>
-<p style="margin:0 0 18px;color:#5a4d5e">Toca el botón y quedas suscrita. Tu charm de regalo se aplica solo en tu
+<p style="margin:0 0 18px;color:#5a4d5e">Toca el botón y quedas suscrita. El charm de tu inicial de regalo se aplica solo en tu
 primera compra de ${MIN_CHARMS_REGALO} charms o más, usando este mismo correo.</p>
 <a href="${url}" style="display:inline-block;background:#2A1F2E;color:#fff;text-decoration:none;padding:14px 24px;
 letter-spacing:.08em;text-transform:uppercase;font-size:13px">Confirmar</a>
 <p style="margin:18px 0 0;font-size:12px;color:#8a8290">Si no fuiste tú, ignora este correo: sin confirmar no guardamos
 nada. El enlace vence en 7 días. <a href="${baja}" style="color:#8a8290">Darme de baja</a></p>
 </td></tr></table></td></tr></table></body></html>`;
-  const txt = `Confirma tu suscripción a Zephora Charms:\n${url}\n\nTu charm de regalo se aplica en tu primera compra de `
+  const txt = `Confirma tu suscripción a Zephora Charms:\n${url}\n\nEl charm de tu inicial de regalo se aplica en tu primera compra de `
     + `${MIN_CHARMS_REGALO} charms o más con este correo.\nSi no fuiste tú, ignora este correo.\nDarme de baja: ${baja}`;
   return enviar({ para: correo, asunto: 'Confirma tu suscripción · Zephora Charms', html, txt });
 }
@@ -85,7 +85,7 @@ export default async (req) => {
       if (!r.ok) return pagina('No pudimos confirmarte', 'Fue un problema nuestro. Intenta con el mismo enlace en unos minutos.');
       console.log(JSON.stringify({ evento: 'suscripcion_confirmada', modo: r.modo }));
       return pagina('Listo, ya estás suscrita',
-        `Tu charm de regalo se aplica solo en tu primera compra de ${MIN_CHARMS_REGALO} charms o más, usando este mismo correo.`,
+        `El charm de tu inicial de regalo se aplica solo en tu primera compra de ${MIN_CHARMS_REGALO} charms o más, usando este mismo correo.`,
         { suscrita: true });
     }
     if (tb) {

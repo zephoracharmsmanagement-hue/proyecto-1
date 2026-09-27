@@ -138,6 +138,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       piezas: Object.entries(stock).filter(([, v]) => !v.tallas).map(([i, v]) => ({ id: i, disponible: v.stock })),
       brazaletes: Object.entries(stock).filter(([, v]) => v.tallas).map(([i, v]) => ({ id: i, tallas: v.tallas })) } }));
     await ctx.route('**/.netlify/functions/vendidas', r => r.fulfill({ json: { ventas: vendidas || {} } }));
+    // Las fotos de reseñas se sirven desde /resenas?medio=…: una imagen mínima.
+    await ctx.route(/\/resenas\?medio=/, r => r.fulfill({ status: 200, contentType: 'image/png',
+      body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
     await ctx.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: { ventasRegistradas: 0, tope: 12, minimoLibres: 3, vendidas: [], disponibles: {} } }));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
@@ -225,6 +228,15 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
       ok((r.html.match(/<img /g) || []).length === 1 && r.html.includes('/resenas?medio=hulk') && !/javascript:|otro\.sitio/.test(r.html),
         'las fotos de la reseña salen, y solo las servidas por la propia tienda');
+      // Tocar la foto la amplía en el visor de la página; antes era un enlace
+      // a otra pestaña, y algunos celulares la descargaban (2026-09-27).
+      const url0 = p.url();
+      await p.evaluate(() => document.querySelector('#rp-lista .rp-foto').click());
+      await p.waitForTimeout(200);
+      const lb = await p.evaluate(() => ({ on: document.getElementById('lb').classList.contains('is-on'),
+        src: document.getElementById('lb-img').getAttribute('src') || '', enlaces: document.querySelectorAll('#rp-lista a[href*="medio="]').length }));
+      ok(lb.on && lb.src.includes('medio=hulk') && p.url() === url0 && !lb.enlaces, 'tocar la foto de una reseña la amplía en la misma página, sin enlace que la descargue');
+      await p.keyboard.press('Escape');
       ok((r.html.match(/Compra verificada/g) || []).length === 1, 'solo la reseña con pedido lleva «Compra verificada»');
       ok(/4 personas compraron/.test(r.vend), `«${r.vend}»`);
     } else {
@@ -548,6 +560,79 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     });
     ok(r.foto && r.video && r.arrastre && !r.texto, `clic derecho y arrastre bloqueados en fotos y videos, no en el texto (${JSON.stringify(r)})`);
     await ctx9.close();
+  }
+
+  // ── 10 · Checkout: la inicial de regalo de suscriptora (2026-09-27) ──
+  console.log('10 · Checkout: elegir la inicial de regalo');
+  {
+    const conUnidades = Object.keys(cat.precios).filter(i => i.startsWith('letra-') && unidades(stock[i]) > 0).map(i => i.slice(6));
+    const dos = Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i) && hay(i)).slice(0, 2);
+    const abrir = async (charms, suscrita) => {
+      const ctx10 = await b.newContext({ viewport: { width: 390, height: 844 } });
+      await rutasFalsas(ctx10);
+      await ctx10.addInitScript(([ch, s]) => {
+        localStorage.setItem('zephora.carrito.v1', JSON.stringify({ v: 1, base: null, charms: ch, pago: 'anticipado', cuando: Date.now() }));
+        if (s) localStorage.setItem('zephora.suscrita', '1');
+      }, [charms, suscrita]);
+      const p = await ctx10.newPage();
+      const errs = []; p.on('pageerror', e => errs.push(e.message));
+      await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+      await p.waitForTimeout(300);
+      return { ctx10, p, errs };
+    };
+    let { ctx10, p, errs } = await abrir(dos, true);
+    const r = await p.evaluate(() => ({ ver: !document.getElementById('campo-regalo').hidden,
+      letras: [...document.querySelectorAll('#regalo-inicial option')].map(o => o.value).filter(Boolean) }));
+    ok(r.ver && JSON.stringify(r.letras) === JSON.stringify(conUnidades),
+      `suscrita con 2 charms: aparece «Elige la inicial de tu regalo», solo con las ${r.letras.length} letras que tienen unidades`);
+    // El campo vive en el paso de datos (oculto hasta llegar ahí): se elige por valor.
+    await p.evaluate(l => { document.getElementById('regalo-inicial').value = l; }, conUnidades[0]);
+    ok(!errs.length, 'consola limpia' + lista(errs));  // que la letra viaja lo prueba checkout.js § 4b
+    await ctx10.close();
+    ({ ctx10, p, errs } = await abrir(dos.slice(0, 1), true));
+    ok(await p.evaluate(() => document.getElementById('campo-regalo').hidden), 'con 1 charm no se ofrece');
+    await ctx10.close();
+    ({ ctx10, p, errs } = await abrir(dos, false));
+    ok(await p.evaluate(() => document.getElementById('campo-regalo').hidden), 'sin suscripción en este navegador, no aparece');
+    await ctx10.close();
+  }
+
+  // ── 11 · Vitrina → ficha, y kits.html como una ficha al bajar (2026-09-27) ──
+  console.log('11 · Tocar una joya de la vitrina abre su ficha; kits con bloques y reseñas');
+  {
+    const ctx11 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx11, { resenas: { total: 1, promedio: 5, resenas: [{ estrellas: 5, texto: 'Me encantó mi pulsera', nombre: 'Sol', ciudad: 'Cali', verificada: false, fotos: [], video: null }] } });
+    const p = await ctx11.newPage();
+    const errs = []; p.on('pageerror', e => errs.push(e.message));
+    const tocarVit = async sel => {
+      const id = await p.$eval(sel, it => it.dataset.vid);
+      const antes = p.url();
+      await p.evaluate(s => document.querySelector(s + ' img').click(), sel);
+      await p.waitForTimeout(300);
+      const f = await p.evaluate(() => ({ abierta: !document.getElementById('ficha').hidden, n: document.getElementById('fx-n').textContent,
+        foto: !!document.querySelector('#fx-ph img'), pag: document.getElementById('fx-pag').getAttribute('href'), pagVisible: !document.getElementById('fx-pag').hidden }));
+      await p.keyboard.press('Escape');
+      return { id, f, misma: p.url() === antes };
+    };
+    await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
+    await p.check('.pq input[value="2"]');
+    let r = await tocarVit('.vit .vit-it');
+    ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible && r.f.pag === 'producto-' + encodeURIComponent(r.id) + '.html',
+      `en la ficha de Hulk, tocar «${r.f.n}» en el carrusel abre su ficha con foto y «Ver la página completa» (${r.f.pag})`);
+    await p.goto(BASE + '/kits.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(300);
+    r = await tocarVit('.kit .vit .vit-it');
+    ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible, `en kits, el carrusel del kit abre la ficha de «${r.f.n}»`);
+    const k = await p.evaluate(() => ({ primero: document.querySelector('.kit').id,
+      piezas: document.querySelector('.kit .kit-paso:last-child').dataset.kitPiezas,
+      bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#rp-lista .rp-it').length,
+      formulario: !!document.getElementById('rp-form'), videos: document.querySelectorAll('.ugc-v').length }));
+    ok(k.primero === 'kit-luz-y-suenos' && k.piezas === 'pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida',
+      `el Kit Luz y Sueños sale primero, con sus 5 piezas (${k.piezas})`);
+    ok(k.bloques === 4 && k.resenas === 1 && !k.formulario && k.videos === 3,
+      `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda (sin formulario) y 3 videos de clientas`);
+    ok(!errs.length, 'consola limpia' + lista(errs));
+    await ctx11.close();
   }
 
   await b.close();

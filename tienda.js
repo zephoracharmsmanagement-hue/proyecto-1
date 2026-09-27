@@ -95,6 +95,15 @@ if(hbPause && hbTrack){
    ventana flotante (controlslist / disablepictureinpicture). */
 document.addEventListener('contextmenu',e=>{ if(e.target.closest('img,video,picture,.pc-img,.fx-ph')) e.preventDefault(); });
 document.addEventListener('dragstart',e=>{ if(e.target.closest('img,video')) e.preventDefault(); });
+/* Foto de una reseña → el visor #lb que ya traen todas las páginas (lo
+   cierra el script de la página: tocar fuera o Escape). */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.rp-foto'); if(!b) return;
+  const lb=document.getElementById('lb'), im=document.getElementById('lb-img'), f=b.querySelector('img');
+  if(!lb||!im||!f) return;
+  im.src=f.currentSrc||f.src; im.alt=f.alt;
+  lb.classList.add('is-on'); lb.setAttribute('aria-hidden','false');
+});
 
 const quietoPorPreferencia = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* También los videos de los bloques de la ficha (.bv-v), con la misma regla. */
@@ -232,6 +241,16 @@ document.addEventListener('click',e=>{
     const fila=v.querySelector('.vit-tabs'), on=fila.querySelector('.is-on');
     if(on) fila.scrollTo({left:on.offsetLeft-(fila.clientWidth-on.offsetWidth)/2,behavior:'smooth'});
     return; }
+  /* Tocar la foto o el nombre de una joya de la vitrina abre su ficha —con
+     «Ver la página completa» para ir a la suya— sin salir de la página
+     (pedido del propietario, 2026-09-27: como antes, pero solo en estos
+     carruseles, de las fichas y de los kits). Los botones siguen agregando.
+     En Más vendidos la tarjeta es un enlace a la página: ahí no se toca. */
+  const verVit=e.target.closest('.vit-it img, .vit-it .vit-n, .vit-it .vit-nof');
+  if(verVit && !e.target.closest('.mv-ir')){
+    const it=verVit.closest('.vit-it');
+    if(it&&it.dataset.vid&&(CH[it.dataset.vid]||PU[it.dataset.vid])){ abrirFicha(it.dataset.vid); return; }
+  }
   const bt=e.target.closest('[data-vit-talla]');
   if(bt){ const c=bt.parentNode.querySelector('.vit-tallas');
     if(c){ c.hidden=!c.hidden; if(!c.hidden) tallasVit(c,bt.dataset.vitTalla); } return; }
@@ -286,7 +305,7 @@ function botonRegalo(ver){
   if(lsLeer('zephora.suscrita')||lsLeer('zephora.susc.enviada')) return;
   if(!b){
     b=document.createElement('button'); b.type='button'; b.className='susc-fab';
-    b.setAttribute('aria-label','Tu charm de regalo: suscríbete');
+    b.setAttribute('aria-label','El charm de tu inicial de regalo: suscríbete');
     b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>';
     b.addEventListener('click',()=>abrirSusc(true));
     document.body.appendChild(b);
@@ -313,8 +332,8 @@ function abrirSusc(forzar){
   capa.setAttribute('aria-labelledby','susc-t');
   capa.innerHTML='<div class="susc-box"><button type="button" class="susc-x" aria-label="Cerrar">✕</button>'
     +'<span class="eyebrow">Suscríbete</span>'
-    +'<h2 id="susc-t">Un charm de regalo en tu primera compra</h2>'
-    +'<p class="susc-sub">Te lo llevas en tu primera compra de 2 charms o más. Y te enteras primero cuando lleguen piezas nuevas.</p>'
+    +'<h2 id="susc-t">El charm de tu inicial, de regalo</h2>'
+    +'<p class="susc-sub">Suscríbete y en tu primera compra de 2 charms o más te llevas de regalo el charm de la letra que elijas. Y te enteras primero cuando lleguen piezas nuevas.</p>'
     +'<form class="susc-f" novalidate>'
     +'<input type="email" name="correo" required autocomplete="email" placeholder="Tu correo" aria-label="Tu correo">'
     +'<input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">'
@@ -342,7 +361,7 @@ function abrirSusc(forzar){
       track('Lead',{content_name:'suscripcion'});
       lsPoner('zephora.susc.cerrado',String(Date.now()));
       lsPoner('zephora.susc.enviada','1');
-      f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». Tu regalo queda guardado para tu primera compra de 2 charms o más.</p>';
+      f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». El charm de tu inicial queda guardado para tu primera compra de 2 charms o más.</p>';
     }catch(err){ msg.textContent='Sin conexión. Intenta de nuevo.'; b.disabled=false; }
   });
   f.correo.focus();
@@ -730,6 +749,38 @@ const estrellasHTML=n=>{ let s=''; for(let i=1;i<=5;i++) s+='<svg viewBox="0 0 2
   +(i<=Math.round(n)?'':' class="est-off"')+' aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg>';
   return s; };
 const escHTML=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* ——— Reseñas de la tienda ——— */
+const pintarResenas=d=>{
+  if(!d||!d.total) return;
+  const prom=d.promedio.toFixed(1).replace('.',','), txt=' '+prom+' · '+d.total+(d.total===1?' reseña':' reseñas');
+  const top=$('#pp-estrellas');
+  if(top){ top.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>'; top.hidden=false; }
+  const res=$('#rp-resumen'); if(res) res.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>';
+  const lista=$('#rp-lista');
+  if(lista) lista.innerHTML=d.resenas.map(r=>'<figure class="rp-it"><div class="estrellas">'+estrellasHTML(r.estrellas)+'</div>'
+    +'<blockquote>'+escHTML(r.texto)+'</blockquote>'+mediosResena(r)+'<figcaption><b>'+escHTML(r.nombre)+'</b>'
+    +(r.ciudad?' · '+escHTML(r.ciudad):'')+(r.verificada?' · <span class="rp-ok">✓ Compra verificada</span>':'')
+    +'</figcaption></figure>').join('');
+};
+/* Fotos y video de una reseña (ENCARGO-FICHA-2 § 3). Solo rutas de la propia
+   función: nada que venga en el JSON se pinta como URL ajena. */
+const propia=u=>typeof u==='string'&&/^\/resenas\?medio=[^"'<>\s]+$/.test(u);
+const mediosResena=r=>{
+  const fotos=(r.fotos||[]).filter(propia);
+  /* Botón y no enlace (pedido del propietario, 2026-09-27): abrir la foto
+     en otra pestaña hacía que algunos celulares la descargaran. Ahora se
+     amplía en el visor de la página (#lb), el mismo de los testimonios. */
+  return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<button type="button" class="rp-foto" aria-label="Ampliar foto"><img src="'+u
+      +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>').join('')+'</div>':'')
+    +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>':'');
+};
+/* Todas las reseñas de la tienda, en cualquier ficha (decisión del
+   propietario, 2026-09-26): el promedio de arriba es el de la tienda. Y en
+   cualquier página que traiga la lista —desde el 2026-09-27 también
+   kits.html—, no solo en las fichas. */
+if($('#rp-lista')||$('#pp-estrellas')) fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
+  .then(pintarResenas).catch(()=>{});
+
 if(PP&&(CH[PP]||PU[PP])){
   fetch('.netlify/functions/disponibilidad',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
     if(!d||d.fuente!=='conteo-menos-apartado') return;
@@ -742,31 +793,6 @@ if(PP&&(CH[PP]||PU[PP])){
     const n=d&&d.ventas&&d.ventas[PP], el=$('#pp-vendidas');
     if(el&&n>=3){ el.textContent=n+' personas compraron esta pieza este mes'; el.hidden=false; }
   }).catch(()=>{});
-  const pintarResenas=d=>{
-    if(!d||!d.total) return;
-    const prom=d.promedio.toFixed(1).replace('.',','), txt=' '+prom+' · '+d.total+(d.total===1?' reseña':' reseñas');
-    const top=$('#pp-estrellas');
-    if(top){ top.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>'; top.hidden=false; }
-    const res=$('#rp-resumen'); if(res) res.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>';
-    const lista=$('#rp-lista');
-    if(lista) lista.innerHTML=d.resenas.map(r=>'<figure class="rp-it"><div class="estrellas">'+estrellasHTML(r.estrellas)+'</div>'
-      +'<blockquote>'+escHTML(r.texto)+'</blockquote>'+mediosResena(r)+'<figcaption><b>'+escHTML(r.nombre)+'</b>'
-      +(r.ciudad?' · '+escHTML(r.ciudad):'')+(r.verificada?' · <span class="rp-ok">✓ Compra verificada</span>':'')
-      +'</figcaption></figure>').join('');
-  };
-  /* Fotos y video de una reseña (ENCARGO-FICHA-2 § 3). Solo rutas de la propia
-     función: nada que venga en el JSON se pinta como URL ajena. */
-  const propia=u=>typeof u==='string'&&/^\/resenas\?medio=[^"'<>\s]+$/.test(u);
-  const mediosResena=r=>{
-    const fotos=(r.fotos||[]).filter(propia);
-    return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<a href="'+u+'" target="_blank" rel="noopener"><img src="'+u
-        +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></a>').join('')+'</div>':'')
-      +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>':'');
-  };
-  /* Todas las reseñas de la tienda, en cualquier ficha (decisión del
-     propietario, 2026-09-26): el promedio de arriba es el de la tienda. */
-  fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
-    .then(pintarResenas).catch(()=>{});
 
   /* Paquetes: al elegir 2, 3 o 4, se abren los charms para completarlo. */
   const pq=document.querySelector('.pq');
@@ -829,7 +855,10 @@ function abrirFicha(id){
   if((!yaAbierta||fichaId!==id) && id!==document.body.dataset.producto) verPieza(id);
   fichaId=id;
   const tarjeta=tarjetaDe(id);
-  const img=tarjeta&&tarjeta.querySelector('.pc-img img');
+  /* Sin tarjeta en la página (la vitrina de una ficha o de los kits), la foto
+     sale del catálogo: si no, la ficha abría con un monograma. */
+  let img=tarjeta&&tarjeta.querySelector('.pc-img img');
+  if(!img){ const src=imgDe(id); if(src){ img=new Image(); img.src=src; } }
   const fam=familiaDe(id);
 
   pintarGaleria(id, img, p.n);
