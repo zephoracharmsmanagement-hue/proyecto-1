@@ -265,11 +265,14 @@ function main() {
     'advierte que en el checkout no hay botón de Addi');
 
   /* Lo que va gratis con cada pedido. El paño nunca se había mencionado en la
-     web y ahora está publicado: si lo lee ahí y el bot no lo conoce, lo niega. */
+     web y ahora está publicado: si lo lee ahí y el bot no lo conoce, lo niega.
+     Las palabras cambiaron otra vez el 2026-09-27 —«caja de lujo» y «tarjeta
+     con dedicatoria» pasaron a ser solo «caja» y «dedicatoria escrita a
+     mano»— y la sección 11 vigila esa versión, la que manda hoy. */
   for (const [que, re] of [
-    ['la caja de lujo', /caja de lujo/i],
+    ['la caja', /\bcaja\b/i],
     ['el paño para la plata', /pa[ñn]o para (limpiar )?(la )?(su )?plata/i],
-    ['la tarjeta con dedicatoria', /tarjeta con dedicatoria/i],
+    ['la dedicatoria escrita a mano', /dedicatoria/i],
   ]) {
     comprobar(re.test(prompt), `nombra ${que} entre lo que va incluido sin costo`);
   }
@@ -382,6 +385,96 @@ function main() {
 
   comprobar(/no le agregues nada debajo|NO le agregues nada debajo/i.test(prompt),
     'y le dice a la IA que NO responda debajo cuando el mensaje es uno de esos genéricos');
+
+  console.log('\n11 · La actualización del 2026-09-27');
+
+  /* `plano` y `promptPlano` ya existen (sección 8): sin tildes de los dos
+     lados, porque el prompt no las lleva y el sitio sí. */
+
+  // 1 · Tiempos de entrega, leídos de la página que los publica, no copiados
+  //     a mano. Bogotá va SEPARADA de los municipios cercanos.
+  const envios = fs.readFileSync(path.join(RAIZ, 'envios-y-devoluciones.html'), 'utf8');
+  /* Hay dos tablas en la página —«Cobertura y costos» y «Tiempos de
+     entrega»— con la misma forma de fila. Acotar a la segunda, o la prueba
+     compara los tiempos contra la tabla equivocada. */
+  const seccionTiempos = envios.split(/<h2>2\. Tiempos de entrega<\/h2>/)[1]
+    .split(/<h2>/)[0];
+  const filas = [...seccionTiempos.matchAll(/<tr><td>([^<]+)<\/td><td>([^<]+)<\/td><\/tr>/g)]
+    .map(m => [m[1].trim(), m[2].trim()]);
+  comprobar(filas.length >= 4, 'encontró la tabla de tiempos de entrega en envios-y-devoluciones.html',
+    `${filas.length} filas`);
+  /* El sitio escribe el rango con guion en (1 – 2) y el prompt lo dice en
+     prosa (1 a 2 dias) — mismo dato, otra forma. Comparar la frase entera
+     sería un falso positivo seguro. Se comparan solo los números: los que
+     trae la tabla tienen que aparecer, en ese orden, cerca del nombre del
+     destino dentro del prompt. */
+  for (const [destino, plazo] of filas) {
+    const numeros = plazo.match(/\d+/g) || [];
+    // «Ciudades principales (Medellín, Cali...)» en el prompt es «Ciudades
+    // principales como Medellin, Cali o Barranquilla»: mismo destino, otra
+    // frase. Se busca solo lo que va antes del paréntesis.
+    const destinoBuscado = destino.split('(')[0].trim();
+    const iDestino = promptPlano.indexOf(plano(destinoBuscado));
+    const ventana = iDestino >= 0 ? promptPlano.slice(iDestino, iDestino + 100) : '';
+    const numerosVentana = ventana.match(/\d+/g) || [];
+    const encajan = numeros.every((n, i) => numerosVentana[i] === n);
+    comprobar(iDestino >= 0 && encajan,
+      `dice el tiempo de «${destino}»: ${plazo}`,
+      iDestino < 0 ? 'no se encontró el destino' : `numeros cerca: ${numerosVentana.join(',')}`);
+  }
+  comprobar(/pide hoy y te llega manana/i.test(promptPlano),
+    'advierte que nunca hay que prometer «pide hoy y llega mañana»');
+
+  // 3 · Empaque: las palabras que la página usa hoy, ninguna de las viejas.
+  const empaque = prompt.split('\n').filter(l => /EMPAQUE\./.test(l))[0] || '';
+  comprobar(/\bcaja\b/i.test(prompt) && /pa[ñn]o/i.test(prompt) && /dedicatoria/i.test(prompt),
+    'nombra caja, paño y dedicatoria como lo incluido');
+  const vieja = prompt.split('\n').filter(l =>
+    /caja de lujo|tarjeta impresa|con su bolsa/i.test(l) &&
+    !/NO digas|no digas/i.test(l));
+  comprobar(vieja.length === 0,
+    'no queda «caja de lujo», «tarjeta impresa» ni «con su bolsa» afirmándolo',
+    vieja.length ? vieja[0].trim().slice(0, 90) : undefined);
+
+  // 5 · Regalo por suscribirse: la condición real sale de _suscriptores.mjs,
+  //     no de la memoria de nadie.
+  const suscriptores = fs.readFileSync(
+    path.join(RAIZ, 'netlify', 'functions', '_suscriptores.mjs'), 'utf8');
+  const minCharms = suscriptores.match(/MIN_CHARMS_REGALO\s*=\s*(\d+)/);
+  comprobar(!!minCharms, 'encontró MIN_CHARMS_REGALO en _suscriptores.mjs');
+  if (minCharms) {
+    comprobar(prompt.includes(`${minCharms[1]} charms o mas`),
+      `dice la condición real: ${minCharms[1]} charms o más`);
+  }
+  comprobar(/VERIFICAR REGALO/.test(prompt),
+    'deja la etiqueta [VERIFICAR REGALO] para pedidos de suscriptora por WhatsApp');
+  comprobar(/SOLO aparecen las letras que tienen unidades/i.test(prompt),
+    'no promete una letra sin confirmar unidades');
+
+  // 6 · Enlaces directos por producto: el patrón tiene que ser el real.
+  comprobar(prompt.includes('producto-{id}.html'),
+    'usa el patrón real de las páginas de producto');
+  const ejemploId = 'mickey-mouse';
+  comprobar(fs.existsSync(path.join(RAIZ, `producto-${ejemploId}.html`)) &&
+    prompt.includes(`producto-${ejemploId}.html`),
+    `el ejemplo que da (producto-${ejemploId}.html) existe de verdad`);
+
+  // 7 · Kits: la composición sale de kits.json, no de una lista copiada.
+  const KITS = require(path.join(RAIZ, 'assets', 'kits.json')).kits;
+  comprobar(prompt.includes('zephoracharms.com/kits.html'),
+    'manda a kits.html para el precio real de cada kit');
+  for (const k of KITS) {
+    const piezas = [k.base, ...k.charms].map(id => CAT.nombres[id]);
+    comprobar(piezas.every(nombre => promptPlano.includes(plano(nombre))),
+      `el prompt nombra las piezas del «${k.nombre}»`,
+      piezas.filter(n => !promptPlano.includes(plano(n))).join(', ') || undefined);
+  }
+  comprobar(/NUNCA des el precio de un kit de memoria/i.test(prompt),
+    'prohíbe dar el precio de un kit de memoria');
+
+  // 8 · Reseñas: no promete nada a cambio.
+  comprobar(/resena/i.test(promptPlano) && /nunca promet.*resena|resena.*nunca promet/i.test(promptPlano.replace(/\n/g, ' ')),
+    'no promete nada a cambio de una reseña');
 
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
