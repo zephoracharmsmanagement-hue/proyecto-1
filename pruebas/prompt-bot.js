@@ -476,6 +476,19 @@ function main() {
   comprobar(/resena/i.test(promptPlano) && /nunca promet.*resena|resena.*nunca promet/i.test(promptPlano.replace(/\n/g, ' ')),
     'no promete nada a cambio de una reseña');
 
+  console.log('\n12 · El catálogo en PDF');
+
+  /* El bot ya puede mandar el catálogo como documento (herramienta
+     enviar_catalogo). El PDF es una foto del día: los precios los vigila
+     pruebas/catalogo-pdf.js, pero las existencias no, así que el prompt tiene
+     que obligar a confirmar con disponibilidad antes de cerrar. */
+  comprobar(/enviar_catalogo/.test(prompt),
+    'conoce la herramienta que manda el catálogo');
+  comprobar(!/No tienes un catalogo para enviar/i.test(prompt),
+    'ya no le dice a la clienta que no hay catálogo');
+  comprobar(/puede estar agotada hoy/i.test(prompt) && /disponibilidad/i.test(prompt),
+    'advierte que una pieza del catálogo puede estar agotada y manda a confirmar');
+
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
     : '\nPrompt del bot en verde ✓');

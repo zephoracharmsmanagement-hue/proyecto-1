@@ -75,6 +75,18 @@ const CABECERAS = {
   'Cache-Control': 'public, max-age=60',
 };
 
+/* El grupo de una pieza, para que el asesor ofrezca algo parecido cuando lo
+   pedido está agotado. Los charms lo traen de `catalogo.json`; brazaletes e
+   iniciales no, a propósito: la tienda arma su menú y sus pestañas con esos
+   grupos, y ponerles uno ahí creó colecciones «clasico», «corazon»… y una
+   pestaña «Letras» repetida (lo cazó pruebas/paginas.js). Así que se deducen
+   aquí, igual que hace tienda.js: un brazalete se parece a otro brazalete. */
+function grupoDe(id, it) {
+  if (it && it.tallas) return 'Brazaletes';
+  if (id.startsWith('letra-')) return 'Letras';
+  return (grupos && grupos[id]) || null;
+}
+
 export default async (req) => {
   /* El origen sale de la petición y no de una constante para que esto siga
      funcionando en un deploy de vista previa, donde el dominio es otro. */
@@ -117,7 +129,7 @@ export default async (req) => {
          «mariposas, flores o algo morado» en vez de nombrar las dos piezas de
          Símbolos que sí había. Una venta que se cae por un campo que ya
          existía. */
-      grupo: (grupos && grupos[id]) || null,
+      grupo: grupoDe(id, it),
     };
 
     if (it.tallas) {

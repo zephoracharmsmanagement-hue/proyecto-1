@@ -204,6 +204,24 @@ async function main() {
       'son URL absolutas y públicas: Meta las descarga desde sus servidores');
   }
 
+  /* El grupo: con él el asesor ofrece algo parecido cuando lo pedido está
+     agotado, y el prompt se lo pide pieza por pieza. Estuvo una semana sin
+     llegar a producción —el cambio se quedó en una rama— y nada lo notó,
+     porque esta batería no lo miraba. */
+  {
+    const { d } = await pedir();
+    const todas = d.piezas.concat(d.brazaletes);
+    const sin = todas.filter(x => !x.grupo).map(x => x.id);
+    comprobar(sin.length === 0, `las ${todas.length} piezas traen grupo`,
+      sin.slice(0, 8).join(', ') || undefined);
+    comprobar(d.brazaletes.every(x => x.grupo === 'Brazaletes'),
+      'un brazalete se agrupa con los brazaletes');
+    comprobar(d.piezas.filter(x => x.id.startsWith('letra-')).every(x => x.grupo === 'Letras'),
+      'una inicial se agrupa con las iniciales');
+    comprobar(d.piezas.some(x => x.grupo === 'Marvel') && d.piezas.some(x => x.grupo === 'Disney'),
+      'los charms traen el grupo de la tienda (Marvel, Disney…)');
+  }
+
   inv._interno.usarAlmacen(null);
   console.log(fallos ? `\nDisponibilidad: ${fallos} en rojo` : '\nDisponibilidad en verde ✓');
 }
