@@ -2,6 +2,15 @@
   "_": "Los kits de la tienda. Los edita una persona; no lo pisa ningún extractor. Cada kit es una selección de piezas que YA existen en el catálogo — no hay precio aquí a propósito: lo calcula calcular() con las mismas reglas que firman el cobro, así que un kit nunca puede prometer un precio que el checkout no vaya a cobrar. El orden de `charms` es el orden en que se van sumando en la escalera, así que el primero es el que mejor cuenta el kit solo.",
   "kits": [
     {
+      "id": "luz-y-suenos",
+      "nombre": "Kit Luz y Sueños",
+      "eyebrow": "Símbolos",
+      "lema": "Luz, sueños y amor en un solo brazalete",
+      "entrada": "La Luciérnaga Evangeline, el Atrapasueños Corazón Multicolor, la Conejita con Corazón Rosa y el Corazón Árbol de la Vida, cada uno en Plata Esterlina 925 con su sello grabado, sobre la Pulsera Corazón Liso con acabado en baño de plata.",
+      "base": "pulsera-corazon-liso",
+      "charms": ["luciernaga-you-are-my-light", "atrapasuenos-corazon-multicolor", "conejita-con-corazon-rosa", "corazon-arbol-de-la-vida"]
+    },
+    {
       "id": "spider-man",
       "nombre": "Kit Spider-Man",
       "eyebrow": "Marvel",

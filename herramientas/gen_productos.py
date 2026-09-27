@@ -504,7 +504,7 @@ def acordeones(tipo, meta, grupo, cat):
 ORDINAL = {2: 'segundo', 3: 'tercer', 4: 'cuarto', 5: 'quinto'}
 
 
-def bloques_media(pid, tipo, hay, cat):
+def bloques_media(pid, tipo, hay, cat, arma_href=None):
     """Los cuatro bloques con foto o video, entre la guía de tallas y las
     relacionadas (ENCARGO-FICHA-2 § 1). Textos del propietario, iguales en
     todas las fichas salvo lo marcado para brazaletes —que son baño de plata,
@@ -537,8 +537,11 @@ def bloques_media(pid, tipo, hay, cat):
     t4 = ('Tu pedido llega en <b>su caja</b>, con <b>paño para limpiar la plata</b> y una <b>dedicatoria '
           'escrita a mano</b> con las palabras que tú elijas. Solo falta entregarla… o quedártela.')
 
-    arma = '<a class="btn btn--ghost" href="%s">Arma tu pulsera</a>' % ('#pp-compra' if hay else 'index.html#brazaletes')
-    if not hay:
+    # Fuera de una ficha (kits.html, Más vendidos) no hay pieza propia: el
+    # botón de armar lleva a donde se arma en esa página y no hay «Agregar».
+    arma = '<a class="btn btn--ghost" href="%s">Arma tu pulsera</a>' % (
+        arma_href or ('#pp-compra' if hay else 'index.html#brazaletes'))
+    if not pid or not hay:
         agregar = ''
     elif es_b:
         agregar = '<button class="btn" type="button" data-comprar="%s">Elige tu talla</button>' % pid
@@ -590,6 +593,14 @@ BLOQUE_RESENAS = '''<section class="sec" id="resenas-pieza">
     </details>
   </div>
 </section>'''
+
+
+def resenas_tienda():
+    """La lista de reseñas de la tienda para páginas que no son de una pieza
+    (kits.html, Más vendidos): la misma sección de las fichas, sin el
+    formulario, que reseña la pieza de la ficha. La pinta tienda.js."""
+    import re
+    return re.sub(r'\s*<details class="rp-escribir"[\s\S]*?</details>', '', BLOQUE_RESENAS)
 
 
 def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):

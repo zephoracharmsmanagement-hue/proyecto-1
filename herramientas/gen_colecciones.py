@@ -580,7 +580,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
   </div>
 </section>
 
-<section class="kits wrap">
+<section class="kits wrap" id="kits">
 {tarjetas}
 </section>
 
@@ -593,7 +593,16 @@ PAGINA_KITS = '''<!DOCTYPE html>
 
 {talla}
 
+<!-- Lo mismo que se ve al bajar en una ficha (pedido del propietario,
+     2026-09-27): los bloques con foto y video, las reseñas de la tienda y los
+     videos de clientas. Salen de gen_productos.py, no se copian a mano. -->
+{bloques_media}
+
+{resenas_tienda}
+
 {resenas}
+
+{historia}
 
 {pagos}
 
@@ -673,8 +682,11 @@ def generar_kits(html, escribir):
             'El descuento sube con cada dije y se aplica solo: hasta 25% en dijes '
             'y 30% en el brazalete. Envío gratis a toda Colombia.')
 
+    from gen_productos import bloques_media, resenas_tienda   # aquí: gen_productos importa este módulo
     pagina = PAGINA_KITS.format(
         head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+        bloques_media=bloques_media(None, 'charm', False, cat, arma_href='#kits'),
+        resenas_tienda=resenas_tienda(), historia=b['historia'],
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
         footer=b['footer'], chrome=b['chrome'],
         tarjetas=''.join(tarjetas_html), n_catalogo=n_catalogo, desc=desc,
@@ -739,8 +751,12 @@ def generar_mas_vendidos(html, escribir):
     b = bloques(html)
     desc = ('Las piezas de Zephora que más se venden, contadas de pedidos reales: charms en Plata '
             'Esterlina 925 y brazaletes con baño de plata, con 3 unidades o más disponibles.')
+    from gen_productos import bloques_media, resenas_tienda
+    cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
     pagina = (cabeza + MV_CUERPO + PAGINA_KITS[fin:]).format(
         head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+        bloques_media=bloques_media(None, 'charm', False, cat, arma_href='kits.html'),
+        resenas_tienda=resenas_tienda(), historia=b['historia'],
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
         footer=b['footer'], chrome=b['chrome'], desc=desc)
     pagina = arregla_nav(pagina)

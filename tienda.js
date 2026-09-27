@@ -241,6 +241,16 @@ document.addEventListener('click',e=>{
     const fila=v.querySelector('.vit-tabs'), on=fila.querySelector('.is-on');
     if(on) fila.scrollTo({left:on.offsetLeft-(fila.clientWidth-on.offsetWidth)/2,behavior:'smooth'});
     return; }
+  /* Tocar la foto o el nombre de una joya de la vitrina abre su ficha —con
+     «Ver la página completa» para ir a la suya— sin salir de la página
+     (pedido del propietario, 2026-09-27: como antes, pero solo en estos
+     carruseles, de las fichas y de los kits). Los botones siguen agregando.
+     En Más vendidos la tarjeta es un enlace a la página: ahí no se toca. */
+  const verVit=e.target.closest('.vit-it img, .vit-it .vit-n, .vit-it .vit-nof');
+  if(verVit && !e.target.closest('.mv-ir')){
+    const it=verVit.closest('.vit-it');
+    if(it&&it.dataset.vid&&(CH[it.dataset.vid]||PU[it.dataset.vid])){ abrirFicha(it.dataset.vid); return; }
+  }
   const bt=e.target.closest('[data-vit-talla]');
   if(bt){ const c=bt.parentNode.querySelector('.vit-tallas');
     if(c){ c.hidden=!c.hidden; if(!c.hidden) tallasVit(c,bt.dataset.vitTalla); } return; }
@@ -739,6 +749,38 @@ const estrellasHTML=n=>{ let s=''; for(let i=1;i<=5;i++) s+='<svg viewBox="0 0 2
   +(i<=Math.round(n)?'':' class="est-off"')+' aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg>';
   return s; };
 const escHTML=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/* ——— Reseñas de la tienda ——— */
+const pintarResenas=d=>{
+  if(!d||!d.total) return;
+  const prom=d.promedio.toFixed(1).replace('.',','), txt=' '+prom+' · '+d.total+(d.total===1?' reseña':' reseñas');
+  const top=$('#pp-estrellas');
+  if(top){ top.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>'; top.hidden=false; }
+  const res=$('#rp-resumen'); if(res) res.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>';
+  const lista=$('#rp-lista');
+  if(lista) lista.innerHTML=d.resenas.map(r=>'<figure class="rp-it"><div class="estrellas">'+estrellasHTML(r.estrellas)+'</div>'
+    +'<blockquote>'+escHTML(r.texto)+'</blockquote>'+mediosResena(r)+'<figcaption><b>'+escHTML(r.nombre)+'</b>'
+    +(r.ciudad?' · '+escHTML(r.ciudad):'')+(r.verificada?' · <span class="rp-ok">✓ Compra verificada</span>':'')
+    +'</figcaption></figure>').join('');
+};
+/* Fotos y video de una reseña (ENCARGO-FICHA-2 § 3). Solo rutas de la propia
+   función: nada que venga en el JSON se pinta como URL ajena. */
+const propia=u=>typeof u==='string'&&/^\/resenas\?medio=[^"'<>\s]+$/.test(u);
+const mediosResena=r=>{
+  const fotos=(r.fotos||[]).filter(propia);
+  /* Botón y no enlace (pedido del propietario, 2026-09-27): abrir la foto
+     en otra pestaña hacía que algunos celulares la descargaran. Ahora se
+     amplía en el visor de la página (#lb), el mismo de los testimonios. */
+  return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<button type="button" class="rp-foto" aria-label="Ampliar foto"><img src="'+u
+      +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>').join('')+'</div>':'')
+    +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>':'');
+};
+/* Todas las reseñas de la tienda, en cualquier ficha (decisión del
+   propietario, 2026-09-26): el promedio de arriba es el de la tienda. Y en
+   cualquier página que traiga la lista —desde el 2026-09-27 también
+   kits.html—, no solo en las fichas. */
+if($('#rp-lista')||$('#pp-estrellas')) fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
+  .then(pintarResenas).catch(()=>{});
+
 if(PP&&(CH[PP]||PU[PP])){
   fetch('.netlify/functions/disponibilidad',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
     if(!d||d.fuente!=='conteo-menos-apartado') return;
@@ -751,34 +793,6 @@ if(PP&&(CH[PP]||PU[PP])){
     const n=d&&d.ventas&&d.ventas[PP], el=$('#pp-vendidas');
     if(el&&n>=3){ el.textContent=n+' personas compraron esta pieza este mes'; el.hidden=false; }
   }).catch(()=>{});
-  const pintarResenas=d=>{
-    if(!d||!d.total) return;
-    const prom=d.promedio.toFixed(1).replace('.',','), txt=' '+prom+' · '+d.total+(d.total===1?' reseña':' reseñas');
-    const top=$('#pp-estrellas');
-    if(top){ top.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>'; top.hidden=false; }
-    const res=$('#rp-resumen'); if(res) res.innerHTML=estrellasHTML(d.promedio)+'<span>'+txt+'</span>';
-    const lista=$('#rp-lista');
-    if(lista) lista.innerHTML=d.resenas.map(r=>'<figure class="rp-it"><div class="estrellas">'+estrellasHTML(r.estrellas)+'</div>'
-      +'<blockquote>'+escHTML(r.texto)+'</blockquote>'+mediosResena(r)+'<figcaption><b>'+escHTML(r.nombre)+'</b>'
-      +(r.ciudad?' · '+escHTML(r.ciudad):'')+(r.verificada?' · <span class="rp-ok">✓ Compra verificada</span>':'')
-      +'</figcaption></figure>').join('');
-  };
-  /* Fotos y video de una reseña (ENCARGO-FICHA-2 § 3). Solo rutas de la propia
-     función: nada que venga en el JSON se pinta como URL ajena. */
-  const propia=u=>typeof u==='string'&&/^\/resenas\?medio=[^"'<>\s]+$/.test(u);
-  const mediosResena=r=>{
-    const fotos=(r.fotos||[]).filter(propia);
-    /* Botón y no enlace (pedido del propietario, 2026-09-27): abrir la foto
-       en otra pestaña hacía que algunos celulares la descargaran. Ahora se
-       amplía en el visor de la página (#lb), el mismo de los testimonios. */
-    return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<button type="button" class="rp-foto" aria-label="Ampliar foto"><img src="'+u
-        +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>').join('')+'</div>':'')
-      +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>':'');
-  };
-  /* Todas las reseñas de la tienda, en cualquier ficha (decisión del
-     propietario, 2026-09-26): el promedio de arriba es el de la tienda. */
-  fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
-    .then(pintarResenas).catch(()=>{});
 
   /* Paquetes: al elegir 2, 3 o 4, se abren los charms para completarlo. */
   const pq=document.querySelector('.pq');
@@ -841,7 +855,10 @@ function abrirFicha(id){
   if((!yaAbierta||fichaId!==id) && id!==document.body.dataset.producto) verPieza(id);
   fichaId=id;
   const tarjeta=tarjetaDe(id);
-  const img=tarjeta&&tarjeta.querySelector('.pc-img img');
+  /* Sin tarjeta en la página (la vitrina de una ficha o de los kits), la foto
+     sale del catálogo: si no, la ficha abría con un monograma. */
+  let img=tarjeta&&tarjeta.querySelector('.pc-img img');
+  if(!img){ const src=imgDe(id); if(src){ img=new Image(); img.src=src; } }
   const fam=familiaDe(id);
 
   pintarGaleria(id, img, p.n);

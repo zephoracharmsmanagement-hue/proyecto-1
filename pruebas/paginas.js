@@ -597,5 +597,43 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await ctx10.close();
   }
 
+  // ── 11 · Vitrina → ficha, y kits.html como una ficha al bajar (2026-09-27) ──
+  console.log('11 · Tocar una joya de la vitrina abre su ficha; kits con bloques y reseñas');
+  {
+    const ctx11 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx11, { resenas: { total: 1, promedio: 5, resenas: [{ estrellas: 5, texto: 'Me encantó mi pulsera', nombre: 'Sol', ciudad: 'Cali', verificada: false, fotos: [], video: null }] } });
+    const p = await ctx11.newPage();
+    const errs = []; p.on('pageerror', e => errs.push(e.message));
+    const tocarVit = async sel => {
+      const id = await p.$eval(sel, it => it.dataset.vid);
+      const antes = p.url();
+      await p.evaluate(s => document.querySelector(s + ' img').click(), sel);
+      await p.waitForTimeout(300);
+      const f = await p.evaluate(() => ({ abierta: !document.getElementById('ficha').hidden, n: document.getElementById('fx-n').textContent,
+        foto: !!document.querySelector('#fx-ph img'), pag: document.getElementById('fx-pag').getAttribute('href'), pagVisible: !document.getElementById('fx-pag').hidden }));
+      await p.keyboard.press('Escape');
+      return { id, f, misma: p.url() === antes };
+    };
+    await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
+    await p.check('.pq input[value="2"]');
+    let r = await tocarVit('.vit .vit-it');
+    ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible && r.f.pag === 'producto-' + encodeURIComponent(r.id) + '.html',
+      `en la ficha de Hulk, tocar «${r.f.n}» en el carrusel abre su ficha con foto y «Ver la página completa» (${r.f.pag})`);
+    await p.goto(BASE + '/kits.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(300);
+    r = await tocarVit('.kit .vit .vit-it');
+    ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible, `en kits, el carrusel del kit abre la ficha de «${r.f.n}»`);
+    const k = await p.evaluate(() => ({ primero: document.querySelector('.kit').id,
+      piezas: document.querySelector('.kit .kit-paso:last-child').dataset.kitPiezas,
+      bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#rp-lista .rp-it').length,
+      formulario: !!document.getElementById('rp-form'), videos: document.querySelectorAll('.ugc-v').length }));
+    ok(k.primero === 'kit-luz-y-suenos' && k.piezas === 'pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida',
+      `el Kit Luz y Sueños sale primero, con sus 5 piezas (${k.piezas})`);
+    ok(k.bloques === 4 && k.resenas === 1 && !k.formulario && k.videos === 3,
+      `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda (sin formulario) y 3 videos de clientas`);
+    ok(!errs.length, 'consola limpia' + lista(errs));
+    await ctx11.close();
+  }
+
   await b.close();
 })();
