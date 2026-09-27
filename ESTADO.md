@@ -24,11 +24,179 @@ El propietario encarga **rehacer el sitio entero hasta que quede profesional y
 convertidor**, trabajando en bucle: revisar, arreglar, desplegar, volver a
 mirar. No es una tarea con final escrito — es un ciclo.
 
-**Rama de trabajo:** `claude/zephoracharms-conversion-funnel-nom9ph`
-**Alcance:** todo el frente de tienda. Por eso, **regla 1 de `CLAUDE.md` en
-pleno**: una sola sesión toca la tienda mientras este encargo esté abierto.
-Otra sesión en paralelo sobre `index.html`, `tienda.js`, `tienda.css` o
-`herramientas/gen_colecciones.py` duplicará trabajo.
+> **2026-09-24 · Cambio de mano: la sesión de terminal toma la tienda.** Por
+> decisión del propietario, la sesión web dejó de tocar la tienda y el encargo
+> siguió desde una terminal local, en la rama `claude/tienda-paginas-producto`
+> (salida de `origin/main` en `b63a35c`).
+
+> **2026-09-26 · Páginas por producto: FUSIONADO a `main` (PR #5, un solo
+> despliegue) con confirmación explícita del propietario («deploy»).** La
+> tienda queda **liberada**: otra sesión puede tocar `index.html`, `tienda.js`,
+> `tienda.css` y los generadores, leyendo antes lo de abajo. Suite local 860 ✓,
+> 0 ✗; `pruebas/paginas.js` 95 ✓ contra la vista previa.
+>
+> **Qué entró:**
+> - 135 páginas `producto-<id>.html` generadas por `herramientas/gen_productos.py`
+>   (nunca a mano; slug = id de `catalogo.json`), con píxel por pieza:
+>   `ViewContent`/`AddToCart` `content_type 'product'` y `InitiateCheckout`
+>   **solo** desde checkout.html con los ids del carrito (antes contaba doble).
+> - **Tocar una joya lleva a su página** (portada, colecciones, relacionadas y
+>   lupa); la ficha emergente quedó como galería ampliada dentro de la página
+>   de la propia pieza. Decisión del propietario, 2026-09-26.
+> - **Vitrina** (`.vit`): carrusel con pestañas —Relacionados, cada colección,
+>   Iniciales, Brazaletes— en todas las fichas y en cada kit de `kits.html`. El
+>   generador deja el hueco (`vitrina()` en gen_colecciones.py) y tienda.js lo
+>   llena desde `assets/catalogo.json` con nombres y precios de `DATA`. En la
+>   ficha de un brazalete no hay pestaña de brazaletes (el carrito lleva uno).
+>   Los pasos de los kits son botones que agregan sin ir a la portada.
+> - Colección Símbolos, sitemap (144 URL) y robots; `force = true` en las
+>   reglas 404 de `netlify.toml` (antes el sitio servía ESTADO.md, CLAUDE.md,
+>   docs/… con 200); iniciales a $86.000 (se anunciaban a $76.000); fotos de 25
+>   iniciales (faltan Ñ y Q, caen a la del grupo); Bogotá 1 día hábil.
+> - Encargos de `automatizaciones/tienda/ORDEN.md`: `registrar-venta.mjs`,
+>   suscripción con charm de regalo (`suscribir`, `suscriptores-export`,
+>   regalo en crear-pago/webhook, botón de regalo flotante), `resenas.mjs` con
+>   moderación y `vendidas.mjs`. Variables secretas ya en Netlify:
+>   `VENTA_MANUAL_KEY`, `SUSCRIPCION_SECRETO`, `SUSCRIPTORES_KEY` (las de n8n
+>   están en `material-sin-publicar/claves-para-n8n.txt`, fuera de git: el
+>   propietario debe borrarlo tras copiarlas).
+>
+> **Aprendido (no redescubrir):**
+> - `abrirFicha` sumaba un `bloquearFondo(true)` cada vez que se repintaba
+>   abierta (al agregar desde ella, al llegar el inventario) y cerrarla quitaba
+>   uno: la página quedaba sin scroll y la suscripción esperando para siempre.
+>   Estaba en producción. Ahora solo bloquea al abrirse; lo vigila paginas.js.
+> - Netlify sirve y redirige las páginas **sin `.html`**: una prueba que espere
+>   la URL exacta pasa en local y falla en la vista previa (`llegaA()`).
+> - Los generadores: no escribir su código con heredocs de bash (convierten
+>   `\n` de Python en saltos reales); escribir a archivo y empalmar.
+> - `display` gana a `[hidden]` (`.btn[hidden]{display:none}`); un `padding`
+>   abreviado pisa el lateral de `.wrap`; CSS `fill` gana al atributo del SVG.
+>
+> **Pendiente (espera datos del propietario):** credenciales de Addi (hoy
+> sigue por WhatsApp); fotos y textos de reseñas; hora de corte de Bogotá si
+> se quiere «pide hoy, llega mañana»; fotos de Ñ y Q. El prompt del bot de
+> WhatsApp aún dice «Bogotá 1-2 días» (lo lleva la sesión del bot). **No
+> fusionar** `claude/zephora-charms-automation-rzbthc` (rama del bot: toca
+> `catalogo.json`, `_precios.js` y `disponibilidad.mjs`).
+
+> **2026-09-26 (tarde) · Ficha, segunda parte — rama `claude/tienda-ficha-2`,
+> PR #6.** **Fusionado a `main` el 2026-09-26 con confirmación del propietario
+> («Hagamos deploy»); la tienda queda liberada.** Encargo:
+> `automatizaciones/tienda/ENCARGO-FICHA-2.md` (llegó con la rama de
+> documentación `claude/charming-sagan-l4q2eq`, ya mezclada: solo docs y la
+> skill de pauta). Suite local 914 ✓ · 0 ✗; `paginas.js` 111 ✓ contra la
+> vista previa.
+>
+> **Qué entra:**
+> - **Carrito sin fotos** (el error que ya veían las clientas): `imgDe()`
+>   buscaba la foto en las tarjetas de la página; en kits, colecciones y
+>   fichas casi no hay tarjetas. Ahora lee `assets/catalogo.json`, que se
+>   carga en todas las páginas (`catalogoListo`), y nunca pinta
+>   `<img src="">` (`miniatura()`: foto o monograma).
+> - **Empaque** = «caja, paño y dedicatoria escrita a mano, sin costo» en todo
+>   el sitio (confirmado por el propietario). Se fueron «bolsa», «caja de
+>   lujo» y una pregunta frecuente que aún ofrecía el Empaque Premium
+>   retirado. `paginas.js` lo vigila en lo publicado.
+> - **Cuatro bloques con foto o video** en cada ficha (entre tallas y
+>   relacionadas), con los textos del propietario; en brazaletes, «baño de
+>   plata hipoalergénico», nunca «plata». Las cifras del bloque 3 salen de
+>   `reglas`.
+> - **Reseñas**: una sola lista para toda la tienda en cualquier ficha
+>   (decisión del propietario); hasta 3 fotos (el navegador las reduce a
+>   1600 px) y 1 video (≤ 20 s, 3,5 MB), moderados; los medios se sirven solo
+>   si la reseña está aprobada (o con el enlace firmado del correo). Nunca
+>   como `AggregateRating` del producto.
+> - **Menú «Categorías»** desplegable (clic/toque) y acordeón en el celular;
+>   colecciones sin página propia van a `index.html?cat=<grupo>#charms`.
+> - **Más vendidos** (`coleccion-mas-vendidos.html` +
+>   `netlify/functions/mas-vendidos.mjs`): unidades de pedidos que salieron,
+>   solo piezas con ≥ 3 libres; el sello solo en lo que vendió; con < 30
+>   ventas, relleno aparte sin sello ni iniciales.
+> - § 4 del encargo (relacionados que cambian la ficha en el mismo panel) no
+>   se construyó: lo resolvió la decisión de que tocar una joya lleva a su
+>   página (y «atrás» vuelve).
+>
+> **Videos: dónde viven y cómo se suben (no se comitean).** Almacén `media`
+> de Netlify Blobs, de todo el sitio (vista previa y producción ven los
+> mismos). Comprimir con la receta de § videos más `cropdetect` (los del
+> celular traen franjas negras grabadas), subir con
+> `node herramientas/subir_media.mjs <archivo-vN.mp4>` (no pisa claves) y
+> referenciar `media/<archivo>`. Cambiar un video = subir `-v2` y cambiar la
+> referencia: se cachea un año. Las portadas `.webp` sí van en `assets/`.
+>
+> **Aprendido (no redescubrir):**
+> - **Funciones v2 + regla de `netlify.toml`: `req.url` llega con la URL
+>   ORIGINAL**, sin los parámetros que agrega la regla (`?f=:splat` no
+>   aparece). Los videos daban 404 solo en la vista previa. Leer de la ruta.
+> - Netlify redirige `index.html?x` → `/?x` y `pagina.html` → `pagina`: una
+>   prueba que espere la URL exacta pasa en local y falla en la vista previa.
+> - El Chromium de Playwright no trae H.264: los `.mp4` salen en pausa y con
+>   controles. Para comprobar la reproducción, `chromium.launch({ channel:
+>   'chrome' })` (el Chrome instalado sí reproduce).
+> - Los heredocs de bash convierten `\n` de Python en saltos reales (pasó dos
+>   veces): escribir el código con Write y empalmar con un script.
+> - `mas-vendidos` en la vista previa ya muestra ventas reales (19 pedidos
+>   registrados al 2026-09-26).
+>
+> **Después, en el mismo PR:**
+> - **Fotos y videos sin descarga fácil**: sin clic derecho ni arrastre
+>   (tienda.js), sin «guardar imagen» al mantener presionado
+>   (`-webkit-touch-callout`), videos con `controlslist="nodownload"` y sin
+>   ventana flotante. No es protección absoluta (una captura siempre puede).
+> - **Fotos mejoradas en Flow por el propietario**: 40 piezas. Flow devuelve el
+>   nombre con una fecha pegada (`x.jpg_20260926193134.jpg`) o con nombres
+>   propios («Jewelry_piece…»): esas se identifican a ojo contra el catálogo.
+>   Su fondo es gris (224–243): se lleva a blanco subiendo el punto blanco de
+>   toda la foto antes de `entrar_fotos.py`. Al cambiar fotos, subir el `?v=`
+>   de sus tarjetas en index.html y `VFOTO` en tienda.js (fotos que salen de
+>   catalogo.json).
+> - **Paquete para Flow**: `material-sin-publicar/fotos-para-flow/` y
+>   `Fotos-Zephora-para-Flow.zip` (169 fotos en JPG, con índice). Las de
+>   producto de la web miden 440 px.
+> - **Marca**: el propietario tiene **permiso de Pandora**; las fotos con
+>   «PANDORA» grabado (Buzz, Lilo & Stitch, Hulk, Jasmine, Jack y Sally…) se
+>   dejan tal cual. No volver a señalarlo.
+>
+> **2026-09-27 · PR #7 (`claude/tienda-ajustes-3`), fusionado con
+> confirmación del propietario («Deploy»):**
+> - **Fotos de reseñas**: eran enlaces a `/resenas?medio=…` en otra pestaña y
+>   algunos celulares las descargaban; ahora son botones que abren el visor
+>   `#lb` de la propia página.
+> - **Regalo de suscripción = el charm de la inicial** que elija la clienta
+>   (decisión del propietario: ninguna pieza fija aguanta la promoción; las
+>   iniciales suman 66 unidades). Checkout: campo `#regalo-inicial` (solo
+>   letras con unidades) si este navegador está suscrito y hay 2+ charms;
+>   viaja en `cliente.regaloInicial`; la hoja de despacho dice la letra o
+>   que hay que preguntarle. La letra NO se aparta al pedir: sale del
+>   inventario al registrar la venta manual «regalo».
+> - **Kit Luz y Sueños** (primero en `assets/kits.json`; nombre y lema
+>   propuestos por la sesión, el propietario puede cambiarlos).
+> - **kits.html y Más vendidos** traen al bajar lo mismo que una ficha:
+>   bloques con foto/video, reseñas de la tienda (sin formulario) y videos
+>   de clientas. Las reseñas se cargan en cualquier página con `#rp-lista`.
+> - **Vitrina → ficha**: en los carruseles de fichas y kits, tocar foto o
+>   nombre abre la ficha emergente (con «Ver la página completa»); la ficha
+>   toma la foto del catálogo si la pieza no tiene tarjeta en la página.
+>   En Más vendidos la tarjeta sigue siendo enlace a la página.
+> - **Addi, en pausa** por decisión del propietario (2026-09-27). Pasos que
+>   se le dieron: registrarse como aliado, pedir integración por API para
+>   e-commerce propio, credenciales de sandbox y producción (Client ID/Secret
+>   y usuario/contraseña de notificaciones), callback
+>   `/.netlify/functions/addi-webhook`, regreso `/gracias.html`; las claves
+>   van a `material-sin-publicar/claves-addi.txt`, nunca al chat.
+>
+> **Espera datos del propietario:** credenciales de Addi (el botón sigue a
+> WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
+> sin eso);  almacenamiento externo
+> si se quieren videos largos en reseñas. Paleta: se mantiene la original.
+
+**Rama de trabajo:** `claude/tienda-paginas-producto` (antes
+`claude/zephoracharms-conversion-funnel-nom9ph`)
+**Alcance:** todo el frente de tienda. **Regla 1 de `CLAUDE.md`**: una sola
+sesión a la vez sobre `index.html`, `tienda.js`, `tienda.css` y los
+generadores; quien los tome, que lo anote aquí antes de empezar (hoy, desde
+el 2026-09-26, tras fusionar el PR #6, nadie los tiene reclamados).
 
 ### Lo primero que hay que entender: qué NO detectan las pruebas
 

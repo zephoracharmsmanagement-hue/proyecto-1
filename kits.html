@@ -73,7 +73,22 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     <nav class="tnav">
       <a href="kits.html">Kits</a>
       <a href="index.html#promo">Promo</a>
-      <a href="index.html#categorias">Categorías</a>
+      <div class="tnav-cat">
+        <button class="tnav-cat-b" type="button" id="cat-btn" aria-expanded="false" aria-controls="cat-menu">Categorías<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="tnav-cat-m" id="cat-menu" hidden>
+          <a href="coleccion-mas-vendidos.html">Más vendidos</a>
+          <a href="coleccion-marvel.html">Marvel</a>
+          <a href="index.html?cat=Disney#charms" data-cat="Disney">Disney</a>
+          <a href="index.html?cat=Pixar#charms" data-cat="Pixar">Pixar</a>
+          <a href="index.html?cat=Letras#charms" data-cat="Letras">Letras</a>
+          <a href="index.html?cat=Zodiaco#charms" data-cat="Zodiaco">Zodiaco</a>
+          <a href="index.html?cat=Profesiones#charms" data-cat="Profesiones">Profesiones</a>
+          <a href="index.html?cat=Muranos#charms" data-cat="Muranos">Muranos</a>
+          <a href="coleccion-simbolos.html">Símbolos</a>
+          <a href="index.html?cat=Clips#charms" data-cat="Clips">Clips</a>
+          <a href="index.html?cat=Cadenas#charms" data-cat="Cadenas">Cadenas</a>
+        </div>
+      </div>
       <a href="index.html#brazaletes">Brazaletes</a>
       <a href="index.html#charms">Charms</a>
       <a href="#talla">Tallas</a>
@@ -92,7 +107,22 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
        sitio con un solo botón. -->
   <nav class="menu-panel" id="menu-panel" hidden aria-label="Secciones de la tienda">
     <a href="kits.html"><b>Kits</b><small>Armados, con el descuento puesto</small></a>
-    <a href="coleccion-marvel.html"><b>Marvel</b><small>15 piezas</small></a>
+    <details class="menu-cat">
+      <summary><b>Categorías</b><small>Más vendidos, Marvel, Disney, Letras…</small></summary>
+      <div class="menu-cat-l">
+        <a href="coleccion-mas-vendidos.html">Más vendidos</a>
+        <a href="coleccion-marvel.html">Marvel</a>
+        <a href="index.html?cat=Disney#charms" data-cat="Disney">Disney</a>
+        <a href="index.html?cat=Pixar#charms" data-cat="Pixar">Pixar</a>
+        <a href="index.html?cat=Letras#charms" data-cat="Letras">Letras</a>
+        <a href="index.html?cat=Zodiaco#charms" data-cat="Zodiaco">Zodiaco</a>
+        <a href="index.html?cat=Profesiones#charms" data-cat="Profesiones">Profesiones</a>
+        <a href="index.html?cat=Muranos#charms" data-cat="Muranos">Muranos</a>
+        <a href="coleccion-simbolos.html">Símbolos</a>
+        <a href="index.html?cat=Clips#charms" data-cat="Clips">Clips</a>
+        <a href="index.html?cat=Cadenas#charms" data-cat="Cadenas">Cadenas</a>
+      </div>
+    </details>
     <a href="index.html#brazaletes"><b>Brazaletes</b><small>18 modelos</small></a>
     <a href="index.html#charms"><b>Charms</b><small>117 piezas</small></a>
     <a href="envios-y-devoluciones.html"><b>Envíos</b><small>Tiempos, tarifas y devoluciones</small></a>
@@ -137,7 +167,32 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   </div>
 </section>
 
-<section class="kits wrap">
+<section class="kits wrap" id="kits">
+    <article class="kit" id="kit-luz-y-suenos">
+      <div class="kit-head">
+        <span class="eyebrow">Símbolos</span>
+        <h3>Kit Luz y Sueños</h3>
+        <p class="kit-lema">Luz, sueños y amor en un solo brazalete</p>
+        <p class="kit-entrada">La Luciérnaga Evangeline, el Atrapasueños Corazón Multicolor, la Conejita con Corazón Rosa y el Corazón Árbol de la Vida, cada uno en Plata Esterlina 925 con su sello grabado, sobre la Pulsera Corazón Liso con acabado en baño de plata.</p>
+      </div>
+      <div class="kit-piezas"><img src="assets/pulsera-corazon-liso.webp" alt="Pulsera Corazón Liso" width="80" height="80" loading="lazy" decoding="async"><img src="assets/luciernaga-you-are-my-light.webp" alt="Luciérnaga Evangeline" width="80" height="80" loading="lazy" decoding="async"><img src="assets/atrapasuenos-corazon-multicolor.webp" alt="Atrapasueños Corazón Multicolor" width="80" height="80" loading="lazy" decoding="async"><img src="assets/conejita-con-corazon-rosa.webp" alt="Conejita con Corazón Rosa" width="80" height="80" loading="lazy" decoding="async"><img src="assets/corazon-arbol-de-la-vida.webp" alt="Corazón Árbol de la Vida" width="80" height="80" loading="lazy" decoding="async"></div>
+      <p class="kit-tercer">Con brazalete, <b>el tercer dije cuesta $38.220</b> en vez de $86.000.</p>
+      <div class="kit-escalera">
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corazon-liso,luciernaga-you-are-my-light"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$160.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$228.880</b><s>$242.000</s></span><span class="kit-paso-d">ahorras $13.120</span></button>
+        <button type="button" class="kit-paso kit-paso--best" data-kit-piezas="pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$267.100</b><s>$328.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $60.900</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$308.100</b><s>$416.000</s></span><span class="kit-paso-d">ahorras $107.900</span></button>
+      </div>
+      <div class="kit-arma">
+        <p class="kit-arma-t"><b>1</b> Elige la talla de tu brazalete Corazón Liso</p>
+        <div class="kit-tallas tallas-row" data-para="pulsera-corazon-liso"></div>
+        <p class="kit-arma-ayuda">Mide tu muñeca y súmale 2 cm. <a href="#talla">¿Qué talla es la mía?</a></p>
+        <p class="kit-arma-t"><b>2</b> Elige tus charms: los del kit o los que más te gusten</p>
+        <div class="vit" data-vit="luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida" data-vit-t="De este kit" data-vit-b="0"><div class="vit-tabs" role="tablist" aria-label="Elige una colección"></div><div class="vit-rail" role="list"></div><p class="vit-desliza">Toca una colección y desliza para ver más</p></div>
+      </div>
+      <p class="kit-nota">Toca un paso para poner sus charms en tu carrito, o elígelos uno a uno aquí
+      mismo. El descuento se aplica solo. Envío gratis pagando en línea.</p>
+    </article>
     <article class="kit" id="kit-spider-man">
       <div class="kit-head">
         <span class="eyebrow">Marvel</span>
@@ -148,13 +203,20 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
       <div class="kit-piezas"><img src="assets/pulsera-avengers.webp" alt="Pulsera Avengers" width="80" height="80" loading="lazy" decoding="async"><img src="assets/spider-man.webp" alt="Spider-Man" width="80" height="80" loading="lazy" decoding="async"><img src="assets/esfera-telarana-spider-man.webp" alt="Esfera Telaraña Spider-Man" width="80" height="80" loading="lazy" decoding="async"><img src="assets/mascara-spider-man-roja.webp" alt="Máscara Spider-Man Roja" width="80" height="80" loading="lazy" decoding="async"><img src="assets/spider-man-pave.webp" alt="Spider-Man Pavé" width="80" height="80" loading="lazy" decoding="async"></div>
       <p class="kit-tercer">Con brazalete, <b>el tercer dije cuesta $44.050</b> en vez de $95.000.</p>
       <div class="kit-escalera">
-        <a class="kit-paso" href="index.html?p=pulsera-avengers&sug=spider-man&k=Kit%20Spider-Man&via=kit" data-piezas="pulsera-avengers,spider-man"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$173.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></a>
-        <a class="kit-paso" href="index.html?p=pulsera-avengers&sug=spider-man,esfera-telarana-spider-man&k=Kit%20Spider-Man&via=kit" data-piezas="pulsera-avengers,spider-man,esfera-telarana-spider-man"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$252.800</b><s>$268.000</s></span><span class="kit-paso-d">ahorras $15.200</span></a>
-        <a class="kit-paso kit-paso--best" href="index.html?p=pulsera-avengers&sug=spider-man,esfera-telarana-spider-man,mascara-spider-man-roja&k=Kit%20Spider-Man&via=kit" data-piezas="pulsera-avengers,spider-man,esfera-telarana-spider-man,mascara-spider-man-roja"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$296.850</b><s>$363.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $66.150</span></a>
-        <a class="kit-paso" href="index.html?p=pulsera-avengers&sug=spider-man,esfera-telarana-spider-man,mascara-spider-man-roja,spider-man-pave&k=Kit%20Spider-Man&via=kit" data-piezas="pulsera-avengers,spider-man,esfera-telarana-spider-man,mascara-spider-man-roja,spider-man-pave"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$339.600</b><s>$458.000</s></span><span class="kit-paso-d">ahorras $118.400</span></a>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-avengers,spider-man"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$173.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-avengers,spider-man,esfera-telarana-spider-man"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$252.800</b><s>$268.000</s></span><span class="kit-paso-d">ahorras $15.200</span></button>
+        <button type="button" class="kit-paso kit-paso--best" data-kit-piezas="pulsera-avengers,spider-man,esfera-telarana-spider-man,mascara-spider-man-roja"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$296.850</b><s>$363.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $66.150</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-avengers,spider-man,esfera-telarana-spider-man,mascara-spider-man-roja,spider-man-pave"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$339.600</b><s>$458.000</s></span><span class="kit-paso-d">ahorras $118.400</span></button>
       </div>
-      <p class="kit-nota">En el carrito verás los dijes de este kit ya resaltados para
-      que elijas cuáles agregar, y tu talla. Envío gratis pagando en línea.</p>
+      <div class="kit-arma">
+        <p class="kit-arma-t"><b>1</b> Elige la talla de tu brazalete Avengers</p>
+        <div class="kit-tallas tallas-row" data-para="pulsera-avengers"></div>
+        <p class="kit-arma-ayuda">Mide tu muñeca y súmale 2 cm. <a href="#talla">¿Qué talla es la mía?</a></p>
+        <p class="kit-arma-t"><b>2</b> Elige tus charms: los del kit o los que más te gusten</p>
+        <div class="vit" data-vit="spider-man,esfera-telarana-spider-man,mascara-spider-man-roja,spider-man-pave" data-vit-t="De este kit" data-vit-b="0"><div class="vit-tabs" role="tablist" aria-label="Elige una colección"></div><div class="vit-rail" role="list"></div><p class="vit-desliza">Toca una colección y desliza para ver más</p></div>
+      </div>
+      <p class="kit-nota">Toca un paso para poner sus charms en tu carrito, o elígelos uno a uno aquí
+      mismo. El descuento se aplica solo. Envío gratis pagando en línea.</p>
     </article>
     <article class="kit" id="kit-vengadores">
       <div class="kit-head">
@@ -166,13 +228,20 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
       <div class="kit-piezas"><img src="assets/pulsera-avengers.webp" alt="Pulsera Avengers" width="80" height="80" loading="lazy" decoding="async"><img src="assets/iron-man.webp" alt="Iron Man" width="80" height="80" loading="lazy" decoding="async"><img src="assets/capitan-america.webp" alt="Capitán América" width="80" height="80" loading="lazy" decoding="async"><img src="assets/casco-iron-man.webp" alt="Casco Iron Man" width="80" height="80" loading="lazy" decoding="async"><img src="assets/wolverine.webp" alt="Wolverine" width="80" height="80" loading="lazy" decoding="async"></div>
       <p class="kit-tercer">Con brazalete, <b>el tercer dije cuesta $44.050</b> en vez de $95.000.</p>
       <div class="kit-escalera">
-        <a class="kit-paso" href="index.html?p=pulsera-avengers&sug=iron-man&k=Kit%20Vengadores&via=kit" data-piezas="pulsera-avengers,iron-man"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$173.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></a>
-        <a class="kit-paso" href="index.html?p=pulsera-avengers&sug=iron-man,capitan-america&k=Kit%20Vengadores&via=kit" data-piezas="pulsera-avengers,iron-man,capitan-america"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$252.800</b><s>$268.000</s></span><span class="kit-paso-d">ahorras $15.200</span></a>
-        <a class="kit-paso kit-paso--best" href="index.html?p=pulsera-avengers&sug=iron-man,capitan-america,casco-iron-man&k=Kit%20Vengadores&via=kit" data-piezas="pulsera-avengers,iron-man,capitan-america,casco-iron-man"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$296.850</b><s>$363.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $66.150</span></a>
-        <a class="kit-paso" href="index.html?p=pulsera-avengers&sug=iron-man,capitan-america,casco-iron-man,wolverine&k=Kit%20Vengadores&via=kit" data-piezas="pulsera-avengers,iron-man,capitan-america,casco-iron-man,wolverine"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$339.600</b><s>$458.000</s></span><span class="kit-paso-d">ahorras $118.400</span></a>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-avengers,iron-man"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$173.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-avengers,iron-man,capitan-america"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$252.800</b><s>$268.000</s></span><span class="kit-paso-d">ahorras $15.200</span></button>
+        <button type="button" class="kit-paso kit-paso--best" data-kit-piezas="pulsera-avengers,iron-man,capitan-america,casco-iron-man"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$296.850</b><s>$363.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $66.150</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-avengers,iron-man,capitan-america,casco-iron-man,wolverine"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$339.600</b><s>$458.000</s></span><span class="kit-paso-d">ahorras $118.400</span></button>
       </div>
-      <p class="kit-nota">En el carrito verás los dijes de este kit ya resaltados para
-      que elijas cuáles agregar, y tu talla. Envío gratis pagando en línea.</p>
+      <div class="kit-arma">
+        <p class="kit-arma-t"><b>1</b> Elige la talla de tu brazalete Avengers</p>
+        <div class="kit-tallas tallas-row" data-para="pulsera-avengers"></div>
+        <p class="kit-arma-ayuda">Mide tu muñeca y súmale 2 cm. <a href="#talla">¿Qué talla es la mía?</a></p>
+        <p class="kit-arma-t"><b>2</b> Elige tus charms: los del kit o los que más te gusten</p>
+        <div class="vit" data-vit="iron-man,capitan-america,casco-iron-man,wolverine" data-vit-t="De este kit" data-vit-b="0"><div class="vit-tabs" role="tablist" aria-label="Elige una colección"></div><div class="vit-rail" role="list"></div><p class="vit-desliza">Toca una colección y desliza para ver más</p></div>
+      </div>
+      <p class="kit-nota">Toca un paso para poner sus charms en tu carrito, o elígelos uno a uno aquí
+      mismo. El descuento se aplica solo. Envío gratis pagando en línea.</p>
     </article>
     <article class="kit" id="kit-fe-y-proteccion">
       <div class="kit-head">
@@ -184,13 +253,20 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
       <div class="kit-piezas"><img src="assets/pulsera-corazon-liso.webp" alt="Pulsera Corazón Liso" width="80" height="80" loading="lazy" decoding="async"><img src="assets/virgen-maria.webp" alt="Virgen María" width="80" height="80" loading="lazy" decoding="async"><img src="assets/manos-orando-con-cruz.webp" alt="Manos Orando con Cruz" width="80" height="80" loading="lazy" decoding="async"><img src="assets/trebol-verde-giratorio.webp" alt="Trébol Verde Giratorio" width="80" height="80" loading="lazy" decoding="async"><img src="assets/caballo-herradura.webp" alt="Caballo Herradura" width="80" height="80" loading="lazy" decoding="async"></div>
       <p class="kit-tercer">Con brazalete, <b>el tercer dije cuesta $44.460</b> en vez de $94.000.</p>
       <div class="kit-escalera">
-        <a class="kit-paso" href="index.html?p=pulsera-corazon-liso&sug=virgen-maria&k=Kit%20Fe%20y%20Protecci%C3%B3n&via=kit" data-piezas="pulsera-corazon-liso,virgen-maria"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$164.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></a>
-        <a class="kit-paso" href="index.html?p=pulsera-corazon-liso&sug=virgen-maria,manos-orando-con-cruz&k=Kit%20Fe%20y%20Protecci%C3%B3n&via=kit" data-piezas="pulsera-corazon-liso,virgen-maria,manos-orando-con-cruz"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$236.240</b><s>$250.000</s></span><span class="kit-paso-d">ahorras $13.760</span></a>
-        <a class="kit-paso kit-paso--best" href="index.html?p=pulsera-corazon-liso&sug=virgen-maria,manos-orando-con-cruz,trebol-verde-giratorio&k=Kit%20Fe%20y%20Protecci%C3%B3n&via=kit" data-piezas="pulsera-corazon-liso,virgen-maria,manos-orando-con-cruz,trebol-verde-giratorio"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$280.700</b><s>$344.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $63.300</span></a>
-        <a class="kit-paso" href="index.html?p=pulsera-corazon-liso&sug=virgen-maria,manos-orando-con-cruz,trebol-verde-giratorio,caballo-herradura&k=Kit%20Fe%20y%20Protecci%C3%B3n&via=kit" data-piezas="pulsera-corazon-liso,virgen-maria,manos-orando-con-cruz,trebol-verde-giratorio,caballo-herradura"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$315.600</b><s>$426.000</s></span><span class="kit-paso-d">ahorras $110.400</span></a>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corazon-liso,virgen-maria"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$164.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corazon-liso,virgen-maria,manos-orando-con-cruz"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$236.240</b><s>$250.000</s></span><span class="kit-paso-d">ahorras $13.760</span></button>
+        <button type="button" class="kit-paso kit-paso--best" data-kit-piezas="pulsera-corazon-liso,virgen-maria,manos-orando-con-cruz,trebol-verde-giratorio"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$280.700</b><s>$344.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $63.300</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corazon-liso,virgen-maria,manos-orando-con-cruz,trebol-verde-giratorio,caballo-herradura"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$315.600</b><s>$426.000</s></span><span class="kit-paso-d">ahorras $110.400</span></button>
       </div>
-      <p class="kit-nota">En el carrito verás los dijes de este kit ya resaltados para
-      que elijas cuáles agregar, y tu talla. Envío gratis pagando en línea.</p>
+      <div class="kit-arma">
+        <p class="kit-arma-t"><b>1</b> Elige la talla de tu brazalete Corazón Liso</p>
+        <div class="kit-tallas tallas-row" data-para="pulsera-corazon-liso"></div>
+        <p class="kit-arma-ayuda">Mide tu muñeca y súmale 2 cm. <a href="#talla">¿Qué talla es la mía?</a></p>
+        <p class="kit-arma-t"><b>2</b> Elige tus charms: los del kit o los que más te gusten</p>
+        <div class="vit" data-vit="virgen-maria,manos-orando-con-cruz,trebol-verde-giratorio,caballo-herradura" data-vit-t="De este kit" data-vit-b="0"><div class="vit-tabs" role="tablist" aria-label="Elige una colección"></div><div class="vit-rail" role="list"></div><p class="vit-desliza">Toca una colección y desliza para ver más</p></div>
+      </div>
+      <p class="kit-nota">Toca un paso para poner sus charms en tu carrito, o elígelos uno a uno aquí
+      mismo. El descuento se aplica solo. Envío gratis pagando en línea.</p>
     </article>
     <article class="kit" id="kit-azul-profundo">
       <div class="kit-head">
@@ -202,13 +278,20 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
       <div class="kit-piezas"><img src="assets/pulsera-corona-pave.webp" alt="Pulsera Corona Pavé" width="80" height="80" loading="lazy" decoding="async"><img src="assets/atrapasuenos-azul.webp" alt="Atrapasueños Azul" width="80" height="80" loading="lazy" decoding="async"><img src="assets/esfera-azul-con-cristales.webp" alt="Esfera Azul con Cristales" width="80" height="80" loading="lazy" decoding="async"><img src="assets/pulpo-azul-cristal.webp" alt="Pulpo Azul Cristal" width="80" height="80" loading="lazy" decoding="async"><img src="assets/flor-azul-con-cristales.webp" alt="Flor Azul con Cristales" width="80" height="80" loading="lazy" decoding="async"></div>
       <p class="kit-tercer">Con brazalete, <b>el tercer dije cuesta $43.820</b> en vez de $94.000.</p>
       <div class="kit-escalera">
-        <a class="kit-paso" href="index.html?p=pulsera-corona-pave&sug=atrapasuenos-azul&k=Kit%20Azul%20Profundo&via=kit" data-piezas="pulsera-corona-pave,atrapasuenos-azul"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$164.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></a>
-        <a class="kit-paso" href="index.html?p=pulsera-corona-pave&sug=atrapasuenos-azul,esfera-azul-con-cristales&k=Kit%20Azul%20Profundo&via=kit" data-piezas="pulsera-corona-pave,atrapasuenos-azul,esfera-azul-con-cristales"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$232.880</b><s>$246.000</s></span><span class="kit-paso-d">ahorras $13.120</span></a>
-        <a class="kit-paso kit-paso--best" href="index.html?p=pulsera-corona-pave&sug=atrapasuenos-azul,esfera-azul-con-cristales,pulpo-azul-cristal&k=Kit%20Azul%20Profundo&via=kit" data-piezas="pulsera-corona-pave,atrapasuenos-azul,esfera-azul-con-cristales,pulpo-azul-cristal"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$276.700</b><s>$340.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $63.300</span></a>
-        <a class="kit-paso" href="index.html?p=pulsera-corona-pave&sug=atrapasuenos-azul,esfera-azul-con-cristales,pulpo-azul-cristal,flor-azul-con-cristales&k=Kit%20Azul%20Profundo&via=kit" data-piezas="pulsera-corona-pave,atrapasuenos-azul,esfera-azul-con-cristales,pulpo-azul-cristal,flor-azul-con-cristales"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$312.400</b><s>$422.000</s></span><span class="kit-paso-d">ahorras $109.600</span></a>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corona-pave,atrapasuenos-azul"><span class="kit-paso-n">Brazalete + 1 dije</span><span class="kit-paso-p"><b>$164.000</b><s></s></span><span class="kit-paso-d">precio de lista</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corona-pave,atrapasuenos-azul,esfera-azul-con-cristales"><span class="kit-paso-n">Brazalete + 2 dijes</span><span class="kit-paso-p"><b>$232.880</b><s>$246.000</s></span><span class="kit-paso-d">ahorras $13.120</span></button>
+        <button type="button" class="kit-paso kit-paso--best" data-kit-piezas="pulsera-corona-pave,atrapasuenos-azul,esfera-azul-con-cristales,pulpo-azul-cristal"><span class="kit-paso-n">Brazalete + 3 dijes</span><span class="kit-paso-p"><b>$276.700</b><s>$340.000</s></span><span class="kit-paso-d">El mejor salto · ahorras $63.300</span></button>
+        <button type="button" class="kit-paso" data-kit-piezas="pulsera-corona-pave,atrapasuenos-azul,esfera-azul-con-cristales,pulpo-azul-cristal,flor-azul-con-cristales"><span class="kit-paso-n">Brazalete + 4 dijes</span><span class="kit-paso-p"><b>$312.400</b><s>$422.000</s></span><span class="kit-paso-d">ahorras $109.600</span></button>
       </div>
-      <p class="kit-nota">En el carrito verás los dijes de este kit ya resaltados para
-      que elijas cuáles agregar, y tu talla. Envío gratis pagando en línea.</p>
+      <div class="kit-arma">
+        <p class="kit-arma-t"><b>1</b> Elige la talla de tu brazalete Corona Pavé</p>
+        <div class="kit-tallas tallas-row" data-para="pulsera-corona-pave"></div>
+        <p class="kit-arma-ayuda">Mide tu muñeca y súmale 2 cm. <a href="#talla">¿Qué talla es la mía?</a></p>
+        <p class="kit-arma-t"><b>2</b> Elige tus charms: los del kit o los que más te gusten</p>
+        <div class="vit" data-vit="atrapasuenos-azul,esfera-azul-con-cristales,pulpo-azul-cristal,flor-azul-con-cristales" data-vit-t="De este kit" data-vit-b="0"><div class="vit-tabs" role="tablist" aria-label="Elige una colección"></div><div class="vit-rail" role="list"></div><p class="vit-desliza">Toca una colección y desliza para ver más</p></div>
+      </div>
+      <p class="kit-nota">Toca un paso para poner sus charms en tu carrito, o elígelos uno a uno aquí
+      mismo. El descuento se aplica solo. Envío gratis pagando en línea.</p>
     </article>
 
 </section>
@@ -260,6 +343,39 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   </div>
 </section>
 
+<!-- Lo mismo que se ve al bajar en una ficha (pedido del propietario,
+     2026-09-27): los bloques con foto y video, las reseñas de la tienda y los
+     videos de clientas. Salen de gen_productos.py, no se copian a mano. -->
+<section class="sec bv" aria-label="Por qué Zephora">
+  <div class="wrap bv-in">
+    <article class="bv-b">
+      <div class="bv-m"><img src="assets/bloque-s925.webp" alt="Sello S925 grabado en un charm de Zephora" width="720" height="720" loading="lazy" decoding="async"></div>
+      <div class="bv-t"><h2><span aria-hidden="true">✦</span> Plata 925 que puedes comprobar</h2><p>Cada charm lleva grabado el sello <b>S925</b>: la marca de la <b>Plata Esterlina 925</b>. <b>Búscalo con tus propios ojos</b> apenas la recibas; está ahí para que no tengas que creernos.</p></div>
+    </article>
+    <article class="bv-b">
+      <div class="bv-m"><video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="960" poster="assets/bloque-diario-v1.webp" aria-hidden="true"><source src="media/bloque-diario-v1.mp4" type="video/mp4"></video></div>
+      <div class="bv-t"><h2><span aria-hidden="true">♡</span> Para llevarla todos los días</h2><p>Plata 925 <b>hipoalergénica y libre de níquel</b>, hecha para <b>usarse a diario</b>, incluso en piel sensible. Si con el tiempo se oscurece, es natural en la plata real: <b>un paño le devuelve el brillo</b> en segundos.</p></div>
+    </article>
+    <article class="bv-b">
+      <div class="bv-m"><video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="714" poster="assets/bloque-historia-v1.webp" aria-hidden="true"><source src="media/bloque-historia-v1.mp4" type="video/mp4"></video></div>
+      <div class="bv-t"><h2><span aria-hidden="true">✧</span> Tu historia, un charm a la vez</h2><p>Combina héroes, iniciales y símbolos en <b>un solo brazalete</b>. Desde el tercer charm <b>el brazalete baja 30%</b>, y <b>llevando 4, pagas 25% menos</b> en tus charms.</p><div class="bv-cta"><a class="btn btn--ghost" href="#kits">Arma tu pulsera</a></div></div>
+    </article>
+    <article class="bv-b">
+      <div class="bv-m"><video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="960" poster="assets/bloque-regalo-v1.webp" aria-hidden="true"><source src="media/bloque-regalo-v1.mp4" type="video/mp4"></video></div>
+      <div class="bv-t"><h2><span aria-hidden="true">✦</span> Llega lista para regalar</h2><p>Tu pedido llega en <b>su caja</b>, con <b>paño para limpiar la plata</b> y una <b>dedicatoria escrita a mano</b> con las palabras que tú elijas. Solo falta entregarla… o quedártela.</p></div>
+    </article>
+  </div>
+</section>
+
+<section class="sec" id="resenas-pieza">
+  <div class="wrap">
+    <span class="eyebrow">Reseñas</span>
+    <h2>Todas las reseñas de la tienda</h2>
+    <div class="rp-resumen estrellas" id="rp-resumen"></div>
+    <div class="rp-lista" id="rp-lista"><p class="rp-vacio">Todavía no hay reseñas publicadas.</p></div>
+  </div>
+</section>
+
 <section class="social" id="reseñas">
   <div class="wrap">
     <div class="sec-head">
@@ -276,6 +392,53 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
 <figcaption><span class="rev-name">Valentina R.</span><span class="rev-city">Medellín · Compra verificada</span></figcaption></figure><figure class="rev"><div class="rev-ph"><button class="shot-b" type="button" aria-label="Ampliar foto"><img src="assets/detalle-de-la-pulsera-corazon-rosado-con-cadena-de.jpg" alt="Detalle de la pulsera corazón rosado con cadena de seguridad en la muñeca" width="800" height="600" loading="lazy" decoding="async"></button><p class="ph-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A9A6AE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6l1.5-2.5h5L16 6"/><circle cx="12" cy="13" r="3.4"/></svg><span>Foto de la clienta</span></p></div><div><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span></div><blockquote>Se lo regalé a una persona súper especial y le encantó. Desde que abrió la cajita y vio la pulsera con los charms, quedó fascinada con los detalles y lo bien hechos que están.</blockquote>
 <figcaption><span class="rev-name">Sebastián G.</span><span class="rev-city">Cali · Compra verificada</span></figcaption></figure></div>
     <p class="social-n">¿Ya recibiste tu pulsera? Etiquétanos en <a class="foot-ig" href="https://instagram.com/zephora_charms"><b>@zephora_charms</b><svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a> y aparece aquí.</p>
+  </div>
+</section>
+
+<section class="story" id="historia">
+  <div class="wrap story-in">
+    <div>
+      <span class="eyebrow">Por qué charms</span>
+      <h2>No vendemos joyas.<br><i>Guardamos momentos.</i></h2>
+      <p>El charm del viaje que te cambió. El del signo de tu mamá. El de la carrera que te costó tanto. La patica del perro que te espera en casa.</p>
+      <p>Una pulsera Zephora se arma pieza a pieza, como se arma una vida: con recuerdos, personas, sueños y momentos que merecen estar contigo todos los días. Por eso ninguna es igual a otra — porque ninguna historia lo es.</p>
+      <a class="btn" href="index.html#brazaletes">Empieza la tuya</a>
+    </div>
+  </div>
+
+  <!-- Videos de clientas. Tres decisiones que no son de estilo:
+       1. Sin atributo autoplay y con preload="none". Los tres videos suman
+          4,5 MB, quince veces lo que pesa el resto de la pagina: cargarlos
+          al abrir castigaria a quien entra con datos, que es por donde mas se
+          compra. Solo se ve la portada (137 KB las tres) hasta que la seccion
+          entra en pantalla, y ahi el script los arranca.
+       2. muted y playsinline no son opcionales: los navegadores de celular
+          solo reproducen solos los videos silenciados, y sin playsinline iOS
+          abre el video a pantalla completa. Los archivos ademas van sin pista
+          de audio, asi que no hay nada que silenciar.
+       3. Sin controls: llevan solo musica de fondo, se ven en bucle y cortos.
+          Quien tenga activado "reducir movimiento" no los ve moverse — el
+          script se lo respeta y le deja los controles. -->
+  <div class="wrap ugc-rail">
+    <div class="rail-wrap">
+      <button class="rail-btn rail-btn--prev" type="button" aria-label="Videos anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="rail-btn rail-btn--next" type="button" aria-label="Más videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      <div class="rail">
+        <video class="ugc-v" poster="assets/historia-1-portada.webp?v=20260913" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback
+               width="720" height="1280" aria-label="Una clienta abre su regalo y luce el brazalete Zephora con charms de corazón, mariposa y piedra azul">
+          <source src="assets/historia-1.mp4" type="video/mp4">
+        </video>
+        <video class="ugc-v" poster="assets/historia-2-portada.webp?v=20260913" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback
+               width="720" height="1280" aria-label="Una clienta muestra su charm de cristal azul recién sacado de la caja y se lo monta en la pulsera">
+          <source src="assets/historia-2.mp4" type="video/mp4">
+        </video>
+        <video class="ugc-v" poster="assets/historia-3-portada.webp?v=20260913" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback
+               width="720" height="1280" aria-label="Una clienta le pone a su novio un brazalete Zephora con charms de Spider-Man, Iron Man y Capitán América">
+          <source src="assets/historia-3.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+    <p class="rail-hint">Desliza para ver más &rarr;</p>
   </div>
 </section>
 
@@ -326,7 +489,8 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
         <p>Enviamos por <b>Inter Rapidísimo</b> a todo el país, con número de guía.</p>
         <table class="pe-tabla">
           <tr><th>Destino</th><th>Llega en</th></tr>
-          <tr><td>Bogotá y municipios cercanos</td><td>1 – 2 días hábiles</td></tr>
+          <tr><td>Bogotá</td><td>1 día hábil</td></tr>
+          <tr><td>Municipios cercanos a Bogotá</td><td>1 – 2 días hábiles</td></tr>
           <tr><td>Ciudades principales<br>Medellín, Cali, Barranquilla…</td><td>2 – 4 días hábiles</td></tr>
           <tr><td>Resto del país y reexpedidos</td><td>3 – 6 días hábiles</td></tr>
         </table>
@@ -347,7 +511,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h16v11H4z"/><path d="M4 8l2-4h12l2 4M12 12v4M9.5 14.5h5"/></svg><span><b>Pago contraentrega disponible:</b> pagas cuando la tengas en tus manos</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span><b>Paga como prefieras:</b> Nequi, Bancolombia, tarjetas o Addi a cuotas — confirmamos todo antes por chat</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 5.3 5.5.6-4.2 3.8 1.2 5.6L12 14.5 7 17.3l1.2-5.6L4 7.9l5.5-.6z"/></svg><span><b>Materiales garantizados:</b> charms en Plata Esterlina 925 legítima con sello grabado; brazaletes con baño de plata de alta calidad</span></div>
-      <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 12h16M12 9v11M12 9c-3 0-4.5-1.5-4.5-3S9 3.5 10.5 4.5 12 9 12 9zm0 0c3 0 4.5-1.5 4.5-3S15 3.5 13.5 4.5 12 9 12 9z"/></svg><span><b>Empaque de regalo incluido</b> — caja, bolsa y tarjeta con tu dedicatoria, sin costo</span></div>
+      <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 12h16M12 9v11M12 9c-3 0-4.5-1.5-4.5-3S9 3.5 10.5 4.5 12 9 12 9zm0 0c3 0 4.5-1.5 4.5-3S15 3.5 13.5 4.5 12 9 12 9z"/></svg><span><b>Empaque de regalo incluido</b> — caja, paño y dedicatoria escrita a mano, sin costo</span></div>
       <div><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#5C3D63" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></svg><span><b>Garantía de 30 días</b> por defectos de fábrica</span></div>
     </div>
   </div>
@@ -436,7 +600,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
          piezas en 65 px (ver el comentario de arriba); con estas tres dentro
          volvía a ocupar ~290 px y solo se veía un producto y medio. Abajo queda
          únicamente lo que decide la compra. -->
-    <p class="sheet-note sheet-note--regalo">🎁 Incluye caja de lujo, paño para tu plata y tarjeta con dedicatoria — sin costo.</p>
+    <p class="sheet-note sheet-note--regalo">🎁 Incluye caja, paño para limpiar la plata y dedicatoria escrita a mano — sin costo.</p>
     <p class="sheet-note sheet-note--addi">¿Ticket alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Difiere tu compra hasta en 3 cuotas sin interés con Addi</a></p>
     <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</p>
     <p class="stock-nota"><span id="stock-fecha"></span></p>
@@ -508,6 +672,9 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
              servía para preguntar por WhatsApp algo que la ficha ya dice. -->
         <a class="btn btn--ghost" id="fx-wa" data-wa="encargo" hidden>Pedir por encargo</a>
       </div>
+      <!-- La página propia de la pieza (producto-<id>.html). tienda.js pone el
+           destino al abrir la ficha, y lo esconde dentro de esa misma página. -->
+      <a class="fx-pag" id="fx-pag" href="index.html">Ver la página completa de la pieza</a>
     </div>
   </div>
 </div>

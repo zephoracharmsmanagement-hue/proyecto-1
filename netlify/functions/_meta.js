@@ -125,7 +125,13 @@ function hashearCliente(cliente) {
 }
 
 /* Manda el Purchase. Nunca lanza: devuelve qué pasó para que quede en el log. */
-async function purchase({ referencia, total, correo, telefono, nombre, cuando, senales }) {
+/* `origen` es 'website' (el checkout) o 'chat' (una venta cerrada por WhatsApp
+   y registrada con registrar-venta.mjs). En 'chat' NO viaja ninguna señal de
+   navegador aunque llegue: la petición sale del celular del propietario, y su
+   IP, sus cookies y su user-agent meterían al propietario en el público de
+   compradores y le enseñarían a Meta a buscar gente parecida a él. */
+async function purchase({ referencia, total, correo, telefono, nombre, cuando, senales, origen }) {
+  const chat = origen === 'chat';
   const token = process.env.META_CAPI_TOKEN;
   if (!token) return { enviado: false, motivo: 'sin configurar' };
   if (!referencia) return { enviado: false, motivo: 'sin referencia' };
@@ -148,10 +154,12 @@ async function purchase({ referencia, total, correo, telefono, nombre, cuando, s
   /* Estas cuatro van SIN hashear: Meta las necesita en claro, y son justamente
      las que el webhook no puede conocer por su cuenta. Ver _atribucion.mjs para
      por qué sin ellas el evento de servidor es peor que no mandarlo. */
-  if (s.fbc) usuario.fbc = s.fbc;
-  if (s.fbp) usuario.fbp = s.fbp;
-  if (s.ip) usuario.client_ip_address = s.ip;
-  if (s.ua) usuario.client_user_agent = s.ua;
+  if (!chat) {
+    if (s.fbc) usuario.fbc = s.fbc;
+    if (s.fbp) usuario.fbp = s.fbp;
+    if (s.ip) usuario.client_ip_address = s.ip;
+    if (s.ua) usuario.client_user_agent = s.ua;
+  }
 
   /* Sin un solo identificador no hay nada que emparejar. Meta rechazaría el
      evento, así que se ahorra la llamada y queda dicho por qué. */
@@ -170,8 +178,7 @@ async function purchase({ referencia, total, correo, telefono, nombre, cuando, s
     /* La pareja (event_name, event_id) es lo que deduplica contra el pixel de
        gracias.html. Ver la cabecera de este archivo antes de tocarlo. */
     event_id: String(referencia),
-    action_source: 'website',
-    event_source_url: `${sitio}/gracias.html`,
+    action_source: chat ? 'chat' : 'website',
     user_data: usuario,
     custom_data: {
       currency: 'COP',
@@ -191,6 +198,10 @@ async function purchase({ referencia, total, correo, telefono, nombre, cuando, s
     evento.custom_data.num_items = s.contenidos
       .reduce((n, c) => n + (Number(c.quantity) || 0), 0);
   }
+
+  /* event_source_url solo tiene sentido —y Meta solo lo pide— en eventos del
+     sitio. Una venta por chat no ocurrió en ninguna URL. */
+  if (!chat) evento.event_source_url = `${sitio}/gracias.html`;
 
   const cuerpo = { data: [evento] };
   /* Events Manager → Probar eventos. Con esto puesto, el evento aparece ahí y

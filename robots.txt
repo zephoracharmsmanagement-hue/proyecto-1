@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /checkout
+Disallow: /checkout.html
+Disallow: /gracias
+Disallow: /gracias.html
+
+Sitemap: https://zephoracharms.com/sitemap.xml

@@ -37,7 +37,6 @@ import pathlib
 import re
 import subprocess
 import sys
-import urllib.parse
 
 RAIZ = pathlib.Path(__file__).resolve().parent.parent
 INDEX = RAIZ / 'index.html'
@@ -70,6 +69,26 @@ COLECCIONES = [
         'foto': 'assets/avengers-marmol.webp',
         'foto_alt': 'Pulsera Zephora con charms de la coleccion Avengers sobre marmol negro',
         'foto_w': 1600, 'foto_h': 893,
+    },
+    {
+        'archivo': 'coleccion-simbolos.html',
+        'grupo': 'Símbolos',
+        'titulo': 'Colección Símbolos',
+        'eyebrow': 'Colección',
+        'lema': 'Lo que llevas contigo, en plata 925',
+        'entrada': (
+            'Fe, amor, viajes, mascotas y buena suerte en Plata Esterlina 925 '
+            'verificada. Cada charm guarda una historia: la tuya o la de alguien '
+            'a quien quieres regalársela. Se arma pieza por pieza y se paga en '
+            'línea o contraentrega.'
+        ),
+        'base': 'pulsera-corazon-liso',
+        'og': 'assets/pulsera-zephora-completa-con-charms-de-virgen-pati.jpg',
+        'foto': 'assets/pulsera-zephora-completa-con-charms-de-virgen-pati.jpg',
+        'foto_alt': 'Pulsera Zephora completa con charms de virgen, patica de perro y muranos azules',
+        'foto_w': 720, 'foto_h': 900,
+        # Vertical: a lo ancho mediría más de una pantalla. Se recorta.
+        'foto_clase': ' col-foto--vertical',
     },
 ]
 
@@ -209,7 +228,7 @@ PAGINA = '''<!DOCTYPE html>
      un anuncio de esta colección, así que lo primero que ve es la colección,
      no el catálogo entero. -->
 <section class="col-hero wrap" id="top">
-  <img class="col-foto" src="{foto}" alt="{foto_alt}" width="{foto_w}" height="{foto_h}"
+  <img class="col-foto{foto_clase}" src="{foto}" alt="{foto_alt}" width="{foto_w}" height="{foto_h}"
        fetchpriority="high" decoding="async">
   <span class="eyebrow">{eyebrow}</span>
   <h1>{lema}</h1>
@@ -280,8 +299,7 @@ PAGINA = '''<!DOCTYPE html>
      cosa no se puede quedar sin salida: es venta que ya está en la página. -->
 <section class="col-resto wrap">
   <h2>¿Buscabas otra cosa?</h2>
-  <p class="col-sub">Hay {n_catalogo} charms más en el catálogo completo: Disney, Pixar, zodiaco,
-  profesiones, muranos, iniciales y símbolos.</p>
+  <p class="col-sub">Hay {n_catalogo} charms más en el catálogo completo: {otras}.</p>
   <a class="btn btn--ghost" href="index.html#charms">Ver el catálogo completo</a>
 </section>
 
@@ -360,6 +378,15 @@ def generar(col, html, escribir):
     # quien quiere otra cosa. Sale del catálogo, no escrito a mano.
     n_catalogo = len(cat['precios']) - len(ids) - len(cat['pulseras'])
 
+    # Las demás colecciones, del catálogo y sin la propia: escrita a mano, la
+    # lista de la página de Símbolos habría ofrecido «símbolos».
+    vistos = []
+    for g in grupos.values():
+        g = 'iniciales' if g == 'Letras' else g
+        if g != col['grupo'] and g not in vistos:
+            vistos.append(g)
+    otras = ', '.join(vistos[:-1]) + ' e ' + vistos[-1] if vistos[-1][0] in 'iI' else ', '.join(vistos[:-1]) + ' y ' + vistos[-1]
+
     desc = col['entrada'][:300]
     pagina = PAGINA.format(
         archivo=col['archivo'], titulo=col['titulo'], eyebrow=col['eyebrow'],
@@ -367,8 +394,8 @@ def generar(col, html, escribir):
         head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
         historia=b['historia'], resenas=b['resenas'], pagos=b['pagos'],
         confianza=b['confianza'], footer=b['footer'], chrome=b['chrome'],
-        n_piezas=len(ids), n_catalogo=n_catalogo,
-        foto=col['foto'], foto_alt=col['foto_alt'],
+        n_piezas=len(ids), n_catalogo=n_catalogo, otras=otras,
+        foto=col['foto'], foto_alt=col['foto_alt'], foto_clase=col.get('foto_clase', ''),
         foto_w=col['foto_w'], foto_h=col['foto_h'],
         tarjetas_charms='\n'.join('      ' + t for t in tarjetas(html, ids)),
         tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [col['base']])),
@@ -457,21 +484,17 @@ console.log(JSON.stringify(pasos));
     return json.loads(r.stdout)
 
 
-def enlace(nombre_kit, base, charms_sugeridos):
-    """El enlace que pone el brazalete y sugiere los dijes, sin elegirlos.
-
-    `p=` solo trae el brazalete —formato que ya valida tienda.js, y **sin
-    `@talla` a propósito**: la clienta la elige en el carrito, y prometerle
-    una que quizá no le sirva es peor que no elegir ninguna—. Los dijes van en
-    `sug=`, que tienda.js no agrega al carrito: solo resalta esas tarjetas en
-    el catálogo para que ella misma decida. `k=` es el nombre del kit, para el
-    aviso que ve al aterrizar.
-    """
-    qs = 'p=' + base
-    if charms_sugeridos:
-        qs += '&sug=' + ','.join(charms_sugeridos)
-    qs += '&k=' + urllib.parse.quote(nombre_kit)
-    return 'index.html?' + qs + '&via=kit'
+def vitrina(primeras, titulo='Relacionados', sin='', brazaletes=True):
+    """El hueco del carrusel con pestañas que llena tienda.js (ver «Vitrina»
+    allí). Aquí solo van las piezas de la primera pestaña, en orden; las demás
+    salen en vivo de assets/catalogo.json, así que ni un nombre ni un precio se
+    copia en el HTML."""
+    return ('<div class="vit" data-vit="%s" data-vit-t="%s"%s%s>'
+            '<div class="vit-tabs" role="tablist" aria-label="Elige una colección"></div>'
+            '<div class="vit-rail" role="list"></div>'
+            '<p class="vit-desliza">Toca una colección y desliza para ver más</p></div>'
+            % (','.join(primeras), titulo, ' data-vit-sin="%s"' % sin if sin else '',
+               '' if brazaletes else ' data-vit-b="0"'))
 
 
 TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
@@ -486,16 +509,23 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
       <div class="kit-escalera">
 {pasos}
       </div>
-      <p class="kit-nota">En el carrito verás los dijes de este kit ya resaltados para
-      que elijas cuáles agregar, y tu talla. Envío gratis pagando en línea.</p>
+      <div class="kit-arma">
+        <p class="kit-arma-t"><b>1</b> Elige la talla de tu brazalete {base_nombre}</p>
+        <div class="kit-tallas tallas-row" data-para="{base}"></div>
+        <p class="kit-arma-ayuda">Mide tu muñeca y súmale 2 cm. <a href="#talla">¿Qué talla es la mía?</a></p>
+        <p class="kit-arma-t"><b>2</b> Elige tus charms: los del kit o los que más te gusten</p>
+        {vitrina}
+      </div>
+      <p class="kit-nota">Toca un paso para poner sus charms en tu carrito, o elígelos uno a uno aquí
+      mismo. El descuento se aplica solo. Envío gratis pagando en línea.</p>
     </article>
 '''
 
-PASO_KIT = ('        <a class="kit-paso{clase}" href="{enlace}" data-piezas="{piezas}">'
+PASO_KIT = ('        <button type="button" class="kit-paso{clase}" data-kit-piezas="{piezas}">'
             '<span class="kit-paso-n">Brazalete + {n} dije{s}</span>'
             '<span class="kit-paso-p"><b>{total}</b>'
             '<s>{lista}</s></span>'
-            '<span class="kit-paso-d">{marca}</span></a>')
+            '<span class="kit-paso-d">{marca}</span></button>')
 
 PAGINA_KITS = '''<!DOCTYPE html>
 <html lang="es-CO">
@@ -550,7 +580,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
   </div>
 </section>
 
-<section class="kits wrap">
+<section class="kits wrap" id="kits">
 {tarjetas}
 </section>
 
@@ -563,7 +593,16 @@ PAGINA_KITS = '''<!DOCTYPE html>
 
 {talla}
 
+<!-- Lo mismo que se ve al bajar en una ficha (pedido del propietario,
+     2026-09-27): los bloques con foto y video, las reseñas de la tienda y los
+     videos de clientas. Salen de gen_productos.py, no se copian a mano. -->
+{bloques_media}
+
+{resenas_tienda}
+
 {resenas}
+
+{historia}
 
 {pagos}
 
@@ -617,7 +656,6 @@ def generar_kits(html, escribir):
             mejor = (p['n'] == 3)
             filas.append(PASO_KIT.format(
                 clase=' kit-paso--best' if mejor else '',
-                enlace=enlace(k['nombre'], k['base'], p['piezas'][1:]),
                 piezas=','.join(p['piezas']),
                 n=p['n'], s='s' if p['n'] > 1 else '',
                 total=p['totalTexto'],
@@ -633,6 +671,8 @@ def generar_kits(html, escribir):
             fotos=''.join(miniaturas),
             tercer_dije=tercero['esteDije'], tercer_lista=tercero['listaDije'],
             pasos='\n'.join(filas),
+            base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
+            vitrina=vitrina(k['charms'], 'De este kit', brazaletes=False),
         ))
 
     b = bloques(html)
@@ -642,8 +682,11 @@ def generar_kits(html, escribir):
             'El descuento sube con cada dije y se aplica solo: hasta 25% en dijes '
             'y 30% en el brazalete. Envío gratis a toda Colombia.')
 
+    from gen_productos import bloques_media, resenas_tienda   # aquí: gen_productos importa este módulo
     pagina = PAGINA_KITS.format(
         head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+        bloques_media=bloques_media(None, 'charm', False, cat, arma_href='#kits'),
+        resenas_tienda=resenas_tienda(), historia=b['historia'],
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
         footer=b['footer'], chrome=b['chrome'],
         tarjetas=''.join(tarjetas_html), n_catalogo=n_catalogo, desc=desc,
@@ -663,6 +706,68 @@ def generar_kits(html, escribir):
               ' · '.join('%dd %s (-%d%%)' % (p['n'], p['totalTexto'], p['dto']) for p in e)))
 
 
+MV_CUERPO = '''<section class="col-hero wrap" id="top">
+  <span class="eyebrow">Más vendidos</span>
+  <h1>Las piezas que más se llevan</h1>
+  <p class="col-entrada">Ordenadas por unidades vendidas de verdad, contadas de los pedidos
+  de la tienda. Solo aparecen las que tienen 3 unidades o más disponibles.</p>
+</section>
+
+<!-- Lo llena tienda.js («Más vendidos») desde netlify/functions/mas-vendidos:
+     ventas reales, nunca un número fijo. El sello «Más vendido» solo va en
+     piezas que vendieron; el relleno, mientras haya pocas ventas, va aparte. -->
+<section class="mv wrap" aria-label="Más vendidos">
+  <p class="mv-aviso" id="mv-aviso" hidden></p>
+  <div class="mv-grid" id="mv-vendidas" role="list"><p class="mv-cargando">Cargando las ventas…</p></div>
+</section>
+
+<section class="mv wrap" id="mv-relleno-sec" hidden>
+  <h2>De las colecciones favoritas</h2>
+  <p class="col-sub">Mientras juntamos más ventas, estas son las piezas con más unidades
+  disponibles de las colecciones que más se venden.</p>
+  <div class="mv-grid" id="mv-relleno" role="list"></div>
+</section>
+
+<section class="col-resto wrap">
+  <h2>¿Buscas algo en particular?</h2>
+  <p class="col-sub">Todo el catálogo, por colección, con disponibilidad al día.</p>
+  <a class="btn btn--ghost" href="index.html#charms">Ver el catálogo completo</a>
+</section>
+
+'''
+
+
+def generar_mas_vendidos(html, escribir):
+    """coleccion-mas-vendidos.html (ENCARGO-FICHA-2 § 5). La carcasa es la de
+    kits.html —cabecera, pie y bloques de la portada—; el contenido lo pinta
+    tienda.js con las ventas reales, así que la página no se queda vieja
+    entre despliegues."""
+    ini = PAGINA_KITS.index('<section class="col-hero wrap" id="top">')
+    fin = PAGINA_KITS.index('{talla}')
+    cabeza = re.sub(r'<title>[^<]*</title>', '<title>Más vendidos · Zephora Charms</title>', PAGINA_KITS[:ini])
+    cabeza = cabeza.replace('https://zephoracharms.com/kits.html', 'https://zephoracharms.com/coleccion-mas-vendidos.html')
+    cabeza = cabeza.replace('Kits Zephora · Dijes de Plata 925 y brazalete', 'Más vendidos · Zephora Charms')
+    assert 'kits.html' not in cabeza and 'Kits Zephora' not in cabeza
+    b = bloques(html)
+    desc = ('Las piezas de Zephora que más se venden, contadas de pedidos reales: charms en Plata '
+            'Esterlina 925 y brazaletes con baño de plata, con 3 unidades o más disponibles.')
+    from gen_productos import bloques_media, resenas_tienda
+    cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
+    pagina = (cabeza + MV_CUERPO + PAGINA_KITS[fin:]).format(
+        head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+        bloques_media=bloques_media(None, 'charm', False, cat, arma_href='kits.html'),
+        resenas_tienda=resenas_tienda(), historia=b['historia'],
+        resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
+        footer=b['footer'], chrome=b['chrome'], desc=desc)
+    pagina = arregla_nav(pagina)
+    destino = RAIZ / 'coleccion-mas-vendidos.html'
+    if escribir:
+        destino.write_text(pagina, encoding='utf-8')
+        print('  escrito  coleccion-mas-vendidos.html  (%d KB)' % (len(pagina) // 1024))
+    else:
+        print('  se escribiría  coleccion-mas-vendidos.html  (%d KB)' % (len(pagina) // 1024))
+
+
 def main():
     escribir = '--escribir' in sys.argv
     html = INDEX.read_text(encoding='utf-8')
@@ -671,6 +776,8 @@ def main():
         generar(col, html, escribir)
     print('\nKits:')
     generar_kits(html, escribir)
+    print('\nMás vendidos:')
+    generar_mas_vendidos(html, escribir)
     if not escribir:
         print('\nNo se escribió nada. Repite con --escribir.')
 

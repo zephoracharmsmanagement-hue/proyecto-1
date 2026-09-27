@@ -93,6 +93,8 @@ button{font-family:inherit}
   border-top:1px solid var(--line);margin-top:9px;padding-top:11px}
 .tot-fin span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver)}
 .tot-fin b{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:300}
+.susc-ck{margin:10px 0 0;padding:9px 11px;font-size:13px;line-height:1.45;color:var(--plum,#5C3D63);
+  background:#F3E6EB;border-radius:2px}
 /* Cuánto falta para el envío gratis, dentro del resumen.
    Vive aquí y no en un paso concreto porque el resumen está pegado arriba en
    los tres: el dato sirve mientras se pueda hacer algo con él, y en el último
@@ -310,7 +312,7 @@ button{font-family:inherit}
         <div id="res-totales"></div>
           <div class="env-bar" id="env-bar" aria-hidden="true"><i></i></div>
           <p class="env-nota" id="env-nota"></p>
-          <p class="env-nota env-nota--regalo">🎁 Incluye caja de lujo, paño para tu plata y tarjeta con dedicatoria — sin costo.</p>
+          <p class="env-nota env-nota--regalo">🎁 Incluye caja, paño para limpiar la plata y dedicatoria escrita a mano — sin costo.</p>
         <a class="res-editar" href="index.html#brazaletes">← Modificar mi selección</a>
       </div>
     </div>
@@ -494,6 +496,15 @@ button{font-family:inherit}
               <label for="dedicatoria">Dedicatoria para la tarjeta</label>
               <textarea id="dedicatoria" name="dedicatoria" maxlength="200" placeholder="«Para Ana, por todo lo que aguantaste este año.»"></textarea>
               <span class="pista">Opcional. Todos los pedidos llevan tarjeta: si escribes algo aquí, va escrito a mano.</span>
+            </div>
+            <!-- Regalo de suscriptora: el charm de su inicial (decisión del
+                 propietario, 2026-09-27). Solo se muestra si este navegador
+                 confirmó la suscripción y el pedido lleva 2 charms o más;
+                 quien decide si hay regalo es crear-pago, con el correo. -->
+            <div class="campo" data-c="regalo" id="campo-regalo" hidden>
+              <label for="regalo-inicial">🎁 Elige la inicial de tu regalo</label>
+              <select id="regalo-inicial" name="regalo-inicial"><option value="">Elige una letra</option></select>
+              <span class="pista">Por estar suscrita, tu primera compra de 2 charms o más lleva de regalo el charm de tu inicial. Solo aparecen las letras con unidades; si no eliges, te escribimos para preguntarte.</span>
             </div>
           </div>
 
@@ -769,7 +780,18 @@ function pintarResumen(){
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
   h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
+  /* Regalo de suscriptora. Solo si ESTE navegador confirmó la suscripción
+     (lo marca la página de confirmación): preguntarle al servidor por un
+     correo revelaría quién está suscrita. Quien decide de verdad es
+     crear-pago, con el correo del pedido; esto solo empuja el segundo charm. */
+  let suscrita=false; try{ suscrita=!!localStorage.getItem('zephora.suscrita'); }catch(e){}
+  if(suscrita){
+    const n=c.charms.length;
+    if(n>=2) h+='<p class="susc-ck">🎁 Incluye el charm de tu inicial de regalo, por estar suscrita (con el correo con que te suscribiste). La eliges en tus datos de entrega.</p>';
+    else if(n===1) h+='<p class="susc-ck">🎁 Agrega 1 charm más y te llevas de regalo el charm de tu inicial, por estar suscrita.</p>';
+  }
   $('#res-totales').innerHTML=h;
+  pintarRegalo(suscrita&&c.charms.length>=2);
 
   /* Cuánto falta para el envío gratis.
    *
@@ -1023,6 +1045,22 @@ const marcar=(nombre,mal)=>{
 };
 const val=id=>$('#'+id).value.trim();
 
+/* La inicial de regalo: solo letras con unidades (stock.json; sin él, todas
+   las del catálogo —el servidor y la tienda confirman al despachar—). Las
+   opciones se llenan una vez y la elección sobrevive a los repintados del
+   resumen, que no tocan este campo. */
+function pintarRegalo(ver){
+  const campo=$('#campo-regalo'), sel=$('#regalo-inicial');
+  if(!campo||!sel) return;
+  campo.hidden=!ver;
+  if(!ver||sel.options.length>1||!CAT) return;
+  Object.keys(CAT.precios).filter(id=>/^letra-/.test(id)).forEach(id=>{
+    const it=STOCK&&STOCK.items&&STOCK.items[id];
+    if(STOCK&&!(it&&typeof it.stock==='number'&&it.stock>0)) return;
+    const o=document.createElement('option'); o.value=id.slice(6); o.textContent=id.slice(6).toUpperCase(); sel.appendChild(o);
+  });
+}
+
 /* Una regla por campo, en un solo sitio. La usan las dos cosas que validan:
    el «Continuar», que mira el paso entero, y el aviso en vivo, que mira el
    campo que la clienta acaba de dejar. Dos listas separadas acabarían
@@ -1096,6 +1134,7 @@ function datos(){
     depto:val('depto'), ciudad:ciu, direccion:val('direccion'),
     adicional:val('adicional'), barrio:val('barrio'),
     notas:val('notas'), dedicatoria:val('dedicatoria'),
+    regaloInicial:$('#campo-regalo').hidden?'':$('#regalo-inicial').value,
     /* Autorización para escribirle por algo que no sea este pedido. Viaja con
        el resto y la guarda el registro: es lo que decide, más adelante, si un
        checkout sin pagar se puede recuperar escribiéndole a ella o solo
@@ -1386,8 +1425,16 @@ Promise.all([
   addEventListener('storage',e=>{ if(e.key===LLAVE) releer(); });
 
   $('#year').textContent=new Date().getFullYear();
-  track('InitiateCheckout',{value:calcular(carrito).total,
-    num_items:carrito.charms.length+(carrito.base?1:0),content_name:'Checkout paso 1'});
+  /* El único InitiateCheckout del sitio (tienda.js dejó de mandarlo al tocar
+     pagar: contaba doble). Lleva los ids de catalogo.json de todo el carrito,
+     con cantidades, para que Meta sepa QUÉ piezas llegaron al checkout. */
+  const ids=(carrito.base?[carrito.base.id]:[]).concat(carrito.charms);
+  const cuenta={}; ids.forEach(i=>{ cuenta[i]=(cuenta[i]||0)+1; });
+  track('InitiateCheckout',{value:calcular(carrito).total,num_items:ids.length,
+    content_type:'product',content_ids:Object.keys(cuenta),
+    contents:Object.keys(cuenta).map(i=>({id:i,quantity:cuenta[i]})),
+    content_name:'Checkout paso 1'},
+    'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
 }).catch(()=>{
   /* Sin catálogo no se puede mostrar un precio, y mostrar uno inventado sería
      peor que no mostrar ninguno. Se manda a WhatsApp, que no depende de esto. */

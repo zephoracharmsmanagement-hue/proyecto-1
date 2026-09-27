@@ -24,6 +24,7 @@ import { marcar, leer } from './_pedidos.mjs';
 import { purchase } from './_meta.js';
 import { tomar as tomarSenales } from './_atribucion.mjs';
 import { enviar, pagoTienda } from './_correo.js';
+import { usarRegalo } from './_suscriptores.mjs';
 
 const ok = (cuerpo) => new Response(JSON.stringify(cuerpo || { recibido: true }),
   { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -200,6 +201,18 @@ export default async (req) => {
      * es molesto; que Wompi reintente el evento porque esto lanzó, no. */
     try {
       const pedido = await leer(registro.referencia);
+
+      /* Charm de regalo de suscriptora: se gasta AQUÍ, con el pago aprobado, y
+         no al crear el pedido —un pago rechazado no puede gastarlo—. Si otro
+         pedido de la misma clienta lo usó primero, este va sin regalo y la
+         hoja de «PAGADO» deja de pedirlo. */
+      if (pedido && pedido.regalo === 'suscriptor') {
+        const uso = await usarRegalo(pedido.cliente && pedido.cliente.correo, registro.referencia);
+        if (!uso.ok) pedido.regalo = null;
+        await marcar(registro.referencia, { regalo: pedido.regalo, regaloMotivo: uso.ok ? null : uso.motivo });
+        console.log(JSON.stringify({ evento: 'regalo_suscriptor', referencia: registro.referencia,
+          usado: uso.ok, motivo: uso.motivo || uso.modo }));
+      }
 
       /* A la hoja de inventario. Aquí y no al crear el pedido: hasta que Wompi
          aprueba, el pago en línea no ha sacado nada del inventario —y una hoja

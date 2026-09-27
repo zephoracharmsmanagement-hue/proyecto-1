@@ -23,6 +23,7 @@ import crypto from 'node:crypto';
 import { leer, marcar } from './_pedidos.mjs';
 import { EVENTOS, TEXTOS } from './_envios.mjs';
 import { enviar, correoTienda, esc } from './_correo.js';
+import { enlaceResena } from './resenas.mjs';
 
 const CABECERAS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -119,6 +120,14 @@ export default async (req) => {
     }
   }
 
+  /* Al entregarse, un enlace firmado por pieza para dejar reseña. Es lo único
+     que hace que una reseña diga «Compra verificada» (resenas.mjs). n8n lo
+     manda en el mensaje de entrega. */
+  const enlacesResena = evento === 'entregado'
+    ? [...new Set((pedido.lineas || []).map(l => l.id))]
+      .map(id => ({ producto: id, url: enlaceResena(referencia, id) })).filter(e => e.url)
+    : undefined;
+
   return responder(200, {
     celular: pedido.cliente.celular,
     nombre: pedido.cliente.nombre,
@@ -126,5 +135,6 @@ export default async (req) => {
     textoEstado: TEXTOS[evento],
     guia, transportadora, urlSeguimiento,
     yaEnviado,
+    enlacesResena,
   });
 };

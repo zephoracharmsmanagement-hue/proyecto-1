@@ -546,6 +546,32 @@ async function llenarPaso1(p, d) {
     await p.close();
   }
 
+  // ——— 4b · suscrita: elige la inicial de su regalo (2026-09-27) ———
+  out.push('\n4b · Suscrita: la inicial de regalo viaja con el pedido');
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    const cap = [];
+    await interceptar(p, cap);
+    await ponerCarrito(p, { base: null, charms: ['mickey-mouse', 'stitch'], empaque: false, pago: 'contraentrega' });
+    await p.addInitScript(() => localStorage.setItem('zephora.suscrita', '1'));
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(500);
+    await llenarPaso1(p, DATOS);
+    await p.click('#ir-2');
+    ok(await p.locator('#campo-regalo').isVisible(), 'en los datos de entrega aparece «Elige la inicial de tu regalo»');
+    const primera = await p.$eval('#regalo-inicial option:nth-child(2)', o => o.value);
+    await p.selectOption('#regalo-inicial', primera);
+    await p.click('#ir-3');
+    await p.check('#ops-pago input[value="contraentrega"]');
+    await p.check('#acepta');
+    await p.click('#confirmar');
+    await p.waitForTimeout(900);
+    ok(cap[0] && cap[0].pedido.cliente && cap[0].pedido.cliente.regaloInicial === primera,
+      `la letra elegida (${primera}) llega al servidor con el pedido`);
+    await p.close();
+  }
+
   // ——— 5 · lo que el servidor no puede aceptar ———
   out.push('\n5 · Intentos contra el servidor');
   {

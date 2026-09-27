@@ -12,6 +12,12 @@ Claude Code en varias sesiones/terminales a la vez.
 
 ## Meta Ads — estado de la automatización
 
+**Cómo se pauta** (diagnóstico, estructura, escalamiento, públicos, creativos y
+copy) está en la skill [`.claude/skills/meta-ads/`](.claude/skills/meta-ads/SKILL.md):
+el método de Felipe Vergara aplicado a esta cuenta. Esta sección cuenta el
+**estado** de la cuenta; la skill dice **qué hacer** con él. Costos y márgenes no
+van en ninguna de las dos: el repo es público.
+
 ### Campañas en producción (cuenta `1583713932705268`)
 
 Esa cuenta **no pertenece a ningún portafolio comercial** — de ahí sale casi
@@ -35,7 +41,7 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
   ACTIVA, $10.000 COP/día, **$0 gastados y 0 impresiones**. Sí optimiza por
   `Purchase`. No entrega por dos razones: un error de segmentación por lugar
   (#1870194, tipo de ubicación descontinuado por Meta) y, más de fondo, que
-  **el público tiene ~55 personas**. Pendiente de pausar.
+  **el público tiene ~55 personas**. *(2026-09-25: ya está pausada.)*
 
 ### Públicos
 
@@ -104,6 +110,14 @@ nombra a Pandora — riesgo de marca.
   todavía** — falta credential del token CAPI y una prueba con
   `test_event_code`.
 
+  > **Ojo, 2026-09-25: el workflow apunta al píxel que no puede recibirlo.**
+  > `2130673404542988` es el píxel viejo, y `ESTADO.md` § 4a documenta que para
+  > él nadie puede generar un token de API de conversiones (la cuenta no tiene
+  > portafolio). Antes de publicarlo, cambiar el destino a
+  > `1029982529813994`, el píxel nuevo, que es donde vive el token de
+  > `Netlify CAPI` y donde ya llega el `Purchase` de Wompi. Así las ventas de
+  > WhatsApp y las web quedan en el mismo píxel.
+
   Nota: **el sitio ya cobra de verdad por Wompi** (ver `ESTADO.md` § 4).
   Cuando ese flujo esté estable, lo correcto es que el webhook de Wompi
   dispare el `Purchase` directamente al confirmar el pago — más confiable
@@ -123,7 +137,12 @@ optimiza las campañas hacia gente que escribe, no hacia gente que compra.
 Por orden de impacto sobre el dinero:
 
 1. **Reponer inventario.** Es el cuello de botella real, no el presupuesto.
-   Faltan **14 letras que nunca se compraron** (F G H I P Q R T U W X Y Z Ñ —
+   > **Corregido el 2026-09-25:** las letras se repusieron el 28 de agosto.
+   > Según el conteo físico del 22 de septiembre, hoy solo están en cero la
+   > **Q** y la **Ñ**; lo de abajo quedó como historia. El inventario vigente
+   > sale siempre de `assets/stock.json`, no de este párrafo.
+
+   Faltaban **14 letras que nunca se compraron** (F G H I P Q R T U W X Y Z Ñ —
    el 52% del abecedario): ~$73.000 de costo para ~$1.064.000 de utilidad
    potencial, el mejor retorno del negocio y además arregla que media
    Colombia no encuentre su inicial. Después, **83 referencias en 1-2
@@ -143,6 +162,10 @@ Por orden de impacto sobre el dinero:
    con la cuenta `1583713932705268` (o reclamar la cuenta hacia el
    portafolio), migrar la optimización de `InitiateCheckout` a `Purchase`, y
    sacar el segundo `fbq('init', …)` de los tres HTML.
+   *Matiz (2026-09-25):* migrar a `Purchase` solo si el volumen alcanza. Meta
+   necesita del orden de 50 eventos semanales por conjunto; con el volumen de
+   ventas actual un conjunto optimizado por compra se queda en aprendizaje
+   limitado aunque la medición sea perfecta. Ver la skill `meta-ads`.
 6. **Revisar el access token que se pegó en un chat hace tiempo.** Si sigue
    activo, revocarlo en Configuración del negocio → Usuarios del sistema y
    usar en su lugar un usuario del sistema con permisos acotados.
@@ -283,6 +306,8 @@ y que no estaban escritas en ningún sitio:
   así que el set Marvel —6 referencias elegibles, las más caras del catálogo— se
   monta sobre `pulsera-clasica-cierre-barril`, que además solo existe en tallas
   20 y 21: justo las de muñeca masculina.
+  *(2026-09-25: `pulsera-avengers` ya tiene unidades en tallas 18 a 20, sin 21;
+  para muñeca grande sigue siendo la clásica. Verificar en `assets/stock.json`.)*
 - **Amor y Amistad cae el sábado 19 de septiembre de 2026**, y de los tiempos de
   `envios-y-devoluciones.html` salen fechas límite de pedido reales (10 sept
   resto del país · 14 ciudades principales · 16 Bogotá). Urgencia que no cuesta
