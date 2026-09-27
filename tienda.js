@@ -95,6 +95,15 @@ if(hbPause && hbTrack){
    ventana flotante (controlslist / disablepictureinpicture). */
 document.addEventListener('contextmenu',e=>{ if(e.target.closest('img,video,picture,.pc-img,.fx-ph')) e.preventDefault(); });
 document.addEventListener('dragstart',e=>{ if(e.target.closest('img,video')) e.preventDefault(); });
+/* Foto de una reseña → el visor #lb que ya traen todas las páginas (lo
+   cierra el script de la página: tocar fuera o Escape). */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.rp-foto'); if(!b) return;
+  const lb=document.getElementById('lb'), im=document.getElementById('lb-img'), f=b.querySelector('img');
+  if(!lb||!im||!f) return;
+  im.src=f.currentSrc||f.src; im.alt=f.alt;
+  lb.classList.add('is-on'); lb.setAttribute('aria-hidden','false');
+});
 
 const quietoPorPreferencia = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* También los videos de los bloques de la ficha (.bv-v), con la misma regla. */
@@ -759,8 +768,11 @@ if(PP&&(CH[PP]||PU[PP])){
   const propia=u=>typeof u==='string'&&/^\/resenas\?medio=[^"'<>\s]+$/.test(u);
   const mediosResena=r=>{
     const fotos=(r.fotos||[]).filter(propia);
-    return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<a href="'+u+'" target="_blank" rel="noopener"><img src="'+u
-        +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></a>').join('')+'</div>':'')
+    /* Botón y no enlace (pedido del propietario, 2026-09-27): abrir la foto
+       en otra pestaña hacía que algunos celulares la descargaran. Ahora se
+       amplía en el visor de la página (#lb), el mismo de los testimonios. */
+    return (fotos.length?'<div class="rp-fotos">'+fotos.map(u=>'<button type="button" class="rp-foto" aria-label="Ampliar foto"><img src="'+u
+        +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>').join('')+'</div>':'')
       +(propia(r.video)?'<video class="rp-video" src="'+r.video+'" controls playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>':'');
   };
   /* Todas las reseñas de la tienda, en cualquier ficha (decisión del

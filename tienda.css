@@ -1353,6 +1353,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .rp-it figcaption{font-size:12.5px;color:#8a8290}
 .rp-ok{color:#1F7A5C}
 .rp-fotos{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.rp-foto{padding:0;border:0;background:none;line-height:0;cursor:zoom-in;border-radius:3px}
 .rp-fotos img{display:block;width:76px;height:76px;object-fit:cover;border-radius:3px;background:var(--rose-soft)}
 .rp-video{display:block;width:100%;max-width:300px;max-height:360px;margin:0 0 8px;border-radius:3px;background:#000}
 .rp-form input[type=file]{font-size:13px;padding:8px 0;border:0;background:transparent}

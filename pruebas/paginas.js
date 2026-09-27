@@ -138,6 +138,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       piezas: Object.entries(stock).filter(([, v]) => !v.tallas).map(([i, v]) => ({ id: i, disponible: v.stock })),
       brazaletes: Object.entries(stock).filter(([, v]) => v.tallas).map(([i, v]) => ({ id: i, tallas: v.tallas })) } }));
     await ctx.route('**/.netlify/functions/vendidas', r => r.fulfill({ json: { ventas: vendidas || {} } }));
+    // Las fotos de reseñas se sirven desde /resenas?medio=…: una imagen mínima.
+    await ctx.route(/\/resenas\?medio=/, r => r.fulfill({ status: 200, contentType: 'image/png',
+      body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
     await ctx.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: { ventasRegistradas: 0, tope: 12, minimoLibres: 3, vendidas: [], disponibles: {} } }));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
@@ -225,6 +228,15 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
       ok((r.html.match(/<img /g) || []).length === 1 && r.html.includes('/resenas?medio=hulk') && !/javascript:|otro\.sitio/.test(r.html),
         'las fotos de la reseña salen, y solo las servidas por la propia tienda');
+      // Tocar la foto la amplía en el visor de la página; antes era un enlace
+      // a otra pestaña, y algunos celulares la descargaban (2026-09-27).
+      const url0 = p.url();
+      await p.evaluate(() => document.querySelector('#rp-lista .rp-foto').click());
+      await p.waitForTimeout(200);
+      const lb = await p.evaluate(() => ({ on: document.getElementById('lb').classList.contains('is-on'),
+        src: document.getElementById('lb-img').getAttribute('src') || '', enlaces: document.querySelectorAll('#rp-lista a[href*="medio="]').length }));
+      ok(lb.on && lb.src.includes('medio=hulk') && p.url() === url0 && !lb.enlaces, 'tocar la foto de una reseña la amplía en la misma página, sin enlace que la descargue');
+      await p.keyboard.press('Escape');
       ok((r.html.match(/Compra verificada/g) || []).length === 1, 'solo la reseña con pedido lleva «Compra verificada»');
       ok(/4 personas compraron/.test(r.vend), `«${r.vend}»`);
     } else {
