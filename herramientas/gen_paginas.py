@@ -377,7 +377,7 @@ FAQS = [
      'brazaletes van sobre latón de calidad joyería con baño de plata certificado, así que son '
      'seguras e hipoalergénicas, aptas para pieles sensibles.</p>'),
     ('¿Cómo cuido mi pulsera?',
-     '<p>Guárdala en su bolsa cuando no la uses, quítatela para bañarte, nadar o hacer ejercicio, '
+     '<p>Guárdala en su caja cuando no la uses, quítatela para bañarte, nadar o hacer ejercicio, '
      'y evita el contacto con perfumes y cremas. Para limpiarla, un paño suave y seco. Así '
      'conserva el brillo mucho más tiempo.</p>'),
  ]),
@@ -467,8 +467,8 @@ FAQS = [
      'de fábrica</b>. No cubre desgaste por uso, golpes, pérdida de piezas ni deterioro por '
      'contacto con perfumes, cloro o productos químicos.</p>'),
     ('¿Hacen empaque de regalo?',
-     '<p>Todos los pedidos incluyen empaque de regalo. Si quieres algo más especial, tenemos el '
-     '<b>Empaque Premium de Regalo</b> por $40.000, que puedes agregar al armar tu pulsera.</p>'),
+     '<p>Sí, y sin costo: todos los pedidos llegan en su <b>caja</b>, con un <b>paño para limpiar '
+     'la plata</b> y una <b>dedicatoria escrita a mano</b> con las palabras que elijas al pagar.</p>'),
  ]),
 ]
 

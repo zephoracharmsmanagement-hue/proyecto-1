@@ -56,7 +56,9 @@ IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res'}
 # Si se agrega aquí uno que se use sin comprobar, la página se queda sin
 # carrito en silencio: cada uno de estos va con su `if(el)` en tienda.js.
 IDS_OPCIONALES = {'pq-mas', 'pq-faltan', 'pp-estrellas', 'pp-vendidas', 'pp-compra', 'pp-agotado',
-                  'pp-encargo', 'pp-desc', 'rp-resumen', 'rp-lista', 'rp-form', 'rp-escribir'}
+                  'pp-encargo', 'pp-desc', 'rp-resumen', 'rp-lista', 'rp-form', 'rp-escribir',
+                  # Solo en la portada (EN_PORTADA) y en coleccion-mas-vendidos.html.
+                  'charms', 'mv-aviso', 'mv-relleno', 'mv-relleno-sec', 'mv-vendidas'}
 
 
 def archivo_de(pid):
@@ -232,6 +234,7 @@ PAGINA = '''<!DOCTYPE html>
 </section>
 {bloque_letras}
 {talla}
+{bloques_media}
 
 <!-- 2 · CERCANAS. Tarjetas de index.html por data-id. -->
 <section class="sec"{id_rel}>
@@ -451,7 +454,7 @@ def beneficios(tipo, cat):
              ('rapido', 'Bogotá: llega en 1 día hábil desde el despacho'),
              ('contra', 'Pago contraentrega (+%s)' % cop(cat['reglas']['envio']['contraentrega'])),
              ('sello', material),
-             ('regalo', 'Empaque de regalo incluido'),
+             ('regalo', 'Empaque de regalo: caja, paño y dedicatoria escrita a mano'),
              ('cambio', 'Cambio de talla o retracto en 5 días hábiles')]
     return '\n'.join('        <li><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
                      'stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">%s</svg>%s</li>' % (ICONO[k], H.escape(t))
@@ -480,7 +483,7 @@ def acordeones(tipo, meta, grupo, cat):
     consejos = ('<p>Para conservar tu joya como el primer día:</p><ul class="pp-lista">'
                 '<li><b>Úsala con cuidado:</b> póntela después de aplicar perfumes, cremas, lociones o maquillaje.</li>'
                 '<li><b>Evita la humedad:</b> quítatela antes de bañarte, nadar en la piscina o el mar, o hacer ejercicio.</li>'
-                '<li><b>Guardado ideal:</b> guárdala en su bolsita o estuche protector, en un lugar seco, cuando no la uses.</li>'
+                '<li><b>Guardado ideal:</b> guárdala en su caja, en un lugar seco, cuando no la uses.</li>'
                 '<li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul>')
     secciones = [
         ('Descripción', '<p>%s.</p><p id="pp-desc"></p>' % (
@@ -498,14 +501,78 @@ def acordeones(tipo, meta, grupo, cat):
                      % (' open' if abierto else '', t, c) for t, c, abierto in secciones)
 
 
+ORDINAL = {2: 'segundo', 3: 'tercer', 4: 'cuarto', 5: 'quinto'}
+
+
+def bloques_media(pid, tipo, hay, cat):
+    """Los cuatro bloques con foto o video, entre la guía de tallas y las
+    relacionadas (ENCARGO-FICHA-2 § 1). Textos del propietario, iguales en
+    todas las fichas salvo lo marcado para brazaletes —que son baño de plata,
+    nunca «plata»—. Níquel y empaque, confirmados por el propietario el
+    2026-09-26.
+
+    Los videos no están en git: se sirven desde Netlify Blobs en /media/
+    (netlify/functions/media.mjs). Solo viaja la portada (preload="none"); el
+    mismo observer de los videos de clientas los arranca al verse."""
+    r = cat['reglas']
+    dto_b = round(r['descuentoBrazalete'] * 100)
+    desde = ORDINAL.get(r['minCharmsParaDescuento'], '%dº' % r['minCharmsParaDescuento'])
+    dto_4 = round(r['escalaCharms'][4] * 100)
+    es_b = tipo == 'brazalete'
+
+    if es_b:
+        t1 = ('Tus charms llevan el sello <b>S925</b>. El brazalete, en <b>baño de plata</b>, es la base que '
+              'cambia contigo: <b>ábrelo, suma y combina</b> cuando quieras.')
+        t2 = ('Brazalete en baño de plata <b>hipoalergénico y libre de níquel</b>, liviano y cómodo para '
+              '<b>usarlo a diario</b>. Guárdalo seco y lejos de perfumes para que el <b>baño conserve su '
+              'brillo</b> por más tiempo.')
+    else:
+        t1 = ('Cada charm lleva grabado el sello <b>S925</b>: la marca de la <b>Plata Esterlina 925</b>. '
+              '<b>Búscalo con tus propios ojos</b> apenas la recibas; está ahí para que no tengas que creernos.')
+        t2 = ('Plata 925 <b>hipoalergénica y libre de níquel</b>, hecha para <b>usarse a diario</b>, incluso '
+              'en piel sensible. Si con el tiempo se oscurece, es natural en la plata real: <b>un paño le '
+              'devuelve el brillo</b> en segundos.')
+    t3 = ('Combina héroes, iniciales y símbolos en <b>un solo brazalete</b>. Desde el %s charm <b>el '
+          'brazalete baja %d%%</b>, y <b>llevando 4, pagas %d%% menos</b> en tus charms.' % (desde, dto_b, dto_4))
+    t4 = ('Tu pedido llega en <b>su caja</b>, con <b>paño para limpiar la plata</b> y una <b>dedicatoria '
+          'escrita a mano</b> con las palabras que tú elijas. Solo falta entregarla… o quedártela.')
+
+    arma = '<a class="btn btn--ghost" href="%s">Arma tu pulsera</a>' % ('#pp-compra' if hay else 'index.html#brazaletes')
+    if not hay:
+        agregar = ''
+    elif es_b:
+        agregar = '<button class="btn" type="button" data-comprar="%s">Elige tu talla</button>' % pid
+    else:
+        agregar = '<button class="btn" type="button" data-add="%s">Agregar al carrito</button>' % pid
+
+    def video(nombre, alto):
+        return ('<video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="%d" '
+                'poster="assets/%s.webp" aria-hidden="true"><source src="media/%s.mp4" type="video/mp4"></video>'
+                % (alto, nombre, nombre))
+
+    bloques = [
+        ('✦', 'Plata 925 que puedes comprobar',
+         '<img src="assets/bloque-s925.webp" alt="Sello S925 grabado en un charm de Zephora" width="720" '
+         'height="720" loading="lazy" decoding="async">', t1, ''),
+        ('♡', 'Para llevarla todos los días', video('bloque-diario-v1', 960), t2, ''),
+        ('✧', 'Tu historia, un charm a la vez', video('bloque-historia-v1', 714), t3, arma),
+        ('✦', 'Llega lista para regalar', video('bloque-regalo-v1', 960), t4, agregar),
+    ]
+    return ('<section class="sec bv" aria-label="Por qué Zephora">\n  <div class="wrap bv-in">\n' + '\n'.join(
+        '    <article class="bv-b">\n      <div class="bv-m">%s</div>\n      <div class="bv-t"><h2><span '
+        'aria-hidden="true">%s</span> %s</h2><p>%s</p>%s</div>\n    </article>'
+        % (m, s, H.escape(t), p, ('<div class="bv-cta">%s</div>' % b) if b else '')
+        for s, t, m, p, b in bloques) + '\n  </div>\n</section>')
+
+
 BLOQUE_RESENAS = '''<section class="sec" id="resenas-pieza">
   <div class="wrap">
     <span class="eyebrow">Reseñas</span>
-    <h2>Opiniones de {nombre}</h2>
+    <h2>Todas las reseñas de la tienda</h2>
     <div class="rp-resumen estrellas" id="rp-resumen"></div>
-    <div class="rp-lista" id="rp-lista"><p class="rp-vacio">Todavía no hay reseñas publicadas de esta pieza.</p></div>
+    <div class="rp-lista" id="rp-lista"><p class="rp-vacio">Todavía no hay reseñas publicadas.</p></div>
     <details class="rp-escribir" id="rp-escribir">
-      <summary>Escribir una reseña</summary>
+      <summary>Escribir una reseña de {nombre}</summary>
       <form class="rp-form" id="rp-form" novalidate>
         <fieldset class="rp-est"><legend>Tu calificación</legend>
           <label><input type="radio" name="estrellas" value="5">5</label><label><input type="radio" name="estrellas" value="4">4</label><label><input type="radio" name="estrellas" value="3">3</label><label><input type="radio" name="estrellas" value="2">2</label><label><input type="radio" name="estrellas" value="1">1</label>
@@ -513,6 +580,8 @@ BLOQUE_RESENAS = '''<section class="sec" id="resenas-pieza">
         <label>Tu reseña<textarea name="texto" rows="4" maxlength="800" required></textarea></label>
         <div class="rp-dos"><label>Nombre<input name="nombre" maxlength="40" required autocomplete="given-name"></label>
         <label>Ciudad<input name="ciudad" maxlength="40" autocomplete="address-level2"></label></div>
+        <div class="rp-dos"><label>Fotos (opcional, hasta 3)<input type="file" name="fotos" accept="image/*" multiple></label>
+        <label>Video (opcional, hasta 20 s)<input type="file" name="video" accept="video/*"></label></div>
         <input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">
         <button class="btn" type="submit">Enviar reseña</button>
         <p class="rp-nota">Revisamos cada reseña antes de publicarla. Publicamos también las de pocas estrellas.</p>
@@ -596,6 +665,7 @@ def generar(pid, html, cat, stock, b, exigidos, paquetes, ref):
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
         resenas=b['resenas'], historia=b['historia'],
         bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'],
+        bloques_media=bloques_media(pid, tipo, hay, cat),
         pagos=b['pagos'], footer=b['footer'], chrome=b['chrome'],
     )
     pagina = arregla_nav(pagina)

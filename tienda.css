@@ -910,6 +910,10 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   font:inherit;transition:border-color .16s,background .16s}
 @media(hover:hover){.sug-c:hover{border-color:var(--rose);background:rgba(180,101,127,.16)}}
 .sug-ph{position:relative;display:block}
+.mono{display:grid;place-items:center;background:#fff;border-radius:2px;color:var(--plum);
+  font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;line-height:1}
+.sug-c .mono{height:64px}
+.busq-r .mono{width:44px;height:44px;flex:0 0 auto}
 /* La foto va con alto fijo en vez de cuadrada: dentro de la hoja cada píxel de
    alto se lo quita al desglose y a la forma de pago, que quedan debajo. Con
    object-fit:contain la pieza se sigue viendo entera, solo con algo más de
@@ -1348,6 +1352,10 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .rp-it blockquote{margin:8px 0;font-size:15px;line-height:1.55}
 .rp-it figcaption{font-size:12.5px;color:#8a8290}
 .rp-ok{color:#1F7A5C}
+.rp-fotos{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
+.rp-fotos img{display:block;width:76px;height:76px;object-fit:cover;border-radius:3px;background:var(--rose-soft)}
+.rp-video{display:block;width:100%;max-width:300px;max-height:360px;margin:0 0 8px;border-radius:3px;background:#000}
+.rp-form input[type=file]{font-size:13px;padding:8px 0;border:0;background:transparent}
 .rp-escribir summary{display:inline-block;cursor:pointer;list-style:none;padding:12px 18px;border:1px solid var(--ink);
   border-radius:2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
 .rp-escribir summary::-webkit-details-marker{display:none}
@@ -1416,3 +1424,62 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(42,31,46,.22)}
 .susc-fab[hidden]{display:none}
 @media(hover:hover){.susc-fab:hover{background:var(--pagar)}}
+
+/* Bloques con foto o video de la ficha (ENCARGO-FICHA-2 § 1): en el celular,
+   medio arriba y texto abajo; desde 760 px, lado a lado y alternados. */
+.bv{background:var(--white)}
+.bv-in{display:grid;gap:40px}
+.bv-b{display:grid;gap:18px;align-items:center}
+.bv-m{border-radius:4px;overflow:hidden;background:var(--rose-soft)}
+.bv-m img,.bv-v{display:block;width:100%;height:auto}
+.bv-t h2{font-size:clamp(22px,5.8vw,28px);line-height:1.2;margin:0 0 10px}
+.bv-t h2 span{color:var(--rose)}
+.bv-t p{margin:0;font-size:15px;line-height:1.65;color:#4a3d4e}
+.bv-t b{color:var(--ink);font-weight:500}
+.bv-cta{margin-top:18px}
+.bv-cta .btn{width:100%}
+@media(min-width:760px){
+  .bv-b{grid-template-columns:minmax(0,420px) 1fr;gap:48px}
+  .bv-b:nth-child(even){grid-template-columns:1fr minmax(0,420px)}
+  .bv-b:nth-child(even) .bv-m{order:2}
+  .bv-cta .btn{width:auto;min-width:240px}
+}
+
+/* Menú «Categorías» (ENCARGO-FICHA-2 § 5): desplegable por clic en escritorio,
+   acordeón dentro del menú en el celular. */
+.tnav-cat{position:relative}
+.tnav-cat-b{font:inherit;letter-spacing:inherit;color:var(--ink);opacity:.72;background:none;border:0;
+  border-bottom:1px solid transparent;padding:4px 0;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.tnav-cat-b:hover,.tnav-cat-b[aria-expanded="true"]{opacity:1;border-color:var(--rose)}
+.tnav-cat-m{position:absolute;top:calc(100% + 10px);left:-16px;min-width:210px;display:grid;padding:8px 0;
+  background:var(--white);border:1px solid var(--line);border-radius:4px;box-shadow:0 12px 28px rgba(42,31,46,.12);z-index:70}
+.tnav-cat-m[hidden]{display:none}
+.tnav .tnav-cat-m a{padding:9px 18px;opacity:.85;border:0;white-space:nowrap}
+.tnav .tnav-cat-m a:hover{opacity:1;background:var(--bone)}
+.tnav .tnav-cat-m a:first-child{color:var(--pagar);opacity:1;font-weight:500}
+.menu-cat{border-bottom:1px solid var(--line)}
+.menu-cat summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:13px 4px;position:relative}
+.menu-cat summary::-webkit-details-marker{display:none}
+.menu-cat summary::after{content:'+';position:absolute;right:6px;top:14px;color:var(--silver);font-size:20px}
+.menu-cat[open] summary::after{content:'−'}
+.menu-cat summary b{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:19px}
+.menu-cat summary small{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--silver)}
+.menu-cat-l{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;padding:0 4px 12px}
+.menu-panel .menu-cat-l a{display:block;padding:9px 0;border:0;font-size:15px;color:var(--ink);text-decoration:none}
+.menu-panel .menu-cat-l a:first-child{grid-column:1/-1;color:var(--pagar);font-weight:500}
+
+/* «Más vendidos»: la tarjeta de la vitrina, en cuadrícula. */
+.mv{padding-top:8px;padding-bottom:28px}
+.mv[hidden]{display:none}
+.mv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mv-grid .mv-it{flex:none}
+.mv-ir{display:flex;flex-direction:column;align-items:center;gap:4px;color:inherit;text-decoration:none;width:100%}
+.mv-ir img{width:100%;max-width:160px;height:auto;aspect-ratio:1;object-fit:contain}
+.mv-sello{position:absolute;top:8px;left:8px;padding:3px 8px;border-radius:999px;background:var(--pagar);color:#fff;
+  font-size:10px;letter-spacing:.08em;text-transform:uppercase;z-index:1}
+.mv-aviso,.mv-cargando{margin:0 0 14px;font-size:14px;color:#6d6070}
+@media(min-width:760px){ .mv-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+
+/* Fotos y videos sin «guardar imagen» al mantener presionado ni arrastre
+   (ver tienda.js: el clic derecho se bloquea allí). */
+img,video{-webkit-touch-callout:none;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
