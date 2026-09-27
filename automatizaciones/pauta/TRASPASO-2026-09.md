@@ -55,6 +55,12 @@ Lo tiene el propietario en el celular/computador (no se comitea: son videos).
 | `A4-R1-sello-925-cuadrada.jpg` / `-vertical.jpg` | 1:1 y 9:16 |
 | `A3-R2-pulsera-avengers-cuadrada.jpg` / `-vertical.jpg` | 1:1 y 9:16 |
 
+**Fotos de muñeca de hombre (aprobadas el 2026-09-27):** la 3:4 y la vertical
+sirven como versión en foto de A1. Todas las piezas son del catálogo: la «A» es
+el dije que viene con la pulsera Avengers, y la pieza negra de la vertical es
+Spider-Man (máscara oscura; confirmar el id exacto en el catálogo antes de
+nombrarla en un texto).
+
 **Pendiente antes de subir los videos:**
 - **Texto dentro del video** (grande, centrado, fuera del 15% superior y el 20%
   inferior): una frase en los primeros 2 s y otra al final. Tabla abajo.
