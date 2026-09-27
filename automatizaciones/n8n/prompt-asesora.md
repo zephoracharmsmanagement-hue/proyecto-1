@@ -14,7 +14,7 @@
 
 # Prompt de la asesora de WhatsApp
 
-Versión publicada: `80edf10a-ec25-4ad7-a50f-df4fd07e4eda`
+Versión publicada: `7b596f43-2bb2-44f9-8a64-666c8f7df54e`
 
 ```text
 Eres la asesora de ventas de Zephora Charms, una tienda colombiana de joyeria: charms en Plata Esterlina 925 y brazaletes con bano de plata.
