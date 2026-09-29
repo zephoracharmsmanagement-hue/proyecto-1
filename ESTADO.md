@@ -186,6 +186,35 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   `/.netlify/functions/addi-webhook`, regreso `/gracias.html`; las claves
 >   van a `material-sin-publicar/claves-addi.txt`, nunca al chat.
 >
+> **2026-09-28 · PR #8 (`claude/tipografia-contraste`), fusionado con
+> confirmación del propietario («Deploy»):**
+> - **Tipografía y contraste**: se mantienen Cormorant Garamond + Jost; grises
+>   de marca que pasan WCAG AA (`--gris:#5E5463`, `--gris-suave:#6E6473`,
+>   `--pagar:#9E4E68`), texto a 400, mínimo 12 px, precios y botones a 600.
+>   Las zonas oscuras (hoja del carrito, pie) conservan grises claros.
+>   Prueba nueva: `pruebas/paginas.js` §12 mide el contraste de todo texto
+>   visible (con la hoja abierta) en portada, ficha, kits y checkout.
+> - **Addi**, con el texto del propietario: «¿Monto alto? Divide tu compra en
+>   3 cuotas sin interés pagando con Addi» (lleva a WhatsApp; la integración
+>   sigue en pausa).
+> - **Videos** de bloques y de clientas: la portada va también de fondo y
+>   cada video empieza a bajar 600 px antes de entrar en pantalla; nada se
+>   descarga al cargar la página.
+> - Se retira la etiqueta «Ver detalle» de las tarjetas.
+> - **Barra del descuento por cantidad** (1 · 2 −8% · 3 −15% · 4+ −25%, de
+>   las reglas): en el checkout, pegada bajo la barra del resumen y visible
+>   con él cerrado, con «Ya ahorras $X» y lo que desbloquea el siguiente
+>   charm; y en la hoja del carrito, en una tarjeta «Descuento por
+>   cantidad». Verde al llegar al máximo. Pruebas: `checkout.js` 2ba y los
+>   carritos al azar de `precios.js`.
+> - Hoja del carrito despejada: notas (empaque, Addi, medios de pago) en
+>   lista con íconos. Arreglado `.tot-row[hidden]`: con solo el brazalete
+>   salía «Descuento promo − $0».
+> - **Fotos**: las 40 de Flow están a 1024 px en `material-sin-publicar/
+>   fotos-mejoradas`, pero la página las sirve a 440 px. Propuesto
+>   publicarlas a 880 px (srcset); las ~140 restantes solo existen a 440 px
+>   y necesitan pasar por Flow. Espera respuesta del propietario.
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
