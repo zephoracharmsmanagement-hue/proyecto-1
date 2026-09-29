@@ -1058,6 +1058,7 @@ function render(){
      máximo, que es cuando el aviso deja de empujar y pasa a confirmar. */
   const dto=$('#hoja-dto'), ult=ESC.length-1, max=nC>=ult;
   dto.hidden=!(nC||base);
+  $('#hoja-dto-caja').hidden=dto.hidden;
   if(!dto.hidden){
     let h='';
     for(let n=1;n<=ult;n++){
