@@ -24,7 +24,7 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Product", "name": "Sulley", "sku": "sulley", "image": "https://zephoracharms.com/assets/sulley.webp?v=20260926", "brand": {"@type": "Brand", "name": "Zephora Charms"}, "category": "Pixar", "offers": {"@type": "Offer", "price": 95000, "priceCurrency": "COP", "url": "https://zephoracharms.com/producto-sulley.html", "availability": "https://schema.org/InStock"}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 <!-- Meta Pixel · zephora charms pixel 1 · ID 2130673404542988 -->
 <script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -578,15 +578,25 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     <div class="tot-row"><span>Envío</span><span id="v-ship">—</span></div>
     <div class="ship-bar" id="ship-bar"><i></i></div>
     <p class="ship-note" id="ship-note"></p>
-    <p class="desc-nota" id="desc-nota" hidden></p>
+    <!-- El descuento en su propia tarjeta: suelto entre los totales y las
+         notas se leía como un renglón más del montón. -->
+    <div class="hoja-dto-caja" id="hoja-dto-caja" hidden>
+      <p class="hoja-dto-t">Descuento por cantidad</p>
+      <ol class="hoja-dto" id="hoja-dto" aria-hidden="true" hidden></ol>
+      <p class="desc-nota" id="desc-nota" hidden></p>
+    </div>
     <!-- Estas tres viven aquí, en la zona que rueda, y no en el bloque fijo de
          abajo. Ya había pasado que ese bloque creciera hasta dejar la lista de
          piezas en 65 px (ver el comentario de arriba); con estas tres dentro
          volvía a ocupar ~290 px y solo se veía un producto y medio. Abajo queda
          únicamente lo que decide la compra. -->
-    <p class="sheet-note sheet-note--regalo">🎁 Incluye caja, paño para limpiar la plata y dedicatoria escrita a mano — sin costo.</p>
-    <p class="sheet-note sheet-note--addi">¿Ticket alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Difiere tu compra hasta en 3 cuotas sin interés con Addi</a></p>
-    <p class="sheet-note">Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</p>
+    <!-- Lista alineada a la izquierda, con un ícono de línea cada una: tres
+         párrafos centrados seguidos se leían como un solo bloque apretado. -->
+    <ul class="sheet-info">
+      <li class="sheet-note sheet-note--regalo"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7M7.5 8a2.5 2.5 0 010-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 010 5"/></svg><span>Incluye caja, paño para limpiar la plata y dedicatoria escrita a mano — sin costo.</span></li>
+      <li class="sheet-note sheet-note--addi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>¿Monto alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Divide tu compra en 3 cuotas sin interés pagando con Addi</a>.</span></li>
+      <li class="sheet-note"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg><span>Pagas con Nequi, Bancolombia, PSE, Daviplata o tarjeta —hasta 36 cuotas— o contraentrega, si prefieres pagar al recibir.</span></li>
+    </ul>
     <p class="stock-nota"><span id="stock-fecha"></span></p>
   </div>
   </div>

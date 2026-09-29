@@ -289,6 +289,57 @@ async function llenarPaso1(p, d) {
     await p.close();
   }
 
+  // ——— 2ba · la escalera del descuento ———
+  out.push('\n2ba · La barra del descuento por cantidad, visible sin abrir el resumen');
+  {
+    /* Lo que sostiene la barra: que se vea en el móvil con el resumen cerrado
+       —si hay que abrirlo, no empuja—, que llene tantos tramos como charms
+       lleva, y que cada cifra que dice sea la de las mismas reglas que cobran. */
+    const casos = [
+      { charms: [], base: true, llenos: 0, dice: /desde 2 charms/i },
+      { charms: ['iron-man'], base: true, llenos: 1, dice: /8%/ },
+      { charms: ['iron-man', 'stitch'], base: true, llenos: 2, dice: /ya ahorras.*15%.*30% del brazalete/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: false, llenos: 3, dice: /ya ahorras/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, llenos: 4, dice: /máximo.*25%.*30%.*brazalete/i },
+    ];
+    for (const k of casos) {
+      const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+      p.on('pageerror', e => errores.push(e.message));
+      await ponerCarrito(p, { base: k.base ? { id: BRZ.id, talla: BRZ.talla } : null, charms: k.charms, empaque: false, pago: 'anticipado' });
+      await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+      await p.waitForTimeout(300);
+      const r = await p.evaluate(() => {
+        const d = document.querySelector('#dto'), caja = d.getBoundingClientRect();
+        return { visible: !d.hidden && caja.height > 0 && caja.bottom <= innerHeight,
+          cerrado: !document.querySelector('#res').classList.contains('is-on'),
+          tramos: document.querySelectorAll('#dto-pasos li').length,
+          llenos: document.querySelectorAll('#dto-pasos li.is-on').length,
+          nota: document.querySelector('#dto-nota').textContent.trim() };
+      });
+      const n = k.charms.length + ' charm' + (k.charms.length === 1 ? '' : 's') + (k.base ? ' + brazalete' : '');
+      ok(r.visible && r.cerrado, `${n}: la barra se ve con el resumen cerrado`);
+      ok(r.tramos === 4 && r.llenos === k.llenos, `${n}: llena ${k.llenos} de 4 tramos`, `${r.llenos}/${r.tramos}`);
+      ok(k.dice.test(r.nota), `${n}: dice lo que corresponde`, r.nota);
+      /* La cifra de «ya ahorras» o «descuento máximo» es la línea «Descuento
+         promo» del resumen, no otra cuenta. */
+      if (/ahorras|máximo/i.test(r.nota)) {
+        const promo = await p.evaluate(() => {
+          const f = [...document.querySelectorAll('#res-totales .tot-row.save b')][0];
+          return f ? f.textContent.replace(/[−\s]/g, '') : '';
+        });
+        ok(promo && r.nota.includes(promo), `${n}: el ahorro que nombra es el del resumen`, promo);
+      }
+      await p.close();
+    }
+    {
+      const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+      await ponerCarrito(p, { base: null, charms: [], empaque: false, pago: 'anticipado' });
+      await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+      ok(!(await p.locator('#dto').isVisible()), 'con el carrito vacío no se pinta');
+      await p.close();
+    }
+  }
+
   // ——— 2bb · un carrito guardado de antes no puede cobrar el empaque ———
   out.push('\n2bb · El empaque retirado no se cuela por un carrito guardado');
   {
