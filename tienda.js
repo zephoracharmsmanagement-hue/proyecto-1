@@ -108,17 +108,32 @@ document.addEventListener('click',e=>{
 const quietoPorPreferencia = matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* También los videos de los bloques de la ficha (.bv-v), con la misma regla. */
 const ugcVideos = document.querySelectorAll('.ugc-v, .bv-v');
+/* Que nunca se vea en blanco (pedido del propietario, 2026-09-28): la portada
+   va también de FONDO del video. Al darle play, algunos navegadores retiran el
+   póster antes de tener el primer cuadro; con el fondo, en ese instante se
+   sigue viendo la foto. */
+ugcVideos.forEach(v => { if (v.poster) v.style.backgroundImage = 'url("' + v.poster + '")'; });
 if (quietoPorPreferencia) {
   ugcVideos.forEach(v => { v.controls = true; v.preload = 'metadata'; });
 } else if (ugcVideos.length) {
+  /* Precarga: el video empieza a bajar 600 px antes de entrar en pantalla, no
+     cuando ya se ve —ahí la clienta esperaba mirando la portada quieta—. Solo
+     si nadie le dio play todavía: load() cortaría una reproducción en curso. */
+  const cerca = new IntersectionObserver(entradas => {
+    entradas.forEach(e => {
+      if (!e.isIntersecting) return;
+      const v = e.target; cerca.unobserve(v);
+      if (!v.dataset.pedido && v.paused && v.readyState === 0) { v.dataset.pedido = '1'; v.preload = 'auto'; v.load(); }
+    });
+  }, { rootMargin: '600px 0px' });
   const ojo = new IntersectionObserver(entradas => {
     entradas.forEach(e => {
       const v = e.target;
-      if (e.isIntersecting) { v.play().catch(()=>{ v.controls = true; }); }
+      if (e.isIntersecting) { v.dataset.pedido = '1'; v.play().catch(()=>{ v.controls = true; }); }
       else { v.pause(); }
     });
   }, { threshold: 0.4 });
-  ugcVideos.forEach(v => ojo.observe(v));
+  ugcVideos.forEach(v => { cerca.observe(v); ojo.observe(v); });
 }
 
 /* La calculadora de talla esta plegada, pero el menu superior y dos enlaces
@@ -1265,17 +1280,8 @@ document.addEventListener('keydown',e=>{
   abrir(false);
 });
 
-/* Indicio de que la tarjeta se abre. Se pone una vez, no en cada render. */
-function marcarVerDetalle(){
-  document.querySelectorAll('.pc[data-id]').forEach(p=>{
-    if(p.dataset.id==='letras'||p.querySelector('.pc-ver')) return;
-    const cont=p.querySelector('.pc-img'); if(!cont) return;
-    const e=document.createElement('span');
-    e.className='pc-ver';
-    e.innerHTML='<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.4v.2"/></svg>Ver detalle';
-    cont.appendChild(e);
-  });
-}
+/* La etiqueta «Ver detalle» sobre la foto se retiró (pedido del propietario,
+   2026-09-28): tapaba la joya, y la foto y el nombre ya llevan a la página. */
 
 /* El carrito se arma aquí y se paga en checkout.html, que es otra página. Se
    guarda en localStorage para que sobreviva al salto —y para que quien se vaya
@@ -1962,7 +1968,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
    El fetch de inventario que viene abajo la depura contra lo que hay hoy. */
 recuperar();
 render();
-marcarVerDetalle();
 
 /* Llegó con dijes sugeridos por un kit: se abre el catálogo completo —donde
    viven, no en los destacados—. Si todos comparten categoría (el caso normal:
