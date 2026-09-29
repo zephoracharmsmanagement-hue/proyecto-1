@@ -1053,8 +1053,33 @@ function render(){
    * porque no baja: el charm que añada lo paga. Prometer un ahorro que no
    * existe es la clase de cosa que se descubre en la pantalla de pago. */
   const dn=$('#desc-nota');
+  /* La escalera en barra, encima del aviso: un tramo por escalón de ESC, y se
+     llenan los que ya alcanza. Es la misma del checkout; en verde al llegar al
+     máximo, que es cuando el aviso deja de empujar y pasa a confirmar. */
+  const dto=$('#hoja-dto'), ult=ESC.length-1, max=nC>=ult;
+  dto.hidden=!(nC||base);
+  if(!dto.hidden){
+    let h='';
+    for(let n=1;n<=ult;n++){
+      const pct=Math.round(escala(n)*100);
+      const cls=[nC>=n?'is-on':'', Math.min(nC,ult)===n?'is-ya':''].join(' ').trim();
+      h+='<li'+(cls?' class="'+cls+'"':'')+'>'+n+(n===ult?'+':'')
+        +(pct?' · −'+pct+'%':(n===1?' charm':''))+'</li>';
+    }
+    dto.innerHTML=h;
+    dto.style.setProperty('--n',ult);
+    dto.classList.toggle('is-max',max);
+  }
+  dn.classList.toggle('is-max',max);
   const sigue=escala(nC+1)>escala(nC) || (base && nC+1>=3 && nC<3);
-  if(nC>=1 && sigue){
+  if(max){
+    dn.hidden=false;
+    dn.innerHTML='✓ Tienes el descuento máximo: <b>'+Math.round(escala(nC)*100)+'%</b> en charms'
+      +(base?' y <b>30%</b> en el brazalete':'')+'.';
+  }else if(!nC && base){
+    dn.hidden=false;
+    dn.innerHTML='Desde 2 charms tienes <b>'+Math.round(escala(2)*100)+'%</b> de descuento, y con 3 el brazalete va con <b>30%</b>.';
+  }else if(nC>=1 && sigue){
     const ahoraD=brutoC*escala(nC)+descB;
     const luegoD=brutoC*escala(nC+1)+((base&&nC+1>=3)?brutoB*.30:0);
     const extra=Math.round(luegoD-ahoraD);

@@ -949,6 +949,18 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
    porque el charm que añada lo paga igual. */
 .desc-nota{font-size:12px;color:#c9a5b6;margin:5px 0 0;line-height:1.45}
 .desc-nota b{color:var(--bone);font-weight:400}
+/* Escalera del descuento en barra, sobre el fondo oscuro de la hoja: los
+   mismos tonos rosa y verde de las notas de Addi y del regalo. */
+.hoja-dto{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:4px;list-style:none;margin:12px 0 0;padding:0}
+.hoja-dto[hidden]{display:none}
+.hoja-dto li{font-size:12px;line-height:1.3;color:var(--silver);text-align:center;white-space:nowrap}
+.hoja-dto li::before{content:"";display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.13);
+  margin-bottom:4px;transition:background .3s ease}
+.hoja-dto li.is-on::before{background:#e39aae}
+.hoja-dto li.is-ya{color:var(--bone);font-weight:600}
+.hoja-dto.is-max li.is-on::before{background:#7fc7ae}
+.desc-nota.is-max,.desc-nota.is-max b{color:#7fc7ae}
+@media(prefers-reduced-motion:reduce){.hoja-dto li::before{transition:none}}
 .ship-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.13);margin:7px 0 2px;overflow:hidden}
 .ship-bar i{display:block;height:100%;background:var(--rose);width:0;transition:width .3s}
 .ship-ok{color:#7fc7ae}

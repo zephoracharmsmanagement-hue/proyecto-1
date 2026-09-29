@@ -133,6 +133,9 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
         talla,
         /* El aviso del siguiente tramo de descuento: null si no se muestra. */
         descNota: dn.hidden ? null : dn.textContent.trim(),
+        /* La escalera en barra: tramos llenos, o null si no se pinta. */
+        dto: document.getElementById('hoja-dto').hidden ? null
+          : document.querySelectorAll('#hoja-dto li.is-on').length,
       };
     }, { base, charms, pago });
 
@@ -159,8 +162,22 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       const dLuego = brutoC * esc(nC + 1) + (base && nC + 1 >= 3 ? brutoB * R.descuentoBrazalete : 0);
       const extra = Math.round(dLuego - dAhora);
       const debe = nC >= 1 && sube && extra > 0;
+      /* Fuera del empujón, la nota solo confirma: el máximo, o —con solo el
+         brazalete— desde cuándo hay descuento. Son las dos únicas otras frases. */
+      const tope = R.escalaCharms.length - 1;
+      const confirma = nC >= tope ? /máximo/ : (nC === 0 && base ? /^Desde 2 charms/ : null);
+      const llenos = (nC || base) ? Math.min(nC, tope) : null;
 
-      if (debe && !enPantalla.descNota) {
+      if (enPantalla.dto !== llenos) {
+        fallas++;
+        console.log(`  ✗ ${nC} charms: la barra del descuento llena ${enPantalla.dto} tramos (deberían ser ${llenos})`);
+      }
+      if (confirma) {
+        if (!enPantalla.descNota || !confirma.test(enPantalla.descNota)) {
+          fallas++;
+          console.log(`  ✗ ${nC} charms: falta la nota que confirma el descuento («${enPantalla.descNota}»)`);
+        }
+      } else if (debe && !enPantalla.descNota) {
         fallas++;
         console.log(`  ✗ ${nC} charms: falta el aviso del siguiente descuento (${cop(extra)})`);
       } else if (!debe && enPantalla.descNota) {
