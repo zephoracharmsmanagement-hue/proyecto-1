@@ -635,5 +635,51 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await ctx11.close();
   }
 
+  // ── 12 · Contraste WCAG AA de los textos (pedido del propietario, 2026-09-28) ──
+  // Se mide lo que se VE: color contra el fondo real, con el carrito abierto
+  // (fondo oscuro: ahí un gris oscuro desaparece, y ya pasó). Quedan fuera el
+  // texto sobre foto (no se puede medir), lo invisible (avisos rotativos en
+  // espera) y los botones desactivados, que WCAG exime.
+  console.log('12 · Contraste de los textos (WCAG AA)');
+  {
+    const ctx12 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx12);
+    await ctx12.addInitScript(() => localStorage.setItem('zephora.carrito.v1', JSON.stringify(
+      { v: 1, base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse', 'stitch'], pago: 'contraentrega', cuando: Date.now() })));
+    const p = await ctx12.newPage();
+    for (const ruta of ['/index.html', '/' + archivoDe('mickey-mouse'), '/kits.html', '/checkout.html']) {
+      await p.goto(BASE + ruta, { waitUntil: 'networkidle' });
+      await p.waitForTimeout(400);
+      await p.evaluate(() => { const d = document.getElementById('dock-open'); if (d) d.click(); });
+      await p.waitForTimeout(400);
+      const fallas = await p.evaluate(() => {
+        const rgb = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(',').map(parseFloat); return { r: v[0], g: v[1], b: v[2], a: v[3] === undefined ? 1 : v[3] }; };
+        const lum = c => { const f = x => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+        const mezcla = (a, f) => ({ r: a.r * a.a + f.r * (1 - a.a), g: a.g * a.a + f.g * (1 - a.a), b: a.b * a.a + f.b * (1 - a.a), a: 1 });
+        const fondo = el => { const capas = []; for (let e = el; e; e = e.parentElement) { const cs = getComputedStyle(e);
+            if (cs.backgroundImage !== 'none') return null; const c = rgb(cs.backgroundColor); if (c && c.a > 0) { capas.push(c); if (c.a >= 1) break; } }
+          let f = { r: 255, g: 255, b: 255, a: 1 }; for (let i = capas.length - 1; i >= 0; i--) f = mezcla(capas[i], f); return f; };
+        const opac = el => { let o = 1; for (let e = el; e; e = e.parentElement) o *= parseFloat(getComputedStyle(e).opacity); return o; };
+        const out = [], vistos = new Set();
+        const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+        while ((n = w.nextNode())) {
+          const el = n.parentElement; if (!el || vistos.has(el) || n.textContent.trim().length < 2) continue; vistos.add(el);
+          const cs = getComputedStyle(el), rc = el.getBoundingClientRect();
+          if (!rc.width || !rc.height || cs.visibility === 'hidden' || opac(el) < 0.05) continue;
+          if (el.closest('[hidden],script,style,.hbanner,.susc,.lb,[aria-disabled="true"],[disabled]')) continue;
+          const bg = fondo(el); if (!bg) continue;
+          let c = rgb(cs.color); c.a *= opac(el); c = mezcla(c, bg);
+          const L1 = lum(c), L2 = lum(bg), r = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+          const px = parseFloat(cs.fontSize), grande = px >= 24 || (px >= 18.66 && parseInt(cs.fontWeight, 10) >= 700);
+          if (r < (grande ? 3 : 4.5)) out.push((el.className || el.tagName) + ' ' + r.toFixed(1) + ':1 «' + n.textContent.trim().slice(0, 25) + '»');
+        }
+        return out;
+      });
+      ok(!fallas.length, `${ruta}: ningún texto bajo 4,5:1 (con el carrito abierto)` + lista(fallas));
+    }
+    await p.evaluate(() => localStorage.removeItem('zephora.carrito.v1'));
+    await ctx12.close();
+  }
+
   await b.close();
 })();

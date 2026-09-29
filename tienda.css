@@ -995,7 +995,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   border:1px solid rgba(255,255,255,.22);background:transparent;color:#c3b4c6;
   border-radius:2px;transition:.16s;min-height:52px}
 @media(hover:hover){.pbtn:hover{border-color:rgba(255,255,255,.45)}}
-.pbtn small{display:block;font-size:12px;color:var(--gris);margin-top:3px}
+.pbtn small{display:block;font-size:12px;color:var(--silver);margin-top:3px}
 .pbtn.is-on{background:rgba(180,101,127,.18);border-color:var(--rose);color:var(--bone)}
 .pbtn.is-on small{color:#e39aae}
 /* El envío gratis del anticipado se ve aunque esa opción no esté elegida:
@@ -1493,7 +1493,10 @@ img,video{-webkit-touch-callout:none;-webkit-user-drag:none;user-select:none;-we
 .btn{font-weight:600;font-size:14px;letter-spacing:.08em}
 .pc-add,.vit-add{font-weight:600;font-size:12.5px}
 .pc-price{font-size:16px;font-weight:600;color:var(--ink)}
-.vit-it small,.sug-p{font-size:14px;font-weight:600;color:var(--ink)}
+.vit-it small{font-size:14px;font-weight:600;color:var(--ink)}
+/* En la hoja del carrito (fondo oscuro) el precio hereda el color claro:
+   solo más peso. Con color tinta desaparecía sobre el fondo. */
+.sug-p{font-weight:600}
 .pq-p b,.kit-paso-p b{font-weight:600;color:var(--ink)}
 .fx-p,.dock-p{font-weight:600}
 .pc-name{font-weight:500}
