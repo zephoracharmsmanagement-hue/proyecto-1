@@ -110,6 +110,23 @@ button{font-family:inherit}
 .env-nota--regalo{color:var(--bien)}
 @media(prefers-reduced-motion:reduce){.env-bar i{transition:none}}
 
+/* Escalera del descuento por cantidad, pegada bajo la barra del resumen.
+   Fuera de la caja plegable a propósito: en el móvil el resumen va cerrado, y
+   un empujón que hay que abrir para verlo no empuja. Un tramo por escalón de
+   las reglas; se llenan los que ya alcanza. */
+.dto{max-width:var(--w);margin:0 auto;padding:0 16px 10px}
+.dto-pasos{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:4px;list-style:none;margin:0;padding:0}
+.dto-pasos li{font-size:12px;line-height:1.3;color:var(--gris-suave);text-align:center;white-space:nowrap}
+.dto-pasos li::before{content:"";display:block;height:5px;border-radius:3px;background:var(--line);
+  margin-bottom:4px;transition:background .3s ease}
+.dto-pasos li.is-on::before{background:var(--pagar)}
+.dto-pasos li.is-ya{color:var(--ink);font-weight:600}
+.dto.is-max .dto-pasos li.is-on::before{background:var(--bien)}
+.dto-nota{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:var(--gris)}
+.dto-nota b{font-weight:600;color:var(--pagar)}
+.dto.is-max .dto-nota,.dto.is-max .dto-nota b{color:var(--bien)}
+@media(prefers-reduced-motion:reduce){.dto-pasos li::before{transition:none}}
+
 /* Prueba social pegada al botón de pagar.
    Es el último momento de duda y el único sitio de la página donde no hay nada
    que respalde la decisión. Los datos son reales: las reseñas del sitio son de
@@ -263,6 +280,7 @@ button{font-family:inherit}
   .res-caja{display:block;border:1px solid var(--line);border-radius:3px;background:var(--white)}
   .res-in{padding:20px}
   .res-lado{position:sticky;top:20px}
+  .dto{padding:0 0 14px}
 }
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
@@ -307,6 +325,10 @@ button{font-family:inherit}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </span>
     </button>
+    <div class="dto" id="dto" hidden>
+      <ol class="dto-pasos" id="dto-pasos" aria-hidden="true"></ol>
+      <p class="dto-nota" id="dto-nota" aria-live="polite"></p>
+    </div>
     <div class="res-caja" id="res-caja">
       <div class="res-in">
         <div id="res-lineas"></div>
@@ -793,6 +815,7 @@ function pintarResumen(){
   }
   $('#res-totales').innerHTML=h;
   pintarRegalo(suscrita&&c.charms.length>=2);
+  pintarDescuento(c,t);
 
   /* Cuánto falta para el envío gratis.
    *
@@ -953,6 +976,47 @@ function motivoSug(){
 
   return gana+(brazalete?' y se activa el 30% del brazalete':'')
     +(extra>0?': '+cop(extra)+' menos en lo que ya llevas.':'.');
+}
+
+/* La escalera del descuento: dónde está la clienta y qué le da el siguiente
+ * charm. Los tramos, los porcentajes y la cifra en pesos salen de las mismas
+ * reglas que `calcular()`, así que no pueden prometer otra cosa que lo que el
+ * resumen cobra; el siguiente paso lo dice `motivoSug()`, con su misma
+ * prudencia (baja lo que ya lleva, no el total). */
+function pintarDescuento(c,t){
+  const caja=$('#dto'), R=CAT.reglas, nC=c.charms.length;
+  const tope=R.escalaCharms.length-1;
+  const tramo=n=>n<=0?0:R.escalaCharms[Math.min(n,tope)];
+  if(!nC&&!c.base){ caja.hidden=true; return; }
+  caja.hidden=false;
+
+  const pasos=[];
+  for(let n=1;n<=tope;n++){
+    const pct=Math.round(tramo(n)*100);
+    const cls=[nC>=n?'is-on':'', Math.min(nC,tope)===n?'is-ya':''].join(' ').trim();
+    pasos.push('<li'+(cls?' class="'+cls+'"':'')+'>'+n+(n===tope?'+':'')
+      +(pct?' · −'+pct+'%':(n===1?' charm':''))+'</li>');
+  }
+  const ol=$('#dto-pasos');
+  ol.style.setProperty('--n',tope);
+  ol.innerHTML=pasos.join('');
+
+  const max=nC>=tope;
+  caja.classList.toggle('is-max',max);
+  const brz=c.base&&nC>=R.minCharmsParaDescuento;
+  let nota;
+  if(max){
+    nota='✓ Tienes el descuento máximo: <b>'+Math.round(tramo(nC)*100)+'%</b> en charms'
+      +(brz?' y <b>'+Math.round(R.descuentoBrazalete*100)+'%</b> en el brazalete':'')
+      +' (−'+cop(t.descuento)+').';
+  }else if(!nC){
+    let n=1; while(n<tope&&!tramo(n)) n++;
+    nota='Desde '+n+' charms tienes <b>'+Math.round(tramo(n)*100)+'%</b> de descuento, y con '
+      +R.minCharmsParaDescuento+' el brazalete va con '+Math.round(R.descuentoBrazalete*100)+'%.';
+  }else{
+    nota=(t.descuento>0?'Ya ahorras <b>'+cop(t.descuento)+'</b>. ':'')+esc(motivoSug());
+  }
+  $('#dto-nota').innerHTML=nota;
 }
 
 function pintarSugeridos(){
