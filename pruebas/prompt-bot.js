@@ -48,7 +48,7 @@ const reglas = CAT.reglas;
 /* El prompt va dentro de un bloque ```text en el documento. */
 function leerPrompt() {
   const doc = fs.readFileSync(COPIA, 'utf8');
-  const m = doc.match(/```text\n([\s\S]*?)\n```/);
+  const m = doc.replace(/\r\n/g, '\n').match(/```text\n([\s\S]*?)\n```/);   // CRLF en Windows
   if (!m) throw new Error('no se encontró el bloque ```text en ' + COPIA);
   return m[1];
 }

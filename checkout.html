@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#2A1F2E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 
 <!-- Meta Pixel · zephora charms pixel 1 · ID 2130673404542988 -->
 <script>
@@ -29,6 +29,7 @@ fbq('track','PageView');
 src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></noscript>
 
 <style>
+:root{--gris:#5E5463;--gris-suave:#6E6473}
 :root{
   --bone:#F6F3F4; --ink:#2A1F2E; --plum:#5C3D63; --rose:#B4657F; --rose-soft:#F3E6EB;
   --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a; --pagar:#9E4E68;
@@ -41,14 +42,14 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
    visibles y vacías. Esta regla decide el empate a favor de [hidden]. */
 [hidden]{display:none!important}
 body{margin:0;background:var(--bone);color:var(--ink);
-  font:300 16px/1.6 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  font:400 16px/1.6 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 img{display:block;max-width:100%;height:auto}
-h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;margin:0;letter-spacing:.01em}
+h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;margin:0;letter-spacing:.01em}
 a{color:var(--plum)}
 button{font-family:inherit}
 :focus-visible{outline:2px solid var(--rose);outline-offset:3px}
 .wrap{max-width:var(--w);margin:0 auto;padding:0 16px}
-.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);font-weight:400}
+.eyebrow{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gris-suave);font-weight:400}
 
 /* ——— cabecera ——— */
 .top{background:var(--bone);border-bottom:1px solid var(--line)}
@@ -57,16 +58,16 @@ button{font-family:inherit}
 .brand{font-family:'Cormorant Garamond',serif;font-size:19px;letter-spacing:.13em;
   text-transform:uppercase;text-decoration:none;color:var(--ink);white-space:nowrap}
 .brand em{font-style:italic;letter-spacing:.04em;color:var(--plum)}
-.seguro{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11.5px;
+.seguro{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:12px;
   letter-spacing:.09em;text-transform:uppercase;color:#6d6070;white-space:nowrap}
 
 /* ——— resumen plegable, pegado arriba ——— */
 .res{position:sticky;top:0;z-index:40;background:var(--white);border-bottom:1px solid var(--line)}
 .res-bar{max-width:var(--w);margin:0 auto;padding:11px 16px;display:flex;align-items:center;
   gap:10px;width:100%;background:none;border:0;cursor:pointer;text-align:left;color:inherit}
-.res-t{display:block;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--silver)}
+.res-t{display:block;font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--gris-suave)}
 .res-p{display:block;font-family:'Cormorant Garamond',serif;font-size:22px;line-height:1.15;margin-top:2px}
-.res-ver{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:11px;
+.res-ver{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px;
   letter-spacing:.08em;text-transform:uppercase;color:var(--plum);white-space:nowrap}
 .res-ver svg{transition:transform .25s}
 .res.is-on .res-ver svg{transform:rotate(180deg)}
@@ -81,18 +82,18 @@ button{font-family:inherit}
   display:flex;align-items:center;justify-content:center;background:#f4eef1;
   font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--plum)}
 .rrow-n{font-size:14px;line-height:1.3;min-width:0}
-.rrow-n small{display:block;font-size:10.5px;color:var(--silver);letter-spacing:.05em;
+.rrow-n small{display:block;font-size:12px;color:var(--gris-suave);letter-spacing:.05em;
   text-transform:uppercase;margin-top:1px}
 .rrow-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
 .tot-row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;
   color:#6d6070;padding:5px 0}
 .tot-row b{font-weight:400;color:var(--ink)}
-.tot-row.save{color:var(--rose)}
+.tot-row.save{color:var(--pagar)}
 .tot-row.ok b{color:var(--bien)}
 .tot-fin{display:flex;justify-content:space-between;align-items:baseline;
   border-top:1px solid var(--line);margin-top:9px;padding-top:11px}
-.tot-fin span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver)}
-.tot-fin b{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:300}
+.tot-fin span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris-suave)}
+.tot-fin b{font-family:'Cormorant Garamond',serif;font-size:29px;font-weight:400}
 .susc-ck{margin:10px 0 0;padding:9px 11px;font-size:13px;line-height:1.45;color:var(--plum,#5C3D63);
   background:#F3E6EB;border-radius:2px}
 /* Cuánto falta para el envío gratis, dentro del resumen.
@@ -124,7 +125,7 @@ button{font-family:inherit}
 .sug{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
 .sug-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 0 3px}
 .sug-h h3{font-size:19px}
-.sug-h span{font-size:12px;color:var(--silver)}
+.sug-h span{font-size:12px;color:var(--gris-suave)}
 .sug-p{margin:0 0 12px;font-size:13px;color:#6d6070;line-height:1.5}
 .sug-tira{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;
   scroll-snap-type:x proximity}
@@ -134,7 +135,7 @@ button{font-family:inherit}
 .sug-n{font-size:12px;line-height:1.35;min-height:2.7em}
 .sug-pr{font-size:13px;color:var(--ink)}
 .sug-b{width:100%;border:1px solid var(--pagar);background:var(--white);color:var(--pagar);
-  border-radius:2px;padding:8px 6px;font-size:11.5px;letter-spacing:.06em;
+  border-radius:2px;padding:8px 6px;font-size:12px;letter-spacing:.06em;
   text-transform:uppercase;cursor:pointer;transition:.15s}
 .sug-b:hover{background:var(--pagar);color:#fff}
 .sug-b.is-puesto{background:var(--bien);border-color:var(--bien);color:#fff;cursor:default}
@@ -144,14 +145,14 @@ button{font-family:inherit}
 /* ——— pasos ——— */
 .pasos{display:flex;align-items:center;gap:0;margin:22px 0 26px;padding:0;list-style:none}
 .paso{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;
-  font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--silver);
+  font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--gris-suave);
   text-align:center}
 .paso::before{content:'';position:absolute;top:14px;left:-50%;width:100%;height:1px;
   background:var(--line);z-index:0}
 .paso:first-child::before{display:none}
 .paso i{width:29px;height:29px;border-radius:50%;border:1px solid var(--line);background:var(--white);
   display:flex;align-items:center;justify-content:center;font-style:normal;font-size:13px;
-  color:var(--silver);position:relative;z-index:1;transition:.2s}
+  color:var(--gris-suave);position:relative;z-index:1;transition:.2s}
 .paso.is-on{color:var(--ink)}
 .paso.is-on i{border-color:var(--pagar);background:var(--pagar);color:#fff}
 .paso.is-ya{color:#6d6070}
@@ -166,10 +167,10 @@ button{font-family:inherit}
 
 .campos{display:grid;gap:14px}
 .campo{display:flex;flex-direction:column;gap:5px;min-width:0}
-.campo>label{font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:#6d6070}
-.campo>label .req{color:var(--rose)}
+.campo>label{font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:#6d6070}
+.campo>label .req{color:var(--pagar)}
 .campo input,.campo select,.campo textarea{
-  font:300 15.5px/1.4 Jost,system-ui,sans-serif;color:var(--ink);background:var(--white);
+  font:400 15.5px/1.4 Jost,system-ui,sans-serif;color:var(--ink);background:var(--white);
   border:1px solid var(--line);border-radius:2px;padding:12px 12px;width:100%;
   min-height:46px;transition:border-color .16s}
 .campo textarea{min-height:80px;resize:vertical}
@@ -177,9 +178,9 @@ button{font-family:inherit}
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235C3D63' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
 .campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--plum);outline:none}
-.campo .pista{font-size:11.5px;color:#8a8290;line-height:1.45}
+.campo .pista{font-size:12px;color:var(--gris);line-height:1.45}
 .campo.mal input,.campo.mal select,.campo.mal textarea{border-color:var(--mal)}
-.error{font-size:11.5px;color:var(--mal);line-height:1.45;display:none}
+.error{font-size:12px;color:var(--mal);line-height:1.45;display:none}
 .campo.mal .error{display:block}
 .dos{display:grid;grid-template-columns:1fr;gap:14px}
 .doc{display:grid;grid-template-columns:104px 1fr;gap:9px}
@@ -201,9 +202,9 @@ button{font-family:inherit}
    obligatorio. */
 .op--optin{margin-top:14px;padding:12px 13px;background:transparent;border-style:dashed}
 .op--optin b{font-weight:400;font-size:13.5px;display:block}
-.op--optin small{display:block;margin-top:4px;font-size:11.5px;color:#6d6070;line-height:1.5}
+.op--optin small{display:block;margin-top:4px;font-size:12px;color:#6d6070;line-height:1.5}
 .op--optin:has(input:checked){box-shadow:none}
-.op-logos span{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#7c7681;
+.op-logos span{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--gris);
   border:1px solid var(--line);border-radius:1px;padding:3px 6px;background:#fbf9fa}
 
 /* ——— navegación ——— */
@@ -243,7 +244,7 @@ button{font-family:inherit}
   font-size:12px;color:#6d6070;text-align:center;line-height:1.7}
 .pie a{margin:0 7px;white-space:nowrap}
 .garantias{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;margin:0 0 12px;
-  font-size:11.5px;color:#6d6070}
+  font-size:12px;color:#6d6070}
 .garantias span{display:inline-flex;align-items:center;gap:5px}
 
 @media(min-width:760px){
@@ -255,7 +256,7 @@ button{font-family:inherit}
   .nav{grid-template-columns:auto 1fr;align-items:center}
   .nav .btn{width:auto;justify-self:end}
   .nav .atras{justify-self:start;text-align:left;padding-left:0}
-  .paso{font-size:11.5px}
+  .paso{font-size:12px}
   .cols{display:grid;grid-template-columns:1fr 344px;gap:26px;align-items:start}
   .res{position:static;border:0;background:none}
   .res-bar{display:none}
