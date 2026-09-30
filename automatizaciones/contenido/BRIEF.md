@@ -95,6 +95,78 @@ La diferencia no es de estilo: es que la tienda cobra de verdad. Una imagen
 generada que se lee como catálogo es una venta prometida de algo que no está en
 la mano, y eso se paga con la clienta, no con una métrica.
 
+#### Precisión (2026-09-30): se edita la escena, no la joya
+
+«La IA solo pone el fondo» se leyó una vez demasiado a la letra, y salió peor. En
+dos ediciones reales pasaron los dos errores opuestos:
+
+- **Primera edición: demasiado libre con el producto.** Se veía bien, pero el
+  modelo cambió o se inventó un dije (una mariposa). Rompe la regla.
+- **Segunda edición: demasiado rígida con la escena.** La joya era la misma, pero
+  quedó pegada encima de la foto: desproporcionada, con las letras flotando en
+  vez de encajadas en el brazalete y con una luz que no era la de la escena.
+  Tampoco sirve.
+
+La regla correcta está en el medio: **se puede cambiar todo lo que rodea a la
+joya; la joya tiene que seguir siendo la misma que está en la página.**
+
+**No se puede cambiar (identidad del producto):**
+
+- Qué dijes hay, cuántos, en qué orden y qué letra o figura es cada uno.
+- La forma, el diseño y los detalles de cada pieza. No se agregan, quitan ni
+  rediseñan dijes.
+- El color real del metal y de los esmaltes.
+- La proporción entre dije y pulsera.
+- El montaje: las letras van encajadas en el brazalete, no flotando ni pegadas
+  encima.
+
+**Sí se puede cambiar (la escena):**
+
+- Fondo, superficie, ambiente, props y composición.
+- Luz: dirección, temperatura y sombras. **La joya se re-ilumina** para que
+  reciba la misma luz que la escena, con reflejos naturales en el metal y sombra
+  de contacto.
+- Tamaño de la pulsera completa en el cuadro, ángulo, recorte y desenfoque.
+- Etalonaje, contraste y saturación general, sin cambiar el color del metal.
+
+**Prueba:** una clienta ve la imagen, entra a la página y compra esa combinación.
+Lo que le llega tiene que ser lo que vio.
+
+**Instrucción para el generador** (mejor en inglés):
+
+```
+Edit the scene, not the jewelry. The bracelet and its charms in the reference
+photo are a real product and must remain identical: same charms, same number,
+same order, same letters and shapes, same metal and enamel colors, same size
+relative to the bracelet. Do not add, remove, or redesign any charm. Charms must
+sit threaded/seated on the bracelet exactly as in the photo, not floating or
+pasted on top.
+
+You MAY change everything else: background, surface, props, composition, camera
+angle, crop, depth of field, and color grade. Relight the jewelry so it belongs
+in the new scene: consistent light direction, natural reflections on the metal,
+and a soft contact shadow where the bracelet touches the surface. The jewelry
+must look photographed in this scene, not composited into it.
+```
+
+**Cómo hacerlo confiable:** un solo prompt que pida «cambia esto y no aquello» es
+una apuesta. Cuando la herramienta lo permita, **editar con máscara**: la pulsera
+va como zona protegida y el modelo solo regenera lo de afuera. Después, una
+**pasada solo de luz** (sombra de contacto y reflejos) sobre la joya ya
+protegida, sin tocar su forma. Ese segundo paso es el que faltó en la edición que
+quedó con luz de pegote.
+
+**Revisión antes de publicar (30 segundos):**
+
+1. Poner la imagen al lado de la foto de producto de la página.
+2. Contar los dijes y comparar letras y figuras una por una.
+3. Comprobar que ningún dije haya crecido frente a la cadena y que las letras
+   estén encajadas.
+4. Comparar la luz: los brillos de la joya vienen del mismo lado que la luz de
+   la escena.
+
+Si falla el 2 o el 3, se descarta. Si solo falla el 4, se corrige la luz.
+
 ### 3 · La medición cierra en checkouts, no en vistas
 
 Esto ya se aprendió caro en pauta y está escrito en `CLAUDE.md`: **Copia 4 tenía
