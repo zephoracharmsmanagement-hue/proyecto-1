@@ -220,6 +220,37 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > sin eso);  almacenamiento externo
 > si se quieren videos largos en reseñas. Paleta: se mantiene la original.
 
+> **2026-09-29 · Ventas manuales registradas; CAPI y hoja reparados. Sin
+> código nuevo** (solo configuración de Netlify y n8n; un despliegue para que
+> las funciones leyeran las variables). El `ARRANQUE-SESION.md` de ese día se
+> escribió sin saber que `registrar-venta`, las claves, el arreglo de fotos
+> del carrito y la suscripción ya estaban en producción desde los PR #5–#8.
+>
+> - **4 ventas registradas con `registrar-venta`** (vigentes): Tatán
+>   `MAN-260929-F1F8CFE6`, Mari `-365BD9FE`, Stefanny `-5B62818C` (las tres
+>   Addi, con pago `otro` y nota «Addi», porque la función no acepta `addi`)
+>   y la letra S de regalo `-EE607645`. Las referencias anteriores del mismo
+>   día quedaron anuladas (fueron reenvíos para que llegara el Purchase).
+>   Corazón Luminoso talla 20 quedó en 0. La de Mariana (moño rosa talla 18)
+>   entró por la web y no se registra.
+> - **CAPI no mandaba nada desde el 2026-08-13:** `META_PIXEL_ID` en Netlify
+>   apuntaba al píxel viejo `2130673404542988` (400 «object does not exist»).
+>   Se quitó la variable: el código ya usa `1029982529813994` por defecto.
+> - **Una venta de chat necesita celular o correo:** con solo el nombre, Meta
+>   responde 400 subcódigo `2804050` («no hay suficientes datos de cliente»).
+>   Mandar siempre `telefono` a `registrar-venta`.
+> - **Hoja de inventario:** 403 porque la tienda manda la cabecera
+>   **`X-Zephora-Token`** (`_hoja.mjs`) y la credencial de n8n tenía otro
+>   nombre y otro valor. `HOJA_TOKEN` nuevo en Netlify y en la credencial
+>   «Hoja Inventario (entrada)». Además, «Agregar Fila a Movimientos» fallaba
+>   con 2+ piezas por petición («Multiple matches found», tapado por
+>   `onError`): se cambió por un solo nodo que agrega o actualiza por
+>   `referencia + id + talla`. Existencias sí se actualizaba.
+> - **Pendiente:** cargar en Movimientos las ventas web que faltan (403 desde
+>   ~2026-09-19 y pedidos de 2+ piezas desde el 2026-08-20). En Existencias,
+>   cada pieza se corrige sola con su próxima venta; la verdad sigue siendo
+>   `disponibilidad` (stock.json − Blobs), no la hoja.
+
 **Rama de trabajo:** `claude/tienda-paginas-producto` (antes
 `claude/zephoracharms-conversion-funnel-nom9ph`)
 **Alcance:** todo el frente de tienda. **Regla 1 de `CLAUDE.md`**: una sola
