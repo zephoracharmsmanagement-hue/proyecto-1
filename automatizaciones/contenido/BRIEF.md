@@ -119,6 +119,9 @@ joya; la joya tiene que seguir siendo la misma que está en la página.**
 - La proporción entre dije y pulsera.
 - El montaje: las letras van encajadas en el brazalete, no flotando ni pegadas
   encima.
+- **El jump** (la argollita que une el dije) y el brazalete. Es lo que un modelo
+  altera sin que se note: «No se modifica la joya. Ni los jumps, ni el
+  brazalete» (`BRIEF-FLOW.md`, regla de oro).
 
 **Sí se puede cambiar (la escena):**
 
@@ -160,12 +163,18 @@ quedó con luz de pegote.
 
 1. Poner la imagen al lado de la foto de producto de la página.
 2. Contar los dijes y comparar letras y figuras una por una.
-3. Comprobar que ningún dije haya crecido frente a la cadena y que las letras
-   estén encajadas.
+3. Comprobar que ningún dije haya crecido frente a la cadena, que las letras
+   estén encajadas y que el jump sea el mismo.
 4. Comparar la luz: los brillos de la joya vienen del mismo lado que la luz de
    la escena.
 
 Si falla el 2 o el 3, se descarta. Si solo falla el 4, se corrige la luz.
+
+**En video vale lo mismo, y es más difícil de cumplir:** el modelo reconstruye la
+joya en cada fotograma. Qué modelo está autorizado con joya (solo Veo 3.1 Fast),
+cuál no (Omni) y cómo se revisa (cuadro por cuadro) está en `BRIEF-FLOW.md`,
+«Las tres formas de hacer video». No se repite aquí para que no queden dos
+versiones.
 
 ### 3 · La medición cierra en checkouts, no en vistas
 
