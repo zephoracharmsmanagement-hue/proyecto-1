@@ -215,6 +215,32 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   publicarlas a 880 px (srcset); las ~140 restantes solo existen a 440 px
 >   y necesitan pasar por Flow. Espera respuesta del propietario.
 >
+> **2026-10-02 · PR #11 (`claude/videos-joyas`), fusionado con confirmación
+> del propietario («Deploy»):**
+> - **Videos de cada joya**: 130 clips del celular (zip de Drive en
+>   `material-sin-publicar/videos-joyas/originales`), identificados a ojo contra
+>   el catálogo en `herramientas/videos_joyas.json` → 117 joyas (90 charms y
+>   brazaletes, 25 iniciales). Frente y reverso unidos con fundido: Escudo,
+>   Olaf, Lilo & Stitch, Hulk, Caballo. `herramientas/videos_joyas.py`:
+>   estabiliza (vidstab, temblor medio 0,85 % → 0,31 %), endereza los 13
+>   grabados con el celular de lado («giro»), recorta 4:5 a 720 × 900, sin
+>   audio. Archivos en Blobs `media/joya-<id>-v3.mp4` (v1/v2 quedan allí);
+>   portadas `assets/vid-<id>.webp`. **Revisar siempre que la joya quede
+>   derecha, no solo el tamaño del archivo** (el propietario lo pidió
+>   explícito y 13 salieron acostados en v2).
+> - **Galería en la página de la pieza**: foto, video y vistas extra se
+>   deslizan ahí mismo, 4:5, con miniaturas (▶ en la del video); el video corre
+>   solo a la vista y se baja al primer toque. La ficha usa la misma
+>   `armarGaleria()`, también en 4:5.
+> - **Fotos de 880 px** (`assets/hd/`, `herramientas/fotos_hd.py`) de las 41 de
+>   Flow, solo en las galerías (`FOTOS_HD`); la rejilla sigue a 440. Lilo &
+>   Stitch incluida (permiso de Pandora). Nueva: Atrapasueños Azul.
+>   Descartada: Blancanieves de Flow (piedra inventada en el moño).
+> - **Pendiente del propietario**: si el Ángel Guardián real lleva la cruz con
+>   piedras de su foto de Flow; qué pieza es IMG_1453 (separador plateado con
+>   palabras grabadas, no está en el catálogo); fotos de Flow de Avengers y
+>   Psicología (no venían en el zip); 18 piezas sin video.
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
