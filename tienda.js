@@ -408,8 +408,12 @@ function abrirSusc(forzar){
     +'<button class="btn" type="submit">Quiero mi regalo</button>'
     +'<p class="susc-msg" aria-live="polite"></p></form></div>';
   document.body.appendChild(capa);
+  /* Recién cerrada, el botón se ve aunque esté el precio a la vista: la
+     clienta tiene que ver adónde fue a parar el regalo (pedido del
+     propietario, 2026-09-26). En las páginas siguientes sí se aparta. */
   const cerrar=()=>{ capa.remove(); suscAbierta=false; lsPoner('zephora.susc.cerrado',String(Date.now()));
-    document.removeEventListener('keydown',esc); botonRegalo(true); };
+    document.removeEventListener('keydown',esc); botonRegalo(true);
+    document.body.classList.add('susc-recien-cerrada'); };
   const esc=e=>{ if(e.key==='Escape') cerrar(); };
   document.addEventListener('keydown',esc);
   capa.addEventListener('click',e=>{ if(e.target===capa||e.target.closest('.susc-x')) cerrar(); });
@@ -2176,6 +2180,13 @@ pintarPagina();
       if(hd!==img.getAttribute('src')) img.src=hd;
     }
   }
+  /* Con la galería en 4:5, el nombre y el precio caen al pie de la primera
+     pantalla, justo donde flota el botón de regalo: lo tapaba (2026-10-02).
+     Mientras ese bloque se ve, el botón se aparta; al bajar, vuelve. */
+  const cuerpo=pid&&$('.pc--pp .pc-body');
+  if(cuerpo) new IntersectionObserver(es=>{
+    document.body.classList.toggle('pp-precio-a-la-vista',es[0].isIntersecting);
+  }).observe(cuerpo);
 }
 if(document.body.dataset.producto) verPieza(document.body.dataset.producto);
 else track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',

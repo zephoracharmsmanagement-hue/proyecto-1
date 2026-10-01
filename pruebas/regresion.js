@@ -295,6 +295,68 @@ const U = BASE + '/index.html';
     }
     out.push(`  fotos de 880 px declaradas y presentes: ${hd && hd.length && !faltan.length ? 'sí ✓ (' + hd.length + ')' : 'NO ✗ ' + faltan.join(', ')}`);
   }
+  /* Deslizar con el dedo empezando SOBRE la galería (2026-10-02). La galería
+     tenía `touch-action:pan-x`: el celular solo aceptaba ahí el desliz de lado,
+     y como en la página de la pieza ocupa media pantalla, la página «no bajaba»
+     (lo reportó el propietario). Lo mismo en la ficha. Se prueba con toques de
+     verdad (CDP), no con scrollTo, que no pasa por touch-action. */
+  if (soloVideo) {
+    const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const t = await ctx.newPage(); const cdp = await ctx.newCDPSession(t);
+    const dedo = async (x, y, dx, dy) => {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+      for (let i = 1; i <= 12; i++) {
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx * i / 12, y: y + dy * i / 12 }] });
+        await new Promise(r => setTimeout(r, 16));
+      }
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await t.waitForTimeout(900);
+    };
+    await t.goto(BASE + '/producto-' + encodeURIComponent(soloVideo) + '.html', { waitUntil: 'networkidle' });
+    await t.waitForSelector('.pp-gal .fx-gal', { timeout: 5000 }).catch(() => {});
+    const c = await t.evaluate(() => { const r = document.querySelector('.pp-gal .fx-gal').getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 + 60 }; });
+    let y0 = await t.evaluate(() => scrollY);
+    await dedo(c.x, c.y, 0, -250);
+    const pagina = (await t.evaluate(() => scrollY)) - y0;
+    await t.evaluate(() => scrollTo(0, 0)); await t.waitForTimeout(300);
+    await dedo(c.x + 120, c.y, -240, 0);
+    const lado = await t.evaluate(() => { const g = document.querySelector('.pp-gal .fx-gal'); return Math.round(g.scrollLeft / g.clientWidth); });
+    await t.evaluate(() => { document.querySelector('.pp-gal .fx-gal').scrollTo({ left: 0, behavior: 'instant' });
+      document.querySelector('.pp-gal figure img').click(); });
+    await t.waitForTimeout(600);
+    const f = await t.evaluate(() => { const r = document.getElementById('fx-ph').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    const s0 = await t.evaluate(() => document.querySelector('#ficha .fx-box').scrollTop);
+    await dedo(f.x, f.y, 0, -250);
+    const ficha = (await t.evaluate(() => document.querySelector('#ficha .fx-box').scrollTop)) - s0;
+    out.push(`  con el dedo sobre la galería la página baja (${pagina} px), la ficha baja (${ficha} px) y de lado cambia de lámina: `
+      + `${pagina > 100 && ficha > 100 && lado === 1 ? 'sí ✓' : 'NO ✗'}`);
+    await ctx.close();
+
+    /* Con la galería en 4:5, el nombre y el precio quedan al pie de la
+       primera pantalla, justo donde flota el botón de regalo (sale a quien
+       cerró la ventana de suscripción). No puede tapar el precio, y vuelve al
+       bajar. */
+    const ctx2 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await ctx2.addInitScript(() => { localStorage.setItem('zephora.susc.cerrado', String(Date.now())); });
+    const q = await ctx2.newPage();
+    await q.goto(BASE + '/producto-' + encodeURIComponent(soloVideo) + '.html', { waitUntil: 'networkidle' });
+    const tapa = await q.evaluate(async () => {
+      await new Promise(r => setTimeout(r, 400));
+      const f = document.querySelector('.susc-fab'), pr = document.querySelector('.pc--pp .pc-price');
+      if (!f) return 'sin botón';
+      const ve = () => !f.hidden && getComputedStyle(f).visibility !== 'hidden' && getComputedStyle(f).display !== 'none';
+      const a = f.getBoundingClientRect(), c = pr.getBoundingClientRect();
+      const cruza = !(a.right < c.left || c.right < a.left || a.bottom < c.top || c.bottom < a.top);
+      const tapa = ve() && cruza && c.top < innerHeight;
+      scrollTo(0, 1600); await new Promise(r => setTimeout(r, 500));
+      return { tapa, vuelve: ve() };
+    });
+    out.push(`  el botón de regalo no tapa el precio en la primera pantalla y vuelve al bajar: `
+      + `${tapa !== 'sin botón' && !tapa.tapa && tapa.vuelve ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(tapa)}`);
+    await ctx2.close();
+  }
+
   await p.goto(U, { waitUntil: 'networkidle' });
   const sinExtra = await p.evaluate(([decl, vids]) => {
     const c = [...document.querySelectorAll('#charms .pc[data-id]')]

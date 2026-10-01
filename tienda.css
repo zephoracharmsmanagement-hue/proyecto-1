@@ -576,11 +576,14 @@ section{scroll-margin-top:64px}
  * Con una sola foto no se pinta nada de esto: ni tira, ni puntos, ni
  * miniaturas. Una galería de un elemento es ruido que promete algo que no hay. */
 .fx-ph{position:relative;overflow:hidden}
-/* `touch-action:pan-x` deja que el arrastre VERTICAL sobre la foto lo
-   reciba la ficha y no la tira: sin eso, empezar a deslizar encima de la
-   imagen no movía nada y parecía que la ficha se habia colgado. */
+/* `pan-x pan-y`: de lado pasa de lámina y hacia arriba o abajo mueve la
+   página (o la ficha). Estuvo en `pan-x` solo, que hace justo lo contrario de
+   lo que decía este comentario: el celular descarta el desliz vertical que
+   empieza sobre la foto. En la página de la pieza la galería ocupa media
+   pantalla y la página «no bajaba» (reportado 2026-10-02; lo vigila
+   pruebas/regresion.js con toques reales). */
 .fx-gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
-  touch-action:pan-x;overscroll-behavior-x:contain;
+  touch-action:pan-x pan-y;overscroll-behavior-x:contain;
   width:100%;height:100%;gap:0;scrollbar-width:none;-ms-overflow-style:none}
 .fx-gal::-webkit-scrollbar{display:none}
 .fx-gal>figure{flex:0 0 100%;scroll-snap-align:center;margin:0;display:flex;
@@ -1461,6 +1464,9 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   border:0;border-radius:50%;background:var(--rose);color:#fff;display:inline-flex;align-items:center;
   justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(42,31,46,.22)}
 .susc-fab[hidden]{display:none}
+/* En la página de una pieza, mientras se ven su nombre y su precio, el botón
+   no se les pone encima (lo cambia tienda.js al hacer scroll). */
+body.pp-precio-a-la-vista:not(.susc-recien-cerrada) .susc-fab{visibility:hidden}
 @media(hover:hover){.susc-fab:hover{background:var(--pagar)}}
 
 /* Bloques con foto o video de la ficha (ENCARGO-FICHA-2 § 1): en el celular,
