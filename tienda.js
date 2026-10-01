@@ -189,10 +189,12 @@ const VIDEOS = new Set((
   +'pulsera-corona-con-cristales pulsera-corazon-rosado-con-cadena pulsera-rosa-clasica pulsera-mano-de-hamsa '
   +'pulsera-corazon-pave pulsera-corazon-con-diamante pulsera-clasica-cierre-barril pulsera-candado-rosa-con-cadena'
 ).split(' '));
-/* v2 (2026-10-01): vertical 4:5 y estabilizado. v1, cuadrado, sigue en
-   Blobs para quien tenga la página vieja en caché. */
-const vidSrc=id=>'media/joya-'+id+'-v2.mp4';
-const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261002';
+/* v2 (2026-10-01): vertical 4:5 y estabilizado. v3 (2026-10-02): los 13 que
+   se grabaron con el celular de lado, enderezados (en v2 la joya quedaba
+   acostada aunque el cuadro fuera vertical). Las versiones viejas siguen en
+   Blobs para quien tenga la página en caché. */
+const vidSrc=id=>'media/joya-'+id+'-v3.mp4';
+const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261003';
 
 /* Fotos de Flow con versión de 880 px (assets/hd/, herramientas/fotos_hd.py).
    La rejilla sigue con la de 440 —es lo que baja cada tarjeta—; las galerías
@@ -206,7 +208,7 @@ const FOTOS_HD = new Set((
   +'mickey-mouse mike-wazowski minnie-mouse olaf-de-frozen osito-con-rosa-y-corazon osito-graduacion '
   +'osito-pave-con-corazon pulpo-azul-cristal pulsera-clasica-cierre-barril pulsera-copo-de-nieve '
   +'pulsera-corazon-pave pulsera-corazon-pave-pequeno pulsera-corona-con-cristales pulsera-corona-pave '
-  +'pulsera-mickey-mouse-pave pulsera-trebol-verde stitch-azul sulley torre-eiffel-y-camara wall-e'
+  +'pulsera-mickey-mouse-pave pulsera-trebol-verde stitch-azul sulley torre-eiffel-y-camara wall-e atrapasuenos-azul'
 ).split(' '));
 const hdDe=src=>{ const m=/assets\/([^/?]+)\.webp/.exec(src||''); return m&&FOTOS_HD.has(m[1])?'assets/hd/'+m[1]+'.webp?v=20261001':src; };
 
@@ -230,7 +232,7 @@ let CAT=null, vitConStock=false;
    Más vendidos). Las fotos se sirven con una semana de caché y conservan el
    nombre al cambiar: al reemplazar fotos hay que subir esta fecha, igual que
    el ?v= de las tarjetas de index.html. */
-const VFOTO='?v=20260926';
+const VFOTO='?v=20261002';
 function pestanasDe(v){
   const sin=v.dataset.vitSin||'', tabs=[];
   const rel=(v.dataset.vit||'').split(',').filter(id=>id&&id!==sin&&(CH[id]||PU[id]));

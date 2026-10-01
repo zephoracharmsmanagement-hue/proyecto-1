@@ -7,7 +7,7 @@
 Lee herramientas/videos_joyas.json (id del catálogo → clips IMG_*.MOV del
 celular) y por cada joya deja:
 
-  · material-sin-publicar/videos-joyas/web/joya-<id>-v2.mp4 — vertical 4:5,
+  · material-sin-publicar/videos-joyas/web/joya-<id>-v3.mp4 — vertical 4:5,
     720 × 900 (recorte centrado: la joya va en el centro del plato), H.264,
     sin audio, 30 fps, +faststart. Estabilizado antes de recortar (vidstab, dos
     pasadas): quita el temblor del pulso y conserva el giro lento alrededor de
@@ -17,8 +17,10 @@ celular) y por cada joya deja:
   · assets/vid-<id>.webp — la portada, 440 × 550, de un cuadro del propio video.
 
 v1 (2026-10-01) era cuadrado y sin estabilizar; el propietario pidió todo
-vertical y quitar el temblor (2026-10-01). Las claves de Blobs no se pisan:
-cambiar el video es subir otra versión.
+vertical y quitar el temblor (2026-10-01). v3 (2026-10-02) endereza los 13
+grabados con el celular de lado («giro» en el .json: la joya quedaba acostada
+aunque el cuadro fuera vertical); los demás son el mismo v2 con otro nombre.
+Las claves de Blobs no se pisan: cambiar el video es subir otra versión.
 
 La joya no se toca: ni filtros de color ni retoque; estabilizar mueve el
 cuadro entero, no la pieza.
@@ -34,7 +36,8 @@ WEB = REPO / 'material-sin-publicar' / 'videos-joyas' / 'web'
 ASSETS = RAIZ / 'assets'
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 ANCHO, ALTO, FPS, FUNDIDO, CRF = 720, 900, 30, 0.4, 27
-VERSION = 'v2'
+VERSION = 'v3'
+GIRO = {'horario': 'transpose=1,', 'antihorario': 'transpose=2,'}
 # Temblor de pulso, no el movimiento buscado: ~0,7 s de suavizado a cada lado
 # y el acercamiento justo para que no asomen bordes negros (optzoom=1).
 DETECTA = 'vidstabdetect=shakiness=6:accuracy=12:result={trf}'
@@ -54,7 +57,7 @@ def clips(lista):
         ruta = SRC / (c['clip'] + '.MOV')
         d = duracion(ruta)
         desde, hasta = c.get('desde', 0), min(c.get('hasta', d), d)
-        out.append((ruta, desde, hasta - desde))
+        out.append((ruta, desde, hasta - desde, GIRO.get(c.get('giro'), '')))
     return out
 
 
@@ -67,17 +70,17 @@ def armar(pid, lista):
     # desde WEB con nombre relativo: la ruta de Windows lleva «:» y el filtro
     # lo leería como separador de opciones.
     trfs = []
-    for k, (ruta, desde, dur) in enumerate(cs):
+    for k, (ruta, desde, dur, _) in enumerate(cs):
         trf = f'_{pid}-{k}.trf'
         subprocess.run([FF, '-v', 'error', '-y', '-ss', str(desde), '-t', str(dur), '-i', str(ruta),
                         '-vf', DETECTA.format(trf=trf), '-f', 'null', '-'], check=True, cwd=WEB)
         trfs.append(trf)
     args = [FF, '-v', 'error', '-y']
-    for ruta, desde, dur in cs:
+    for ruta, desde, dur, _ in cs:
         args += ['-ss', str(desde), '-t', str(dur), '-i', str(ruta)]
     cad = []
     for i in range(len(cs)):
-        cad.append(f'[{i}:v]{CORRIGE.format(trf=trfs[i])},'
+        cad.append(f'[{i}:v]{CORRIGE.format(trf=trfs[i])},{cs[i][3]}'
                    f'crop=min(iw\\,ih*4/5):min(ih\\,iw*5/4),scale={ANCHO}:{ALTO}:flags=lanczos,'
                    f'fps={FPS},setsar=1,format=yuv420p,settb=AVTB[v{i}]')
     if len(cs) == 1:

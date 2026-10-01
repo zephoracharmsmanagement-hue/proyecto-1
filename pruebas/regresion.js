@@ -248,7 +248,7 @@ const U = BASE + '/index.html';
         miniVideo: !!document.querySelector('#fx-mini [data-video]') };
     }, soloVideo);
     out.push(`  «${soloVideo}» abre con foto y video, el video segundo: `
-      + `${g.n === 2 && g.segundo && g.miniVideo && g.src === 'media/joya-' + soloVideo + '-v2.mp4' && /vid-/.test(g.poster || '') ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(g)}`);
+      + `${g.n === 2 && g.segundo && g.miniVideo && g.src === 'media/joya-' + soloVideo + '-v3.mp4' && /vid-/.test(g.poster || '') ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(g)}`);
     await p.evaluate(() => document.getElementById('fx-x').click());
     const pausado = await p.evaluate(() => { const v = document.querySelector('#fx-ph video'); return !v || v.paused; });
     out.push(`  al cerrar la ficha el video queda en pausa: ${pausado ? 'sí ✓' : 'NO ✗'}`);
