@@ -186,10 +186,18 @@ const U = BASE + '/index.html';
   // Desde el 2026-09-26 la tarjeta de la portada lleva a la página de la
   // pieza, y la ficha es la galería ampliada de esa página: se abre tocando
   // su foto.
+  /* Con reintento: el servidor local a veces sirve la página a medias y el
+     clic cae antes de que tienda.js esté listo (ya pasó: «0 láminas» una vez
+     de cada varias corridas, sin nada roto en la página). */
   const galeriaDe = async id => {
-    await p.goto(BASE + '/producto-' + encodeURIComponent(id) + '.html', { waitUntil: 'networkidle' });
-    await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
-    await p.waitForFunction(() => !document.getElementById('ficha').hidden, null, { timeout: 5000 }).catch(() => {});
+    for (let intento = 0; intento < 3; intento++) {
+      await p.goto(BASE + '/producto-' + encodeURIComponent(id) + '.html', { waitUntil: 'networkidle' });
+      await p.waitForSelector('.pc--pp .pc-img', { timeout: 5000 }).catch(() => {});
+      await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
+      const ok = await p.waitForFunction(() => !document.getElementById('ficha').hidden
+        && document.querySelector('#fx-ph img, #fx-ph .nofoto-m'), null, { timeout: 5000 }).then(() => true).catch(() => false);
+      if (ok) break;
+    }
     await p.waitForTimeout(200);
   };
   /* Los videos de cada joya (2026-10-01): la lista VIDEOS de tienda.js tiene
@@ -240,21 +248,52 @@ const U = BASE + '/index.html';
         miniVideo: !!document.querySelector('#fx-mini [data-video]') };
     }, soloVideo);
     out.push(`  «${soloVideo}» abre con foto y video, el video segundo: `
-      + `${g.n === 2 && g.segundo && g.miniVideo && g.src === 'media/joya-' + soloVideo + '-v1.mp4' && /vid-/.test(g.poster || '') ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(g)}`);
-    await p.evaluate(() => document.getElementById('fx-x').click());
-    const enVideo = await p.evaluate(async () => {
-      const b = document.querySelector('.pc--pp .pp-vid');
-      if (!b) return 'sin botón';
-      b.click();
-      await new Promise(r => setTimeout(r, 400));
-      const gal = document.getElementById('fx-gal');
-      return Math.round(gal.scrollLeft / gal.clientWidth) === 1
-        && document.querySelector('#fx-mini [data-video]').classList.contains('is-on');
-    });
-    out.push(`  «▶ Video» en su página abre la ficha ya en el video: ${enVideo === true ? 'sí ✓' : 'NO ✗ (' + enVideo + ')'}`);
+      + `${g.n === 2 && g.segundo && g.miniVideo && g.src === 'media/joya-' + soloVideo + '-v2.mp4' && /vid-/.test(g.poster || '') ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(g)}`);
     await p.evaluate(() => document.getElementById('fx-x').click());
     const pausado = await p.evaluate(() => { const v = document.querySelector('#fx-ph video'); return !v || v.paused; });
     out.push(`  al cerrar la ficha el video queda en pausa: ${pausado ? 'sí ✓' : 'NO ✗'}`);
+
+    /* La misma galería en la propia página (2026-10-01): se desliza ahí, sin
+       abrir nada; la miniatura con ▶ lleva al video, y una foto abre la ficha
+       en esa misma lámina. Todo en 4:5. */
+    const pg = await p.evaluate(async () => {
+      const ph = document.querySelector('.pc--pp .pc-img');
+      const gal = ph.querySelector('.fx-gal'), mini = document.querySelector('.pc--pp .pp-mini');
+      if (!gal || !mini) return 'sin galería en la página';
+      const r = ph.getBoundingClientRect();
+      const vertical = Math.abs(r.height / r.width - 1.25) < 0.02;
+      const sello = !!ph.querySelector('.pc-mark');
+      /* El desliz es animado: se espera a que la tira llegue, hasta 3 s. */
+      const llegar = async i => { for (let t = 0; t < 30; t++) {
+        if (Math.abs(gal.scrollLeft - i * gal.clientWidth) < 2) return true;
+        await new Promise(res => setTimeout(res, 100)); } return false; };
+      mini.querySelector('[data-video]').click();
+      const enVideo = await llegar(1);
+      mini.querySelector('[data-i="0"]').click();
+      await llegar(0);
+      gal.querySelector('figure img').click();
+      await new Promise(res => setTimeout(res, 300));
+      return { vertical, sello, enVideo, ficha: !document.getElementById('ficha').hidden };
+    });
+    out.push(`  en su página la galería se desliza ahí mismo (4:5, con sello, ▶ lleva al video, la foto abre la ficha): `
+      + `${pg && pg.vertical && pg.sello && pg.enVideo && pg.ficha ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(pg)}`);
+    await p.evaluate(() => document.getElementById('fx-x').click());
+  }
+
+  /* Fotos de 880 px para las galerías: cada nombre de FOTOS_HD tiene su
+     archivo en assets/hd/. Un nombre sin archivo deja la lámina en blanco. */
+  {
+    const hd = await p.evaluate(async () => {
+      const src = await fetch('tienda.js').then(r => r.text());
+      const m = src.match(/const FOTOS_HD = new Set\(\(([\s\S]*?)\)\.split/);
+      return m ? m[1].replace(/'\s*\+\s*'/g, '').replace(/'/g, '').trim().split(/\s+/) : null;
+    });
+    const faltan = [];
+    for (const f of hd || []) {
+      const r = await p.evaluate(u => fetch(u, { method: 'HEAD' }).then(r => r.status).catch(() => 0), BASE + '/assets/hd/' + f + '.webp');
+      if (r !== 200) faltan.push(f);
+    }
+    out.push(`  fotos de 880 px declaradas y presentes: ${hd && hd.length && !faltan.length ? 'sí ✓ (' + hd.length + ')' : 'NO ✗ ' + faltan.join(', ')}`);
   }
   await p.goto(U, { waitUntil: 'networkidle' });
   const sinExtra = await p.evaluate(([decl, vids]) => {

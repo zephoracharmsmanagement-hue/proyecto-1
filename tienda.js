@@ -189,8 +189,26 @@ const VIDEOS = new Set((
   +'pulsera-corona-con-cristales pulsera-corazon-rosado-con-cadena pulsera-rosa-clasica pulsera-mano-de-hamsa '
   +'pulsera-corazon-pave pulsera-corazon-con-diamante pulsera-clasica-cierre-barril pulsera-candado-rosa-con-cadena'
 ).split(' '));
-const vidSrc=id=>'media/joya-'+id+'-v1.mp4';
-const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261001';
+/* v2 (2026-10-01): vertical 4:5 y estabilizado. v1, cuadrado, sigue en
+   Blobs para quien tenga la página vieja en caché. */
+const vidSrc=id=>'media/joya-'+id+'-v2.mp4';
+const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261002';
+
+/* Fotos de Flow con versión de 880 px (assets/hd/, herramientas/fotos_hd.py).
+   La rejilla sigue con la de 440 —es lo que baja cada tarjeta—; las galerías
+   de la página y de la ficha, que la enseñan a todo el ancho, usan esta. Por
+   nombre de archivo de la foto, no por id: así está en catalogo.json. */
+const FOTOS_HD = new Set((
+  'atrapasuenos-corazon-multicolor avion-globo-y-pasaporte bola-azul-con-flor-rosa bola-roja-remolino '
+  +'bola-rosa-con-flores camaleon-verde carrusel-rosado casa-de-los-globos clip-forever-multicolor '
+  +'corazon-de-filigrana corazon-mama-e-hija dalmata elefantito-rosa esfera-azul-con-cristales gato-cheshire '
+  +'libelula-morada lilo-y-stitch manos-orando-con-cruz mariposas-tricolor-colgantes mascara-spider-man-roja '
+  +'mickey-mouse mike-wazowski minnie-mouse olaf-de-frozen osito-con-rosa-y-corazon osito-graduacion '
+  +'osito-pave-con-corazon pulpo-azul-cristal pulsera-clasica-cierre-barril pulsera-copo-de-nieve '
+  +'pulsera-corazon-pave pulsera-corazon-pave-pequeno pulsera-corona-con-cristales pulsera-corona-pave '
+  +'pulsera-mickey-mouse-pave pulsera-trebol-verde stitch-azul sulley torre-eiffel-y-camara wall-e'
+).split(' '));
+const hdDe=src=>{ const m=/assets\/([^/?]+)\.webp/.exec(src||''); return m&&FOTOS_HD.has(m[1])?'assets/hd/'+m[1]+'.webp?v=20261001':src; };
 
 let base=null, sel=[];
 /* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
@@ -672,7 +690,7 @@ function pintarLetras(){
 }
 
 /* ——— ficha de producto ——— */
-let fichaId=null;
+let fichaId=null, fichaGal=null, ppGal=null;
 /* La galería de la ficha. Recibe la <img> de la tarjeta —que es la foto
    principal, la misma que ya se está viendo— y le añade las vistas extra. */
 function pintarGaleria(id, img, nombre){
@@ -683,29 +701,44 @@ function pintarGaleria(id, img, nombre){
     mini.innerHTML=''; mini.hidden=true;
     return;
   }
+  const g=armarGaleria(ph, mini, id, img.getAttribute('src'), nombre,
+      { ids:true, precargar:true, visible:()=>!$('#ficha').hidden });
+  if(!g) ph.innerHTML='<img src="'+hdDe(img.getAttribute('src'))+'" alt="'+alt+'">';
+  return g;
+}
+
+/* Una galería deslizable —fotos y video— dentro de `ph`, con sus miniaturas
+ * en `mini`. La usan la ficha y, desde el 2026-10-01, la propia página de la
+ * pieza (pedido del propietario: «que salga para deslizar» sin abrir nada).
+ * Devuelve null si la pieza solo tiene una foto: entonces no hay galería que
+ * pintar, y una tira de un elemento promete algo que no hay.
+ *
+ * El video solo corre mientras su lámina se ve y `op.visible()` dice que la
+ * galería está a la vista; si no, queda en pausa. `op.precargar` lo baja de una
+ * vez (la ficha: quien la abrió ya pidió ver esta pieza); sin él se baja al
+ * primer toque sobre la galería, de modo que la página no gasta datos en un
+ * video que nadie va a deslizar. */
+function armarGaleria(ph, mini, id, src0, nombre, op){
+  const alt=nombre.replace(/"/g,'&quot;');
   const extra=FOTOS[id]||[], conVideo=VIDEOS.has(id);
-  if(!extra.length&&!conVideo){
-    ph.innerHTML='<img src="'+img.src+'" alt="'+alt+'">';
-    mini.innerHTML=''; mini.hidden=true;
-    return;
-  }
+  if(!extra.length&&!conVideo){ mini.innerHTML=''; mini.hidden=true; return null; }
   /* La version va en la URL a proposito: las fotos se sirven con max-age
      de una semana y conservan el nombre al cambiar, asi que sin esto una
      clienta que ya visito la tienda seguiria viendo la foto vieja hasta
      siete dias. Al cambiar una foto hay que subir V. */
-  const fuentes=[{src:img.getAttribute('src')}].concat(extra.map(f=>({src:'assets/'+f+'?v=20260822'})));
-  /* El video va segundo: la ficha abre en la foto que se tocó, y lo
+  const fuentes=[{src:hdDe(src0)}].concat(extra.map(f=>({src:'assets/'+f+'?v=20260822'})));
+  /* El video va segundo: la galería abre en la foto de siempre, y lo
      siguiente que se ve al deslizar es la pieza en movimiento. */
   if(conVideo) fuentes.splice(1,0,{src:vidPortada(id),video:vidSrc(id)});
   const n=fuentes.length;
-  ph.innerHTML='<div class="fx-gal" id="fx-gal">'
+  ph.innerHTML='<div class="fx-gal"'+(op.ids?' id="fx-gal"':'')+'>'
     + fuentes.map((f,i)=>f.video
         ? '<figure class="fx-vid"><video muted loop playsinline preload="none" poster="'+f.src+'"'
           +' aria-label="Video de '+alt+'"'+(quietoPorPreferencia?' controls':'')+'>'
           +'<source src="'+f.video+'" type="video/mp4"></video></figure>'
         : '<figure><img src="'+f.src+'" alt="'+alt
           +(i?' — vista '+(i+1):'')+'" loading="'+(i?'lazy':'eager')+'" decoding="async"></figure>').join('')
-    + '</div><div class="fx-pts" id="fx-pts" aria-hidden="true">'
+    + '</div><div class="fx-pts"'+(op.ids?' id="fx-pts"':'')+' aria-hidden="true">'
     + fuentes.map((_,i)=>'<i'+(i?'':' class="is-on"')+'></i>').join('')+'</div>';
   mini.innerHTML=fuentes.map((f,i)=>
     '<button type="button" data-i="'+i+'"'+(i?'':' class="is-on"')
@@ -714,29 +747,34 @@ function pintarGaleria(id, img, nombre){
     +'<img src="'+f.src+'" alt="" loading="lazy"></button>').join('');
   mini.hidden=false;
 
-  const gal=$('#fx-gal'), pts=[...$('#fx-pts').children], btns=[...mini.children];
-  /* El video solo corre mientras se ve: al salir de su lámina se pausa, y al
-     cerrar la ficha también (cerrarFicha). Se empieza a bajar al abrir la
-     ficha —~1 MB, y solo para quien abrió esta pieza— para que al deslizar ya
-     esté listo y no aparezca un recuadro esperando. */
+  const gal=ph.querySelector('.fx-gal'), pts=[...ph.querySelector('.fx-pts').children], btns=[...mini.children];
   const vid=gal.querySelector('video');
-  if(vid&&!quietoPorPreferencia) vid.preload='auto';
+  const bajar=()=>{ if(vid&&!quietoPorPreferencia&&vid.preload!=='auto') vid.preload='auto'; };
+  if(op.precargar) bajar();
+  let activa=0;
+  const ajustar=()=>{
+    if(!vid||quietoPorPreferencia) return;
+    if(fuentes[activa].video&&op.visible()){ bajar(); vid.play().catch(()=>{ vid.controls=true; }); }
+    else vid.pause();
+  };
   const marcar=i=>{
-    pts.forEach((x,j)=>x.classList.toggle('is-on',j===i));
-    btns.forEach((x,j)=>x.classList.toggle('is-on',j===i));
-    if(vid&&!quietoPorPreferencia){
-      if(fuentes[i]&&fuentes[i].video&&!$('#ficha').hidden) vid.play().catch(()=>{ vid.controls=true; });
-      else vid.pause();
-    }
+    activa=Math.max(0,Math.min(n-1,i));
+    pts.forEach((x,j)=>x.classList.toggle('is-on',j===activa));
+    btns.forEach((x,j)=>x.classList.toggle('is-on',j===activa));
+    ajustar();
   };
   /* La posición se lee del scroll y no de un contador propio: el dedo puede
      dejar la tira a medio camino, y un contador se desincroniza en cuanto eso
      pasa. El ancho de la caja es el paso. */
   gal.addEventListener('scroll',()=>marcar(Math.round(gal.scrollLeft/gal.clientWidth)),{passive:true});
+  gal.addEventListener('pointerdown',bajar,{passive:true});
   mini.onclick=e=>{
     const b=e.target.closest('[data-i]'); if(!b) return;
+    bajar();
     gal.scrollTo({left:gal.clientWidth*(+b.dataset.i), behavior:'smooth'});
   };
+  return { gal, ajustar, activa:()=>activa,
+    ir:i=>{ gal.scrollTo({left:gal.clientWidth*i,behavior:'instant'}); marcar(i); } };
 }
 
 /* La tarjeta de una pieza. Las iniciales comparten la tarjeta «letras» en la
@@ -912,7 +950,7 @@ if(PP&&(CH[PP]||PU[PP])){
   }
 }
 
-function abrirFicha(id, alVideo){
+function abrirFicha(id, lamina){
   const esB=!!PU[id], p=esB?PU[id]:CH[id];
   if(!p) return;
   /* Se repinta abierta tras agregar y al llegar el inventario: eso no es
@@ -927,7 +965,7 @@ function abrirFicha(id, alVideo){
   if(!img){ const src=imgDe(id); if(src){ img=new Image(); img.src=src; } }
   const fam=familiaDe(id);
 
-  pintarGaleria(id, img, p.n);
+  fichaGal=pintarGaleria(id, img, p.n);
   $('#fx-tipo').textContent = esB ? 'Brazalete' : (fam?fam.n:'Charm');
   $('#fx-n').textContent = p.n.replace(/^Pulsera /,'');
   $('#fx-p').textContent = cop(p.p);
@@ -953,14 +991,15 @@ function abrirFicha(id, alVideo){
   if(sinStock) fw.href=waEncargo(p.n);
 
   $('#ficha').hidden=false;
+  if(ppGal) ppGal.ajustar();   /* el video de la página se pausa bajo la ficha */
   /* Solo al abrirse: repintada (tras agregar o al llegar el inventario) ya
      tiene su bloqueo, y sumar otro dejaba el fondo trabado —sin scroll y con
      la suscripción esperando para siempre— al cerrarla. */
   if(!yaAbierta){ bloquearFondo(true); $('#fx-x').focus(); }
-  /* Desde «▶ Video» de la página de la pieza: la ficha abre ya en el video.
-     Con la capa visible, para que la tira tenga ancho que medir. */
-  const bv=alVideo&&$('#fx-mini [data-video]');
-  if(bv){ const g=$('#fx-gal'); g.scrollTo({left:g.clientWidth*(+bv.dataset.i),behavior:'instant'}); g.dispatchEvent(new Event('scroll')); }
+  /* Desde la galería de la página de la pieza, la ficha abre en la misma
+     lámina que se estaba viendo (las dos tienen el mismo orden). Con la capa
+     ya visible, para que la tira tenga ancho que medir. */
+  if(lamina&&fichaGal) fichaGal.ir(lamina);
 }
 /* Bloqueo del fondo mientras hay una capa abierta (ficha o carrito).
  *
@@ -1009,6 +1048,7 @@ function bloquearFondo(v){
 function cerrarFicha(){
   $('#ficha').hidden=true; fichaId=null;
   document.querySelectorAll('#fx-ph video').forEach(v=>v.pause());
+  if(ppGal) ppGal.ajustar();
   /* El bloqueo lo comparten la hoja del carrito y la ficha; lo lleva un
      contador, así que cerrar la ficha no suelta el fondo si la hoja sigue
      abierta detrás. */
@@ -1573,7 +1613,12 @@ document.addEventListener('click',e=>{
   const ver=e.target.closest('.pc-img, .pc-name');
   if(ver && !e.target.closest('.pc-add, .tbtn, .lbtn, .pc-encargo')){
     const t=ver.closest('.pc'), id=t&&t.dataset.id;
-    if(id && t.classList.contains('pc--pp')){ e.preventDefault(); abrirFicha(id, !!e.target.closest('.pp-vid')); return; }
+    if(id && t.classList.contains('pc--pp')){
+      /* Tocar el video de la galería de la página no abre nada: se está
+         viendo ahí mismo. Una foto abre la ficha en esa misma lámina. */
+      if(e.target.closest('.fx-vid')) return;
+      e.preventDefault(); abrirFicha(id, ppGal?ppGal.activa():0); return;
+    }
     const destino=id==='letras'?letraVista:id;
     if(destino && (CH[destino]||PU[destino])){
       /* El nombre ya es un enlace: el navegador hace lo suyo, también con
@@ -2103,17 +2148,31 @@ fetch('assets/stock.json',{cache:'no-cache'})
    gen_productos.py) la vista es de esa pieza. En el resto, ViewContent de
    grupo con los ids de los charms destacados. */
 pintarPagina();
-/* «▶ Video» sobre la foto de la pieza, si tiene video: abre la ficha ya en
-   él. Es un botón dentro de .pc-img, así que el clic lo recibe el mismo
-   manejador que abre la ficha al tocar la foto (con alVideo). */
+/* La galería en la propia página de la pieza (pedido del propietario,
+   2026-10-01): la foto principal, el video y las vistas extra se deslizan
+   ahí mismo, con miniaturas debajo, igual que en la ficha. El sello (Plata
+   925 / Baño de plata) se conserva encima. El video corre solo mientras su
+   lámina y la galería se ven, y no con la ficha abierta encima. */
 {
-  const pid=document.body.dataset.producto, ph=pid&&VIDEOS.has(pid)&&$('.pc--pp .pc-img');
-  if(ph){
-    const b=document.createElement('button');
-    b.type='button'; b.className='pp-vid';
-    b.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg>Video';
-    b.setAttribute('aria-label','Ver el video de la pieza');
-    ph.appendChild(b);
+  const pid=document.body.dataset.producto, ph=pid&&$('.pc--pp .pc-img'), img=ph&&ph.querySelector('img');
+  const p=pid&&(CH[pid]||PU[pid]);
+  if(ph&&img&&p){
+    const sello=ph.querySelector('.pc-mark');
+    const mini=document.createElement('div'); mini.className='fx-mini pp-mini';
+    let enVista=true;
+    ppGal=armarGaleria(ph, mini, pid, img.getAttribute('src'), p.n,
+      { visible:()=>enVista&&$('#ficha').hidden });
+    if(ppGal){
+      ph.classList.add('pp-gal');
+      if(sello) ph.appendChild(sello);
+      ph.after(mini);
+      new IntersectionObserver(es=>{ enVista=es[0].isIntersecting; ppGal.ajustar(); },{threshold:.5}).observe(ph);
+    }else{
+      /* Sin galería (una sola foto), la foto principal igual va nítida. */
+      mini.remove();
+      const hd=hdDe(img.getAttribute('src'));
+      if(hd!==img.getAttribute('src')) img.src=hd;
+    }
   }
 }
 if(document.body.dataset.producto) verPieza(document.body.dataset.producto);

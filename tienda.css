@@ -609,11 +609,16 @@ section{scroll-margin-top:64px}
 .fx-mini button[data-video]::after{content:'';position:absolute;inset:0;margin:auto;width:0;height:0;
   border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent #fff;
   filter:drop-shadow(0 0 2px rgba(0,0,0,.6))}
-/* «▶ Video» sobre la foto de la página de la pieza. */
-.pp-vid{position:absolute;right:10px;bottom:10px;z-index:1;display:inline-flex;align-items:center;gap:6px;
-  min-height:36px;padding:0 14px;border:0;border-radius:18px;background:rgba(42,31,46,.82);color:#fff;
-  font:600 12px/1 Jost,sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
-.pp-vid:hover{background:var(--plum)}
+/* Todo vertical, sin excepción (pedido del propietario, 2026-10-01): la
+   galería de la ficha y la de la página de la pieza van en 4:5. Las fotos de
+   estudio, cuadradas y sobre blanco, se ven enteras (contain) sobre el mismo
+   blanco; los videos ya vienen grabados y recortados en 4:5. */
+.fx-ph{aspect-ratio:4/5}
+.pc--pp .pc-img{aspect-ratio:4/5}
+.pp-gal .fx-gal{position:absolute;inset:0}
+.pp-gal .fx-vid video{border-radius:0}
+.pp-gal .pc-mark{z-index:2}
+.pp-mini{padding:10px 12px 0}
 .fx-tx{padding:20px 22px 24px}
 .fx-tx h3{font-size:clamp(24px,6vw,31px);line-height:1.15;margin:6px 0 6px}
 .fx-p{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;margin:0 0 4px}
