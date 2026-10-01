@@ -600,6 +600,25 @@ section{scroll-margin-top:64px}
 .fx-mini button.is-on{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
 .fx-mini img{width:100%;height:100%;object-fit:contain}
 @media(prefers-reduced-motion:reduce){.fx-gal{scroll-behavior:auto}}
+/* El video de la pieza (grabado sobre el plato negro): llena la lámina, con
+   la portada de fondo mientras llega el primer cuadro. */
+.fx-gal>figure.fx-vid{padding:0}
+.fx-vid video{width:100%;height:100%;object-fit:cover;border-radius:3px;background:#1d1a1f}
+/* Su miniatura lleva un ▶ para que se lea como video y no como otra foto. */
+.fx-mini button[data-video]{position:relative}
+.fx-mini button[data-video]::after{content:'';position:absolute;inset:0;margin:auto;width:0;height:0;
+  border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent #fff;
+  filter:drop-shadow(0 0 2px rgba(0,0,0,.6))}
+/* Todo vertical, sin excepción (pedido del propietario, 2026-10-01): la
+   galería de la ficha y la de la página de la pieza van en 4:5. Las fotos de
+   estudio, cuadradas y sobre blanco, se ven enteras (contain) sobre el mismo
+   blanco; los videos ya vienen grabados y recortados en 4:5. */
+.fx-ph{aspect-ratio:4/5}
+.pc--pp .pc-img{aspect-ratio:4/5}
+.pp-gal .fx-gal{position:absolute;inset:0}
+.pp-gal .fx-vid video{border-radius:0}
+.pp-gal .pc-mark{z-index:2}
+.pp-mini{padding:10px 12px 0}
 .fx-tx{padding:20px 22px 24px}
 .fx-tx h3{font-size:clamp(24px,6vw,31px);line-height:1.15;margin:6px 0 6px}
 .fx-p{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;margin:0 0 4px}
