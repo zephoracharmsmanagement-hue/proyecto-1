@@ -241,6 +241,18 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   palabras grabadas, no está en el catálogo); fotos de Flow de Avengers y
 >   Psicología (no venían en el zip); 18 piezas sin video.
 >
+> **2026-10-02 · PR #12 (`claude/galeria-deslizar`), fusionado con
+> confirmación del propietario («Deploy»):**
+> - **La página no bajaba al deslizar sobre la galería** (reporte del
+>   propietario): `.fx-gal{touch-action:pan-x}` descarta el desliz vertical que
+>   empieza sobre ella; ahora `pan-x pan-y`. Afectaba también a la ficha.
+>   Para probar gestos táctiles usar `Input.dispatchTouchEvent` por CDP:
+>   `synthesizeScrollGesture` no movía ni la portada (falso negativo).
+> - El botón de regalo se aparta mientras se ve la línea del precio en la
+>   página de la pieza (con la galería 4:5 lo tapaba); recién cerrada la
+>   ventana de suscripción sigue visible.
+> - Revisión de las 135 páginas (390 y 1280 px): sin más hallazgos.
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
