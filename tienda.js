@@ -160,6 +160,38 @@ const FOTOS = {
   'dalmata': ['dalmata-2.webp'],
 };
 
+/* Las joyas con video propio (grabados por el propietario, 2026-10-01). El
+ * video entra en la galería de la ficha justo después de la foto principal, y
+ * en la página de la pieza un botón «▶ Video» lleva directo a él.
+ *
+ * El archivo es /media/joya-<id>-v1.mp4 (Netlify Blobs, no git) y su portada
+ * assets/vid-<id>.webp. Los arma herramientas/videos_joyas.py desde
+ * herramientas/videos_joyas.json; pruebas/regresion.js comprueba que esta
+ * lista y ese archivo digan lo mismo y que cada portada exista. */
+const VIDEOS = new Set((
+  'iron-man capitan-america wolverine buzz-lightyear atrapasuenos-azul sol-y-luna-con-cristales '
+  +'mjolnir-martillo-de-thor ariel angel-guardian flor-azul-con-cristales dalmata spider-man '
+  +'osito-con-rosa-y-corazon mickey-mouse charm-psicologia blancanieves cenicienta jasmine princesa-bella '
+  +'letra-a letra-b letra-c letra-d letra-e letra-f letra-g letra-h letra-i letra-j letra-k letra-l letra-m '
+  +'letra-n letra-o letra-p letra-r letra-s letra-t letra-u letra-v letra-w letra-x letra-y letra-z '
+  +'luciernaga-you-are-my-light corazon-de-filigrana casa-de-los-globos groot-bebe casco-iron-man '
+  +'mascara-spider-man-roja esfera-telarana-spider-man spider-man-pave mascara-un-gran-poder '
+  +'esfera-azul-con-cristales pulpo-azul-cristal libra sagitario leo tauro aries virgo capricornio geminis '
+  +'escorpio cadena-seguridad-love-forever osito-graduacion mariposas-tricolor-colgantes '
+  +'atrapasuenos-corazon-multicolor camaleon-verde corazon-arbol-de-la-vida trebol-verde-giratorio '
+  +'caballo-herradura osito-pave-con-corazon manos-orando-con-cruz elefantito-rosa escudo-capitan-america '
+  +'deadpool hulk guantelete-del-infinito sulley gato-cheshire stitch-azul jack-sally mike-wazowski '
+  +'minnie-mouse stitch olaf-de-frozen lilo-stitch huella-con-huesito clip-infinito-con-corazon '
+  +'clip-forever-multicolor virgen-maria conejita-con-corazon-rosa carrusel-rosado cadena-seguridad-luna-y-sol '
+  +'gatito-con-corazon-azul corazon-mama-e-hija bola-azul-con-flor-rosa bola-roja-remolino charm-odontologia '
+  +'charm-medicina charm-fisioterapia pulsera-corazon-liso pulsera-corona-pave pulsera-trebol-verde '
+  +'pulsera-corazon-luminoso pulsera-sol-con-cadena-seguridad pulsera-avengers pulsera-corazon-pave-pequeno '
+  +'pulsera-corona-con-cristales pulsera-corazon-rosado-con-cadena pulsera-rosa-clasica pulsera-mano-de-hamsa '
+  +'pulsera-corazon-pave pulsera-corazon-con-diamante pulsera-clasica-cierre-barril pulsera-candado-rosa-con-cadena'
+).split(' '));
+const vidSrc=id=>'media/joya-'+id+'-v1.mp4';
+const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261001';
+
 let base=null, sel=[];
 /* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
    solos al carrito, solo resaltan la tarjeta para que la clienta decida. */
@@ -651,8 +683,8 @@ function pintarGaleria(id, img, nombre){
     mini.innerHTML=''; mini.hidden=true;
     return;
   }
-  const extra=FOTOS[id]||[];
-  if(!extra.length){
+  const extra=FOTOS[id]||[], conVideo=VIDEOS.has(id);
+  if(!extra.length&&!conVideo){
     ph.innerHTML='<img src="'+img.src+'" alt="'+alt+'">';
     mini.innerHTML=''; mini.hidden=true;
     return;
@@ -661,22 +693,41 @@ function pintarGaleria(id, img, nombre){
      de una semana y conservan el nombre al cambiar, asi que sin esto una
      clienta que ya visito la tienda seguiria viendo la foto vieja hasta
      siete dias. Al cambiar una foto hay que subir V. */
-  const fuentes=[img.getAttribute('src')].concat(extra.map(f=>'assets/'+f+'?v=20260822'));
+  const fuentes=[{src:img.getAttribute('src')}].concat(extra.map(f=>({src:'assets/'+f+'?v=20260822'})));
+  /* El video va segundo: la ficha abre en la foto que se tocó, y lo
+     siguiente que se ve al deslizar es la pieza en movimiento. */
+  if(conVideo) fuentes.splice(1,0,{src:vidPortada(id),video:vidSrc(id)});
+  const n=fuentes.length;
   ph.innerHTML='<div class="fx-gal" id="fx-gal">'
-    + fuentes.map((src,i)=>'<figure><img src="'+src+'" alt="'+alt
-        +(i?' — vista '+(i+1):'')+'" loading="'+(i?'lazy':'eager')+'" decoding="async"></figure>').join('')
+    + fuentes.map((f,i)=>f.video
+        ? '<figure class="fx-vid"><video muted loop playsinline preload="none" poster="'+f.src+'"'
+          +' aria-label="Video de '+alt+'"'+(quietoPorPreferencia?' controls':'')+'>'
+          +'<source src="'+f.video+'" type="video/mp4"></video></figure>'
+        : '<figure><img src="'+f.src+'" alt="'+alt
+          +(i?' — vista '+(i+1):'')+'" loading="'+(i?'lazy':'eager')+'" decoding="async"></figure>').join('')
     + '</div><div class="fx-pts" id="fx-pts" aria-hidden="true">'
     + fuentes.map((_,i)=>'<i'+(i?'':' class="is-on"')+'></i>').join('')+'</div>';
-  mini.innerHTML=fuentes.map((src,i)=>
+  mini.innerHTML=fuentes.map((f,i)=>
     '<button type="button" data-i="'+i+'"'+(i?'':' class="is-on"')
-    +' aria-label="Ver foto '+(i+1)+' de '+fuentes.length+'">'
-    +'<img src="'+src+'" alt="" loading="lazy"></button>').join('');
+    +(f.video?' data-video':'')
+    +' aria-label="'+(f.video?'Ver el video':'Ver foto '+(i+1)+' de '+n)+'">'
+    +'<img src="'+f.src+'" alt="" loading="lazy"></button>').join('');
   mini.hidden=false;
 
   const gal=$('#fx-gal'), pts=[...$('#fx-pts').children], btns=[...mini.children];
+  /* El video solo corre mientras se ve: al salir de su lámina se pausa, y al
+     cerrar la ficha también (cerrarFicha). Se empieza a bajar al abrir la
+     ficha —~1 MB, y solo para quien abrió esta pieza— para que al deslizar ya
+     esté listo y no aparezca un recuadro esperando. */
+  const vid=gal.querySelector('video');
+  if(vid&&!quietoPorPreferencia) vid.preload='auto';
   const marcar=i=>{
     pts.forEach((x,j)=>x.classList.toggle('is-on',j===i));
     btns.forEach((x,j)=>x.classList.toggle('is-on',j===i));
+    if(vid&&!quietoPorPreferencia){
+      if(fuentes[i]&&fuentes[i].video&&!$('#ficha').hidden) vid.play().catch(()=>{ vid.controls=true; });
+      else vid.pause();
+    }
   };
   /* La posición se lee del scroll y no de un contador propio: el dedo puede
      dejar la tira a medio camino, y un contador se desincroniza en cuanto eso
@@ -861,7 +912,7 @@ if(PP&&(CH[PP]||PU[PP])){
   }
 }
 
-function abrirFicha(id){
+function abrirFicha(id, alVideo){
   const esB=!!PU[id], p=esB?PU[id]:CH[id];
   if(!p) return;
   /* Se repinta abierta tras agregar y al llegar el inventario: eso no es
@@ -906,6 +957,10 @@ function abrirFicha(id){
      tiene su bloqueo, y sumar otro dejaba el fondo trabado —sin scroll y con
      la suscripción esperando para siempre— al cerrarla. */
   if(!yaAbierta){ bloquearFondo(true); $('#fx-x').focus(); }
+  /* Desde «▶ Video» de la página de la pieza: la ficha abre ya en el video.
+     Con la capa visible, para que la tira tenga ancho que medir. */
+  const bv=alVideo&&$('#fx-mini [data-video]');
+  if(bv){ const g=$('#fx-gal'); g.scrollTo({left:g.clientWidth*(+bv.dataset.i),behavior:'instant'}); g.dispatchEvent(new Event('scroll')); }
 }
 /* Bloqueo del fondo mientras hay una capa abierta (ficha o carrito).
  *
@@ -953,6 +1008,7 @@ function bloquearFondo(v){
 
 function cerrarFicha(){
   $('#ficha').hidden=true; fichaId=null;
+  document.querySelectorAll('#fx-ph video').forEach(v=>v.pause());
   /* El bloqueo lo comparten la hoja del carrito y la ficha; lo lleva un
      contador, así que cerrar la ficha no suelta el fondo si la hoja sigue
      abierta detrás. */
@@ -1517,7 +1573,7 @@ document.addEventListener('click',e=>{
   const ver=e.target.closest('.pc-img, .pc-name');
   if(ver && !e.target.closest('.pc-add, .tbtn, .lbtn, .pc-encargo')){
     const t=ver.closest('.pc'), id=t&&t.dataset.id;
-    if(id && t.classList.contains('pc--pp')){ e.preventDefault(); abrirFicha(id); return; }
+    if(id && t.classList.contains('pc--pp')){ e.preventDefault(); abrirFicha(id, !!e.target.closest('.pp-vid')); return; }
     const destino=id==='letras'?letraVista:id;
     if(destino && (CH[destino]||PU[destino])){
       /* El nombre ya es un enlace: el navegador hace lo suyo, también con
@@ -2047,6 +2103,19 @@ fetch('assets/stock.json',{cache:'no-cache'})
    gen_productos.py) la vista es de esa pieza. En el resto, ViewContent de
    grupo con los ids de los charms destacados. */
 pintarPagina();
+/* «▶ Video» sobre la foto de la pieza, si tiene video: abre la ficha ya en
+   él. Es un botón dentro de .pc-img, así que el clic lo recibe el mismo
+   manejador que abre la ficha al tocar la foto (con alVideo). */
+{
+  const pid=document.body.dataset.producto, ph=pid&&VIDEOS.has(pid)&&$('.pc--pp .pc-img');
+  if(ph){
+    const b=document.createElement('button');
+    b.type='button'; b.className='pp-vid';
+    b.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg>Video';
+    b.setAttribute('aria-label','Ver el video de la pieza');
+    ph.appendChild(b);
+  }
+}
 if(document.body.dataset.producto) verPieza(document.body.dataset.producto);
 else track('ViewContent',{content_type:'product_group',content_name:'Catalogo Zephora',
   content_ids:[...document.querySelectorAll('.pc--top')].map(p=>p.dataset.id)});

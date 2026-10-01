@@ -192,20 +192,76 @@ const U = BASE + '/index.html';
     await p.waitForFunction(() => !document.getElementById('ficha').hidden, null, { timeout: 5000 }).catch(() => {});
     await p.waitForTimeout(200);
   };
+  /* Los videos de cada joya (2026-10-01): la lista VIDEOS de tienda.js tiene
+     que ser exactamente la de herramientas/videos_joyas.json —de ahí salen los
+     archivos subidos—, y cada portada assets/vid-<id>.webp tiene que existir:
+     sin ella la lámina del video queda negra hasta que llega el primer cuadro. */
+  const conVideo = await p.evaluate(async () => {
+    const src = await fetch('tienda.js').then(r => r.text());
+    const m = src.match(/const VIDEOS = new Set\(\(([\s\S]*?)\)\.split/);
+    return m ? m[1].replace(/'\s*\+\s*'/g, '').replace(/'/g, '').trim().split(/\s+/) : null;
+  });
+  {
+    const json = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'herramientas', 'videos_joyas.json'), 'utf8'));
+    const ids = Object.keys(json).filter(k => !k.startsWith('_')).sort();
+    const igual = conVideo && JSON.stringify([...conVideo].sort()) === JSON.stringify(ids);
+    const sinPortada = [];
+    for (const id of conVideo || []) {
+      const r = await p.evaluate(u => fetch(u, { method: 'HEAD' }).then(r => r.status).catch(() => 0),
+        BASE + '/assets/vid-' + id + '.webp');
+      if (r !== 200) sinPortada.push(id);
+    }
+    out.push(`  VIDEOS de tienda.js = videos_joyas.json: ${igual ? 'sí ✓ (' + ids.length + ' joyas)' : 'NO ✗'}`
+      + `\n  cada video tiene su portada: ${sinPortada.length === 0 ? 'sí ✓' : 'NO ✗ — ' + sinPortada.join(', ')}`);
+  }
+  const tieneVideo = id => !!(conVideo && conVideo.includes(id));
+
   const conVarias = declaradas ? Object.keys(declaradas)[0] : null;
   if (conVarias) {
     await galeriaDe(conVarias);
     const n = await p.locator('#fx-gal figure').count();
     const minis = await p.locator('#fx-mini button').count();
-    out.push(`  «${conVarias}» abre con ${n} fotos y ${minis} miniaturas: `
-      + `${n === declaradas[conVarias].length + 1 && minis === n ? 'sí ✓' : 'NO ✗'}`);
+    const esperado = declaradas[conVarias].length + 1 + (tieneVideo(conVarias) ? 1 : 0);
+    out.push(`  «${conVarias}» abre con ${n} láminas y ${minis} miniaturas: `
+      + `${n === esperado && minis === n ? 'sí ✓' : 'NO ✗'}`);
+  }
+
+  /* Una pieza con video y sin fotos extra: foto + video, el video segundo, y
+     «▶ Video» en su página la abre ya en él. El video en sí no se reproduce
+     aquí (el servidor local no tiene /media); eso se mira en la vista previa. */
+  const soloVideo = (conVideo || []).find(i => !(declaradas && i in declaradas) && !/^letra-|^pulsera-/.test(i));
+  if (soloVideo) {
+    await galeriaDe(soloVideo);
+    const g = await p.evaluate(id => {
+      const figs = [...document.querySelectorAll('#fx-gal figure')];
+      const v = document.querySelector('#fx-gal video');
+      return { n: figs.length, segundo: figs[1] && figs[1].classList.contains('fx-vid'),
+        src: v && v.querySelector('source').getAttribute('src'), poster: v && v.getAttribute('poster'),
+        miniVideo: !!document.querySelector('#fx-mini [data-video]') };
+    }, soloVideo);
+    out.push(`  «${soloVideo}» abre con foto y video, el video segundo: `
+      + `${g.n === 2 && g.segundo && g.miniVideo && g.src === 'media/joya-' + soloVideo + '-v1.mp4' && /vid-/.test(g.poster || '') ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(g)}`);
+    await p.evaluate(() => document.getElementById('fx-x').click());
+    const enVideo = await p.evaluate(async () => {
+      const b = document.querySelector('.pc--pp .pp-vid');
+      if (!b) return 'sin botón';
+      b.click();
+      await new Promise(r => setTimeout(r, 400));
+      const gal = document.getElementById('fx-gal');
+      return Math.round(gal.scrollLeft / gal.clientWidth) === 1
+        && document.querySelector('#fx-mini [data-video]').classList.contains('is-on');
+    });
+    out.push(`  «▶ Video» en su página abre la ficha ya en el video: ${enVideo === true ? 'sí ✓' : 'NO ✗ (' + enVideo + ')'}`);
+    await p.evaluate(() => document.getElementById('fx-x').click());
+    const pausado = await p.evaluate(() => { const v = document.querySelector('#fx-ph video'); return !v || v.paused; });
+    out.push(`  al cerrar la ficha el video queda en pausa: ${pausado ? 'sí ✓' : 'NO ✗'}`);
   }
   await p.goto(U, { waitUntil: 'networkidle' });
-  const sinExtra = await p.evaluate(decl => {
+  const sinExtra = await p.evaluate(([decl, vids]) => {
     const c = [...document.querySelectorAll('#charms .pc[data-id]')]
-      .map(e => e.dataset.id).find(i => !(i in decl) && i !== 'letras');
+      .map(e => e.dataset.id).find(i => !(i in decl) && !vids.includes(i) && i !== 'letras');
     return c || null;
-  }, declaradas || {});
+  }, [declaradas || {}, conVideo || []]);
   if (sinExtra) {
     await galeriaDe(sinExtra);
     const galería = await p.locator('#fx-gal').count();
