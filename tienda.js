@@ -2183,7 +2183,9 @@ pintarPagina();
   /* Con la galería en 4:5, el nombre y el precio caen al pie de la primera
      pantalla, justo donde flota el botón de regalo: lo tapaba (2026-10-02).
      Mientras ese bloque se ve, el botón se aparta; al bajar, vuelve. */
-  const cuerpo=pid&&$('.pc--pp .pc-body');
+  /* Solo la línea del precio: el bloque entero lleva también las opciones de
+     compra y dejaba el botón escondido media página de más. */
+  const cuerpo=pid&&($('.pc--pp .pc-price')||$('.pc--pp .pc-body'));
   if(cuerpo) new IntersectionObserver(es=>{
     document.body.classList.toggle('pp-precio-a-la-vista',es[0].isIntersecting);
   }).observe(cuerpo);
