@@ -1410,6 +1410,15 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .rp-est label::after{content:'★';color:var(--estrella)}
 .rp-est label:has(input:checked){border-color:var(--plum)}
 .rp-dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* En el celular el formulario se ensanchaba a ~750 px al abrirlo (reporte del
+   propietario, 2026-10-02): una celda de grid no encoge por debajo de su
+   contenido, y cada campo de archivo mide lo que su texto («Seleccionar
+   archivos · ningún archivo seleccionado»). Columnas que sí encogen, campos a
+   todo el ancho de su celda, y en pantallas angostas uno debajo del otro. */
+.rp-form{grid-template-columns:minmax(0,1fr)}
+.rp-form>*,.rp-dos>*{min-width:0}
+.rp-form textarea,.rp-form input:not([type=radio]){width:100%;min-width:0;box-sizing:border-box}
+@media(max-width:520px){.rp-dos{grid-template-columns:minmax(0,1fr)}}
 .rp-nota{margin:0;font-size:12px;color:var(--gris)}
 .rp-msg{margin:0;min-height:1em;font-size:13px;color:var(--pagar)}
 .rp-gracias{margin:0;font-size:15px}
