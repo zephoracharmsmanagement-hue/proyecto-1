@@ -489,6 +489,24 @@ function main() {
   comprobar(/puede estar agotada hoy/i.test(prompt) && /disponibilidad/i.test(prompt),
     'advierte que una pieza del catálogo puede estar agotada y manda a confirmar');
 
+  console.log('\n13 · Las fotos de las letras');
+
+  /* El prompt decía que las 27 iniciales comparten una sola foto. Dejó de ser
+     cierto el 2026-09-25, cuando casi todas recibieron la suya, y el bot seguía
+     mandando la M diciendo «la tuya va en ese mismo estilo». Lo que hay se lee
+     de catalogo.json, no de este archivo. */
+  const fotosLetras = Object.entries(CAT.fotos).filter(([id]) => id.startsWith('letra-'));
+  const propias = fotosLetras.filter(([id, f]) => f === id + '.webp').length;
+  const genericas = fotosLetras.length - propias;
+  if (propias) {
+    comprobar(!/no tienen foto individual/i.test(promptPlano),
+      'no dice que las letras comparten una sola foto', `${propias} de ${fotosLetras.length} tienen la suya`);
+  }
+  if (genericas) {
+    comprobar(/foto del abecedario/i.test(promptPlano) && /nunca digas que la foto del abecedario es la inicial/i.test(promptPlano),
+      'avisa que la foto del abecedario no es la inicial pedida', `${genericas} letras con foto general`);
+  }
+
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
     : '\nPrompt del bot en verde ✓');
