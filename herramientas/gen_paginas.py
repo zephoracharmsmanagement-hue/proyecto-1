@@ -11,7 +11,7 @@ WA = '573018990672'
 WA_LEGAL = ('https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Vengo%20de%20la'
             '%20p%C3%A1gina%20web%20y%20tengo%20una%20consulta%20sobre%20sus%20pol%C3%ADticas'
             '%20de%20compra.')
-ACTUALIZADO = '8 de agosto de 2026'
+ACTUALIZADO = '2 de octubre de 2026'
 
 PAGS = [
     ('politica-de-privacidad.html', 'Política de privacidad'),
@@ -94,7 +94,8 @@ SHELL = '''<!DOCTYPE html>
 PRIVACIDAD = '''  <div class="note">
     <p>Zephora Charms trata tus datos personales conforme a la <b>Ley 1581 de 2012</b>, el
     <b>Decreto 1074 de 2015</b> y demás normas colombianas de protección de datos. Al escribirnos
-    por WhatsApp o al enviarnos tu pedido, autorizas el tratamiento descrito en esta política.</p>
+    por WhatsApp o al confirmar tu pedido en el sitio, autorizas el tratamiento descrito en esta
+    política para gestionar tu compra.</p>
   </div>
 
   <h2>1. Responsable del tratamiento</h2>
@@ -109,17 +110,21 @@ PRIVACIDAD = '''  <div class="note">
   </ul>
 
   <h2>2. Qué datos recolectamos</h2>
-  <p>Este sitio web <b>no tiene formularios de registro ni pasarela de pago</b>: no te pedimos
-  crear una cuenta ni ingresar datos bancarios en la página. Los datos personales aparecen
-  únicamente cuando decides escribirnos. En concreto:</p>
+  <p>No te pedimos crear una cuenta. Los datos de tu tarjeta o de tu cuenta bancaria <b>no pasan
+  por nosotros</b>: los recibe directamente la pasarela de pago. En concreto recogemos:</p>
   <table>
     <tr><th>Categoría</th><th>Qué incluye</th><th>Cuándo se recoge</th></tr>
-    <tr><td>Datos de contacto</td><td>Nombre y número de teléfono</td>
-      <td>Cuando inicias la conversación por WhatsApp</td></tr>
-    <tr><td>Datos de entrega</td><td>Dirección, ciudad y datos que necesita la transportadora</td>
-      <td>Sólo si confirmas un pedido</td></tr>
-    <tr><td>Datos del pedido</td><td>Piezas elegidas, talla, valor y forma de pago acordada</td>
-      <td>Durante la conversación de compra</td></tr>
+    <tr><td>Datos de contacto</td><td>Nombre, apellido, celular y correo electrónico</td>
+      <td>Al confirmar un pedido en el sitio o al escribirnos por WhatsApp</td></tr>
+    <tr><td>Datos de entrega</td><td>Dirección, ciudad, barrio, indicaciones para la entrega y
+      la dedicatoria, si la escribes</td>
+      <td>Al confirmar un pedido</td></tr>
+    <tr><td>Datos del pedido</td><td>Piezas elegidas, talla, valor y forma de pago</td>
+      <td>Al confirmar un pedido</td></tr>
+    <tr><td>Suscripción</td><td>Correo electrónico</td>
+      <td>Sólo si te suscribes o marcas que quieres recibir novedades</td></tr>
+    <tr><td>Reseñas</td><td>Nombre, ciudad, tu opinión y las fotos o videos que adjuntes</td>
+      <td>Sólo si escribes una reseña; se publica después de revisarla</td></tr>
     <tr><td>Datos de navegación</td><td>Identificadores de cookies, páginas vistas, dispositivo y
       ciudad aproximada</td><td>Al navegar el sitio, mediante el píxel de Meta</td></tr>
   </table>
@@ -142,7 +147,12 @@ PRIVACIDAD = '''  <div class="note">
     <li><b>Meta Platforms Ireland Ltd.</b> — WhatsApp Business, con el que atendemos la venta, y
       el píxel de Meta, que mide la efectividad de nuestros anuncios. Esto implica una
       transferencia internacional de datos, que autorizas al usar estos canales.</li>
+    <li><b>Wompi (Bancolombia)</b> — procesa los pagos en línea; recibe los datos de pago
+      directamente, sin que pasen por nosotros.</li>
     <li><b>Empresas transportadoras</b> — reciben nombre, teléfono y dirección para entregar tu pedido.</li>
+    <li><b>Resend</b> — envía los correos de tu pedido (comprobante y avisos).</li>
+    <li>Las herramientas con las que registramos y gestionamos los pedidos (n8n y nuestra hoja
+      de pedidos).</li>
     <li><b>Netlify, Inc.</b> — proveedor de alojamiento del sitio, ubicado fuera de Colombia.</li>
     <li><b>Autoridades</b> — cuando exista una orden judicial o administrativa que nos obligue.</li>
   </ul>
@@ -221,20 +231,24 @@ TERMINOS = '''  <p>Estos términos regulan la compra de productos de <b>Zephora 
       impuestos aplicables.</li>
     <li>El costo de envío no está incluido en el precio de la pieza, salvo cuando aplique el envío
       gratis descrito en la sección de envíos.</li>
-    <li>Los precios pueden cambiar sin previo aviso. El precio válido es el que confirmamos por
-      WhatsApp al momento de cerrar el pedido.</li>
+    <li>Los precios pueden cambiar sin previo aviso. El precio válido es el que aparece en la
+      pantalla de pago al confirmar tu pedido.</li>
   </ul>
 
   <h2>6. Cómo se hace un pedido</h2>
-  <p>El sitio funciona como catálogo y armador de pulseras: no procesa pagos. El pedido se cierra
-  por WhatsApp, en estos pasos:</p>
+  <p>Puedes comprar directamente en el sitio o por WhatsApp:</p>
   <ol>
-    <li>Eliges tus piezas en el sitio y envías tu selección por WhatsApp, o nos escribes directamente.</li>
-    <li>Confirmamos disponibilidad, talla, valor total y tiempo estimado de entrega.</li>
-    <li>Acordamos la forma de pago y los datos de envío.</li>
-    <li>Despachamos y te compartimos la guía de seguimiento.</li>
+    <li>Eliges tus piezas y tu talla en el sitio; el total, con los descuentos y el envío, se
+      calcula solo.</li>
+    <li>En la pantalla de pago escribes tus datos de envío y confirmas. Si pagas en línea, el pago
+      lo procesa <b>Wompi (Bancolombia)</b>; si eliges contraentrega, pagas al recibir.</li>
+    <li>Te llega el comprobante por correo y, al despachar, el número de guía.</li>
   </ol>
-  <p>El pedido sólo se entiende perfeccionado cuando lo confirmamos expresamente por WhatsApp.
+  <p>También puedes escribirnos por WhatsApp y te ayudamos a armar y cerrar tu pedido. Al
+  confirmar un pedido en el sitio aceptas estos términos, la política de privacidad y la de
+  envíos y devoluciones.</p>
+  <p>El pedido se entiende perfeccionado cuando se confirma el pago en línea o, en
+  contraentrega, cuando lo confirmamos contigo.
   Nos reservamos el derecho de no aceptar un pedido cuando la pieza esté agotada o cuando
   detectemos un error evidente en el precio publicado; en ese caso te lo informamos y, si ya
   habías pagado, te devolvemos el dinero.</p>
@@ -279,16 +293,17 @@ ENVIOS = '''  <p>Aquí encuentras cómo enviamos, cuánto cuesta y qué hacer si
   <table>
     <tr><th>Concepto</th><th>Condición</th></tr>
     <tr><td>Cobertura</td><td>Todo el territorio nacional colombiano</td></tr>
-    <tr><td>Pago anticipado</td><td><b>$15.000 COP</b>, tarifa plana a cualquier ciudad</td></tr>
-    <tr><td>Pago contraentrega</td><td><b>$25.000 COP</b>, tarifa plana. Cuesta más porque la
+    <tr><td>Pago anticipado (en línea)</td><td><b>Envío gratis</b> a cualquier ciudad, sin
+      monto mínimo</td></tr>
+    <tr><td>Pago contraentrega</td><td><b>$20.000 COP</b>, tarifa plana. Cuesta más porque la
       transportadora cobra por recaudar el dinero en la entrega. Disponible en las ciudades donde
-      la transportadora lo permite; lo confirmamos al cerrar el pedido</td></tr>
-    <tr><td>Envío gratis</td><td>En pedidos de <b>$180.000 COP</b> o más, con cualquiera de las
-      dos formas de pago</td></tr>
+      la transportadora lo permite; lo confirmamos por WhatsApp antes de despachar</td></tr>
   </table>
   <p>La tarifa es la misma para todo el país: no cotizamos por ciudad ni cobramos recargos por
-  destino. El costo del envío aparece sumado al total mientras armas tu pulsera, así que lo que
-  ves en la página es lo que pagas.</p>
+  destino. El costo del envío aparece en el total de tu carrito y en la pantalla de pago, así
+  que lo que ves en la página es lo que pagas.</p>
+  <p>Todos los pedidos llegan en su <b>caja</b>, con un <b>paño para limpiar la plata</b> y, si
+  la pides al pagar, una <b>dedicatoria escrita a mano</b>, sin costo.</p>
 
   <h2>2. Tiempos de entrega</h2>
   <p>Enviamos por <b>Inter Rapidísimo</b> a todo el país. Preparamos cada pulsera a mano una vez
@@ -426,28 +441,28 @@ FAQS = [
      '<p>Al despachar tu compra te enviamos el <b>número de guía</b> por WhatsApp o correo, para '
      'que consultes el estado directamente en la web oficial de Inter Rapidísimo.</p>'),
     ('¿Cuánto cuesta el envío?',
-     '<p>Tarifa plana a toda Colombia: <b>$15.000</b> con pago anticipado o <b>$25.000</b> '
-     'contraentrega —la diferencia es lo que cobra la transportadora por recaudar el dinero en la '
-     'entrega—. En pedidos de <b>$180.000 o más el envío es gratis</b> con cualquiera de las dos. '
-     'No cotizamos por ciudad: el costo ya viene sumado en el total que ves al armar tu pulsera.</p>'),
+     '<p>Pagando en línea, el envío es <b>gratis a toda Colombia, sin monto mínimo</b>. '
+     'Contraentrega cuesta <b>$20.000</b>, tarifa plana —es lo que cobra la transportadora por '
+     'recaudar el dinero en la entrega—. No cotizamos por ciudad: el costo ya viene en el total '
+     'que ves en tu carrito.</p>'),
     ('¿Hacen envíos internacionales?',
      '<p>Por el momento realizamos envíos únicamente dentro de Colombia.</p>'),
  ]),
  ('Pagos y compra', [
     ('¿Qué medios de pago aceptan?',
-     '<p>Aceptamos transferencia a <b>Bancolombia, Nequi y Daviplata</b>, pagos en línea con '
-     '<b>PSE</b>, <b>tarjetas de crédito y débito</b>, y financiación a cuotas con <b>Addi</b>. '
-     'También puedes pagar <b>contraentrega</b> en las ciudades donde la transportadora lo '
-     'permite.</p>'),
+     '<p>En la pantalla de pago puedes pagar con <b>Nequi, Bancolombia, PSE, Daviplata</b> y '
+     '<b>tarjetas de crédito y débito</b> (hasta 36 cuotas), a través de <b>Wompi '
+     '(Bancolombia)</b>. Con <b>Addi</b> puedes dividir tu compra en hasta 3 cuotas sin interés: '
+     'lo coordinamos por WhatsApp. También puedes pagar <b>contraentrega</b> en las ciudades '
+     'donde la transportadora lo permite.</p>'),
     ('¿Cómo compro?',
-     '<p>Armas tu pulsera aquí en la página —el precio se calcula solo, con la promoción y el '
-     'envío ya incluidos— y envías tu selección por WhatsApp con un toque. Ahí confirmamos '
-     'disponibilidad, talla, total y entrega. También puedes escribirnos directamente y te '
-     'asesoramos desde cero.</p>'),
+     '<p>Eliges tus piezas aquí en la página —el precio se calcula solo, con la promoción y el '
+     'envío ya incluidos—, tocas <b>Comprar</b> y en una sola pantalla escribes tus datos de '
+     'envío y pagas. Si prefieres, escríbenos por WhatsApp y te asesoramos desde cero.</p>'),
     ('¿Puedo pagar contraentrega?',
      '<p>Sí, en las ciudades donde la transportadora lo permite. El envío contraentrega cuesta '
-     '<b>$25.000</b> en lugar de $15.000, porque la transportadora cobra por recaudar el dinero. '
-     'Te confirmamos la disponibilidad en tu ciudad por WhatsApp al cerrar el pedido.</p>'),
+     '<b>$20.000</b> (pagando en línea es gratis), porque la transportadora cobra por recaudar el '
+     'dinero. Te confirmamos la disponibilidad en tu ciudad por WhatsApp antes de despachar.</p>'),
     ('¿Emiten factura?',
      '<p>No emitimos factura electrónica. Con tu pedido adjuntamos el <b>comprobante digital de '
      'compra</b>.</p>'),

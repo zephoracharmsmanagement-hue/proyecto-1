@@ -438,6 +438,27 @@ const U = BASE + '/index.html';
     out.push(`  scroll horizontal a ${w}px: ${des <= 0 ? 'no ✓' : des + 'px ✗'}`);
   }
 
+  /* Las políticas dicen lo mismo que cobra la tienda (2026-10-02: la de envíos
+     seguía en $15.000 / $25.000 / gratis desde $180.000 cuando la tienda ya
+     cobraba gratis sin mínimo / $20.000). Las cifras salen de catalogo.json, que
+     es lo que usa el checkout, así que un cambio de tarifa que no pase por las
+     páginas legales se ve aquí. */
+  {
+    const R = require(require('path').join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
+    const pesos = n => '$' + Number(n).toLocaleString('es-CO').replace(/,/g, '.');
+    const textoDe = async u => { await p.goto(BASE + '/' + u, { waitUntil: 'domcontentloaded' });
+      return p.evaluate(() => document.querySelector('main, body').textContent.replace(/\s+/g, ' ')); };
+    const env = await textoDe('envios-y-devoluciones.html'), faq = await textoDe('preguntas-frecuentes.html');
+    const gratisSinMinimo = R.envioGratisDesde <= 0 && R.envioGratisSoloAnticipado;
+    const malas = [];
+    for (const [nombre, t] of [['envíos', env], ['preguntas', faq]]) {
+      if (!t.includes(pesos(R.envio.contraentrega))) malas.push(`${nombre}: falta la contraentrega ${pesos(R.envio.contraentrega)}`);
+      if (gratisSinMinimo && !/gratis[^.]*sin monto m[ií]nimo/i.test(t)) malas.push(`${nombre}: no dice «gratis sin monto mínimo»`);
+      for (const viejo of ['$25.000', '$180.000']) if (t.includes(viejo) && !Object.values(R.envio).map(pesos).includes(viejo)) malas.push(`${nombre}: aún dice ${viejo}`);
+    }
+    out.push(`  las políticas dicen las tarifas de envío que cobra la tienda: ${malas.length ? 'NO ✗ ' + malas.join(' · ') : 'sí ✓'}`);
+  }
+
   out.push(`\nErrores JS: ${errores.length ? errores.join(' | ') : 'ninguno ✓'}`);
   console.log(out.join('\n'));
   await b.close();
