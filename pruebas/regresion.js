@@ -491,6 +491,9 @@ const U = BASE + '/index.html';
       return {
         brz: nivel.querySelector('.pc').dataset.id,
         top: document.querySelector('#rail-top .pc').dataset.id,
+        /* El primero en el orden y también a la vista: al insertar por delante,
+           Chrome corría el carrusel para seguir mostrando el que ya se veía. */
+        aLaVista: [...document.querySelectorAll('#rail-top .pc')].find(c => c.getBoundingClientRect().right > 0).dataset.id,
         unaVez: document.querySelectorAll(`.pc[data-id="${ch}"]`).length,
         tarjetas: document.querySelectorAll('#tst-rail .tst').length,
         conFoto: [...document.querySelectorAll('#tst-rail .tst')].every(t => t.querySelector('img')),
@@ -504,6 +507,7 @@ const U = BASE + '/index.html';
     out.push('\nPortada: lo más vendido primero y reseñas en carrusel'
       + `\n  el brazalete más vendido abre su nivel: ${r.brz === brz ? 'sí ✓' : 'NO ✗ (' + r.brz + ')'}`
       + `\n  el charm más vendido abre «Los charms favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
+      + `\n  y es el que se ve primero, sin que el carrusel se corra: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
       + `\n  y sigue apareciendo una sola vez: ${r.unaVez === 1 ? 'sí ✓' : 'NO ✗ (' + r.unaVez + ')'}`
       + `\n  carrusel: 3 fijas + 2 con foto = ${r.tarjetas}, todas con foto: ${r.tarjetas === 5 && r.conFoto && !r.soloTexto ? 'sí ✓' : 'NO ✗'}`
       + `\n  el texto de una reseña no se pinta como HTML: ${r.inyectado ? 'NO ✗' : 'sí ✓'}`

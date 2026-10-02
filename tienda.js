@@ -1912,6 +1912,12 @@ function ordenarPorVentas(d){
     const cs=[...cont.children].filter(el=>el.matches('.pc'));
     cs.map((el,i)=>[el,i]).sort((a,b)=>peso(b[0])-peso(a[0])||a[1]-b[1]).forEach(([el])=>cont.appendChild(el));
   };
+  /* Al meter tarjetas por delante, Chrome «ancla» el carrusel a la que ya se
+     veía y lo corre a la derecha: el más vendido quedaba fuera de vista (visto
+     en la vista previa, 1.171 px). Si la clienta no lo había movido, vuelve a
+     donde estaba; si ya lo había deslizado, se respeta. */
+  const rieles=[...document.querySelectorAll('#brazaletes .rail, #rail-top')];
+  const antes=rieles.map(r=>r.scrollLeft);
   document.querySelectorAll('#brazaletes .rail').forEach(reordenar);
   const top=$('#rail-top'), resto=$('#resto-grid');
   if(top&&resto){
@@ -1924,6 +1930,7 @@ function ordenarPorVentas(d){
     [...top.children].forEach(el=>el.classList.add('pc--top'));
     reordenar(resto);
   }
+  rieles.forEach((r,i)=>{ if(antes[i]<40) r.scrollLeft=antes[i]; });
   dispatchEvent(new Event('resize'));
 }
 if($('#rail-top')||$('#brazaletes .rail')){
