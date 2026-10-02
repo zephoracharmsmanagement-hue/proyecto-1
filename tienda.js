@@ -932,10 +932,19 @@ function sumarAlCarrusel(d){
   const prom=$('#tst-prom');
   if(prom){ prom.innerHTML=estrellasHTML(d.promedio)+'<span>'+d.promedio.toFixed(1).replace('.',',')+' de 5 · '
     +d.total+(d.total===1?' reseña':' reseñas')+' en la página</span>'; prom.hidden=false; }
-  d.resenas.filter(r=>(r.fotos||[]).some(propia)&&r.texto).slice(0,9).forEach(r=>{
-    const f=document.createElement('figure'); f.className='tst';
-    f.innerHTML='<button type="button" class="rp-foto tst-ph" aria-label="Ampliar foto"><img src="'+r.fotos.filter(propia)[0]
-      +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>'
+  /* Todas las reseñas de la tienda (pedido del propietario, 2026-10-02: en la
+     ficha esta sección reemplazó a la lista «Todas las reseñas de la tienda»).
+     Primero las que traen foto; las de solo texto llevan en el lugar de la
+     foto un recuadro con comillas del mismo tamaño, para que todas las
+     tarjetas sigan siendo iguales. */
+  const conFoto=r=>(r.fotos||[]).some(propia);
+  const todas=d.resenas.filter(r=>r.texto);
+  todas.filter(conFoto).concat(todas.filter(r=>!conFoto(r))).forEach(r=>{
+    const f=document.createElement('figure'); f.className='tst'+(conFoto(r)?'':' tst--txt');
+    f.innerHTML=(conFoto(r)
+      ? '<button type="button" class="rp-foto tst-ph" aria-label="Ampliar foto"><img src="'+r.fotos.filter(propia)[0]
+        +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>'
+      : '<div class="tst-ph tst-ph--txt" aria-hidden="true"><span>“</span></div>')
       +'<div class="tst-tx"><div class="estrellas" aria-label="'+(+r.estrellas||5)+' de 5 estrellas">'+estrellasHTML(r.estrellas)+'</div>'
       +'<blockquote>'+escHTML(r.texto)+'</blockquote><figcaption><span class="rev-name">'+escHTML(r.nombre)+'</span>'
       +'<span class="rev-city">'+(r.ciudad?escHTML(r.ciudad)+' · ':'')+(r.verificada?'Compra verificada':'Reseña en la página')+'</span></figcaption></div>';
@@ -1572,6 +1581,10 @@ function recuperar(){
    panel y se lleva la vista ahí. */
 function pedirTalla(id){
   const t=tarjetaDe(id), panel=t&&t.querySelector('.tallas');
+  /* Si el brazalete está en un nivel plegado tras «Ver más», se despliega:
+     pedir la talla en una tarjeta escondida no lleva a ningún sitio. */
+  const sb=$('#brazaletes');
+  if(t&&sb&&sb.contains(t)&&$('#b-mas')){ sb.classList.add('ver-todos'); bAbierto=true; }
   if(panel){ panel.hidden=false; panel.scrollIntoView({behavior:'smooth',block:'center'});
     panel.classList.remove('is-pide'); void panel.offsetWidth; panel.classList.add('is-pide'); }
 }
@@ -1735,7 +1748,25 @@ document.getElementById('b-filters').addEventListener('click',e=>{
     });
     t.hidden=v===0;
   });
+  /* Con un subfiltro se ven todos los niveles que lo cumplen —si no, el
+     filtro escondería resultados detrás de «Ver más»—; con «Todos» vuelve a
+     lo que la clienta había elegido. */
+  const sec=$('#brazaletes');
+  if(sec&&$('#b-mas')) sec.classList.toggle('ver-todos', f!=='todos'||bAbierto);
 });
+
+/* Brazaletes: solo el primer nivel a la vista (pedido del propietario,
+   2026-10-02); los otros, tras «Ver más brazaletes», que dice cuántos son. */
+let bAbierto=false;
+(()=>{
+  const btn=$('#b-mas'), sec=$('#brazaletes'); if(!btn||!sec) return;
+  const resto=sec.querySelectorAll('.tier~.tier .pc').length;
+  if(!resto){ $('#b-mas-wrap').hidden=true; return; }
+  btn.textContent='Ver más brazaletes · '+resto+' modelos';
+  btn.addEventListener('click',()=>{
+    bAbierto=true; sec.classList.add('ver-todos'); btn.setAttribute('aria-expanded','true');
+  });
+})();
 
 /* catalogo completo */
 /* El catálogo completo nace abierto.
@@ -2057,6 +2088,12 @@ if (menuBtn && menuPanel) {
     if (!menuPanel.hidden && !e.target.closest('#menu-panel') && !e.target.closest('#menu-btn')) abrirMenu(false);
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menuPanel.hidden) abrirMenu(false); });
+  /* Contacto es lo último del panel, que rueda (tope de 70% de la pantalla):
+     al abrirlo, el panel baja hasta mostrar el WhatsApp y el correo. */
+  const contacto = menuPanel.querySelector('.menu-contacto');
+  if (contacto) contacto.addEventListener('toggle', () => {
+    if (contacto.open) menuPanel.scrollTo({ top: menuPanel.scrollHeight, behavior: 'smooth' });
+  });
 }
 
 const busq = $('#busq'), busqQ = $('#busq-q'), busqRes = $('#busq-res'),

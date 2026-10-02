@@ -220,20 +220,33 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     }
 
     if (conDatos) {
-      const r = await p.evaluate(() => ({ top: document.getElementById('pp-estrellas').hidden ? '' : document.getElementById('pp-estrellas').textContent,
-        items: document.querySelectorAll('#rp-lista .rp-it').length, txt: document.getElementById('rp-lista').textContent,
-        html: document.getElementById('rp-lista').innerHTML, vend: document.getElementById('pp-vendidas').textContent }));
-      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2, `estrellas con el promedio y conteo reales («${r.top.trim()}»)`);
+      /* Desde el 2026-10-02 la ficha tiene una sola sección de reseñas, el
+         carrusel «Lo que dicen nuestras clientas» (#tst-rail): las tres fijas
+         y, detrás, todas las de la tienda —con foto primero, las de solo
+         texto después—, con el formulario debajo. Ya no está la lista
+         «Todas las reseñas de la tienda». */
+      const r = await p.evaluate(() => {
+        const nuevas = [...document.querySelectorAll('#tst-rail .tst')].slice(3);
+        return { top: document.getElementById('pp-estrellas').hidden ? '' : document.getElementById('pp-estrellas').textContent,
+          href: document.getElementById('pp-estrellas').getAttribute('href'),
+          items: nuevas.length, txt: nuevas.map(n => n.textContent).join(' '), html: nuevas.map(n => n.innerHTML).join(''),
+          orden: nuevas.map(n => n.classList.contains('tst--txt') ? 'texto' : 'foto').join(','),
+          lista: !!document.getElementById('rp-lista') || !!document.getElementById('resenas-pieza'),
+          form: !!document.querySelector('#reseñas #rp-form'), vend: document.getElementById('pp-vendidas').textContent };
+      });
+      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2 && r.href === '#reseñas', `estrellas con el promedio y conteo reales («${r.top.trim()}»), que llevan al carrusel`);
+      ok(r.orden === 'foto,texto', `las dos reseñas en el carrusel, la de foto primero (${r.orden})`);
+      ok(!r.lista && r.form, 'una sola sección de reseñas, con el formulario debajo del carrusel');
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
       ok((r.html.match(/<img /g) || []).length === 1 && r.html.includes('/resenas?medio=hulk') && !/javascript:|otro\.sitio/.test(r.html),
         'las fotos de la reseña salen, y solo las servidas por la propia tienda');
       // Tocar la foto la amplía en el visor de la página; antes era un enlace
       // a otra pestaña, y algunos celulares la descargaban (2026-09-27).
       const url0 = p.url();
-      await p.evaluate(() => document.querySelector('#rp-lista .rp-foto').click());
+      await p.evaluate(() => document.querySelector('#tst-rail .rp-foto').click());
       await p.waitForTimeout(200);
       const lb = await p.evaluate(() => ({ on: document.getElementById('lb').classList.contains('is-on'),
-        src: document.getElementById('lb-img').getAttribute('src') || '', enlaces: document.querySelectorAll('#rp-lista a[href*="medio="]').length }));
+        src: document.getElementById('lb-img').getAttribute('src') || '', enlaces: document.querySelectorAll('#tst-rail a[href*="medio="]').length }));
       ok(lb.on && lb.src.includes('medio=hulk') && p.url() === url0 && !lb.enlaces, 'tocar la foto de una reseña la amplía en la misma página, sin enlace que la descargue');
       await p.keyboard.press('Escape');
       ok((r.html.match(/Compra verificada/g) || []).length === 1, 'solo la reseña con pedido lleva «Compra verificada»');
@@ -622,12 +635,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible, `en kits, el carrusel del kit abre la ficha de «${r.f.n}»`);
     const k = await p.evaluate(() => ({ primero: document.querySelector('.kit').id,
       piezas: document.querySelector('.kit .kit-paso:last-child').dataset.kitPiezas,
-      bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#rp-lista .rp-it').length,
+      bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#tst-rail .tst').length - 3, lista: !!document.getElementById('rp-lista'),
       formulario: !!document.getElementById('rp-form'), videos: document.querySelectorAll('.ugc-v').length }));
     ok(k.primero === 'kit-luz-y-suenos' && k.piezas === 'pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida',
       `el Kit Luz y Sueños sale primero, con sus 5 piezas (${k.piezas})`);
-    ok(k.bloques === 4 && k.resenas === 1 && !k.formulario && k.videos === 3,
-      `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda (sin formulario) y 3 videos de clientas`);
+    ok(k.bloques === 4 && k.resenas === 1 && !k.lista && !k.formulario && k.videos === 3,
+      `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda en el carrusel (sin lista aparte ni formulario) y 3 videos de clientas`);
     ok(!errs.length, 'consola limpia' + lista(errs));
     await ctx11.close();
   }

@@ -54,7 +54,7 @@ IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res'}
 # existen (las estrellas no existen sin reseñas, por ejemplo).
 # Si se agrega aquí uno que se use sin comprobar, la página se queda sin
 # carrito en silencio: cada uno de estos va con su `if(el)` en tienda.js.
-IDS_OPCIONALES = {'pq-mas', 'pp-estrellas', 'pp-vendidas', 'pp-compra', 'pp-agotado',
+IDS_OPCIONALES = {'pq-mas', 'b-mas', 'b-mas-wrap', 'pp-estrellas', 'pp-vendidas', 'pp-compra', 'pp-agotado',
                   'pp-encargo', 'pp-desc', 'rp-resumen', 'rp-lista', 'rp-form', 'rp-escribir',
                   # Solo en la portada (EN_PORTADA) y en coleccion-mas-vendidos.html.
                   'charms', 'mv-aviso', 'mv-relleno', 'mv-relleno-sec', 'mv-vendidas'}
@@ -220,7 +220,7 @@ PAGINA = '''<!DOCTYPE html>
          escribe tienda.js con datos reales (reseñas aprobadas, disponibilidad,
          pedidos); si no hay dato, no se muestra nada: nunca un número fijo. -->
     <div class="pp-info">
-      <a class="pp-estrellas estrellas" id="pp-estrellas" href="#resenas-pieza" hidden></a>
+      <a class="pp-estrellas estrellas" id="pp-estrellas" href="#reseñas" hidden></a>
       <p class="fx-est" id="pp-est" aria-live="polite"></p>
       <p class="pp-vendidas" id="pp-vendidas" hidden></p>
 {bloque_compra}
@@ -248,12 +248,12 @@ PAGINA = '''<!DOCTYPE html>
 </section>
 {bloque_brazaletes}
 
-<!-- 3 · RESEÑAS DE ESTA PIEZA (las aprobadas, con su promedio real) y el
-     formulario para dejar una. Luego la prueba social general y los videos de
-     clientas, los mismos bloques de index.html. Los videos no descargan nada
-     hasta entrar en pantalla (IntersectionObserver de tienda.js). -->
-{bloque_resenas}
-
+<!-- 3 · RESEÑAS: una sola sección, «Lo que dicen nuestras clientas», el
+     carrusel de index.html con todas las reseñas de la tienda y, debajo, el
+     formulario para reseñar esta pieza (pedido del propietario, 2026-10-02:
+     antes iba además una lista «Todas las reseñas de la tienda», repetida).
+     Los videos de clientas no descargan nada hasta entrar en pantalla
+     (IntersectionObserver de tienda.js). -->
 {resenas}
 
 {historia}
@@ -508,13 +508,10 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
         for s, t, m, p, b in bloques) + '\n  </div>\n</section>')
 
 
-BLOQUE_RESENAS = '''<section class="sec" id="resenas-pieza">
-  <div class="wrap">
-    <span class="eyebrow">Reseñas</span>
-    <h2>Todas las reseñas de la tienda</h2>
-    <div class="rp-resumen estrellas" id="rp-resumen"></div>
-    <div class="rp-lista" id="rp-lista"><p class="rp-vacio">Todavía no hay reseñas publicadas.</p></div>
-    <details class="rp-escribir" id="rp-escribir">
+# El formulario para reseñar la pieza de la ficha. Va dentro de «Lo que dicen
+# nuestras clientas» (el bloque `resenas` de index.html), debajo del carrusel:
+# desde el 2026-10-02 es la única sección de reseñas de la ficha.
+FORM_RESENA = '''    <details class="rp-escribir" id="rp-escribir">
       <summary>Escribir una reseña de {nombre}</summary>
       <form class="rp-form" id="rp-form" novalidate>
         <fieldset class="rp-est"><legend>Tu calificación</legend>
@@ -531,16 +528,16 @@ BLOQUE_RESENAS = '''<section class="sec" id="resenas-pieza">
         <p class="rp-msg" aria-live="polite"></p>
       </form>
     </details>
-  </div>
-</section>'''
+'''
 
 
-def resenas_tienda():
-    """La lista de reseñas de la tienda para páginas que no son de una pieza
-    (kits.html, Más vendidos): la misma sección de las fichas, sin el
-    formulario, que reseña la pieza de la ficha. La pinta tienda.js."""
-    import re
-    return re.sub(r'\s*<details class="rp-escribir"[\s\S]*?</details>', '', BLOQUE_RESENAS)
+def resenas_con_formulario(bloque, nombre):
+    """El carrusel de reseñas de index.html con el formulario debajo, antes
+    del pie de Instagram."""
+    ancla = '    <p class="social-n">'
+    if bloque.count(ancla) != 1:
+        raise SystemExit('No encontré el pie de la sección de reseñas en index.html (%s).' % ancla.strip())
+    return bloque.replace(ancla, FORM_RESENA.format(nombre=nombre) + ancla)
 
 
 def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
@@ -607,11 +604,10 @@ def generar(pid, html, cat, stock, b, exigidos):
                                         if c != pid and c in cat['precios'] and c not in cat['pulseras']
                                         and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16]),
         beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat),
-        bloque_resenas=BLOQUE_RESENAS.format(nombre=H.escape(nombre)),
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
-        resenas=b['resenas'], historia=b['historia'],
+        resenas=resenas_con_formulario(b['resenas'], H.escape(nombre)), historia=b['historia'],
         bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'],
         bloques_media=bloques_media(pid, tipo, hay, cat),
         pagos=b['pagos'], footer=b['footer'], chrome=b['chrome'],

@@ -767,11 +767,7 @@ section{scroll-margin-top:64px}
    que sirve. Al no haber texto visible, el aria-label del enlace deja de ser
    un extra y pasa a ser la unica forma de saber que hace este boton con un
    lector de pantalla. */
-.wa-float{position:fixed;right:14px;bottom:calc(var(--dock) + 14px);z-index:70;
-  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;
-  background:var(--wa);color:#fff;border-radius:50%;width:52px;height:52px;
-  box-shadow:0 6px 20px rgba(42,31,46,.22)}
-@media(hover:hover){.wa-float:hover{background:#1e6b58}}
+/* .wa-float (botón flotante de WhatsApp) se retiró el 2026-10-02. */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:var(--bone);
   border-top:1px solid rgba(255,255,255,.14);height:var(--dock);
   display:flex;align-items:center;gap:10px;padding:0 12px;cursor:pointer}
@@ -1546,3 +1542,21 @@ p,li,dd,.pp-acc-in{line-height:1.55}
 .tst-pts i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background .2s}
 .tst-pts i.is-on{background:var(--plum)}
 @media(min-width:700px){.tst-rail{grid-auto-columns:calc((100% - 24px)/3)}}
+
+/* Contacto en el menú ☰ */
+.menu-panel .menu-contacto-l{grid-template-columns:1fr}
+.menu-panel .menu-contacto-l a,.menu-panel .menu-contacto-l a:first-child{display:flex;flex-direction:column;gap:2px;
+  color:var(--pagar);font-weight:500;font-size:16px}
+.menu-contacto-l a span{font-size:11px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--gris-suave)}
+/* Brazaletes: el primer nivel a la vista y los demás tras «Ver más». */
+#brazaletes:not(.ver-todos) .tier~.tier{display:none}
+#brazaletes.ver-todos .b-mas-wrap{display:none}
+.b-mas-wrap{margin-top:-6px}
+/* Reseña de solo texto en el carrusel: en el lugar de la foto, un recuadro con
+   comillas del mismo alto (4:3), para que las tarjetas sigan siendo iguales. */
+.tst-ph--txt{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--rose-soft),#e9d6de)}
+.tst-ph--txt span{font-family:'Cormorant Garamond',Georgia,serif;font-size:120px;line-height:.6;
+  color:var(--rose);opacity:.55;padding-top:34px}
+/* El formulario para reseñar, debajo del carrusel en las fichas. */
+.social .rp-escribir{margin-top:22px}

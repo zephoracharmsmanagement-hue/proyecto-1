@@ -496,8 +496,15 @@ const U = BASE + '/index.html';
         aLaVista: [...document.querySelectorAll('#rail-top .pc')].find(c => c.getBoundingClientRect().right > 0).dataset.id,
         unaVez: document.querySelectorAll(`.pc[data-id="${ch}"]`).length,
         tarjetas: document.querySelectorAll('#tst-rail .tst').length,
-        conFoto: [...document.querySelectorAll('#tst-rail .tst')].every(t => t.querySelector('img')),
-        soloTexto: document.querySelector('#tst-rail').textContent.includes('Solo texto'),
+        /* Todas las de la tienda (2026-10-02): con foto primero; la de solo
+           texto, al final y con el recuadro de comillas en vez de foto. */
+        formas: [...document.querySelectorAll('#tst-rail .tst')].map(t => t.querySelector('img') ? 'f' : (t.querySelector('.tst-ph--txt') ? 't' : '?')).join(''),
+        soloTextoAlFinal: [...document.querySelectorAll('#tst-rail .tst')].pop().textContent.includes('Solo texto'),
+        wa: document.querySelectorAll('.wa-float').length,
+        contacto: (document.querySelector('#menu-panel .menu-contacto') || {}).textContent || '',
+        nivelesVisibles: [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length,
+        verMas: (document.getElementById('b-mas') || {}).textContent || '',
+        topForma: getComputedStyle(document.getElementById('rail-top')).display + ' ' + (document.getElementById('rail-top').scrollWidth <= document.getElementById('rail-top').clientWidth + 1 ? 'sin-deslizar' : 'desliza'),
         inyectado: !!document.querySelector('#tst-rail img[src="x"]'),
         puntos: document.querySelectorAll('#tst-pts i').length,
         prom: document.getElementById('tst-prom').hidden ? '' : document.getElementById('tst-prom').textContent,
@@ -509,10 +516,24 @@ const U = BASE + '/index.html';
       + `\n  el charm más vendido abre «Los charms favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
       + `\n  y es el que se ve primero, sin que el carrusel se corra: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
       + `\n  y sigue apareciendo una sola vez: ${r.unaVez === 1 ? 'sí ✓' : 'NO ✗ (' + r.unaVez + ')'}`
-      + `\n  carrusel: 3 fijas + 2 con foto = ${r.tarjetas}, todas con foto: ${r.tarjetas === 5 && r.conFoto && !r.soloTexto ? 'sí ✓' : 'NO ✗'}`
+      + `\n  carrusel con todas las reseñas: 3 fijas + 3 = ${r.tarjetas}, foto primero y la de texto al final con su recuadro: ${r.tarjetas === 6 && r.formas === 'ffffft' && r.soloTextoAlFinal ? 'sí ✓' : 'NO ✗ (' + r.formas + ')'}`
       + `\n  el texto de una reseña no se pinta como HTML: ${r.inyectado ? 'NO ✗' : 'sí ✓'}`
-      + `\n  un punto por tarjeta y el promedio real arriba: ${r.puntos === 5 && /4,7 de 5 · 3 reseñas/.test(r.prom) ? 'sí ✓' : 'NO ✗ (' + r.puntos + ', ' + r.prom + ')'}`
-      + `\n  la portada no se ensancha (${r.ancho}px): ${r.ancho <= 390 ? 'sí ✓' : 'NO ✗'}`);
+      + `\n  un punto por tarjeta y el promedio real arriba: ${r.puntos === 6 && /4,7 de 5 · 3 reseñas/.test(r.prom) ? 'sí ✓' : 'NO ✗ (' + r.puntos + ', ' + r.prom + ')'}`
+      + `\n  la portada no se ensancha (${r.ancho}px): ${r.ancho <= 390 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  sin botón flotante de WhatsApp: ${r.wa === 0 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  el menú ☰ trae Contacto con el WhatsApp y el correo: ${/301 899 0672/.test(r.contacto) && /zephoracharms@gmail\.com/.test(r.contacto) ? 'sí ✓' : 'NO ✗ (' + r.contacto.trim() + ')'}`
+      + `\n  brazaletes: solo el primer nivel a la vista y «${r.verMas}»: ${r.nivelesVisibles === 1 && /Ver más brazaletes · \d+ modelos/.test(r.verMas) ? 'sí ✓' : 'NO ✗ (' + r.nivelesVisibles + ' niveles)'}`
+      + `\n  «Los charms favoritos» en cuadrícula, sin deslizar: ${r.topForma === 'grid sin-deslizar' ? 'sí ✓' : 'NO ✗ (' + r.topForma + ')'}`);
+    const niveles = () => q.evaluate(() => [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length);
+    const total = await q.evaluate(() => document.querySelectorAll('#brazaletes .tier').length);
+    await q.evaluate(() => document.querySelector('#b-filters [data-cf="corazon"]').click());
+    const conFiltro = await niveles();
+    await q.evaluate(() => document.querySelector('#b-filters [data-cf="todos"]').click());
+    const sinFiltro = await niveles();
+    await q.click('#b-mas');
+    const abiertos = await niveles();
+    out.push(`  un subfiltro muestra todos los niveles que lo cumplen (${conFiltro}) y «Todos» vuelve a uno (${sinFiltro}): ${conFiltro > 1 && sinFiltro === 1 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  «Ver más brazaletes» despliega los ${total} niveles (${abiertos}): ${abiertos === total ? 'sí ✓' : 'NO ✗'}`);
     await q.close();
   }
 
