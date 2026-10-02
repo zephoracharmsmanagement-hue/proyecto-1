@@ -253,6 +253,23 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   ventana de suscripción sigue visible.
 > - Revisión de las 135 páginas (390 y 1280 px): sin más hallazgos.
 >
+> **2026-10-02 · PR #13 (`claude/resena-formulario`), fusionado con
+> confirmación del propietario («Deploy»):**
+> - Formulario de reseña en el celular: la fila Fotos/Video (grid) no encogía
+>   por debajo del texto de los campos de archivo y la página pasaba de 390 a
+>   763 px. Columnas `minmax(0,1fr)` y, bajo 520 px, una sola columna.
+> - Quitar una reseña publicada: enlace «Rechazar» de su correo de moderación
+>   (ahora dice «Reseña quitada»), o `node herramientas/resenas.mjs`
+>   (`ocultar <id>` / `publicar <id>`; ocultar no borra).
+> - **HALLAZGO SIN CORREGIR — almacenes de producción**: `_pedidos.mjs`,
+>   `_inventario.mjs`, `_suscriptores.mjs` y `resenas.mjs` eligen el almacén
+>   real solo si `process.env.CONTEXT === 'production'`, y en ejecución no lo
+>   es: la tienda real guarda en `pedidos-pruebas` (45), `suscriptores-pruebas`
+>   (9), `resenas-pruebas` (14) e `inventario-pruebas`, compartidos con las
+>   vistas previas. Corregirlo pide migrar esos datos; espera decisión del
+>   propietario (se le ofreció el 2026-10-02). Cualquier herramienta que lea
+>   esos almacenes debe usar hoy los «-pruebas».
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
