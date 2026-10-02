@@ -69,7 +69,8 @@ async function main() {
   console.log('\n2 · Moderar');
   const enlaces = html => [...html.matchAll(/moderar=([^"]+)"/g)].map(m => decodeURIComponent(m[1].replace(/&amp;/g, '&')));
   {
-    const [aprobar] = enlaces(correos[correos.length - 1].html);
+    const primero = correos[correos.length - 1].html;
+    const [aprobar] = enlaces(primero);
     const malo = aprobar.replace(/\.[^.]+$/, '.firmafalsa');
     const h1 = await (await pedir({ metodo: 'GET', q: '?moderar=' + encodeURIComponent(malo) })).text();
     comprobar(/no válido/.test(h1) && (await listar(P)).total === 0, 'enlace de moderación alterado → no publica');
@@ -86,6 +87,13 @@ async function main() {
     const l2 = await listar(P);
     comprobar(l2.total === 2 && l2.promedio === 4 && l2.resenas.some(r => r.estrellas === 3),
       'la de 3 estrellas se publica si se aprueba; la rechazada no; el promedio sale de las aprobadas', `${l2.promedio} · ${l2.total}`);
+    /* «Rechazar» sobre una ya publicada la quita, y lo dice así —no «No se
+       publicará», que confundía (propietario, 2026-10-02)—. */
+    const [, quitar] = enlaces(primero);
+    const h3 = await (await pedir({ metodo: 'GET', q: '?moderar=' + encodeURIComponent(quitar) })).text();
+    const l3 = await listar(P);
+    comprobar(/quitada/.test(h3) && /Ya no se ve/.test(h3) && l3.total === 1,
+      '«Rechazar» en una ya publicada la quita de la página y lo dice', `${l3.total}`);
   }
 
   console.log('\n3 · Compra verificada');

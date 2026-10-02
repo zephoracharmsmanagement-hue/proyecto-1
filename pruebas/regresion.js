@@ -355,6 +355,27 @@ const U = BASE + '/index.html';
     out.push(`  el botón de regalo no tapa el precio en la primera pantalla y vuelve al bajar: `
       + `${tapa !== 'sin botón' && !tapa.tapa && tapa.vuelve ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(tapa)}`);
     await ctx2.close();
+
+    /* Abrir «Escribir una reseña» en el celular no puede ensanchar la página
+       (reporte del propietario, 2026-10-02): la fila de dos columnas del
+       formulario no encogía por debajo de lo que miden los campos de archivo
+       («Seleccionar archivos · ningún archivo seleccionado») y la página
+       pasaba de 390 a 763 px; el celular la achicaba y los campos se salían.
+       isMobile: así es como el teléfono la achica, no solo desborda. */
+    const ctx3 = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const w = await ctx3.newPage();
+    await w.goto(BASE + '/producto-' + encodeURIComponent(soloVideo) + '.html', { waitUntil: 'networkidle' });
+    const ancho = await w.evaluate(async () => {
+      const s = document.querySelector('.rp-escribir summary');
+      if (!s) return 'sin formulario';
+      s.click(); await new Promise(r => setTimeout(r, 400));
+      const f = document.querySelector('.rp-form'), r = f.getBoundingClientRect();
+      return { pagina: Math.max(document.documentElement.scrollWidth, innerWidth), derecha: Math.round(r.right),
+        campos: [...f.querySelectorAll('input:not([type=radio]),textarea,button')].every(e => e.getBoundingClientRect().right <= 391) };
+    });
+    out.push(`  abrir «Escribir una reseña» en el celular no ensancha la página y los campos caben: `
+      + `${ancho.pagina <= 390 && ancho.derecha <= 390 && ancho.campos ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(ancho)}`);
+    await ctx3.close();
   }
 
   await p.goto(U, { waitUntil: 'networkidle' });
