@@ -354,7 +354,7 @@ function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado, r
     esc(cliente.ciudad) + ', ' + esc(cliente.depto),
   ].filter(Boolean).join('<br>');
   const contacto = `${esc(cliente.nombre)} ${esc(cliente.apellido)}<br>`
-    + `${esc(cliente.tipodoc)} ${esc(cliente.documento)}<br>`
+    + (cliente.documento ? `${esc(cliente.tipodoc)} ${esc(cliente.documento)}<br>` : '')
     + `Cel. ${esc(cliente.celular)}<br>${esc(cliente.correo)}`;
 
   return `<!doctype html><html lang="es"><head><meta charset="utf-8">
@@ -423,7 +423,7 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regal
     '',
     'PARA LA GUÍA:',
     `${cliente.nombre} ${cliente.apellido}`,
-    `${cliente.tipodoc} ${cliente.documento}`,
+    ...(cliente.documento ? [`${cliente.tipodoc} ${cliente.documento}`] : []),
     `Cel. ${cliente.celular}`,
     cliente.correo,
     `${cliente.direccion}${cliente.adicional ? ', ' + cliente.adicional : ''}`,

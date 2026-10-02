@@ -111,6 +111,18 @@ const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra'
     comprobar(cuerpoHtml.indexOf(limpio.notas) < cuerpoHtml.indexOf(limpio.direccion),
       'y van antes que la dirección, que es lo que se copia a la guía');
 
+    /* Desde el 2026-10-02 el checkout no pide documento. Sin él, el servidor
+       acepta el pedido y la hoja no imprime un «CC» suelto en la guía. */
+    const sinDoc = Object.assign({}, CLIENTE); delete sinDoc.tipodoc; delete sinDoc.documento;
+    let aceptado = null; try { aceptado = crearPago._interno.leerCliente(sinDoc); } catch (e) { aceptado = e.message; }
+    comprobar(aceptado && typeof aceptado === 'object', 'un pedido sin documento se acepta', typeof aceptado === 'string' ? aceptado : '');
+    if (aceptado && typeof aceptado === 'object') {
+      const h = correo.plantillaTienda({ referencia: 'ZC-261002-TEST0009', lineas: LINEAS, cuentas: CUENTAS, pago: 'contraentrega', cliente: aceptado });
+      const t = correo.textoTienda({ referencia: 'ZC-261002-TEST0009', lineas: LINEAS, cuentas: CUENTAS, pago: 'contraentrega', cliente: aceptado });
+      comprobar(!/>\s*CC\s*<br>/.test(h) && !/\nCC \n|\nCC\n/.test(t),
+        'y la hoja de despacho no imprime una línea de documento vacía');
+    }
+
     console.log('\n3 · Qué empacar');
     const piezas = LINEAS.filter(l => !cuerpoHtml.includes(l.nombre)).map(l => l.nombre);
     comprobar(piezas.length === 0, 'salen todas las piezas del pedido, empaque incluido',
