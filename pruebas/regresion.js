@@ -457,6 +457,12 @@ const U = BASE + '/index.html';
       for (const viejo of ['$25.000', '$180.000']) if (t.includes(viejo) && !Object.values(R.envio).map(pesos).includes(viejo)) malas.push(`${nombre}: aún dice ${viejo}`);
     }
     out.push(`  las políticas dicen las tarifas de envío que cobra la tienda: ${malas.length ? 'NO ✗ ' + malas.join(' · ') : 'sí ✓'}`);
+    /* Y se leen con margen: un `padding` abreviado en .doc dejaba el texto
+       pegado al borde del celular (visto el 2026-10-02). */
+    await p.setViewportSize({ width: 390, height: 844 });
+    await p.goto(BASE + '/envios-y-devoluciones.html', { waitUntil: 'domcontentloaded' });
+    const margen = await p.evaluate(() => Math.round(document.querySelector('.doc h1').getBoundingClientRect().left));
+    out.push(`  las páginas legales tienen margen a los lados en el celular (${margen} px): ${margen >= 12 ? 'sí ✓' : 'NO ✗'}`);
   }
 
   out.push(`\nErrores JS: ${errores.length ? errores.join(' | ') : 'ninguno ✓'}`);
