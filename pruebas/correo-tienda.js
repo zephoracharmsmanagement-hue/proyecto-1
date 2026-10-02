@@ -246,5 +246,25 @@ const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra'
     else process.env.CORREO_TIENDA = guardada;
   }
 
+  console.log('\n· «Lleva 4, paga 3» en el correo de la clienta');
+  {
+    /* Las líneas del correo van a precio de lista; sin el renglón de la promo
+       la suma no daba el total y la pieza gratis no aparecía por ningún lado. */
+    const precios = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
+    const pedido = precios.leerPedido({ base: { id: 'pulsera-corazon-liso', talla: '18' },
+      charms: ['stitch', 'stitch', 'angel-guardian'], pago: 'anticipado' });
+    const cuentas = precios.calcular(pedido), lineas = precios.detallar(pedido);
+    const datos = { titulo: 'Recibimos tu pedido', entrada: 'x', referencia: 'ZC-TEST-PROMO', lineas,
+      envio: cuentas.envio, envioGratis: cuentas.envioGratis, descuento: cuentas.descuento, total: cuentas.total,
+      pago: 'anticipado', cliente: { nombre: 'A', apellido: 'B', direccion: 'Calle 1', ciudad: 'Bogotá', depto: 'Bogotá D.C.', celular: '3000000000' }, pasos: [] };
+    const h = correo.plantilla(datos), t = correo.texto(datos);
+    const suma = lineas.reduce((s, l) => s + l.precio, 0) - cuentas.descuento + cuentas.envio;
+    comprobar(cuentas.descuento > 0 && suma === cuentas.total, 'líneas − promo + envío = total', `${precios.cop(suma)} vs ${precios.cop(cuentas.total)}`);
+    comprobar(/Lleva 4, paga 3/.test(h) && h.includes(precios.cop(cuentas.descuento)) && /Lleva 4, paga 3: − /.test(t),
+      'el correo trae el renglón de la promo, en HTML y en texto');
+    comprobar(/GRATIS/.test(h) && /\(GRATIS\)/.test(t), 'y marca la pieza que salió gratis', cuentas.gratis.join(','));
+    comprobar(/×2/.test(h), 'las líneas con varias unidades dicen cuántas');
+  }
+
   console.log(fallos ? `\nHoja de despacho: ${fallos} en rojo` : '\nHoja de despacho en verde ✓');
 })();

@@ -59,11 +59,9 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
 </head>
 <body>
 
-<div class="ann" aria-label="Avisos">
+<div class="ann" aria-label="Promoción">
   <div class="ann-track">
-    <div class="ann-slide">✦ <b>Paga 3 y llévate el 4º gratis</b> · con brazalete, además baja 30%</div>
-    <div class="ann-slide">🚚 <b>Envío GRATIS</b> a toda Colombia con pago anticipado · contraentrega $20.000</div>
-    <div class="ann-slide">Instagram oficial verificado · <b>@zephora_charms</b> <svg class="vf" viewBox="0 0 24 24" width="14" height="14" aria-label="Verificada"><circle cx="12" cy="12" r="11" fill="#fff"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#5C3D63" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <a class="ann-slide" href="index.html#promo">🎁 <b>ARMA TU SET:</b> Mezcla charms y brazaletes. <b>¡LLEVA 4 Y EL 4° ES GRATIS!</b> ✨</a>
   </div>
 </div>
 
@@ -227,7 +225,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     </article>
     <article class="bv-b">
       <div class="bv-m"><video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="714" poster="assets/bloque-historia-v1.webp" aria-hidden="true"><source src="media/bloque-historia-v1.mp4" type="video/mp4"></video></div>
-      <div class="bv-t"><h2><span aria-hidden="true">✧</span> Tu historia, un charm a la vez</h2><p>Combina héroes, iniciales y símbolos en <b>un solo brazalete</b>. Desde el tercer charm <b>el brazalete baja 30%</b>, y <b>llevando 4, pagas 25% menos</b> en tus charms.</p><div class="bv-cta"><a class="btn btn--ghost" href="kits.html">Arma tu pulsera</a></div></div>
+      <div class="bv-t"><h2><span aria-hidden="true">✧</span> Tu historia, un charm a la vez</h2><p>Combina héroes, iniciales y símbolos en <b>un solo brazalete</b>. Mezcla charms y brazaletes: <b>lleva 4 piezas y paga 3</b> —la de menor valor te sale gratis—.</p><div class="bv-cta"><a class="btn btn--ghost" href="kits.html">Arma tu pulsera</a></div></div>
     </article>
     <article class="bv-b">
       <div class="bv-m"><video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="960" poster="assets/bloque-regalo-v1.webp" aria-hidden="true"><source src="media/bloque-regalo-v1.mp4" type="video/mp4"></video></div>
@@ -246,20 +244,28 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
 </section>
 
 <section class="social" id="reseñas">
+  <!-- Carrusel ordenado (pedido del propietario, 2026-10-02): antes era una
+       tarjeta grande y dos chicas con otra forma, y se leía desordenado.
+       Ahora todas las tarjetas son iguales —foto, estrellas, texto, nombre—
+       y se deslizan de lado. Las tres de aquí van fijas; tienda.js suma
+       detrás las reseñas aprobadas que traen foto (netlify/functions/resenas)
+       y escribe el promedio real en #tst-prom. Sin JavaScript se ven las tres. -->
   <div class="wrap">
     <div class="sec-head">
       <span class="eyebrow">Más de 2.400 pulseras creadas en Colombia</span>
       <h2>Lo que dicen nuestras clientas</h2>
+      <p class="tst-prom estrellas" id="tst-prom" hidden></p>
     </div>
-    <figure class="case">
-      <div><button class="shot-b" type="button" aria-label="Ampliar foto"><img src="assets/pulsera-zephora-completa-con-charms-de-virgen-pati.jpg" alt="Pulsera Zephora completa con charms de virgen, patica de perro y muranos azules" width="720" height="900" loading="lazy" decoding="async"></button><p class="ph-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A9A6AE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6l1.5-2.5h5L16 6"/><circle cx="12" cy="13" r="3.4"/></svg><span>Foto de la clienta</span></p></div>
-      <div class="case-tx"><div><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span></div>
-      <blockquote>Amo cómo se ve. Tenía un poquito de duda de pedir por internet, pero superó totalmente lo que esperaba.</blockquote>
-      <figcaption><span class="rev-name">Adriana M.</span><span class="rev-city">Bogotá · Compra verificada</span></figcaption></div>
-    </figure>
-    <div class="revs"><figure class="rev"><div class="rev-ph"><button class="shot-b" type="button" aria-label="Ampliar foto"><img src="assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg" alt="Pulsera armada con muranos, camaleón verde y atrapasueños, puesta en la muñeca" width="800" height="600" loading="lazy" decoding="async"></button><p class="ph-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A9A6AE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6l1.5-2.5h5L16 6"/><circle cx="12" cy="13" r="3.4"/></svg><span>Foto de la clienta</span></p></div><div><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span></div><blockquote>Pedir esta joyería fue toda una experiencia hermosa desde que llegó el paquete. El detalle con el que viene presentado es divino, ideal si te quieres dar un gusto o regalarle algo especial a alguien. ¡Sin duda volveré a comprar!</blockquote>
-<figcaption><span class="rev-name">Valentina R.</span><span class="rev-city">Medellín · Compra verificada</span></figcaption></figure><figure class="rev"><div class="rev-ph"><button class="shot-b" type="button" aria-label="Ampliar foto"><img src="assets/detalle-de-la-pulsera-corazon-rosado-con-cadena-de.jpg" alt="Detalle de la pulsera corazón rosado con cadena de seguridad en la muñeca" width="800" height="600" loading="lazy" decoding="async"></button><p class="ph-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A9A6AE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6l1.5-2.5h5L16 6"/><circle cx="12" cy="13" r="3.4"/></svg><span>Foto de la clienta</span></p></div><div><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span></div><blockquote>Se lo regalé a una persona súper especial y le encantó. Desde que abrió la cajita y vio la pulsera con los charms, quedó fascinada con los detalles y lo bien hechos que están.</blockquote>
-<figcaption><span class="rev-name">Sebastián G.</span><span class="rev-city">Cali · Compra verificada</span></figcaption></figure></div>
+    <div class="rail-wrap tst-wrap">
+      <button class="rail-btn rail-btn--prev" type="button" aria-label="Reseñas anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <button class="rail-btn rail-btn--next" type="button" aria-label="Más reseñas"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+      <div class="rail tst-rail" id="tst-rail">
+        <figure class="tst"><button class="shot-b tst-ph" type="button" aria-label="Ampliar foto"><img src="assets/pulsera-zephora-completa-con-charms-de-virgen-pati.jpg" alt="Pulsera Zephora completa con charms de virgen, patica de perro y muranos azules" width="720" height="900" loading="lazy" decoding="async"></button><div class="tst-tx"><div class="estrellas" aria-label="5 de 5 estrellas"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg></div><blockquote>Amo cómo se ve. Tenía un poquito de duda de pedir por internet, pero superó totalmente lo que esperaba.</blockquote><figcaption><span class="rev-name">Adriana M.</span><span class="rev-city">Bogotá · Compra verificada</span></figcaption></div><p class="ph-tag tst-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A9A6AE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6l1.5-2.5h5L16 6"/><circle cx="12" cy="13" r="3.4"/></svg><span>Foto de la clienta</span></p></figure>
+        <figure class="tst"><button class="shot-b tst-ph" type="button" aria-label="Ampliar foto"><img src="assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg" alt="Pulsera armada con muranos, camaleón verde y atrapasueños, puesta en la muñeca" width="800" height="600" loading="lazy" decoding="async"></button><div class="tst-tx"><div class="estrellas" aria-label="5 de 5 estrellas"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg></div><blockquote>Pedir esta joyería fue toda una experiencia hermosa desde que llegó el paquete. El detalle con el que viene presentado es divino, ideal si te quieres dar un gusto o regalarle algo especial a alguien. ¡Sin duda volveré a comprar!</blockquote><figcaption><span class="rev-name">Valentina R.</span><span class="rev-city">Medellín · Compra verificada</span></figcaption></div><p class="ph-tag tst-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A9A6AE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6l1.5-2.5h5L16 6"/><circle cx="12" cy="13" r="3.4"/></svg><span>Foto de la clienta</span></p></figure>
+        <figure class="tst"><button class="shot-b tst-ph" type="button" aria-label="Ampliar foto"><img src="assets/detalle-de-la-pulsera-corazon-rosado-con-cadena-de.jpg" alt="Detalle de la pulsera corazón rosado con cadena de seguridad en la muñeca" width="800" height="600" loading="lazy" decoding="async"></button><div class="tst-tx"><div class="estrellas" aria-label="5 de 5 estrellas"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7L12 17.5 5.8 21.2l1.6-7L2 9.2l7.1-.6z"/></svg></div><blockquote>Se lo regalé a una persona súper especial y le encantó. Desde que abrió la cajita y vio la pulsera con los charms, quedó fascinada con los detalles y lo bien hechos que están.</blockquote><figcaption><span class="rev-name">Sebastián G.</span><span class="rev-city">Cali · Compra verificada</span></figcaption></div><p class="ph-tag tst-tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#A9A6AE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6l1.5-2.5h5L16 6"/><circle cx="12" cy="13" r="3.4"/></svg><span>Foto de la clienta</span></p></figure>
+      </div>
+    </div>
+    <div class="tst-pts" id="tst-pts" aria-hidden="true"></div>
     <p class="social-n">¿Ya recibiste tu pulsera? Etiquétanos en <a class="foot-ig" href="https://instagram.com/zephora_charms"><b>@zephora_charms</b><svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a> y aparece aquí.</p>
   </div>
 </section>
@@ -443,6 +449,15 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
        una. La clienta llegaba a pagar $200.000 sin poder ver qué llevaba. -->
   <div class="sheet-scroll" id="sheet-scroll">
   <div class="sheet-body" id="sheet-body"></div>
+  <!-- «Lleva 4, paga 3», justo debajo de las piezas: es lo primero que se lee
+       después de ver lo que lleva, y encima de «Te puede interesar», que es
+       donde suma la que falta. Antes iba debajo de los totales, donde ya no
+       empujaba a nada. -->
+  <div class="hoja-dto-caja" id="hoja-dto-caja" hidden>
+    <p class="hoja-dto-t">Lleva 4, paga 3</p>
+    <ol class="hoja-dto" id="hoja-dto" aria-hidden="true" hidden></ol>
+    <p class="desc-nota" id="desc-nota" aria-live="polite" hidden></p>
+  </div>
   <section class="sug" id="sug" hidden aria-label="Te puede interesar">
     <div class="sug-h"><b>Te puede interesar</b><span id="sug-por"></span></div>
     <div class="sug-tira" id="sug-tira"></div>
@@ -459,17 +474,10 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     </div>
     <div class="tot-row"><span id="l-b">Brazalete</span><span id="v-b">—</span></div>
     <div class="tot-row"><span id="l-c">Charms</span><span id="v-c">—</span></div>
-    <div class="tot-row save" id="row-save" hidden><span>Descuento promo</span><span id="v-save">—</span></div>
+    <div class="tot-row save" id="row-save" hidden><span id="l-save">Pieza gratis</span><span id="v-save">—</span></div>
     <div class="tot-row"><span>Envío</span><span id="v-ship">—</span></div>
     <div class="ship-bar" id="ship-bar"><i></i></div>
     <p class="ship-note" id="ship-note"></p>
-    <!-- El descuento en su propia tarjeta: suelto entre los totales y las
-         notas se leía como un renglón más del montón. -->
-    <div class="hoja-dto-caja" id="hoja-dto-caja" hidden>
-      <p class="hoja-dto-t">Descuento por cantidad</p>
-      <ol class="hoja-dto" id="hoja-dto" aria-hidden="true" hidden></ol>
-      <p class="desc-nota" id="desc-nota" hidden></p>
-    </div>
     <!-- Estas tres viven aquí, en la zona que rueda, y no en el bloque fijo de
          abajo. Ya había pasado que ese bloque creciera hasta dejar la lista de
          piezas en 65 px (ver el comentario de arriba); con estas tres dentro

@@ -59,9 +59,24 @@ const agotado = id => {
 /* Tope de unidades por charm, para no vender 5 de algo que tiene 1. */
 const tope = id => { const u=unidades(id); return u===null?Infinity:u; };
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
-const ESC=[0,0,.08,.15,.25];
-const escala=n=>n<=0?0:ESC[Math.min(n,4)];
+/* «Lleva 4, paga 3» (pedido del propietario, 2026-10-02): brazalete y charms
+   cuentan igual, y por cada 4 piezas la de menor valor sale gratis —con 8, las
+   dos más baratas; con 12, las tres—. extraer_catalogo.py copia PROMO a
+   catalogo.json, de donde cobra _precios.js: este objeto es la fuente. */
+const PROMO={lleva:4, paga:3};
+const cuantasGratis=n=>Math.floor(n/PROMO.lleva)*(PROMO.lleva-PROMO.paga);
+/* Cuáles salen gratis. Mismo orden que piezasGratis() de _precios.js: por
+   precio y, a igual precio, los charms (en el orden en que se eligieron) antes
+   que el brazalete. El total no depende del desempate, pero la línea que se ve
+   tachada tiene que ser la misma que dice el correo. */
+function gratisDe(ids,baseId,precioDe){
+  const piezas=ids.map(id=>({id,p:precioDe(id)}));
+  if(baseId) piezas.push({id:baseId,p:precioDe(baseId)});
+  return piezas.map((x,i)=>[x,i]).sort((a,b)=>a[0].p-b[0].p||a[1]-b[1])
+    .slice(0,cuantasGratis(piezas.length)).map(([x])=>x);
+}
 const $=s=>document.querySelector(s);
+const precioPieza=id=>(CH[id]||PU[id]).p;
 /* El carrusel del hero solo existe en la portada. Las páginas de colección
    traen su propia portada, así que esto se salta si no está: este archivo lo
    comparten varias páginas y no puede dar por hecho el diseño de una sola. Sin
@@ -478,15 +493,17 @@ const respaldo=id=>!/^letra-/.test(id) ? ''
   : fotoGrupoLetras() ? ' onerror="this.onerror=null;this.src=\''+fotoGrupoLetras()+'\'"'
   : ' onerror="this.style.visibility=\'hidden\'"';
 
-function fila(id,nombre,meta,precio,quitar){
-  const r=document.createElement('div'); r.className='srow';
+function fila(id,nombre,meta,precio,quitar,gratis){
+  const r=document.createElement('div'); r.className='srow'+(gratis?' srow--gratis':'');
   const src=imgDe(id);
   /* Sin foto va un monograma, no un <img src=""> — eso pedía el HTML otra vez. */
   const mini = src ? '<img src="'+src+'" alt=""'+respaldo(id)+'>'
     : '<span class="srow-nof" aria-hidden="true">'+nombre.trim().charAt(0).toUpperCase()+'</span>';
   r.innerHTML=mini+
     '<div class="srow-n">'+nombre+'<small>'+meta+'</small></div>'+
-    '<span class="srow-p">'+cop(precio)+'</span>'+
+    (gratis
+      ? '<span class="srow-p"><s>'+cop(precio)+'</s><b>GRATIS</b></span>'
+      : '<span class="srow-p">'+cop(precio)+'</span>')+
     '<button class="srow-x" type="button" aria-label="Quitar '+nombre+'">✕</button>';
   r.querySelector('.srow-x').onclick=quitar;
   return r;
@@ -888,8 +905,48 @@ const mediosResena=r=>{
    propietario, 2026-09-26): el promedio de arriba es el de la tienda. Y en
    cualquier página que traiga la lista —desde el 2026-09-27 también
    kits.html—, no solo en las fichas. */
-if($('#rp-lista')||$('#pp-estrellas')) fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
-  .then(pintarResenas).catch(()=>{});
+if($('#rp-lista')||$('#pp-estrellas')||$('#tst-rail')) fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
+  .then(d=>{ pintarResenas(d); sumarAlCarrusel(d); }).catch(()=>{});
+
+/* Carrusel de reseñas de la portada (#tst-rail, pedido del propietario,
+   2026-10-02). Detrás de las tres fijas van las reseñas aprobadas que traen
+   foto, con la primera foto arriba: todas las tarjetas iguales. Las que son
+   solo texto siguen en la lista de cada ficha; aquí, sin foto, la tarjeta
+   quedaría coja al lado de las demás. Los puntos de abajo dicen en cuál va. */
+function puntosCarrusel(){
+  const rail=$('#tst-rail'), pts=$('#tst-pts'); if(!rail||!pts) return;
+  const n=rail.children.length;
+  pts.innerHTML=n>1?'<i></i>'.repeat(n):'';
+  marcarPunto();
+}
+function marcarPunto(){
+  const rail=$('#tst-rail'), pts=$('#tst-pts'); if(!rail||!pts||!pts.children.length) return;
+  const ancho=rail.firstElementChild.getBoundingClientRect().width+12;
+  const fin=rail.scrollLeft>=rail.scrollWidth-rail.clientWidth-4;
+  const i=fin?pts.children.length-1:Math.round(rail.scrollLeft/ancho);
+  [...pts.children].forEach((p,k)=>p.classList.toggle('is-on',k===i));
+}
+function sumarAlCarrusel(d){
+  const rail=$('#tst-rail');
+  if(!rail||!d||!d.total) return;
+  const prom=$('#tst-prom');
+  if(prom){ prom.innerHTML=estrellasHTML(d.promedio)+'<span>'+d.promedio.toFixed(1).replace('.',',')+' de 5 · '
+    +d.total+(d.total===1?' reseña':' reseñas')+' en la página</span>'; prom.hidden=false; }
+  d.resenas.filter(r=>(r.fotos||[]).some(propia)&&r.texto).slice(0,9).forEach(r=>{
+    const f=document.createElement('figure'); f.className='tst';
+    f.innerHTML='<button type="button" class="rp-foto tst-ph" aria-label="Ampliar foto"><img src="'+r.fotos.filter(propia)[0]
+      +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>'
+      +'<div class="tst-tx"><div class="estrellas" aria-label="'+(+r.estrellas||5)+' de 5 estrellas">'+estrellasHTML(r.estrellas)+'</div>'
+      +'<blockquote>'+escHTML(r.texto)+'</blockquote><figcaption><span class="rev-name">'+escHTML(r.nombre)+'</span>'
+      +'<span class="rev-city">'+(r.ciudad?escHTML(r.ciudad)+' · ':'')+(r.verificada?'Compra verificada':'Reseña en la página')+'</span></figcaption></div>';
+    rail.appendChild(f);
+  });
+  puntosCarrusel();
+  /* Las flechas calculan si hay más a la derecha al cargar y al cambiar el
+     tamaño; con tarjetas nuevas, hay que pedírselo. */
+  dispatchEvent(new Event('resize'));
+}
+if($('#tst-rail')){ puntosCarrusel(); $('#tst-rail').addEventListener('scroll',marcarPunto,{passive:true}); }
 
 if(PP&&(CH[PP]||PU[PP])){
   fetch('.netlify/functions/disponibilidad',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
@@ -905,10 +962,6 @@ if(PP&&(CH[PP]||PU[PP])){
   }).catch(()=>{});
 
   /* Paquetes: al elegir 2, 3 o 4, se abren los charms para completarlo. */
-  const pq=document.querySelector('.pq');
-  const verPq=()=>{ const m=$('#pq-mas'), v=+((document.querySelector('.pq input:checked')||{}).value||1);
-    if(m){ m.hidden=v<2; const f=$('#pq-faltan'); if(f) f.textContent=(v-1)+(v===2?' charm':' charms'); } };
-  if(pq){ pq.addEventListener('change',verPq); verPq(); }
 
   /* Reseña: se manda a moderación. El enlace del correo de entrega trae
      ?resena=<referencia>.<firma> y eso la marca como compra verificada. */
@@ -1072,26 +1125,35 @@ function render(){
   if(!base&&!sel.length){
     body.innerHTML='<p class="s-empty">Aún no has elegido nada.<br>Toca "Elegir" en un brazalete o "Agregar" en un charm.</p>';
   }else{
+    /* Las unidades que salen gratis van en su propia línea, con el precio
+       tachado y «GRATIS»: si de tres Stitch uno es gratis, se ven «Stitch ×2»
+       a precio normal y «Stitch» gratis, no un ×3 con un descuento sin dueño. */
+    const libres={};
+    gratisDe(sel,base&&base.id,precioPieza).forEach(x=>libres[x.id]=(libres[x.id]||0)+1);
     if(base) body.appendChild(fila(base.id,PU[base.id].n.replace(/^Pulsera /,''),
       'Brazalete · Baño de plata'+(base.talla?' · Talla '+base.talla+' cm':''),
-      PU[base.id].p,()=>{base=null;render()}));
+      PU[base.id].p,()=>{base=null;render()},!!libres[base.id]));
     const cont={};
     sel.forEach(id=>cont[id]=(cont[id]||0)+1);
     Object.entries(cont).forEach(([id,n])=>{
-      body.appendChild(fila(id,CH[id].n+(n>1?' ×'+n:''),'Charm · Plata 925',CH[id].p*n,
-        ()=>{sel.splice(sel.indexOf(id),1);render()}));
+      const g=libres[id]||0, pagas=n-g;
+      const quitar=()=>{sel.splice(sel.lastIndexOf(id),1);render()};
+      if(pagas) body.appendChild(fila(id,CH[id].n+(pagas>1?' ×'+pagas:''),'Charm · Plata 925',CH[id].p*pagas,quitar));
+      if(g) body.appendChild(fila(id,CH[id].n+(g>1?' ×'+g:''),'Charm · Plata 925',CH[id].p*g,quitar,true));
     });
   }
 
   const nC=sel.length;
   const brutoC=sel.reduce((s,id)=>s+CH[id].p,0);
-  const descC=brutoC*escala(nC);
   const brutoB=base?PU[base.id].p:0;
-  const descB=(base&&nC>=3)?brutoB*.30:0;
+  const piezas=nC+(base?1:0);
+  const gratisLista=gratisDe(sel,base&&base.id,precioPieza);
+  const nGratis=gratisLista.length;
+  const desc=gratisLista.reduce((s,x)=>s+x.p,0);
   /* El umbral de envío gratis se mide sobre la mercancía, no sobre el total:
      de lo contrario el propio envío ayudaría a alcanzarlo. */
-  const subtotal=brutoC-descC+brutoB-descB;
-  const ahorro=descC+descB;
+  const subtotal=brutoC+brutoB-desc;
+  const ahorro=desc;
   /* alcanza: llegó al umbral. libre: además le corresponde el beneficio.
      Se separan para poder decirle a quien eligió contraentrega que ya alcanzó
      el monto pero el envío gratis es del pago anticipado — callarlo sería
@@ -1108,6 +1170,7 @@ function render(){
   $('#l-c').textContent=nC?(nC+(nC===1?' charm':' charms')):'Charms';
   $('#v-c').textContent=nC?cop(brutoC):'—';
   $('#row-save').hidden=ahorro<=0;
+  $('#l-save').textContent=nGratis>1?nGratis+' piezas gratis':'Pieza gratis';
   $('#v-save').textContent='− '+cop(ahorro);
   $('#v-tot').textContent=cop(total);
 
@@ -1143,54 +1206,37 @@ function render(){
     nota.className='ship-note'; relleno.style.width=Math.min(100,subtotal/LIBRE*100)+'%';
   }
 
-  /* El siguiente tramo de descuento.
+  /* Barra de progreso de «Lleva 4, paga 3» (pedido del propietario).
    *
-   * La escala por cantidad ya existía pero no se anunciaba en ninguna parte: la
-   * clienta solo veía el descuento que ya tenía, nunca el que estaba a un charm
-   * de distancia. Pasó en la primera venta real —dos charms, 8%— sin que nada
-   * le dijera que el tercero la subía al 15%.
-   *
-   * La cifra que se muestra es lo que baja el descuento sobre lo que YA lleva,
-   * que es comprobable en el propio resumen. No se dice que el total baje,
-   * porque no baja: el charm que añada lo paga. Prometer un ahorro que no
-   * existe es la clase de cosa que se descubre en la pantalla de pago. */
-  const dn=$('#desc-nota');
-  /* La escalera en barra, encima del aviso: un tramo por escalón de ESC, y se
-     llenan los que ya alcanza. Es la misma del checkout; en verde al llegar al
-     máximo, que es cuando el aviso deja de empujar y pasa a confirmar. */
-  const dto=$('#hoja-dto'), ult=ESC.length-1, max=nC>=ult;
-  dto.hidden=!(nC||base);
-  $('#hoja-dto-caja').hidden=dto.hidden;
-  if(!dto.hidden){
+   * Cuatro casillas, una por pieza de la vuelta en curso; la cuarta es la
+   * gratis. El aviso dice cuántas faltan para la próxima gratis y, si ya tiene
+   * alguna, la celebra. Cuenta piezas —brazalete o charm, da igual—, que es lo
+   * único que la clienta tiene que saber: ni porcentajes ni montos. */
+  const dn=$('#desc-nota'), dto=$('#hoja-dto');
+  dto.hidden=!piezas;
+  $('#hoja-dto-caja').hidden=!piezas;
+  if(piezas){
+    const L=PROMO.lleva, vuelta=piezas%L, llenas=vuelta||L;
+    const faltan=L-vuelta;
     let h='';
-    for(let n=1;n<=ult;n++){
-      const pct=Math.round(escala(n)*100);
-      const cls=[nC>=n?'is-on':'', Math.min(nC,ult)===n?'is-ya':''].join(' ').trim();
-      h+='<li'+(cls?' class="'+cls+'"':'')+'>'+n+(n===ult?'+':'')
-        +(pct?' · −'+pct+'%':(n===1?' charm':''))+'</li>';
+    for(let n=1;n<=L;n++){
+      const cls=[n<=llenas?'is-on':'', n===L?'is-free':''].join(' ').trim();
+      h+='<li'+(cls?' class="'+cls+'"':'')+'>'+(n===L?'GRATIS':n)+'</li>';
     }
     dto.innerHTML=h;
-    dto.style.setProperty('--n',ult);
-    dto.classList.toggle('is-max',max);
-  }
-  dn.classList.toggle('is-max',max);
-  const sigue=escala(nC+1)>escala(nC) || (base && nC+1>=3 && nC<3);
-  if(max){
+    dto.style.setProperty('--n',L);
+    const completa=!vuelta;
+    dto.classList.toggle('is-max',completa);
+    dn.classList.toggle('is-max',completa);
     dn.hidden=false;
-    dn.innerHTML='✓ Tienes el descuento máximo: <b>'+Math.round(escala(nC)*100)+'%</b> en charms'
-      +(base?' y <b>30%</b> en el brazalete':'')+'.';
-  }else if(!nC && base){
-    dn.hidden=false;
-    dn.innerHTML='Desde 2 charms tienes <b>'+Math.round(escala(2)*100)+'%</b> de descuento, y con 3 el brazalete va con <b>30%</b>.';
-  }else if(nC>=1 && sigue){
-    const ahoraD=brutoC*escala(nC)+descB;
-    const luegoD=brutoC*escala(nC+1)+((base&&nC+1>=3)?brutoB*.30:0);
-    const extra=Math.round(luegoD-ahoraD);
-    const pct=Math.round(escala(nC+1)*100);
-    dn.hidden=extra<=0;
-    dn.innerHTML='Con un charm más el descuento sube al <b>'+pct+'%</b>'
-      +(base&&nC+1>=3&&nC<3?' y se activa el 30% del brazalete':'')
-      +': <b>'+cop(extra)+' menos</b> en lo que ya llevas.';
+    const pz=n=>n+(n===1?' pieza':' piezas');
+    if(completa){
+      dn.innerHTML='¡Felicidades, tienes <b>'+pz(nGratis)+' GRATIS</b>! Agrega '+pz(L)+' más y otra te sale gratis.';
+    }else{
+      dn.innerHTML=(nGratis?'Ya tienes <b>'+pz(nGratis)+' GRATIS</b>. ':'')
+        +(faltan===1?'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!'
+          :'¡Agrega <b>'+pz(faltan)+' más</b> y una te sale GRATIS!');
+    }
   }else{
     dn.hidden=true;
   }
@@ -1213,14 +1259,18 @@ function render(){
   pintarLetras();
   estadoVit();
 
-  const piezas=nC+(base?1:0);
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
      estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
      saber que le faltaban $20.000 para no pagar envío. */
   const falta=Math.max(0,LIBRE-subtotal);
+  /* La promo manda sobre el envío en la barra fija: el envío gratis ya se dice
+     en el banner y en la hoja, y «1 más y es GRATIS» es lo que hace sumar una. */
+  const vuelta=piezas%PROMO.lleva;
   $('#dock-n').textContent = piezas
     ? piezas+(piezas===1?' pieza':' piezas')
-      +(libre?' · envío gratis'
+      +(vuelta===PROMO.lleva-1?' · ¡1 más y es GRATIS!'
+        :nGratis?' · '+nGratis+' GRATIS'
+        :libre?' · envío gratis'
         :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
     : 'Tu selección está vacía';
   $('#dock-p').textContent=cop(total);
@@ -1236,9 +1286,8 @@ function render(){
   dbar.classList.toggle('is-ok',libre);
   dbar.firstElementChild.style.width=subtotal>0?Math.min(100,subtotal/LIBRE*100)+'%':'0';
 
-  pintarEscalera(nC);
   pintarSug();
-  pintarCross(nC,brutoC,brutoB,descB);
+  pintarCross(piezas);
   guardar();
 }
 
@@ -1338,43 +1387,15 @@ $('#sug-tira').addEventListener('click',e=>{
   setTimeout(()=>{ sugPausa=false; pintarSug(); },900);
 });
 
-/* El tramo de la escalera en el que va la clienta ahora mismo.
- *
- * La escalera de la portada es informativa mientras el carrito está vacío,
- * pero en cuanto hay charms deja de ser un cartel y pasa a decir dónde está
- * parada: la selección se guarda entre visitas, así que quien vuelve con dos
- * charms ve marcado el 8% y, justo al lado, lo que le falta para el siguiente.
- * El tope se marca en 4 porque de ahí en adelante el descuento ya no sube. */
-function pintarEscalera(nC){
-  document.querySelectorAll('#esc .esc-t').forEach(t=>{
-    t.classList.toggle('is-now', nC>0 && +t.dataset.n===Math.min(nC,4));
-  });
-}
-
-/* Venta cruzada, al fijar el brazalete.
- *
- * La promo «brazalete + 3 charms = 30% menos» estaba anunciada arriba, en una
- * tarjeta, y no en el momento en que se decide: al elegir el brazalete la
- * página no volvía a mencionarla y la clienta seguía sola. Este aviso la trae
- * al momento exacto.
- *
- * La cifra es el descuento que gana sobre lo que YA lleva —la misma disciplina
- * de #desc-nota—, nunca una rebaja del total: el charm que añada lo paga. Y se
- * apaga solo al llegar a 3, que es donde el 30% ya está activo; seguir
- * empujando después sería pedir por pedir. */
-function pintarCross(nC,brutoC,brutoB,descB){
+/* Venta cruzada, al fijar el brazalete: le recuerda en ese momento que con
+   4 piezas una sale gratis, y cuántas le faltan. Se apaga al llegar a 4, que
+   es donde la promo ya está activa; seguir empujando sería pedir por pedir. */
+function pintarCross(piezas){
   const xs=$('#xs');
-  if(xsFuera||!base||nC>=3||brutoB<=0){ xs.hidden=true; return; }
-  if(nC===0){
-    $('#xs-tx').innerHTML='Tu brazalete ya está. Con <b>3 charms</b> baja un 30%: '
-      +'<b>'+cop(Math.round(brutoB*.30))+' menos</b>, sin códigos ni letra pequeña.';
-  }else{
-    const extra=Math.round(brutoC*(escala(3)-escala(nC))+(brutoB*.30-descB));
-    const faltan=3-nC;
-    $('#xs-tx').innerHTML='Llevas '+nC+(nC===1?' charm':' charms')+'. Con '
-      +(faltan===1?'uno más':faltan+' más')+' se activa el 30% del brazalete y el 15% '
-      +'en charms: <b>'+cop(extra)+' menos</b> en lo que ya llevas.';
-  }
+  if(xsFuera||!base||piezas>=PROMO.lleva){ xs.hidden=true; return; }
+  const faltan=PROMO.lleva-piezas;
+  $('#xs-tx').innerHTML='Tu brazalete ya está. Suma <b>'+faltan+(faltan===1?' pieza más':' piezas más')
+    +'</b> y la de menor valor te sale <b>GRATIS</b>.';
   xs.hidden=false;
 }
 
@@ -1865,6 +1886,48 @@ if(catBtn&&catMenu){
   catBtn.addEventListener('click',()=>{ const v=catMenu.hidden; catMenu.hidden=!v; catBtn.setAttribute('aria-expanded',v?'true':'false'); });
   document.addEventListener('click',e=>{ if(!e.target.closest('.tnav-cat')) cerrarCatMenu(); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarCatMenu(); });
+}
+
+/* Portada: primero lo más comprado (pedido del propietario, 2026-10-02).
+ *
+ * Con las ventas reales de netlify/functions/mas-vendidos —las mismas de la
+ * página «Más vendidos»—, en este orden: lo que más unidades vendió, después
+ * los destacados (.pc--top, que eligió el propietario) y después el resto como
+ * estaba. Se mueven las tarjetas que ya existen, no se copian: cada pieza
+ * sigue apareciendo una sola vez y conserva su estado (agotada, elegida).
+ *
+ *  · Brazaletes: dentro de cada nivel de precio. Los niveles se quedan —el de
+ *    $78.000 va primero y es donde están hoy los que más se venden—.
+ *  · Charms: el carrusel «Los charms favoritos» abre con los más vendidos que
+ *    estaban en el catálogo completo, seguidos de los destacados, hasta 12; si
+ *    se pasa, los últimos destacados vuelven al principio del catálogo. Y el
+ *    catálogo completo también abre con lo más vendido.
+ *
+ * Si la función no responde, la página queda como venía: nada se mueve. */
+function ordenarPorVentas(d){
+  const u={}; (d&&d.vendidas||[]).forEach(v=>{ u[v.id]=v.unidades; });
+  if(!Object.keys(u).length) return;
+  const peso=el=>(u[el.dataset.id]||0);
+  const reordenar=cont=>{
+    const cs=[...cont.children].filter(el=>el.matches('.pc'));
+    cs.map((el,i)=>[el,i]).sort((a,b)=>peso(b[0])-peso(a[0])||a[1]-b[1]).forEach(([el])=>cont.appendChild(el));
+  };
+  document.querySelectorAll('#brazaletes .rail').forEach(reordenar);
+  const top=$('#rail-top'), resto=$('#resto-grid');
+  if(top&&resto){
+    const nuevos=[...resto.querySelectorAll(':scope > .pc')].filter(el=>u[el.dataset.id]&&!agotado(el.dataset.id))
+      .sort((a,b)=>peso(b)-peso(a));
+    nuevos.reverse().forEach(el=>top.insertBefore(el,top.firstChild));
+    reordenar(top);
+    const TOPE=12, sobran=[...top.children].slice(TOPE);
+    sobran.reverse().forEach(el=>{ el.classList.remove('pc--top'); resto.insertBefore(el,resto.firstChild); });
+    [...top.children].forEach(el=>el.classList.add('pc--top'));
+    reordenar(resto);
+  }
+  dispatchEvent(new Event('resize'));
+}
+if($('#rail-top')||$('#brazaletes .rail')){
+  fetch('.netlify/functions/mas-vendidos').then(r=>r.ok?r.json():null).then(ordenarPorVentas).catch(()=>{});
 }
 
 /* «Más vendidos» (coleccion-mas-vendidos.html): ventas reales de

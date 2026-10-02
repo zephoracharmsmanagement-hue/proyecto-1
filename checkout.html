@@ -85,6 +85,12 @@ button{font-family:inherit}
 .rrow-n small{display:block;font-size:12px;color:var(--gris-suave);letter-spacing:.05em;
   text-transform:uppercase;margin-top:1px}
 .rrow-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
+/* La pieza que sale gratis por «lleva 4, paga 3»: precio tachado y GRATIS
+   resaltado, como pidió el propietario. */
+.rrow-p--gratis{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}
+.rrow-p--gratis s{font-size:12px;color:var(--gris-suave)}
+.rrow-p--gratis b{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:#fff;
+  background:var(--bien);border-radius:3px;padding:2px 7px;margin-top:2px}
 .tot-row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;
   color:#6d6070;padding:5px 0}
 .tot-row b{font-weight:400;color:var(--ink)}
@@ -120,7 +126,7 @@ button{font-family:inherit}
 .dto-pasos li::before{content:"";display:block;height:5px;border-radius:3px;background:var(--line);
   margin-bottom:4px;transition:background .3s ease}
 .dto-pasos li.is-on::before{background:var(--pagar)}
-.dto-pasos li.is-ya{color:var(--ink);font-weight:600}
+.dto-pasos li.is-free{color:var(--pagar);font-weight:600;letter-spacing:.06em}
 .dto.is-max .dto-pasos li.is-on::before{background:var(--bien)}
 .dto-nota{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:var(--gris)}
 .dto-nota b{font-weight:600;color:var(--pagar)}
@@ -657,36 +663,50 @@ function guardarCarrito(){
 /* Las mismas reglas que index.html y que netlify/functions/_precios.js. Aquí
    solo se muestran: lo que se cobra lo vuelve a calcular el servidor, que es
    el único que no se puede alterar desde la consola del navegador. */
+/* «Lleva 4, paga 3»: por cada 4 piezas —brazalete o charm— salen gratis las
+   más baratas. Mismo desempate que piezasGratis() de _precios.js (a igual
+   precio, los charms antes que el brazalete), para que la línea tachada aquí
+   sea la misma que dice el correo. */
+function gratisDe(c){
+  const P=CAT.reglas.promo;
+  const piezas=c.charms.map(id=>({id:id,p:CAT.precios[id]}));
+  if(c.base) piezas.push({id:c.base.id,p:CAT.precios[c.base.id]});
+  const n=Math.floor(piezas.length/P.lleva)*(P.lleva-P.paga);
+  return piezas.map((x,i)=>[x,i]).sort((a,b)=>a[0].p-b[0].p||a[1]-b[1]).slice(0,n).map(x=>x[0]);
+}
 function calcular(c){
-  const R=CAT.reglas, nC=c.charms.length;
+  const R=CAT.reglas;
   const brutoC=c.charms.reduce((s,id)=>s+CAT.precios[id],0);
-  const escala=nC<=0?0:R.escalaCharms[Math.min(nC,R.escalaCharms.length-1)];
-  const descC=brutoC*escala;
   const brutoB=c.base?CAT.precios[c.base.id]:0;
-  const descB=(c.base&&nC>=R.minCharmsParaDescuento)?brutoB*R.descuentoBrazalete:0;
-  const subtotal=brutoC-descC+brutoB-descB;
+  const libres=gratisDe(c);
+  const desc=libres.reduce((s,x)=>s+x.p,0);
+  const subtotal=brutoC+brutoB-desc;
   /* El envío gratis es solo del pago anticipado; la contraentrega lo paga
      siempre. Misma regla que index.html y que _precios.js, que es quien cobra. */
   const alcanza=subtotal>=R.envioGratisDesde;
   const gratis=alcanza&&(!R.envioGratisSoloAnticipado||c.pago==='anticipado');
   const envio=(subtotal<=0||gratis)?0:R.envio[c.pago];
-  return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(descC+descB),
+  return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(desc),nGratis:libres.length,
     subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,
     total:Math.round(subtotal+envio)};
 }
 
 function lineas(c){
-  const out=[];
+  const out=[], libres={};
+  gratisDe(c).forEach(x=>libres[x.id]=(libres[x.id]||0)+1);
   if(c.base) out.push({id:c.base.id,
     n:CAT.nombres[c.base.id].replace(/^Pulsera /,'Brazalete '),
     m:'Baño de plata'+(c.base.talla?' · Talla '+c.base.talla+' cm':''),
-    p:CAT.precios[c.base.id]});
+    p:CAT.precios[c.base.id], gratis:!!libres[c.base.id]});
   const cuenta={};
   c.charms.forEach(id=>cuenta[id]=(cuenta[id]||0)+1);
+  /* Las unidades gratis, en su propia línea con el precio tachado. */
   Object.keys(cuenta).forEach(id=>{
-    const n=cuenta[id];
-    out.push({id:id,n:CAT.nombres[id]+(n>1?' ×'+n:''),m:'Charm · Plata 925',
-      p:CAT.precios[id]*n});
+    const g=libres[id]||0, pagas=cuenta[id]-g;
+    if(pagas) out.push({id:id,n:CAT.nombres[id]+(pagas>1?' ×'+pagas:''),m:'Charm · Plata 925',
+      p:CAT.precios[id]*pagas});
+    if(g) out.push({id:id,n:CAT.nombres[id]+(g>1?' ×'+g:''),m:'Charm · Plata 925',
+      p:CAT.precios[id]*g, gratis:true});
   });
   return out;
 }
@@ -707,12 +727,15 @@ function pintarResumen(){
         +'&quot;<span class=\\&quot;rrow-nof\\&quot; aria-hidden=\\&quot;true\\&quot;>'+ini+'</span>&quot;">'
       : '<span class="rrow-nof" aria-hidden="true">'+ini+'</span>';
     return '<div class="rrow">'+img+'<span class="rrow-n">'+esc(l.n)
-      +'<small>'+esc(l.m)+'</small></span><span class="rrow-p">'+cop(l.p)+'</span></div>';
+      +'<small>'+esc(l.m)+'</small></span>'
+      +(l.gratis?'<span class="rrow-p rrow-p--gratis"><s>'+cop(l.p)+'</s><b>GRATIS</b></span>'
+        :'<span class="rrow-p">'+cop(l.p)+'</span>')+'</div>';
   }).join('');
 
   let h='';
   h+='<div class="tot-row"><span>Subtotal</span><b>'+cop(t.brutoC+t.brutoB)+'</b></div>';
-  if(t.descuento>0) h+='<div class="tot-row save"><span>Descuento promo</span><b>− '+cop(t.descuento)+'</b></div>';
+  if(t.descuento>0) h+='<div class="tot-row save"><span>'+(t.nGratis>1?t.nGratis+' piezas gratis':'Pieza gratis')
+    +' · lleva 4, paga 3</span><b>− '+cop(t.descuento)+'</b></div>';
   h+=t.gratis
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
@@ -814,87 +837,31 @@ function pintarPagoElegido(t){
     : 'Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.';
 }
 
-/* Por qué añadir uno más, dicho con la cifra concreta.
- *
- * Antes decía siempre lo mismo —«cada charm que sumes baja el descuento»—, que
- * es cierto y no mueve a nadie. Ahora nombra el tramo que se desbloquea y lo
- * que baja sobre lo que YA lleva, con la misma disciplina que el aviso del
- * armador: nunca se promete que el total baje, porque no baja —el charm que
- * añada lo paga—. Prometer un ahorro que no existe se descubre en la pantalla
- * de pago, con la clienta ya decidida.
- *
- * Los porcentajes salen de las reglas, no del texto: si la escala cambia, esta
- * frase cambia con ella. */
-function motivoSug(){
-  const R=CAT.reglas, nC=carrito.charms.length;
-  const esc=n=>n<=0?0:R.escalaCharms[Math.min(n,R.escalaCharms.length-1)];
-  if(!nC) return 'Cada charm que sumes baja el descuento de todo lo que llevas.';
-
-  const tope=R.escalaCharms.length-1;
-  const brazalete=carrito.base&&nC+1>=R.minCharmsParaDescuento&&nC<R.minCharmsParaDescuento;
-  if(esc(nC+1)<=esc(nC)&&!brazalete){
-    return 'Ya tienes el descuento máximo por cantidad; estos suman a la misma pulsera.';
-  }
-
-  const brutoC=carrito.charms.reduce((s,id)=>s+CAT.precios[id],0);
-  const brutoB=carrito.base?CAT.precios[carrito.base.id]:0;
-  const dcto=n=>brutoC*esc(n)+((carrito.base&&n>=R.minCharmsParaDescuento)?brutoB*R.descuentoBrazalete:0);
-  const extra=Math.round(dcto(nC+1)-dcto(nC));
-
-  /* Al llegar al último tramo la promesa se dice en piezas —«llevas 4 y pagas
-     3»— y no en porcentaje, que es como está anunciada en la portada. Solo si
-     la escala de verdad descuenta uno de cada N; si alguien la mueve, se cae a
-     decir el porcentaje en vez de prometer algo que no se cumple. */
-  const nuevo=nC+1;
-  const paga=nuevo*(1-esc(nuevo));
-  const enPiezas=nuevo>=tope&&Math.abs(paga-Math.round(paga))<1e-9&&paga<nuevo;
-  const gana=enPiezas
-    ? 'Suma uno más y llevas '+nuevo+' pagando '+Math.round(paga)
-    : 'Con un charm más el descuento sube al '+Math.round(esc(nuevo)*100)+'%';
-
-  return gana+(brazalete?' y se activa el 30% del brazalete':'')
-    +(extra>0?': '+cop(extra)+' menos en lo que ya llevas.':'.');
-}
-
-/* La escalera del descuento: dónde está la clienta y qué le da el siguiente
- * charm. Los tramos, los porcentajes y la cifra en pesos salen de las mismas
- * reglas que `calcular()`, así que no pueden prometer otra cosa que lo que el
- * resumen cobra; el siguiente paso lo dice `motivoSug()`, con su misma
- * prudencia (baja lo que ya lleva, no el total). */
+/* Barra de «Lleva 4, paga 3»: cuatro casillas por vuelta, la cuarta es la
+ * gratis, y un aviso que dice cuántas piezas faltan para la próxima. La misma
+ * del carrito (render() en tienda.js). Aquí también sirve: quien llega con 3
+ * piezas puede volver atrás por la cuarta. */
 function pintarDescuento(c,t){
-  const caja=$('#dto'), R=CAT.reglas, nC=c.charms.length;
-  const tope=R.escalaCharms.length-1;
-  const tramo=n=>n<=0?0:R.escalaCharms[Math.min(n,tope)];
-  if(!nC&&!c.base){ caja.hidden=true; return; }
+  const caja=$('#dto'), P=CAT.reglas.promo;
+  const piezas=c.charms.length+(c.base?1:0);
+  if(!piezas){ caja.hidden=true; return; }
   caja.hidden=false;
-
+  const L=P.lleva, vuelta=piezas%L, llenas=vuelta||L, faltan=L-vuelta;
   const pasos=[];
-  for(let n=1;n<=tope;n++){
-    const pct=Math.round(tramo(n)*100);
-    const cls=[nC>=n?'is-on':'', Math.min(nC,tope)===n?'is-ya':''].join(' ').trim();
-    pasos.push('<li'+(cls?' class="'+cls+'"':'')+'>'+n+(n===tope?'+':'')
-      +(pct?' · −'+pct+'%':(n===1?' charm':''))+'</li>');
+  for(let n=1;n<=L;n++){
+    const cls=[n<=llenas?'is-on':'', n===L?'is-free':''].join(' ').trim();
+    pasos.push('<li'+(cls?' class="'+cls+'"':'')+'>'+(n===L?'GRATIS':n)+'</li>');
   }
   const ol=$('#dto-pasos');
-  ol.style.setProperty('--n',tope);
+  ol.style.setProperty('--n',L);
   ol.innerHTML=pasos.join('');
-
-  const max=nC>=tope;
-  caja.classList.toggle('is-max',max);
-  const brz=c.base&&nC>=R.minCharmsParaDescuento;
-  let nota;
-  if(max){
-    nota='✓ Tienes el descuento máximo: <b>'+Math.round(tramo(nC)*100)+'%</b> en charms'
-      +(brz?' y <b>'+Math.round(R.descuentoBrazalete*100)+'%</b> en el brazalete':'')
-      +' (−'+cop(t.descuento)+').';
-  }else if(!nC){
-    let n=1; while(n<tope&&!tramo(n)) n++;
-    nota='Desde '+n+' charms tienes <b>'+Math.round(tramo(n)*100)+'%</b> de descuento, y con '
-      +R.minCharmsParaDescuento+' el brazalete va con '+Math.round(R.descuentoBrazalete*100)+'%.';
-  }else{
-    nota=(t.descuento>0?'Ya ahorras <b>'+cop(t.descuento)+'</b>. ':'')+esc(motivoSug());
-  }
-  $('#dto-nota').innerHTML=nota;
+  caja.classList.toggle('is-max',!vuelta);
+  const pz=n=>n+(n===1?' pieza':' piezas');
+  $('#dto-nota').innerHTML=!vuelta
+    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>! Con '+pz(L)+' más, otra te sale gratis.'
+    : (t.nGratis?'Ya tienes <b>'+pz(t.nGratis)+' GRATIS</b>. ':'')
+      +(faltan===1?'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!'
+        :'¡Agrega <b>'+pz(faltan)+' más</b> y una te sale GRATIS!');
 }
 
 /* ——— geografía ——— */

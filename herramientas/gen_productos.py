@@ -39,7 +39,6 @@ o si el precio que muestra la tarjeta no es el de catalogo.json.
 import html as H
 import json
 import re
-import subprocess
 import sys
 import urllib.parse
 
@@ -52,10 +51,10 @@ MAX_BRAZALETES = 4
 # Ids que tienda.js crea él mismo; no tienen que venir en el HTML.
 IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res'}
 # Ids de la ficha de producto que tienda.js usa SOLO tras comprobar que
-# existen (el selector de paquetes no existe en un brazalete, por ejemplo).
+# existen (las estrellas no existen sin reseñas, por ejemplo).
 # Si se agrega aquí uno que se use sin comprobar, la página se queda sin
 # carrito en silencio: cada uno de estos va con su `if(el)` en tienda.js.
-IDS_OPCIONALES = {'pq-mas', 'pq-faltan', 'pp-estrellas', 'pp-vendidas', 'pp-compra', 'pp-agotado',
+IDS_OPCIONALES = {'pq-mas', 'pp-estrellas', 'pp-vendidas', 'pp-compra', 'pp-agotado',
                   'pp-encargo', 'pp-desc', 'rp-resumen', 'rp-lista', 'rp-form', 'rp-escribir',
                   # Solo en la portada (EN_PORTADA) y en coleccion-mas-vendidos.html.
                   'charms', 'mv-aviso', 'mv-relleno', 'mv-relleno-sec', 'mv-vendidas'}
@@ -292,7 +291,7 @@ BLOQUE_BRAZALETES = '''
   <div class="wrap">
     <span class="eyebrow">La base</span>
     <h2>Llévalo en un brazalete</h2>
-    <p class="col-sub">Con brazalete y tres charms, el brazalete baja un 30%. El descuento se aplica solo en el carrito.</p>
+    <p class="col-sub">El brazalete cuenta como una pieza más: lleva 4 y la de menor valor te sale gratis.</p>
     <div class="grid">
 {tarjetas}
     </div>
@@ -314,52 +313,6 @@ def tira_letras(pid, cat):
             '  <span class="eyebrow">Todas las iniciales</span>\n  <ul>%s</ul>\n</nav>\n' % items)
 
 
-# ── Paquetes: todos los números salen de calcular() ─────────────────────────
-
-def calcular_paquetes(pedidos):
-    """Totales de los paquetes 1–4 de cada página, con calcular() de verdad y en
-    una sola corrida de node para las 135. Nunca una tabla escrita a mano: si el
-    precio y el cobro se separan, esto cambia solo y pruebas/paginas.js compara
-    lo publicado contra calcular() otra vez.
-
-    `pedidos` es una lista de {pid, base, ref}: con `base` el paquete es
-    brazalete + N charms de `ref`; sin ella, N unidades de `pid`."""
-    guion = '''
-const {calcular} = require('./netlify/functions/_precios.js');
-const cat = require('./assets/catalogo.json');
-const pedidos = JSON.parse(require('fs').readFileSync(0, 'utf8'));
-const out = {};
-for (const p of pedidos) {
-  out[p.pid] = [1, 2, 3, 4].map(n => {
-    const charms = Array(n).fill(p.ref || p.pid);
-    const c = calcular({ base: p.base ? { id: p.base, talla: null } : null, charms, pago: 'anticipado' });
-    const lista = (p.base ? cat.precios[p.base] : 0) + n * cat.precios[p.ref || p.pid];
-    return { n, total: c.total, lista, ahorro: lista - c.total };
-  });
-}
-console.log(JSON.stringify(out));
-'''
-    r = subprocess.run(['node', '-e', guion], cwd=RAIZ, input=json.dumps(pedidos),
-                       capture_output=True, text=True, encoding='utf-8')
-    if r.returncode != 0:
-        raise SystemExit('calcular() falló al armar los paquetes:\n' + r.stderr)
-    return json.loads(r.stdout)
-
-
-def charm_de_referencia(cat, stock):
-    """Para el paquete de un brazalete hace falta el precio de «un charm». Se
-    toma el precio más común entre los charms con unidades, y se dice en la
-    página con qué precio se calculó: un total sin esa aclaración prometería
-    un número que con otros charms no sale."""
-    precios = {}
-    for p, v in cat['precios'].items():
-        if p in cat['pulseras'] or (unidades(stock.get(p)) or 0) <= 0:
-            continue
-        precios.setdefault(v, []).append(p)
-    v = max(precios, key=lambda k: (len(precios[k]), k))
-    return precios[v][0], v
-
-
 # Medios de pago, sutiles, encima de la línea de Addi (pedido del propietario,
 # 2026-09-26). Los mismos archivos oficiales que ya usa la sección de pagos de
 # la portada (assets/pagos/, misma versión de caché).
@@ -372,51 +325,42 @@ WA = 'https://wa.me/573018990672?text='
 WA_ADDI = WA + 'Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.'
 
 
-def fila_paquete(p, rotulo, radio, marcado):
-    tachado = '<s>%s</s> ' % cop(p['lista']) if p['ahorro'] > 0 else ''
-    ahorro = '<span class="pq-a">Ahorras %s</span>' % cop(p['ahorro']) if p['ahorro'] > 0 else ''
-    entrada = ('<input type="radio" name="pq" value="%d"%s>' % (p['n'], ' checked' if marcado else '')) if radio else ''
-    tag = 'label' if radio else 'div'
-    return ('        <%s class="pq-o%s">%s<span class="pq-n">%s</span>'
-            '<span class="pq-p">%s<b data-total="%d">%s</b></span>%s</%s>'
-            % (tag, ' pq-o--best' if p['n'] == 4 else '', entrada, rotulo, tachado, p['total'],
-               cop(p['total']), ahorro, tag))
+# «Lleva 4, paga 3» en un solo recuadro, junto al precio (pedido del
+# propietario, 2026-10-02). Reemplaza al selector de paquetes «Compra 1 / 2 /
+# 3 / Lleva 4», que con la escalera vieja obligaba a comparar cuatro totales.
+# Es el mismo recuadro de la portada (#promo en index.html).
+PROMO_CAJA = (
+    '      <div class="promo-caja">\n'
+    '        <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Lleva 4 piezas, paga&nbsp;3.</b></p>\n'
+    '        <p class="promo-caja-x">Agrega 4 artículos a tu carrito (charms o brazaletes) y el de menor '
+    'valor te sale totalmente <b>GRATIS</b>. <span>(Se aplica automáticamente).</span></p>\n'
+    '      </div>')
 
 
-def bloque_compra(pid, tipo, nombre, precio, paquetes, hay, ref_precio, primeras, cat):
-    """Selector de paquetes, vitrina, botones, medios de pago y suscripción.
+def bloque_compra(pid, tipo, nombre, hay, primeras):
+    """Recuadro de la promo, botones, vitrina, medios de pago y suscripción.
     Todo el bloque se esconde si la pieza está agotada (lo decide tienda.js con
     la disponibilidad real, y aquí con el conteo de stock.json para quien no
     tiene JavaScript).
 
-    La vitrina (pedido del propietario, 2026-09-26) va en TODAS las fichas: la
-    clienta elige charms de cualquier colección sin salir de la página. En los
-    charms se abre al elegir 2, 3 o 4; en los brazaletes está siempre, porque
-    ahí es donde se arma la pulsera. Sin pestaña de brazaletes en la ficha de
-    un brazalete: el carrito lleva uno solo, y ofrecer otro ahí lo cambiaría."""
+    La vitrina (pedido del propietario, 2026-09-26) va en TODAS las fichas,
+    debajo de los botones: la clienta suma piezas de cualquier colección sin
+    salir de la página, que es justo lo que pide «lleva 4, paga 3». En los
+    charms antes se abría al elegir 2, 3 o 4 en el selector de paquetes, que ya
+    no existe; ahora está siempre. Sin pestaña de brazaletes en la ficha de un
+    brazalete: el carrito lleva uno solo, y ofrecer otro ahí lo cambiaría."""
     if tipo == 'brazalete':
-        filas = '\n'.join(fila_paquete(p, 'Brazalete + %d charm%s' % (p['n'], 's' if p['n'] > 1 else ''), False, False)
-                          for p in paquetes)
-        selector = ('      <div class="pq pq--b">\n        <p class="pq-t">Arma tu pulsera: el descuento sube con cada charm</p>\n'
-                    + filas + '\n        <p class="pq-nota">Desde 3 charms el brazalete baja 30%%. Totales calculados con '
-                    'charms de %s, con pago en línea; con otros charms cambia el total, y el descuento se aplica '
-                    'solo en el carrito.</p>\n'
-                    '        <div class="pq-mas pq-mas--b">\n          <p class="pq-mas-t">Elige los charms de tu pulsera aquí mismo</p>\n'
-                    '          %s\n        </div>\n      </div>' % (cop(ref_precio), vitrina(primeras, 'Más pedidos', sin=pid, brazaletes=False)))
         botones = ('      <div class="pp-cta"><button class="btn" type="button" data-comprar="%s">Comprar ahora</button></div>\n'
-                   '      <p class="pp-nota-t">Elige tu talla en la pieza de arriba para agregarla al carrito.</p>' % pid)
+                   '      <p class="pp-nota-t">Elige tu talla en la pieza de arriba para agregarla al carrito.</p>\n'
+                   '      <div class="pq-mas pq-mas--b">\n        <p class="pq-mas-t">Elige los charms de tu pulsera aquí mismo</p>\n'
+                   '        %s\n      </div>' % (pid, vitrina(primeras, 'Más pedidos', sin=pid, brazaletes=False)))
     else:
-        cuatro_por_tres = paquetes[3]['total'] == 3 * precio
-        rotulos = ['Compra 1', 'Compra 2', 'Compra 3', 'Lleva 4, paga 3' if cuatro_por_tres else 'Compra 4']
-        filas = '\n'.join(fila_paquete(p, rotulos[i], True, hay and p['n'] == 2) for i, p in enumerate(paquetes))
-        selector = ('      <fieldset class="pq">\n        <legend class="pq-t">Elige cuántos charms llevas</legend>\n'
-                    + filas + '\n        <p class="pq-nota">El descuento se aplica solo en el carrito, con cualquier '
-                    'combinación de charms. Totales con charms de este mismo precio y pago en línea.</p>\n'
-                    '        <div class="pq-mas" id="pq-mas" hidden>\n          <p class="pq-mas-t">Completa tu paquete: '
-                    'elige <b id="pq-faltan">1 charm</b> más</p>\n          ' + vitrina(primeras, 'Relacionados', sin=pid)
-                    + '\n        </div>\n      </fieldset>')
         botones = ('      <div class="pp-cta">\n        <button class="btn btn--ghost" type="button" data-add="%s">Agregar al carrito</button>\n'
-                   '        <button class="btn" type="button" data-comprar="%s">Comprar ahora</button>\n      </div>' % (pid, pid))
+                   '        <button class="btn" type="button" data-comprar="%s">Comprar ahora</button>\n      </div>\n'
+                   '      <div class="pq-mas" id="pq-mas">\n        <p class="pq-mas-t">Completa tu set: con 4 piezas, '
+                   'la de menor valor es <b>GRATIS</b></p>\n        %s\n      </div>'
+                   % (pid, pid, vitrina(primeras, 'Relacionados', sin=pid)))
+    selector = PROMO_CAJA
     oculto = '' if hay else ' hidden'
     return ('      <div class="pp-compra" id="pp-compra"%s>\n%s\n%s\n'
             '        <div class="pp-pago">\n%s'
@@ -501,7 +445,6 @@ def acordeones(tipo, meta, grupo, cat):
                      % (' open' if abierto else '', t, c) for t, c, abierto in secciones)
 
 
-ORDINAL = {2: 'segundo', 3: 'tercer', 4: 'cuarto', 5: 'quinto'}
 
 
 def bloques_media(pid, tipo, hay, cat, arma_href=None):
@@ -515,9 +458,6 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
     (netlify/functions/media.mjs). Solo viaja la portada (preload="none"); el
     mismo observer de los videos de clientas los arranca al verse."""
     r = cat['reglas']
-    dto_b = round(r['descuentoBrazalete'] * 100)
-    desde = ORDINAL.get(r['minCharmsParaDescuento'], '%dº' % r['minCharmsParaDescuento'])
-    dto_4 = round(r['escalaCharms'][4] * 100)
     es_b = tipo == 'brazalete'
 
     if es_b:
@@ -532,8 +472,8 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
         t2 = ('Plata 925 <b>hipoalergénica y libre de níquel</b>, hecha para <b>usarse a diario</b>, incluso '
               'en piel sensible. Si con el tiempo se oscurece, es natural en la plata real: <b>un paño le '
               'devuelve el brillo</b> en segundos.')
-    t3 = ('Combina héroes, iniciales y símbolos en <b>un solo brazalete</b>. Desde el %s charm <b>el '
-          'brazalete baja %d%%</b>, y <b>llevando 4, pagas %d%% menos</b> en tus charms.' % (desde, dto_b, dto_4))
+    t3 = ('Combina héroes, iniciales y símbolos en <b>un solo brazalete</b>. Mezcla charms y brazaletes: '
+          '<b>lleva %d piezas y paga %d</b> —la de menor valor te sale gratis—.' % (r['promo']['lleva'], r['promo']['paga']))
     t4 = ('Tu pedido llega en <b>su caja</b>, con <b>paño para limpiar la plata</b> y una <b>dedicatoria '
           'escrita a mano</b> con las palabras que tú elijas. Solo falta entregarla… o quedártela.')
 
@@ -618,7 +558,7 @@ def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
     return json.dumps(d, ensure_ascii=False).replace('</', '<\\/')
 
 
-def generar(pid, html, cat, stock, b, exigidos, paquetes, ref):
+def generar(pid, html, cat, stock, b, exigidos):
     tipo = ('brazalete' if pid in cat['pulseras']
             else 'inicial' if pid.startswith('letra-') else 'charm')
     grupo = {'brazalete': 'Brazaletes', 'inicial': 'Iniciales'}.get(tipo) or cat['grupos'].get(pid, 'Charms')
@@ -638,15 +578,12 @@ def generar(pid, html, cat, stock, b, exigidos, paquetes, ref):
     hay = (unidades(stock.get(pid)) or 0) > 0
 
     rel = relacionadas(pid, tipo, grupo, cat, stock)
-    pq = paquetes[pid]
     rel_sub = ''
     if tipo == 'brazalete':
         rel_eyebrow, rel_titulo, id_rel = 'Brazaletes', 'Más brazaletes', ' id="brazaletes"'
         bloque_b = ''
     else:
-        # La venta cruzada dice el ahorro de llevar dos, calculado, no prometido.
-        rel_sub = ('<p class="col-sub">Juntos rinden más: llevando dos charms de %s ahorras %s, y el descuento '
-                   'sigue subiendo con cada uno.</p>' % (cop(precio), cop(pq[1]['ahorro']))) if pq[1]['ahorro'] > 0 else ''
+        rel_sub = '<p class="col-sub">Juntos rinden más: lleva 4 piezas y la de menor valor te sale gratis.</p>'
         mismo = tipo == 'charm' and any(cat['grupos'].get(p) == grupo for p in rel)
         rel_eyebrow = grupo if mismo else 'Zephora'
         rel_titulo = ('Más de %s' % grupo) if mismo else 'Las más pedidas'
@@ -664,11 +601,11 @@ def generar(pid, html, cat, stock, b, exigidos, paquetes, ref):
         jsonld=jsonld(pid, nombre, imagen, precio, grupo, hay, canon), pid=pid,
         head=b['head'], ann=b['ann'], header=b['header'], migas=migas(tipo, grupo, nombre),
         tarjeta='    ' + tarjeta, id_rel=id_rel, rel_sub=rel_sub,
-        bloque_compra=bloque_compra(pid, tipo, nombre, precio, pq, hay, ref[1],
+        bloque_compra=bloque_compra(pid, tipo, nombre, hay,
                                     list(dict.fromkeys(
                                         c for c in (rel + cat['destacados'] + list(cat['precios']))
                                         if c != pid and c in cat['precios'] and c not in cat['pulseras']
-                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16], cat),
+                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16]),
         beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat),
         bloque_resenas=BLOQUE_RESENAS.format(nombre=H.escape(nombre)),
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),
@@ -752,12 +689,9 @@ def main():
 
     # Primero se generan y comprueban TODAS; solo después se escribe. Una sola
     # página rota para la tanda entera en vez de dejar la mitad escrita.
-    ref = charm_de_referencia(cat, stock)
-    paquetes = calcular_paquetes([
-        {'pid': p, 'base': p, 'ref': ref[0]} if p in cat['pulseras'] else {'pid': p} for p in todos])
     salida, cuenta = [], {}
     for pid in todos:
-        pagina, tipo = generar(pid, html, cat, stock, b, exigidos, paquetes, ref)
+        pagina, tipo = generar(pid, html, cat, stock, b, exigidos)
         salida.append((pid, pagina))
         cuenta[tipo] = cuenta.get(tipo, 0) + 1
 

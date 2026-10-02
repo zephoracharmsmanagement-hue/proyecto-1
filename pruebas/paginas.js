@@ -145,7 +145,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
-  const { calcular } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
 
   const b = await chromium.launch();
   for (const [tipo, id] of tipos) {
@@ -200,21 +199,21 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
     if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}.png`), fullPage: false });
 
-    // Los paquetes que se publican son los que cobra el servidor.
-    const pq = await p.$$eval('.pq [data-total]', bs => bs.map(x => +x.dataset.total));
-    if (cat.pulseras.includes(id)) {
-      const nota = await p.textContent('.pq-nota');
-      const refP = +((nota.match(/charms de \$([\d.]+)/) || [])[1] || '0').replace(/\./g, '');
-      const ref = Object.keys(cat.precios).find(i => cat.precios[i] === refP && !cat.pulseras.includes(i));
-      const esperado = [1, 2, 3, 4].map(n => calcular({ base: { id, talla: null }, charms: Array(n).fill(ref), pago: 'anticipado' }).total);
-      ok(ref && JSON.stringify(pq) === JSON.stringify(esperado), `paquetes brazalete + 1–4 charms = calcular() (${pq.join(' · ')})`);
-    } else if (hay(id)) {
-      const esperado = [1, 2, 3, 4].map(n => calcular({ base: null, charms: Array(n).fill(id), pago: 'anticipado' }).total);
-      ok(JSON.stringify(pq) === JSON.stringify(esperado), `paquetes 1–4 = calcular() (${pq.join(' · ')})`);
-      await p.check('.pq input[value="3"]');
-      const mas = await p.evaluate(() => ({ v: !document.getElementById('pq-mas').hidden, f: document.getElementById('pq-faltan').textContent,
+    /* «Lleva 4, paga 3» en un solo recuadro junto al precio (pedido del
+       propietario, 2026-10-02): ni la cuadrícula de paquetes ni porcentajes. La
+       regla que dice es la de catalogo.json, que es con la que se cobra. */
+    if (hay(id)) {
+      const { lleva, paga } = cat.reglas.promo;
+      const caja = await p.evaluate(() => { const c = document.querySelector('#pp-compra .promo-caja');
+        return c ? { t: c.textContent.replace(/\s+/g, ' '), antesDeBotones: !!(c.compareDocumentPosition(document.querySelector('#pp-compra .pp-cta')) & 4) } : null; });
+      ok(caja && new RegExp(`Lleva ${lleva} piezas, paga ${paga}`).test(caja.t) && /menor valor/.test(caja.t) && caja.antesDeBotones,
+        `recuadro «lleva ${lleva}, paga ${paga}» junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
+      ok(!(await p.$('.pq, .pq-o')), 'sin la cuadrícula de paquetes');
+    }
+    if (!cat.pulseras.includes(id) && hay(id)) {
+      const mas = await p.evaluate(() => ({ v: !!document.getElementById('pq-mas') && !document.getElementById('pq-mas').hidden,
         n: document.querySelectorAll('#pq-mas [data-add]').length }));
-      ok(mas.v && mas.f === '2 charms' && mas.n > 0, `al elegir 3 se abre «completa tu paquete: elige ${mas.f} más» con ${mas.n} opciones`);
+      ok(mas.v && mas.n > 0, `«Completa tu set» a la vista, con ${mas.n} piezas para sumar sin salir de la página`);
       const dock0 = { n: (await p.textContent('#dock-n')).trim(), b: (await p.textContent('#dock-send')).trim() };
       ok(dock0.n === (await p.evaluate(() => document.querySelector('.pc--pp .pc-name').textContent)).trim() && dock0.b === 'Agregar',
         `con el carrito vacío la barra fija ofrece «${dock0.b}» esta pieza`);
@@ -358,7 +357,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
     const charm = tipos.find(t => t[0] === 'charm con unidades')[1];
     await p.goto(BASE + '/' + archivoDe(charm), { waitUntil: 'networkidle' });
-    await p.check('.pq input[value="2"]');
     const tabs = await p.$$eval('.vit-tab', x => x.map(t => t.textContent));
     ok(tabs[0] === 'Relacionados' && grupos.every(g => tabs.includes(g)) && tabs.includes('Iniciales') && tabs.includes('Brazaletes'),
       `pestañas: ${tabs.join(' · ')}`);
@@ -615,7 +613,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       return { id, f, misma: p.url() === antes };
     };
     await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
-    await p.check('.pq input[value="2"]');
     let r = await tocarVit('.vit .vit-it');
     ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible && r.f.pag === 'producto-' + encodeURIComponent(r.id) + '.html',
       `en la ficha de Hulk, tocar «${r.f.n}» en el carrusel abre su ficha con foto y «Ver la página completa» (${r.f.pag})`);

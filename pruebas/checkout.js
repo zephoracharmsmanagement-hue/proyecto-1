@@ -211,17 +211,18 @@ async function llenarDatos(p, d) {
   }
 
   // ——— 2ba · la escalera del descuento ———
-  out.push('\n2ba · La barra del descuento por cantidad, visible sin abrir el resumen');
+  out.push('\n2ba · La barra de «lleva 4, paga 3», visible sin abrir el resumen');
   {
     /* Lo que sostiene la barra: que se vea en el móvil con el resumen cerrado
-       —si hay que abrirlo, no empuja—, que llene tantos tramos como charms
-       lleva, y que cada cifra que dice sea la de las mismas reglas que cobran. */
+       —si hay que abrirlo, no empuja—, que llene una casilla por pieza de la
+       vuelta en curso (brazalete y charms cuentan igual) y que diga cuántas
+       faltan para la gratis, o la celebre. */
     const casos = [
-      { charms: [], base: true, llenos: 0, dice: /desde 2 charms/i },
-      { charms: ['iron-man'], base: true, llenos: 1, dice: /8%/ },
-      { charms: ['iron-man', 'stitch'], base: true, llenos: 2, dice: /ya ahorras.*15%.*30% del brazalete/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: false, llenos: 3, dice: /ya ahorras/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, llenos: 4, dice: /máximo.*25%.*30%.*brazalete/i },
+      { charms: [], base: true, llenos: 1, dice: /Agrega 3 piezas más/i },
+      { charms: ['iron-man'], base: true, llenos: 2, dice: /Agrega 2 piezas más/i },
+      { charms: ['iron-man', 'stitch'], base: true, llenos: 3, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, llenos: 4, dice: /Felicidades, tienes 1 pieza GRATIS/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, llenos: 2, dice: /Ya tienes 1 pieza GRATIS.*Agrega 2 piezas más/i },
     ];
     for (const k of casos) {
       const p = await b.newPage({ viewport: { width: 390, height: 844 } });
@@ -239,16 +240,20 @@ async function llenarDatos(p, d) {
       });
       const n = k.charms.length + ' charm' + (k.charms.length === 1 ? '' : 's') + (k.base ? ' + brazalete' : '');
       ok(r.visible && r.cerrado, `${n}: la barra se ve con el resumen cerrado`);
-      ok(r.tramos === 4 && r.llenos === k.llenos, `${n}: llena ${k.llenos} de 4 tramos`, `${r.llenos}/${r.tramos}`);
+      ok(r.tramos === 4 && r.llenos === k.llenos, `${n}: llena ${k.llenos} de 4 casillas`, `${r.llenos}/${r.tramos}`);
       ok(k.dice.test(r.nota), `${n}: dice lo que corresponde`, r.nota);
-      /* La cifra de «ya ahorras» o «descuento máximo» es la línea «Descuento
-         promo» del resumen, no otra cuenta. */
-      if (/ahorras|máximo/i.test(r.nota)) {
-        const promo = await p.evaluate(() => {
-          const f = [...document.querySelectorAll('#res-totales .tot-row.save b')][0];
-          return f ? f.textContent.replace(/[−\s]/g, '') : '';
+      /* Con una gratis, la línea de esa pieza va tachada con «GRATIS» y lo
+         tachado es exactamente el renglón del descuento del resumen. */
+      if (/GRATIS/.test(r.nota) && /tienes/i.test(r.nota)) {
+        const g = await p.evaluate(() => {
+          const t = [...document.querySelectorAll('#res-lineas .rrow-p--gratis s')].map(s => +s.textContent.replace(/\D/g, ''));
+          const f = document.querySelector('#res-totales .tot-row.save b');
+          return { tachado: t.reduce((a, b) => a + b, 0), lineas: t.length,
+            dice: [...document.querySelectorAll('#res-lineas .rrow-p--gratis b')].every(b => b.textContent.trim() === 'GRATIS'),
+            resumen: f ? +f.textContent.replace(/\D/g, '') : 0 };
         });
-        ok(promo && r.nota.includes(promo), `${n}: el ahorro que nombra es el del resumen`, promo);
+        ok(g.lineas === 1 && g.dice && g.tachado === g.resumen && g.resumen > 0,
+          `${n}: la pieza gratis sale tachada con «GRATIS» y cuadra con el resumen`, JSON.stringify(g));
       }
       await p.close();
     }

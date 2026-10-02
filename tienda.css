@@ -32,6 +32,10 @@ button{font-family:inherit}
 .ann-slide:nth-child(2){animation-delay:-10s}
 .ann-slide:nth-child(3){animation-delay:-5s}
 .ann b{font-weight:500;color:#fff}
+/* Un solo aviso, fijo: sin rotación. Es un enlace a la promo de la portada. */
+.ann-slide:only-child{opacity:1;animation:none}
+a.ann-slide{color:inherit;text-decoration:none}
+.ann-slide:only-child b{font-weight:600;letter-spacing:.06em}
 @keyframes annf{0%{opacity:0}4%,29%{opacity:1}33%,100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){
   .ann-slide{animation:none;opacity:0}
@@ -192,53 +196,8 @@ button{font-family:inherit}
 .ben svg{flex:0 0 auto;margin-top:1px}
 .ben b{font-weight:500;color:var(--ink)}
 
-/* 3 · promo · escalera de descuento
- *
- * La escala por cantidad —8 / 15 / 25%— existía desde el principio, pero solo
- * se veía dentro del armador, cuando la clienta ya había elegido. Aquí sube a
- * la portada como lo que en realidad es: el motivo para llevar un charm más.
- * Antes este sitio era una tarjeta de texto que describía dos descuentos
- * anidados en prosa y obligaba a hacer la cuenta.
- *
- * Las cuentas ensartadas no son adorno: cada tramo dibuja tantas como charms
- * pide, van sobre un hilo que cruza los cuatro, y en el último la cuarta va
- * hueca porque es justo la que no se paga. */
-.promo{padding:34px 0}
-.promo-head{max-width:640px;margin:0 auto 22px;text-align:center}
-.promo-head h2{font-size:clamp(26px,6.4vw,38px);line-height:1.15;margin:9px 0 10px}
-.promo-head p{margin:0 auto;color:#6d6070;font-size:14.5px;max-width:50ch}
-
-.esc{list-style:none;margin:0 0 20px;padding:0;position:relative;
-  display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.esc-t{background:var(--white);border:1px solid var(--line);border-radius:3px;
-  padding:20px 10px 14px;text-align:center;display:flex;flex-direction:column;
-  align-items:center;position:relative}
-/* El tramo que la clienta ya alcanzó, marcado desde el armador. */
-.esc-t.is-now{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
-.esc-t--top{border-color:var(--rose)}
-
-/* Las cuentas. z-index las deja por encima del hilo, que pasa por detrás. */
-.esc-b{display:flex;gap:5px;align-items:center;justify-content:center;
-  height:14px;position:relative;z-index:2}
-.esc-b i{display:block;width:9px;height:9px;border-radius:50%;background:var(--plum);
-  box-shadow:0 0 0 3px var(--white)}
-.esc-b i.free{width:11px;height:11px;background:transparent;
-  border:1.5px solid var(--rose);box-shadow:0 0 0 3px var(--white)}
-
-.esc-n{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;
-  font-size:clamp(34px,9vw,44px);line-height:1;margin-top:14px}
-.esc-u{font-size:12px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--gris-suave);margin-top:6px}
-.esc-p{margin-top:14px;width:100%;font-size:12px;letter-spacing:.09em;
-  text-transform:uppercase;padding:9px 4px;border-radius:2px;
-  border:1px solid var(--line);color:var(--gris-suave);line-height:1.25}
-.esc-t--off .esc-p{background:var(--rose-soft);border-color:var(--rose-soft);color:var(--plum)}
-.esc-t--top .esc-p{background:var(--pagar);border-color:var(--pagar);color:#fff;font-weight:600}
-.esc-x{margin-top:8px;font-size:12px;color:#6d6070;line-height:1.35;min-height:2.7em}
-.esc-x b{font-weight:500;color:var(--ink)}
-.esc-tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);
-  background:var(--ink);color:var(--bone);font-size:12px;letter-spacing:.14em;
-  text-transform:uppercase;padding:4px 9px;border-radius:1px;white-space:nowrap}
+/* Promo de la portada: un solo recuadro (.promo-caja, al final del archivo). */
+.promo{padding-top:34px;padding-bottom:34px}   /* sin tocar el lateral de .wrap */
 
 /* secciones producto */
 section{scroll-margin-top:64px}
@@ -748,18 +707,6 @@ section{scroll-margin-top:64px}
 .link-all:hover{background:var(--ink);color:var(--bone)}
 
 /* compra por categoría */
-.cats{padding:34px 0;border-top:1px solid var(--line)}
-.cats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.cat{display:block;text-decoration:none;background:var(--white);border:1px solid var(--line);
-  border-radius:3px;overflow:hidden;transition:border-color .2s}
-.cat:hover{border-color:var(--plum)}
-.cat-ph{aspect-ratio:1;background:#fff;overflow:hidden}
-.cat-ph img{width:100%;height:100%;object-fit:contain;transition:transform .5s ease}
-.cat:hover .cat-ph img{transform:scale(1.06)}
-.cat-label{padding:12px 8px;text-align:center;font-size:12px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--ink);border-top:1px solid var(--line);background:var(--rose-soft)}
-.cat-label small{display:block;font-size:12px;letter-spacing:.08em;text-transform:none;
-  color:var(--gris);margin-top:4px}
 
 /* carrusel horizontal de producto */
 .rail-wrap{position:relative}
@@ -952,6 +899,11 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .srow-n{font-size:14px;line-height:1.3;min-width:0}
 .srow-n small{display:block;font-size:12px;color:#a495a8;letter-spacing:.05em;text-transform:uppercase}
 .srow-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
+/* La pieza gratis de «lleva 4, paga 3»: precio tachado y GRATIS resaltado. */
+.srow--gratis .srow-p{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}
+.srow--gratis .srow-p s{font-size:12px;color:#a495a8}
+.srow--gratis .srow-p b{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:#1b3b30;
+  background:#7fc7ae;border-radius:3px;padding:2px 7px;margin-top:2px}
 .srow-x{width:30px;height:30px;border:0;border-radius:50%;background:rgba(255,255,255,.1);
   color:#d9cede;font-size:14px;cursor:pointer;flex:0 0 auto;line-height:1}
 .srow-x:hover{background:var(--rose);color:#fff}
@@ -976,7 +928,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .desc-nota b{color:var(--bone);font-weight:400}
 /* Escalera del descuento en barra, sobre el fondo oscuro de la hoja: los
    mismos tonos rosa y verde de las notas de Addi y del regalo. */
-.hoja-dto-caja{margin:16px 0 0;padding:12px 14px 13px;border:1px solid rgba(255,255,255,.1);
+.hoja-dto-caja{margin:14px 18px 6px;padding:12px 14px 13px;border:1px solid rgba(255,255,255,.1);
   border-radius:10px;background:rgba(255,255,255,.04)}
 .hoja-dto-caja[hidden]{display:none}
 .hoja-dto-t{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver)}
@@ -987,7 +939,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .hoja-dto li::before{content:"";display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.13);
   margin-bottom:4px;transition:background .3s ease}
 .hoja-dto li.is-on::before{background:#e39aae}
-.hoja-dto li.is-ya{color:var(--bone);font-weight:600}
+.hoja-dto li.is-free{color:#f0c6d3;font-weight:600;letter-spacing:.06em}
 .hoja-dto.is-max li.is-on::before{background:#7fc7ae}
 .desc-nota.is-max,.desc-nota.is-max b{color:#7fc7ae}
 @media(prefers-reduced-motion:reduce){.hoja-dto li::before{transition:none}}
@@ -1062,12 +1014,6 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .hbanner-copy{padding:48px 16px 0}
   .bens-in{grid-template-columns:repeat(4,1fr);gap:0 26px;padding:6px 24px}
   .ben+.ben{border-top:0}
-  .esc{grid-template-columns:repeat(4,1fr);gap:12px}
-  /* El hilo solo aparece con los cuatro tramos en una fila: en 2×2
-     cruzaría en diagonal y dejaría de leerse como una pulsera. */
-  .esc::before{content:'';position:absolute;left:14px;right:14px;top:30px;
-    height:1px;background:var(--line);z-index:1}
-  .esc-t{padding:22px 14px 16px}
   .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   /* El .rail sangra 16px a cada lado para llegar al borde de la pantalla en
      celular. Dentro de una columna de escritorio eso se sale del contenedor,
@@ -1082,7 +1028,8 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .trust div+div{border-top:0;border-left:1px solid var(--line)}
   .trust div:nth-child(n+4){border-top:1px solid var(--line)}
   .trust div:nth-child(4){border-left:0}
-  .sec,.social,.trust-sec,.cats,.promo{padding:46px 0}
+  .sec,.social,.trust-sec{padding:46px 0}
+  .promo{padding-top:46px;padding-bottom:46px}
   .story,.plata{padding:52px 0}
   .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
   .talla-sec,.pe{padding:46px 0}
@@ -1102,7 +1049,6 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .pc--letras .pc-img{flex:0 0 210px;aspect-ratio:auto;border-radius:3px 0 0 3px}
   .pc--letras .pc-body{flex:1;padding:18px 20px}
   .letras-grid{grid-template-columns:repeat(auto-fill,minmax(48px,1fr))}
-  .cats-grid{grid-template-columns:repeat(4,1fr);gap:14px}
   .guar-in{grid-template-columns:repeat(4,1fr);padding:34px 24px}
   .rail{grid-auto-columns:minmax(200px,1fr);gap:16px;margin:0;padding:2px 0 10px}
   .rail-btn{display:flex}
@@ -1563,3 +1509,40 @@ p,li,dd,.pp-acc-in{line-height:1.55}
    y un tono suave mientras llega la propia portada. */
 .ugc-v,.bv-v{background-position:center;background-size:contain;background-repeat:no-repeat}
 .bv-v{background-color:var(--rose-soft)}
+
+/* «Lleva 4, paga 3» en un solo recuadro: portada (#promo) y fichas de
+   producto, junto al precio. Reemplaza a la cuadrícula de tramos (.esc) y al
+   selector de paquetes (.pq). */
+.promo-caja{border:1px solid var(--rose);background:var(--rose-soft,#F3E6EB);border-radius:6px;
+  padding:14px 16px;text-align:left}
+.promo-caja p{margin:0}
+.promo-caja-t{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--plum);margin-bottom:6px!important}
+.promo-caja-t b{font-weight:600;color:var(--ink)}
+.promo-caja-x{font-size:14px;line-height:1.5;color:#4a3d4e}
+.promo-caja-x b{font-weight:700;color:var(--pagar,#8E3B5C);letter-spacing:.04em}
+.promo-caja-x span{color:var(--gris,#6d6070);font-size:13px}
+#promo{padding-top:26px;padding-bottom:26px}
+#promo .promo-caja{max-width:620px;margin:0 auto;padding:18px 20px}
+.pp-compra .promo-caja{margin:0 0 14px}
+
+/* Reseñas de la portada en carrusel: tarjetas iguales, foto arriba (cuadrada),
+   estrellas, texto y nombre. Una tarjeta y un pedazo de la siguiente a la vista
+   en el celular, para que se lea que se desliza. */
+.tst-rail{grid-auto-columns:78%;gap:12px;align-items:stretch;scroll-snap-type:x mandatory}
+.tst{margin:0;background:var(--white);border:1px solid var(--line);border-radius:4px;
+  display:flex;flex-direction:column;overflow:hidden;scroll-snap-align:start;position:relative}
+.tst-ph{border-radius:0}
+.tst-ph img{aspect-ratio:4/3;width:100%;object-fit:cover;border-radius:0}
+.tst-tx{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1}
+.tst .estrellas{display:flex;gap:2px;margin-bottom:8px}
+.tst blockquote{margin:0 0 14px;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:18px;line-height:1.35;color:var(--ink);flex:1}
+.tst figcaption{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);padding-top:10px}
+.tst-tag{position:absolute;top:10px;left:10px;margin:0;background:rgba(255,255,255,.92);
+  padding:5px 8px;border-radius:2px;font-size:11px}
+.tst-prom{display:flex;align-items:center;gap:6px;margin:6px 0 0;font-size:14px;color:var(--gris)}
+.tst-prom[hidden]{display:none}
+.tst-pts{display:flex;justify-content:center;gap:7px;margin:12px 0 0}
+.tst-pts i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background .2s}
+.tst-pts i.is-on{background:var(--plum)}
+@media(min-width:700px){.tst-rail{grid-auto-columns:calc((100% - 24px)/3)}}
