@@ -535,15 +535,10 @@
   "letra-z": "letra-z.webp"
  },
  "reglas": {
-  "escalaCharms": [
-   0.0,
-   0.0,
-   0.08,
-   0.15,
-   0.25
-  ],
-  "descuentoBrazalete": 0.3,
-  "minCharmsParaDescuento": 3,
+  "promo": {
+   "lleva": 4,
+   "paga": 3
+  },
   "envioGratisDesde": 0,
   "envioGratisSoloAnticipado": true,
   "envio": {

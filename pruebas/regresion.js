@@ -70,16 +70,20 @@ const U = BASE + '/index.html';
     `\n  total: ${destacados + revelados}\n  rótulo actual del botón: "${rotulo.trim()}"`);
 
   // ---- 4. Categorías ----
-  /* La primera tarjeta que todavía filtra. No se clava el nombre: una
-     categoría que gana página propia pierde su data-cat —Marvel el
-     2026-09-19— y esta prueba se quedaba esperando un elemento que ya no
-     existe. */
-  const cat = await p.getAttribute('.cat[data-cat]', 'data-cat');
-  await p.click(`.cat[data-cat="${cat}"]`);
+  /* Las tarjetas grandes de «Compra por categoría» se quitaron de la portada
+     el 2026-10-02 (pedido del propietario); las categorías siguen en el menú
+     de la cabecera, con el mismo data-cat y el mismo manejador. Se prueba la
+     primera que todavía filtra: no se clava el nombre, porque una categoría
+     que gana página propia pierde su data-cat —Marvel el 2026-09-19—. El clic
+     va por evaluate porque el menú vive plegado en el celular. */
+  const sinTarjetas = (await p.locator('#categorias, .cats').count()) === 0;
+  const cat = await p.getAttribute('#cat-menu [data-cat]', 'data-cat');
+  await p.evaluate(c => document.querySelector(`#cat-menu [data-cat="${c}"]`).click(), cat);
   await p.waitForTimeout(400);
   const catOn = await p.locator(`#filters .fbtn[data-f="${cat}"].is-on`).count();
   const cuentaCat = await p.locator('#count').textContent();
-  out.push(`\nTarjeta de categoría "${cat}"\n  filtro aplicado: ${catOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaCat}"`);
+  out.push(`\nCategoría "${cat}" desde el menú de la cabecera\n  filtro aplicado: ${catOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaCat}"`
+    + `\n  sin las tarjetas de «Compra por categoría» en la portada: ${sinTarjetas ? 'sí ✓' : 'NO ✗'}`);
 
   // ---- 5. Eventos del pixel en clic a WhatsApp ----
   await p.evaluate(() => { window.__ev = []; window.fbq = (a, b, c) => window.__ev.push([a, b, c]); });
@@ -141,7 +145,7 @@ const U = BASE + '/index.html';
   out.push('\nVenta cruzada y envío gratis en la barra fija'
     + `\n  oculto antes de elegir brazalete: ${xsAntes === false ? 'sí ✓' : 'NO ✗ (sale vacío)'}`
     + `\n  aparece al fijar el brazalete: ${xsBase ? 'sí ✓' : 'NO ✗'}`
-    + `\n  y nombra el 30% del brazalete: ${/30\s*%/.test(xsTxt) ? 'sí ✓' : 'NO ✗'} — "${xsTxt}"`
+    + `\n  y dice cuántas piezas faltan para la GRATIS: ${/Suma 3 piezas más.*GRATIS/.test(xsTxt) ? 'sí ✓' : 'NO ✗'} — "${xsTxt}"`
     + `\n  la barra dice cuánto falta para envío gratis: `
     + `${/para envío gratis|envío gratis/.test(dockBase) ? 'sí ✓' : 'NO ✗'} — "${dockBase}"`
     + `\n  se retira con ${puestos} charms puestos: `
@@ -436,6 +440,101 @@ const U = BASE + '/index.html';
     await p.waitForTimeout(120);
     const des = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     out.push(`  scroll horizontal a ${w}px: ${des <= 0 ? 'no ✓' : des + 'px ✗'}`);
+  }
+
+  /* Las políticas dicen lo mismo que cobra la tienda (2026-10-02: la de envíos
+     seguía en $15.000 / $25.000 / gratis desde $180.000 cuando la tienda ya
+     cobraba gratis sin mínimo / $20.000). Las cifras salen de catalogo.json, que
+     es lo que usa el checkout, así que un cambio de tarifa que no pase por las
+     páginas legales se ve aquí. */
+  {
+    const R = require(require('path').join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
+    const pesos = n => '$' + Number(n).toLocaleString('es-CO').replace(/,/g, '.');
+    const textoDe = async u => { await p.goto(BASE + '/' + u, { waitUntil: 'domcontentloaded' });
+      return p.evaluate(() => document.querySelector('main, body').textContent.replace(/\s+/g, ' ')); };
+    const env = await textoDe('envios-y-devoluciones.html'), faq = await textoDe('preguntas-frecuentes.html');
+    const gratisSinMinimo = R.envioGratisDesde <= 0 && R.envioGratisSoloAnticipado;
+    const malas = [];
+    for (const [nombre, t] of [['envíos', env], ['preguntas', faq]]) {
+      if (!t.includes(pesos(R.envio.contraentrega))) malas.push(`${nombre}: falta la contraentrega ${pesos(R.envio.contraentrega)}`);
+      if (gratisSinMinimo && !/gratis[^.]*sin monto m[ií]nimo/i.test(t)) malas.push(`${nombre}: no dice «gratis sin monto mínimo»`);
+      for (const viejo of ['$25.000', '$180.000']) if (t.includes(viejo) && !Object.values(R.envio).map(pesos).includes(viejo)) malas.push(`${nombre}: aún dice ${viejo}`);
+    }
+    out.push(`  las políticas dicen las tarifas de envío que cobra la tienda: ${malas.length ? 'NO ✗ ' + malas.join(' · ') : 'sí ✓'}`);
+    /* Y se leen con margen: un `padding` abreviado en .doc dejaba el texto
+       pegado al borde del celular (visto el 2026-10-02). */
+    await p.setViewportSize({ width: 390, height: 844 });
+    await p.goto(BASE + '/envios-y-devoluciones.html', { waitUntil: 'domcontentloaded' });
+    const margen = await p.evaluate(() => Math.round(document.querySelector('.doc h1').getBoundingClientRect().left));
+    out.push(`  las páginas legales tienen margen a los lados en el celular (${margen} px): ${margen >= 12 ? 'sí ✓' : 'NO ✗'}`);
+  }
+
+  // ---- Portada del 2026-10-02: lo más vendido primero y reseñas en carrusel ----
+  /* Ventas y reseñas simuladas: la prueba no puede depender de lo que se haya
+     vendido hoy. Un brazalete y un charm del catálogo completo «vendieron», y
+     tienen que abrir sus carruseles; las reseñas con foto se suman al de
+     reseñas, todas con la misma forma, y las de solo texto no. */
+  {
+    const q = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+    q.on('pageerror', e => errores.push('portada: ' + e.message));
+    const brz = 'pulsera-trebol-verde', ch = 'iron-man';
+    await q.route(/\/\.netlify\/functions\/mas-vendidos/, r => r.fulfill({ json: { ventasRegistradas: 5, vendidas: [{ id: ch, unidades: 5 }, { id: brz, unidades: 3 }], disponibles: {} } }));
+    await q.route(/\/\.netlify\/functions\/resenas/, r => r.fulfill({ json: { total: 3, promedio: 4.7, resenas: [
+      { estrellas: 5, texto: 'Con foto', nombre: 'Ana', ciudad: 'Cali', verificada: false, fotos: ['/resenas?medio=x%2Fy%2Ff1.jpg'], video: null },
+      { estrellas: 4, texto: 'Solo texto', nombre: 'Bea', ciudad: '', verificada: false, fotos: [], video: null },
+      { estrellas: 5, texto: '<img src=x onerror=alert(1)>', nombre: 'Eva', ciudad: '', verificada: false, fotos: ['/resenas?medio=a%2Fb%2Ff1.jpg'], video: null }] } }));
+    await q.route(/\/resenas\?medio=/, r => r.fulfill({ status: 404, body: '' }));
+    await q.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
+    await q.waitForTimeout(500);
+    const r = await q.evaluate(([brz, ch]) => {
+      const nivel = document.querySelector(`#brazaletes .pc[data-id="${brz}"]`).closest('.rail');
+      return {
+        brz: nivel.querySelector('.pc').dataset.id,
+        top: document.querySelector('#rail-top .pc').dataset.id,
+        /* El primero en el orden y también a la vista: al insertar por delante,
+           Chrome corría el carrusel para seguir mostrando el que ya se veía. */
+        aLaVista: [...document.querySelectorAll('#rail-top .pc')].find(c => c.getBoundingClientRect().right > 0).dataset.id,
+        unaVez: document.querySelectorAll(`.pc[data-id="${ch}"]`).length,
+        tarjetas: document.querySelectorAll('#tst-rail .tst').length,
+        /* Todas las de la tienda (2026-10-02): con foto primero; la de solo
+           texto, al final y con el recuadro de comillas en vez de foto. */
+        formas: [...document.querySelectorAll('#tst-rail .tst')].map(t => t.querySelector('img') ? 'f' : (t.querySelector('.tst-ph--txt') ? 't' : '?')).join(''),
+        soloTextoAlFinal: [...document.querySelectorAll('#tst-rail .tst')].pop().textContent.includes('Solo texto'),
+        wa: document.querySelectorAll('.wa-float').length,
+        contacto: (document.querySelector('#menu-panel .menu-contacto') || {}).textContent || '',
+        nivelesVisibles: [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length,
+        verMas: (document.getElementById('b-mas') || {}).textContent || '',
+        topForma: getComputedStyle(document.getElementById('rail-top')).display + ' ' + (document.getElementById('rail-top').scrollWidth <= document.getElementById('rail-top').clientWidth + 1 ? 'sin-deslizar' : 'desliza'),
+        inyectado: !!document.querySelector('#tst-rail img[src="x"]'),
+        puntos: document.querySelectorAll('#tst-pts i').length,
+        prom: document.getElementById('tst-prom').hidden ? '' : document.getElementById('tst-prom').textContent,
+        ancho: document.documentElement.scrollWidth,
+      };
+    }, [brz, ch]);
+    out.push('\nPortada: lo más vendido primero y reseñas en carrusel'
+      + `\n  el brazalete más vendido abre su nivel: ${r.brz === brz ? 'sí ✓' : 'NO ✗ (' + r.brz + ')'}`
+      + `\n  el charm más vendido abre «Los charms favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
+      + `\n  y es el que se ve primero, sin que el carrusel se corra: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
+      + `\n  y sigue apareciendo una sola vez: ${r.unaVez === 1 ? 'sí ✓' : 'NO ✗ (' + r.unaVez + ')'}`
+      + `\n  carrusel con todas las reseñas: 3 fijas + 3 = ${r.tarjetas}, foto primero y la de texto al final con su recuadro: ${r.tarjetas === 6 && r.formas === 'ffffft' && r.soloTextoAlFinal ? 'sí ✓' : 'NO ✗ (' + r.formas + ')'}`
+      + `\n  el texto de una reseña no se pinta como HTML: ${r.inyectado ? 'NO ✗' : 'sí ✓'}`
+      + `\n  un punto por tarjeta y el promedio real arriba: ${r.puntos === 6 && /4,7 de 5 · 3 reseñas/.test(r.prom) ? 'sí ✓' : 'NO ✗ (' + r.puntos + ', ' + r.prom + ')'}`
+      + `\n  la portada no se ensancha (${r.ancho}px): ${r.ancho <= 390 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  sin botón flotante de WhatsApp: ${r.wa === 0 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  el menú ☰ trae Contacto con el WhatsApp y el correo: ${/301 899 0672/.test(r.contacto) && /zephoracharms@gmail\.com/.test(r.contacto) ? 'sí ✓' : 'NO ✗ (' + r.contacto.trim() + ')'}`
+      + `\n  brazaletes: solo el primer nivel a la vista y «${r.verMas}»: ${r.nivelesVisibles === 1 && /Ver más brazaletes · \d+ modelos/.test(r.verMas) ? 'sí ✓' : 'NO ✗ (' + r.nivelesVisibles + ' niveles)'}`
+      + `\n  «Los charms favoritos» en cuadrícula, sin deslizar: ${r.topForma === 'grid sin-deslizar' ? 'sí ✓' : 'NO ✗ (' + r.topForma + ')'}`);
+    const niveles = () => q.evaluate(() => [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length);
+    const total = await q.evaluate(() => document.querySelectorAll('#brazaletes .tier').length);
+    await q.evaluate(() => document.querySelector('#b-filters [data-cf="corazon"]').click());
+    const conFiltro = await niveles();
+    await q.evaluate(() => document.querySelector('#b-filters [data-cf="todos"]').click());
+    const sinFiltro = await niveles();
+    await q.click('#b-mas');
+    const abiertos = await niveles();
+    out.push(`  un subfiltro muestra todos los niveles que lo cumplen (${conFiltro}) y «Todos» vuelve a uno (${sinFiltro}): ${conFiltro > 1 && sinFiltro === 1 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  «Ver más brazaletes» despliega los ${total} niveles (${abiertos}): ${abiertos === total ? 'sí ✓' : 'NO ✗'}`);
+    await q.close();
   }
 
   out.push(`\nErrores JS: ${errores.length ? errores.join(' | ') : 'ninguno ✓'}`);

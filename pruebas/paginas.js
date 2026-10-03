@@ -145,7 +145,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
-  const { calcular } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
 
   const b = await chromium.launch();
   for (const [tipo, id] of tipos) {
@@ -200,41 +199,54 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
     if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}.png`), fullPage: false });
 
-    // Los paquetes que se publican son los que cobra el servidor.
-    const pq = await p.$$eval('.pq [data-total]', bs => bs.map(x => +x.dataset.total));
-    if (cat.pulseras.includes(id)) {
-      const nota = await p.textContent('.pq-nota');
-      const refP = +((nota.match(/charms de \$([\d.]+)/) || [])[1] || '0').replace(/\./g, '');
-      const ref = Object.keys(cat.precios).find(i => cat.precios[i] === refP && !cat.pulseras.includes(i));
-      const esperado = [1, 2, 3, 4].map(n => calcular({ base: { id, talla: null }, charms: Array(n).fill(ref), pago: 'anticipado' }).total);
-      ok(ref && JSON.stringify(pq) === JSON.stringify(esperado), `paquetes brazalete + 1–4 charms = calcular() (${pq.join(' · ')})`);
-    } else if (hay(id)) {
-      const esperado = [1, 2, 3, 4].map(n => calcular({ base: null, charms: Array(n).fill(id), pago: 'anticipado' }).total);
-      ok(JSON.stringify(pq) === JSON.stringify(esperado), `paquetes 1–4 = calcular() (${pq.join(' · ')})`);
-      await p.check('.pq input[value="3"]');
-      const mas = await p.evaluate(() => ({ v: !document.getElementById('pq-mas').hidden, f: document.getElementById('pq-faltan').textContent,
+    /* «Lleva 4, paga 3» en un solo recuadro junto al precio (pedido del
+       propietario, 2026-10-02): ni la cuadrícula de paquetes ni porcentajes. La
+       regla que dice es la de catalogo.json, que es con la que se cobra. */
+    if (hay(id)) {
+      const { lleva, paga } = cat.reglas.promo;
+      const caja = await p.evaluate(() => { const c = document.querySelector('#pp-compra .promo-caja');
+        return c ? { t: c.textContent.replace(/\s+/g, ' '), antesDeBotones: !!(c.compareDocumentPosition(document.querySelector('#pp-compra .pp-cta')) & 4) } : null; });
+      ok(caja && new RegExp(`Lleva ${lleva} piezas, paga ${paga}`).test(caja.t) && /menor valor/.test(caja.t) && caja.antesDeBotones,
+        `recuadro «lleva ${lleva}, paga ${paga}» junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
+      ok(!(await p.$('.pq, .pq-o')), 'sin la cuadrícula de paquetes');
+    }
+    if (!cat.pulseras.includes(id) && hay(id)) {
+      const mas = await p.evaluate(() => ({ v: !!document.getElementById('pq-mas') && !document.getElementById('pq-mas').hidden,
         n: document.querySelectorAll('#pq-mas [data-add]').length }));
-      ok(mas.v && mas.f === '2 charms' && mas.n > 0, `al elegir 3 se abre «completa tu paquete: elige ${mas.f} más» con ${mas.n} opciones`);
+      ok(mas.v && mas.n > 0, `«Completa tu set» a la vista, con ${mas.n} piezas para sumar sin salir de la página`);
       const dock0 = { n: (await p.textContent('#dock-n')).trim(), b: (await p.textContent('#dock-send')).trim() };
       ok(dock0.n === (await p.evaluate(() => document.querySelector('.pc--pp .pc-name').textContent)).trim() && dock0.b === 'Agregar',
         `con el carrito vacío la barra fija ofrece «${dock0.b}» esta pieza`);
     }
 
     if (conDatos) {
-      const r = await p.evaluate(() => ({ top: document.getElementById('pp-estrellas').hidden ? '' : document.getElementById('pp-estrellas').textContent,
-        items: document.querySelectorAll('#rp-lista .rp-it').length, txt: document.getElementById('rp-lista').textContent,
-        html: document.getElementById('rp-lista').innerHTML, vend: document.getElementById('pp-vendidas').textContent }));
-      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2, `estrellas con el promedio y conteo reales («${r.top.trim()}»)`);
+      /* Desde el 2026-10-02 la ficha tiene una sola sección de reseñas, el
+         carrusel «Lo que dicen nuestras clientas» (#tst-rail): las tres fijas
+         y, detrás, todas las de la tienda —con foto primero, las de solo
+         texto después—, con el formulario debajo. Ya no está la lista
+         «Todas las reseñas de la tienda». */
+      const r = await p.evaluate(() => {
+        const nuevas = [...document.querySelectorAll('#tst-rail .tst')].slice(3);
+        return { top: document.getElementById('pp-estrellas').hidden ? '' : document.getElementById('pp-estrellas').textContent,
+          href: document.getElementById('pp-estrellas').getAttribute('href'),
+          items: nuevas.length, txt: nuevas.map(n => n.textContent).join(' '), html: nuevas.map(n => n.innerHTML).join(''),
+          orden: nuevas.map(n => n.classList.contains('tst--txt') ? 'texto' : 'foto').join(','),
+          lista: !!document.getElementById('rp-lista') || !!document.getElementById('resenas-pieza'),
+          form: !!document.querySelector('#reseñas #rp-form'), vend: document.getElementById('pp-vendidas').textContent };
+      });
+      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2 && r.href === '#reseñas', `estrellas con el promedio y conteo reales («${r.top.trim()}»), que llevan al carrusel`);
+      ok(r.orden === 'foto,texto', `las dos reseñas en el carrusel, la de foto primero (${r.orden})`);
+      ok(!r.lista && r.form, 'una sola sección de reseñas, con el formulario debajo del carrusel');
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
       ok((r.html.match(/<img /g) || []).length === 1 && r.html.includes('/resenas?medio=hulk') && !/javascript:|otro\.sitio/.test(r.html),
         'las fotos de la reseña salen, y solo las servidas por la propia tienda');
       // Tocar la foto la amplía en el visor de la página; antes era un enlace
       // a otra pestaña, y algunos celulares la descargaban (2026-09-27).
       const url0 = p.url();
-      await p.evaluate(() => document.querySelector('#rp-lista .rp-foto').click());
+      await p.evaluate(() => document.querySelector('#tst-rail .rp-foto').click());
       await p.waitForTimeout(200);
       const lb = await p.evaluate(() => ({ on: document.getElementById('lb').classList.contains('is-on'),
-        src: document.getElementById('lb-img').getAttribute('src') || '', enlaces: document.querySelectorAll('#rp-lista a[href*="medio="]').length }));
+        src: document.getElementById('lb-img').getAttribute('src') || '', enlaces: document.querySelectorAll('#tst-rail a[href*="medio="]').length }));
       ok(lb.on && lb.src.includes('medio=hulk') && p.url() === url0 && !lb.enlaces, 'tocar la foto de una reseña la amplía en la misma página, sin enlace que la descargue');
       await p.keyboard.press('Escape');
       ok((r.html.match(/Compra verificada/g) || []).length === 1, 'solo la reseña con pedido lleva «Compra verificada»');
@@ -358,7 +370,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
     const charm = tipos.find(t => t[0] === 'charm con unidades')[1];
     await p.goto(BASE + '/' + archivoDe(charm), { waitUntil: 'networkidle' });
-    await p.check('.pq input[value="2"]');
     const tabs = await p.$$eval('.vit-tab', x => x.map(t => t.textContent));
     ok(tabs[0] === 'Relacionados' && grupos.every(g => tabs.includes(g)) && tabs.includes('Iniciales') && tabs.includes('Brazaletes'),
       `pestañas: ${tabs.join(' · ')}`);
@@ -615,7 +626,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       return { id, f, misma: p.url() === antes };
     };
     await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
-    await p.check('.pq input[value="2"]');
     let r = await tocarVit('.vit .vit-it');
     ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible && r.f.pag === 'producto-' + encodeURIComponent(r.id) + '.html',
       `en la ficha de Hulk, tocar «${r.f.n}» en el carrusel abre su ficha con foto y «Ver la página completa» (${r.f.pag})`);
@@ -625,12 +635,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible, `en kits, el carrusel del kit abre la ficha de «${r.f.n}»`);
     const k = await p.evaluate(() => ({ primero: document.querySelector('.kit').id,
       piezas: document.querySelector('.kit .kit-paso:last-child').dataset.kitPiezas,
-      bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#rp-lista .rp-it').length,
+      bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#tst-rail .tst').length - 3, lista: !!document.getElementById('rp-lista'),
       formulario: !!document.getElementById('rp-form'), videos: document.querySelectorAll('.ugc-v').length }));
     ok(k.primero === 'kit-luz-y-suenos' && k.piezas === 'pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida',
       `el Kit Luz y Sueños sale primero, con sus 5 piezas (${k.piezas})`);
-    ok(k.bloques === 4 && k.resenas === 1 && !k.formulario && k.videos === 3,
-      `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda (sin formulario) y 3 videos de clientas`);
+    ok(k.bloques === 4 && k.resenas === 1 && !k.lista && !k.formulario && k.videos === 3,
+      `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda en el carrusel (sin lista aparte ni formulario) y 3 videos de clientas`);
     ok(!errs.length, 'consola limpia' + lista(errs));
     await ctx11.close();
   }

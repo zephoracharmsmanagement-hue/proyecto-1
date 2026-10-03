@@ -111,6 +111,18 @@ const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra'
     comprobar(cuerpoHtml.indexOf(limpio.notas) < cuerpoHtml.indexOf(limpio.direccion),
       'y van antes que la dirección, que es lo que se copia a la guía');
 
+    /* Desde el 2026-10-02 el checkout no pide documento. Sin él, el servidor
+       acepta el pedido y la hoja no imprime un «CC» suelto en la guía. */
+    const sinDoc = Object.assign({}, CLIENTE); delete sinDoc.tipodoc; delete sinDoc.documento;
+    let aceptado = null; try { aceptado = crearPago._interno.leerCliente(sinDoc); } catch (e) { aceptado = e.message; }
+    comprobar(aceptado && typeof aceptado === 'object', 'un pedido sin documento se acepta', typeof aceptado === 'string' ? aceptado : '');
+    if (aceptado && typeof aceptado === 'object') {
+      const h = correo.plantillaTienda({ referencia: 'ZC-261002-TEST0009', lineas: LINEAS, cuentas: CUENTAS, pago: 'contraentrega', cliente: aceptado });
+      const t = correo.textoTienda({ referencia: 'ZC-261002-TEST0009', lineas: LINEAS, cuentas: CUENTAS, pago: 'contraentrega', cliente: aceptado });
+      comprobar(!/>\s*CC\s*<br>/.test(h) && !/\nCC \n|\nCC\n/.test(t),
+        'y la hoja de despacho no imprime una línea de documento vacía');
+    }
+
     console.log('\n3 · Qué empacar');
     const piezas = LINEAS.filter(l => !cuerpoHtml.includes(l.nombre)).map(l => l.nombre);
     comprobar(piezas.length === 0, 'salen todas las piezas del pedido, empaque incluido',
@@ -232,6 +244,26 @@ const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra'
     globalThis.fetch = fetchReal;
     if (guardada === undefined) delete process.env.CORREO_TIENDA;
     else process.env.CORREO_TIENDA = guardada;
+  }
+
+  console.log('\n· «Lleva 4, paga 3» en el correo de la clienta');
+  {
+    /* Las líneas del correo van a precio de lista; sin el renglón de la promo
+       la suma no daba el total y la pieza gratis no aparecía por ningún lado. */
+    const precios = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
+    const pedido = precios.leerPedido({ base: { id: 'pulsera-corazon-liso', talla: '18' },
+      charms: ['stitch', 'stitch', 'angel-guardian'], pago: 'anticipado' });
+    const cuentas = precios.calcular(pedido), lineas = precios.detallar(pedido);
+    const datos = { titulo: 'Recibimos tu pedido', entrada: 'x', referencia: 'ZC-TEST-PROMO', lineas,
+      envio: cuentas.envio, envioGratis: cuentas.envioGratis, descuento: cuentas.descuento, total: cuentas.total,
+      pago: 'anticipado', cliente: { nombre: 'A', apellido: 'B', direccion: 'Calle 1', ciudad: 'Bogotá', depto: 'Bogotá D.C.', celular: '3000000000' }, pasos: [] };
+    const h = correo.plantilla(datos), t = correo.texto(datos);
+    const suma = lineas.reduce((s, l) => s + l.precio, 0) - cuentas.descuento + cuentas.envio;
+    comprobar(cuentas.descuento > 0 && suma === cuentas.total, 'líneas − promo + envío = total', `${precios.cop(suma)} vs ${precios.cop(cuentas.total)}`);
+    comprobar(/Lleva 4, paga 3/.test(h) && h.includes(precios.cop(cuentas.descuento)) && /Lleva 4, paga 3: − /.test(t),
+      'el correo trae el renglón de la promo, en HTML y en texto');
+    comprobar(/GRATIS/.test(h) && /\(GRATIS\)/.test(t), 'y marca la pieza que salió gratis', cuentas.gratis.join(','));
+    comprobar(/×2/.test(h), 'las líneas con varias unidades dicen cuántas');
   }
 
   console.log(fallos ? `\nHoja de despacho: ${fallos} en rojo` : '\nHoja de despacho en verde ✓');

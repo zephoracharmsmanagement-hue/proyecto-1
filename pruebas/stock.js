@@ -83,7 +83,7 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
     console.log('  · no hay ninguna inicial en cero: nada que comprobar');
   }
 
-  console.log('5 · descuentos intactos: 30% brazalete, 15% charms');
+  console.log('5 · «lleva 4, paga 3» intacto: brazalete + 3 charms, una gratis');
   /* Desde que el carrito persiste en localStorage, recargar ya no lo vacía:
      la Letra A del paso 4 volvería y descuadraría los totales de este paso.
      Se limpia explícito, que es lo que hoy significa «empezar de cero». */
@@ -117,8 +117,8 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
     charms: ['mickey-mouse', 'ariel', 'hulk'], pago: 'anticipado' }));
   console.log('   ', JSON.stringify(tot));
   ok(tot.save.replace(/\D/g, '') === String(esperado.descuento),
-    'ahorro = 30% del brazalete + 15% de los charms: ' + cop(esperado.descuento));
-  ok(esperado.descuento > 0, 'y los dos descuentos de verdad se aplicaron');
+    'ahorro = la pieza de menor valor, gratis: ' + cop(esperado.descuento));
+  ok(esperado.descuento > 0 && esperado.gratis.length === 1, 'y de verdad salió una pieza gratis', esperado.gratis.join(','));
   ok(tot.total.replace(/\D/g, '') === String(esperado.total),
     'el total de la pantalla es el que cobraría el servidor: ' + cop(esperado.total));
   ok(tot.lb.includes('18 cm'), 'el resumen muestra la talla');

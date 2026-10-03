@@ -85,6 +85,12 @@ button{font-family:inherit}
 .rrow-n small{display:block;font-size:12px;color:var(--gris-suave);letter-spacing:.05em;
   text-transform:uppercase;margin-top:1px}
 .rrow-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
+/* La pieza que sale gratis por «lleva 4, paga 3»: precio tachado y GRATIS
+   resaltado, como pidió el propietario. */
+.rrow-p--gratis{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}
+.rrow-p--gratis s{font-size:12px;color:var(--gris-suave)}
+.rrow-p--gratis b{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:#fff;
+  background:var(--bien);border-radius:3px;padding:2px 7px;margin-top:2px}
 .tot-row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;
   color:#6d6070;padding:5px 0}
 .tot-row b{font-weight:400;color:var(--ink)}
@@ -120,7 +126,7 @@ button{font-family:inherit}
 .dto-pasos li::before{content:"";display:block;height:5px;border-radius:3px;background:var(--line);
   margin-bottom:4px;transition:background .3s ease}
 .dto-pasos li.is-on::before{background:var(--pagar)}
-.dto-pasos li.is-ya{color:var(--ink);font-weight:600}
+.dto-pasos li.is-free{color:var(--pagar);font-weight:600;letter-spacing:.06em}
 .dto.is-max .dto-pasos li.is-on::before{background:var(--bien)}
 .dto-nota{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:var(--gris)}
 .dto-nota b{font-weight:600;color:var(--pagar)}
@@ -137,43 +143,7 @@ button{font-family:inherit}
 .aval-n b{font-weight:400;color:var(--ink)}
 .aval-e{display:flex;gap:1px;flex:0 0 auto}
 
-/* «Te puede interesar» — la tira de sugerencias.
-   Rueda con el dedo en móvil; en escritorio caben las seis. */
-.sug{margin-top:22px;border-top:1px solid var(--line);padding-top:18px}
-.sug-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 0 3px}
-.sug-h h3{font-size:19px}
-.sug-h span{font-size:12px;color:var(--gris-suave)}
-.sug-p{margin:0 0 12px;font-size:13px;color:#6d6070;line-height:1.5}
-.sug-tira{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;
-  scroll-snap-type:x proximity}
-.sug-c{flex:0 0 132px;scroll-snap-align:start;border:1px solid var(--line);border-radius:3px;
-  background:var(--white);padding:8px;display:flex;flex-direction:column;gap:6px}
-.sug-c img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff}
-.sug-n{font-size:12px;line-height:1.35;min-height:2.7em}
-.sug-pr{font-size:13px;color:var(--ink)}
-.sug-b{width:100%;border:1px solid var(--pagar);background:var(--white);color:var(--pagar);
-  border-radius:2px;padding:8px 6px;font-size:12px;letter-spacing:.06em;
-  text-transform:uppercase;cursor:pointer;transition:.15s}
-.sug-b:hover{background:var(--pagar);color:#fff}
-.sug-b.is-puesto{background:var(--bien);border-color:var(--bien);color:#fff;cursor:default}
-
 .res-editar{display:inline-block;margin-top:12px;font-size:12.5px}
-
-/* ——— pasos ——— */
-.pasos{display:flex;align-items:center;gap:0;margin:22px 0 26px;padding:0;list-style:none}
-.paso{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;
-  font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--gris-suave);
-  text-align:center}
-.paso::before{content:'';position:absolute;top:14px;left:-50%;width:100%;height:1px;
-  background:var(--line);z-index:0}
-.paso:first-child::before{display:none}
-.paso i{width:29px;height:29px;border-radius:50%;border:1px solid var(--line);background:var(--white);
-  display:flex;align-items:center;justify-content:center;font-style:normal;font-size:13px;
-  color:var(--gris-suave);position:relative;z-index:1;transition:.2s}
-.paso.is-on{color:var(--ink)}
-.paso.is-on i{border-color:var(--pagar);background:var(--pagar);color:#fff}
-.paso.is-ya{color:#6d6070}
-.paso.is-ya i{border-color:var(--plum);background:var(--plum);color:#fff}
 
 /* ——— paneles ——— */
 .panel{background:var(--white);border:1px solid var(--line);border-radius:3px;
@@ -200,7 +170,6 @@ button{font-family:inherit}
 .error{font-size:12px;color:var(--mal);line-height:1.45;display:none}
 .campo.mal .error{display:block}
 .dos{display:grid;grid-template-columns:1fr;gap:14px}
-.doc{display:grid;grid-template-columns:104px 1fr;gap:9px}
 
 /* ——— opciones (entrega, pago) ——— */
 .ops{display:grid;gap:11px}
@@ -242,6 +211,38 @@ button{font-family:inherit}
 .atras{background:none;border:0;color:var(--plum);font:400 12.5px/1 Jost;letter-spacing:.05em;
   cursor:pointer;padding:12px;min-height:44px}
 
+/* ——— una sola página (2026-10-02) ——— */
+.co-t{font-size:clamp(26px,7vw,34px);line-height:1.1;margin:22px 0 16px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.campo[hidden],.ops[hidden]{display:none}
+/* Lo opcional, plegado: una casilla limpia que abre su campo. */
+.extra{display:grid;gap:10px}
+.extra-t{display:flex;gap:11px;align-items:flex-start;cursor:pointer;padding:2px 0}
+.extra-t input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--pagar);flex:0 0 auto;cursor:pointer}
+.extra-t b{display:block;font-weight:400;font-size:14.5px;color:var(--ink)}
+.extra-t small{display:block;font-size:12.5px;color:var(--gris);margin-top:2px}
+/* La forma de pago que ya se eligió en el carrito, en una línea. */
+.pago-elegido{display:flex;align-items:center;gap:12px;border:1px solid var(--pagar);border-radius:3px;
+  padding:13px 14px;margin:6px 0 14px;background:#fff}
+.pago-elegido-tx{flex:1;min-width:0}
+.pago-elegido-tx b{display:block;font-weight:400;font-size:15px}
+.pago-elegido-tx span{display:block;font-size:12.5px;color:var(--gris);margin-top:2px;line-height:1.4}
+.cambiar{background:none;border:0;color:var(--plum);font:400 13px/1 Jost;text-decoration:underline;
+  text-underline-offset:3px;cursor:pointer;padding:10px 4px;min-height:44px;flex:0 0 auto}
+#ops-pago{margin:0 0 14px}
+.btn--grande{padding:18px 24px;font-size:15px;letter-spacing:.08em;font-weight:600}
+.legal{margin:10px 0 0;font-size:12px;color:var(--gris);line-height:1.5;text-align:center}
+#panel-pago .atras{display:block;margin:10px auto 0}
+/* En el celular el resumen pegado arriba ocupaba un tercio de la pantalla
+   mientras se llenan los datos. Al bajar queda compacto: total y escalera del
+   descuento, sin el texto, que ya se leyó al entrar. */
+@media(max-width:759px){
+  .res.is-compacto .dto-nota{display:none}
+  .res.is-compacto .res-bar{padding-top:7px;padding-bottom:5px}
+  .res.is-compacto .res-p{font-size:19px}
+  .res.is-compacto .dto{padding-bottom:7px}
+}
+
 /* ——— avisos ——— */
 .aviso{display:flex;gap:10px;align-items:flex-start;border-radius:3px;padding:13px 14px;
   font-size:13px;line-height:1.5;margin:0 0 16px}
@@ -273,7 +274,6 @@ button{font-family:inherit}
   .nav{grid-template-columns:auto 1fr;align-items:center}
   .nav .btn{width:auto;justify-self:end}
   .nav .atras{justify-self:start;text-align:left;padding-left:0}
-  .paso{font-size:12px}
   .cols{display:grid;grid-template-columns:1fr 344px;gap:26px;align-items:start}
   .res{position:static;border:0;background:none}
   .res-bar{display:none}
@@ -344,11 +344,14 @@ button{font-family:inherit}
   <div class="wrap">
     <div class="cols">
       <div>
-        <ol class="pasos" id="pasos">
-          <li class="paso is-on" data-p="1"><i>1</i>Tus datos</li>
-          <li class="paso" data-p="2"><i>2</i>Entrega</li>
-          <li class="paso" data-p="3"><i>3</i>Pago</li>
-        </ol>
+        <!-- Una sola página (pedido del propietario, 2026-10-02): antes eran
+             tres pasos —datos, entrega, pago— y cada «Continuar» era una puerta
+             más por donde irse. Sin documento (las transportadoras ya no lo
+             piden), sin volver a preguntar la forma de pago que ya se eligió en
+             el carrito, sin la pregunta de envío (hay una sola opción) y sin la
+             tira «Te puede interesar», que ya se vio en el carrito y aquí
+             distrae. -->
+        <h1 class="co-t">Finaliza tu compra</h1>
 
         <div class="aviso aviso--mal" id="aviso-error" hidden>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5.5M12 16.3v.2"/></svg>
@@ -363,10 +366,10 @@ button{font-family:inherit}
           <span id="aviso-reanudar-tx"></span>
         </div>
 
-        <!-- ——— 1 · datos ——— -->
-        <section class="panel" id="panel-1" aria-labelledby="t1">
+        <!-- ——— datos de envío ——— -->
+        <section class="panel" id="panel-datos" aria-labelledby="t1">
           <h2 id="t1">¿A dónde la enviamos?</h2>
-          <p class="panel-sub">Con estos datos generamos la guía de Inter Rapidísimo. Revisa el celular y el correo: por ahí te llega el número de seguimiento.</p>
+          <p class="panel-sub">Por WhatsApp y correo te llega el número de guía de Inter Rapidísimo.</p>
 
           <form class="campos" id="form-1" novalidate>
             <div class="dos">
@@ -382,22 +385,6 @@ button{font-family:inherit}
               </div>
             </div>
 
-            <div class="campo" data-c="documento">
-              <label for="documento">Documento de identidad <span class="req">*</span></label>
-              <div class="doc">
-                <select id="tipodoc" name="tipodoc" aria-label="Tipo de documento">
-                  <option value="CC">C.C.</option>
-                  <option value="CE">C.E.</option>
-                  <option value="NIT">NIT</option>
-                  <option value="PP">Pasaporte</option>
-                  <option value="TI">T.I.</option>
-                </select>
-                <input id="documento" name="documento" type="text" inputmode="numeric" autocomplete="off" maxlength="15" required>
-              </div>
-              <span class="pista">Lo pide la transportadora para entregar el paquete.</span>
-              <span class="error">Escribe el número de documento (mínimo 5 caracteres)</span>
-            </div>
-
             <div class="dos">
               <div class="campo" data-c="celular">
                 <label for="celular">Celular <span class="req">*</span></label>
@@ -411,24 +398,10 @@ button{font-family:inherit}
               </div>
             </div>
 
-            <!-- Autorización aparte, sin marcar y opcional.
-                 Bajo la Ley 1581 la finalidad que autoriza estos datos es la
-                 compra; escribir después por otra cosa —una promo, un carrito a
-                 medias— necesita permiso propio y separado. Va sin marcar a
-                 propósito: una casilla premarcada no es consentimiento, y
-                 tampoco condiciona la compra. Lo que quede aquí es lo que
-                 decide si un pedido sin pagar se puede recuperar escribiéndole
-                 a ella o solo avisándole a la tienda. -->
-            <label class="op op--optin">
-              <input type="checkbox" id="optin" name="optin">
-              <span><b>Quiero recibir novedades y ofertas por WhatsApp o correo</b>
-                <small>Opcional — tu pedido sigue igual si no la marcas. Puedes pedirnos que paremos cuando quieras. Tratamos tus datos según nuestra <a href="politica-de-privacidad.html" target="_blank" rel="noopener">política de privacidad</a>.</small></span>
-            </label>
-
             <div class="dos">
               <div class="campo" data-c="depto">
                 <label for="depto">Departamento <span class="req">*</span></label>
-                <select id="depto" name="depto" required>
+                <select id="depto" name="depto" autocomplete="address-level1" required>
                   <option value="">Seleccionar</option>
                 </select>
                 <span class="error">Elige el departamento</span>
@@ -464,62 +437,27 @@ button{font-family:inherit}
                 <input id="barrio" name="barrio" type="text" maxlength="80">
               </div>
             </div>
-          </form>
 
-          <!-- Va en el primer paso, que es la pantalla con la que se entra al
-               checkout: antes estaba al final del de entrega y la veía solo
-               quien ya había pasado dos pantallas. Sigue lejos del momento de
-               pagar —quedan dos pasos por delante—, que era la razón de no
-               ponerla en el tercero: añadir una pieza cambia el total, y
-               cambiarlo mientras se decide el pago es meterle ruido.
-
-               Después del formulario y antes del botón, no entre los campos:
-               llenar los datos es la tarea de esta pantalla y una tira de
-               producto en medio la interrumpe. Aquí cae en la pausa natural,
-               con el formulario ya hecho. Añadir no navega: la pieza entra al
-               pedido y el total se mueve en el resumen, que está pegado. -->
-          <section class="sug" id="sug" hidden>
-            <div class="sug-h"><h3>Te puede interesar</h3><span id="sug-por"></span></div>
-            <p class="sug-p" id="sug-p"></p>
-            <div class="sug-tira" id="sug-tira"></div>
-          </section>
-
-          <div class="nav">
-            <a class="atras" href="index.html#brazaletes" style="text-decoration:none">← Seguir viendo el catálogo</a>
-            <button class="btn btn--pagar" type="button" id="ir-2">Continuar a entrega</button>
-          </div>
-        </section>
-
-        <!-- ——— 2 · entrega ——— -->
-        <section class="panel" id="panel-2" hidden aria-labelledby="t2">
-          <h2 id="t2">Cómo te llega</h2>
-          <p class="panel-sub">Enviamos por Inter Rapidísimo a todo el país, con número de guía.</p>
-
-          <div class="aviso aviso--info" id="dir-resumen">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 10-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
-            <span id="dir-resumen-tx"></span>
-          </div>
-
-          <div class="ops" role="radiogroup" aria-label="Forma de entrega">
-            <label class="op">
-              <input type="radio" name="entrega" value="normal" checked>
-              <span class="op-tx">
-                <span class="op-t"><b>Envío nacional</b><span class="precio" id="p-envio">—</span></span>
-                <span class="op-d" id="d-envio">Inter Rapidísimo con número de guía.</span>
-              </span>
-            </label>
-          </div>
-
-          <div class="campos" style="margin-top:18px">
-            <div class="campo" data-c="notas">
-              <label for="notas">Indicaciones para la entrega</label>
-              <textarea id="notas" name="notas" maxlength="400" placeholder="Portería, horario en que hay quien reciba, punto de referencia…"></textarea>
+            <!-- Lo opcional, plegado: una casilla que, marcada, abre su campo.
+                 Así la pantalla se ve corta y limpia, y quien quiere escribir
+                 algo lo encuentra en un toque (pedido del propietario). -->
+            <div class="extra">
+              <label class="extra-t"><input type="checkbox" id="con-dedicatoria" aria-controls="campo-dedicatoria" aria-expanded="false">
+                <span><b>Quiero una dedicatoria escrita a mano</b><small>Sin costo, en la tarjeta que va en la caja</small></span></label>
+              <div class="campo" data-c="dedicatoria" id="campo-dedicatoria" hidden>
+                <label for="dedicatoria" class="sr">Dedicatoria</label>
+                <textarea id="dedicatoria" name="dedicatoria" maxlength="200" placeholder="«Para Ana, por todo lo que aguantaste este año.»"></textarea>
+              </div>
             </div>
-            <div class="campo" data-c="dedicatoria" id="campo-dedicatoria">
-              <label for="dedicatoria">Dedicatoria para la tarjeta</label>
-              <textarea id="dedicatoria" name="dedicatoria" maxlength="200" placeholder="«Para Ana, por todo lo que aguantaste este año.»"></textarea>
-              <span class="pista">Opcional. Todos los pedidos llevan tarjeta: si escribes algo aquí, va escrito a mano.</span>
+            <div class="extra">
+              <label class="extra-t"><input type="checkbox" id="con-notas" aria-controls="campo-notas" aria-expanded="false">
+                <span><b>Agregar indicaciones para la entrega</b><small>Portería, horario, punto de referencia</small></span></label>
+              <div class="campo" data-c="notas" id="campo-notas" hidden>
+                <label for="notas" class="sr">Indicaciones para la entrega</label>
+                <textarea id="notas" name="notas" maxlength="400" placeholder="Portería, horario en que hay quien reciba, punto de referencia…"></textarea>
+              </div>
             </div>
+
             <!-- Regalo de suscriptora: el charm de su inicial (decisión del
                  propietario, 2026-09-27). Solo se muestra si este navegador
                  confirmó la suscripción y el pedido lleva 2 charms o más;
@@ -529,34 +467,38 @@ button{font-family:inherit}
               <select id="regalo-inicial" name="regalo-inicial"><option value="">Elige una letra</option></select>
               <span class="pista">Por estar suscrita, tu primera compra de 2 charms o más lleva de regalo el charm de tu inicial. Solo aparecen las letras con unidades; si no eliges, te escribimos para preguntarte.</span>
             </div>
-          </div>
 
-          <div class="nav">
-            <button class="atras" type="button" data-atras="1">← Volver a tus datos</button>
-            <button class="btn btn--pagar" type="button" id="ir-3">Continuar al pago</button>
-          </div>
+            <!-- Autorización aparte, sin marcar y opcional.
+                 Bajo la Ley 1581 la finalidad que autoriza estos datos es la
+                 compra; escribir después por otra cosa —una promo, un carrito a
+                 medias— necesita permiso propio y separado. Va sin marcar a
+                 propósito: una casilla premarcada no es consentimiento, y
+                 tampoco condiciona la compra. -->
+            <label class="op op--optin">
+              <input type="checkbox" id="optin" name="optin">
+              <span><b>Quiero recibir novedades y ofertas por WhatsApp o correo</b>
+                <small>Opcional. Puedes pedirnos que paremos cuando quieras.</small></span>
+            </label>
+          </form>
         </section>
 
-        <!-- ——— 3 · pago ——— -->
-        <section class="panel" id="panel-3" hidden aria-labelledby="t3">
-          <h2 id="t3">Cómo prefieres pagar</h2>
-          <p class="panel-sub">Elige una y confirmamos el pedido. El envío cambia de precio según la que elijas.</p>
+        <!-- ——— pago ——— -->
+        <section class="panel" id="panel-pago" aria-labelledby="t3">
+          <h2 id="t3">Pago</h2>
 
-          <div class="ops" id="ops-pago" role="radiogroup" aria-label="Forma de pago">
+          <!-- La forma de pago ya se eligió en el carrito: aquí solo se
+               confirma, con «Cambiar» para quien quiera la otra. -->
+          <div class="pago-elegido" id="pago-elegido">
+            <span class="pago-elegido-tx" id="pago-elegido-tx"></span>
+            <button type="button" class="cambiar" id="cambiar-pago" aria-controls="ops-pago" aria-expanded="false">Cambiar</button>
+          </div>
+
+          <div class="ops" id="ops-pago" role="radiogroup" aria-label="Forma de pago" hidden>
             <label class="op">
               <input type="radio" name="pago" value="anticipado" checked>
               <span class="op-tx">
                 <span class="op-t"><b>Pagar ahora</b><span class="precio" id="p-anticipado">—</span></span>
-                <span class="op-d">Te llevamos a la pasarela segura de Wompi (Bancolombia). Al volver, el pedido queda confirmado.</span>
-                <!-- Estos son los medios que Wompi tiene habilitados de verdad
-                     para este comercio (accepted_payment_methods de la API).
-                     Antes decía «Addi a cuotas», que no está en la lista:
-                     anunciar un medio que la pasarela no ofrece se descubre en
-                     el peor momento, con la clienta ya decidida a pagar. -->
-                <span class="op-logos">
-                  <span>Nequi</span><span>Bancolombia</span><span>PSE</span>
-                  <span>Daviplata</span><span>Tarjetas</span><span>Hasta 36 cuotas</span>
-                </span>
+                <span class="op-d">Pasarela segura de Wompi (Bancolombia): Nequi, Bancolombia, PSE, Daviplata, tarjetas, hasta 36 cuotas. Envío gratis.</span>
               </span>
             </label>
             <label class="op">
@@ -568,43 +510,21 @@ button{font-family:inherit}
             </label>
           </div>
 
-          <div class="aviso aviso--info" style="margin:18px 0 0">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 10-14 0c0 5.4 7 11 7 11z" style="display:none"/><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
-            <span id="nota-pago">Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.</span>
-          </div>
-
-          <!-- Addi no está en accepted_payment_methods de Wompi (ver nota más
-               arriba), así que no puede ser una tercera opción del radiogroup:
-               prometer un botón que no existe se descubre en el peor momento.
-               Se coordina por chat, igual que en la portada. -->
-          <div class="aviso aviso--info" style="margin-top:10px">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            <span>¿Monto alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Divide tu compra en 3 cuotas sin interés pagando con Addi</a>.</span>
-          </div>
-
-          <!-- Antes de la casilla de términos a propósito: aceptar es la última
-               puerta antes de pagar, y una oferta entre el consentimiento y el
-               botón añade un artículo al pedido después de haberlo aceptado. -->
-
-          <div class="campo" style="margin-top:18px" data-c="acepta">
-            <label style="display:flex;gap:10px;align-items:flex-start;text-transform:none;
-                          letter-spacing:0;font-size:13.5px;color:#4a3d4e;cursor:pointer">
-              <input type="checkbox" id="acepta" style="width:19px;height:19px;min-height:0;
-                     accent-color:var(--pagar);flex:0 0 auto;margin-top:2px">
-              <span>He leído y acepto los <a href="terminos-y-condiciones.html" target="_blank" rel="noopener">términos y condiciones</a>, la <a href="politica-de-privacidad.html" target="_blank" rel="noopener">política de privacidad</a> y la <a href="envios-y-devoluciones.html" target="_blank" rel="noopener">política de envíos y devoluciones</a>.</span>
-            </label>
-            <span class="error">Hay que aceptar los términos para poder cobrar</span>
-          </div>
-
           <div class="aval">
             <span class="aval-e" aria-label="5 de 5 estrellas"><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span>
             <span class="aval-n"><b>+2.400 pulseras creadas</b> en Colombia · Todas las reseñas del sitio son de compras verificadas</span>
           </div>
 
-          <div class="nav">
-            <button class="atras" type="button" data-atras="2">← Volver a entrega</button>
-            <button class="btn btn--pagar" type="button" id="confirmar">Confirmar pedido</button>
-          </div>
+          <button class="btn btn--pagar btn--grande" type="button" id="confirmar">Confirmar pedido</button>
+
+          <!-- Sin casilla de «He leído y acepto» (pedido del propietario,
+               2026-10-02: era donde más se caía la compra). Los documentos
+               siguen a un toque y el aviso queda junto al botón: confirmar es
+               aceptarlos, como en cualquier tienda en línea. -->
+          <p class="legal">Al confirmar aceptas los <a href="terminos-y-condiciones.html" target="_blank" rel="noopener">términos</a>, la <a href="politica-de-privacidad.html" target="_blank" rel="noopener">política de privacidad</a> y la de <a href="envios-y-devoluciones.html" target="_blank" rel="noopener">envíos y devoluciones</a>.</p>
+          <p class="legal" id="nota-pago">Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.</p>
+          <p class="legal">¿Monto alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Divide tu compra en 3 cuotas sin interés pagando con Addi</a>.</p>
+          <a class="atras" href="index.html#brazaletes">← Seguir viendo el catálogo</a>
         </section>
       </div>
 
@@ -659,7 +579,7 @@ document.querySelectorAll('a[href*="wa.me"][data-wa]').forEach(a=>{
    a la pauta que la produjo. */
 const cookie=n=>{ const m=document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)'); return m?m.pop():''; };
 
-let CAT=null, GEO=null, carrito=null, paso=1;
+let CAT=null, GEO=null, carrito=null;
 
 /* ——— carrito ——— */
 function leerCarrito(){
@@ -743,36 +663,50 @@ function guardarCarrito(){
 /* Las mismas reglas que index.html y que netlify/functions/_precios.js. Aquí
    solo se muestran: lo que se cobra lo vuelve a calcular el servidor, que es
    el único que no se puede alterar desde la consola del navegador. */
+/* «Lleva 4, paga 3»: por cada 4 piezas —brazalete o charm— salen gratis las
+   más baratas. Mismo desempate que piezasGratis() de _precios.js (a igual
+   precio, los charms antes que el brazalete), para que la línea tachada aquí
+   sea la misma que dice el correo. */
+function gratisDe(c){
+  const P=CAT.reglas.promo;
+  const piezas=c.charms.map(id=>({id:id,p:CAT.precios[id]}));
+  if(c.base) piezas.push({id:c.base.id,p:CAT.precios[c.base.id]});
+  const n=Math.floor(piezas.length/P.lleva)*(P.lleva-P.paga);
+  return piezas.map((x,i)=>[x,i]).sort((a,b)=>a[0].p-b[0].p||a[1]-b[1]).slice(0,n).map(x=>x[0]);
+}
 function calcular(c){
-  const R=CAT.reglas, nC=c.charms.length;
+  const R=CAT.reglas;
   const brutoC=c.charms.reduce((s,id)=>s+CAT.precios[id],0);
-  const escala=nC<=0?0:R.escalaCharms[Math.min(nC,R.escalaCharms.length-1)];
-  const descC=brutoC*escala;
   const brutoB=c.base?CAT.precios[c.base.id]:0;
-  const descB=(c.base&&nC>=R.minCharmsParaDescuento)?brutoB*R.descuentoBrazalete:0;
-  const subtotal=brutoC-descC+brutoB-descB;
+  const libres=gratisDe(c);
+  const desc=libres.reduce((s,x)=>s+x.p,0);
+  const subtotal=brutoC+brutoB-desc;
   /* El envío gratis es solo del pago anticipado; la contraentrega lo paga
      siempre. Misma regla que index.html y que _precios.js, que es quien cobra. */
   const alcanza=subtotal>=R.envioGratisDesde;
   const gratis=alcanza&&(!R.envioGratisSoloAnticipado||c.pago==='anticipado');
   const envio=(subtotal<=0||gratis)?0:R.envio[c.pago];
-  return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(descC+descB),
+  return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(desc),nGratis:libres.length,
     subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,
     total:Math.round(subtotal+envio)};
 }
 
 function lineas(c){
-  const out=[];
+  const out=[], libres={};
+  gratisDe(c).forEach(x=>libres[x.id]=(libres[x.id]||0)+1);
   if(c.base) out.push({id:c.base.id,
     n:CAT.nombres[c.base.id].replace(/^Pulsera /,'Brazalete '),
     m:'Baño de plata'+(c.base.talla?' · Talla '+c.base.talla+' cm':''),
-    p:CAT.precios[c.base.id]});
+    p:CAT.precios[c.base.id], gratis:!!libres[c.base.id]});
   const cuenta={};
   c.charms.forEach(id=>cuenta[id]=(cuenta[id]||0)+1);
+  /* Las unidades gratis, en su propia línea con el precio tachado. */
   Object.keys(cuenta).forEach(id=>{
-    const n=cuenta[id];
-    out.push({id:id,n:CAT.nombres[id]+(n>1?' ×'+n:''),m:'Charm · Plata 925',
-      p:CAT.precios[id]*n});
+    const g=libres[id]||0, pagas=cuenta[id]-g;
+    if(pagas) out.push({id:id,n:CAT.nombres[id]+(pagas>1?' ×'+pagas:''),m:'Charm · Plata 925',
+      p:CAT.precios[id]*pagas});
+    if(g) out.push({id:id,n:CAT.nombres[id]+(g>1?' ×'+g:''),m:'Charm · Plata 925',
+      p:CAT.precios[id]*g, gratis:true});
   });
   return out;
 }
@@ -793,12 +727,15 @@ function pintarResumen(){
         +'&quot;<span class=\\&quot;rrow-nof\\&quot; aria-hidden=\\&quot;true\\&quot;>'+ini+'</span>&quot;">'
       : '<span class="rrow-nof" aria-hidden="true">'+ini+'</span>';
     return '<div class="rrow">'+img+'<span class="rrow-n">'+esc(l.n)
-      +'<small>'+esc(l.m)+'</small></span><span class="rrow-p">'+cop(l.p)+'</span></div>';
+      +'<small>'+esc(l.m)+'</small></span>'
+      +(l.gratis?'<span class="rrow-p rrow-p--gratis"><s>'+cop(l.p)+'</s><b>GRATIS</b></span>'
+        :'<span class="rrow-p">'+cop(l.p)+'</span>')+'</div>';
   }).join('');
 
   let h='';
   h+='<div class="tot-row"><span>Subtotal</span><b>'+cop(t.brutoC+t.brutoB)+'</b></div>';
-  if(t.descuento>0) h+='<div class="tot-row save"><span>Descuento promo</span><b>− '+cop(t.descuento)+'</b></div>';
+  if(t.descuento>0) h+='<div class="tot-row save"><span>'+(t.nGratis>1?t.nGratis+' piezas gratis':'Pieza gratis')
+    +' · lleva 4, paga 3</span><b>− '+cop(t.descuento)+'</b></div>';
   h+=t.gratis
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
@@ -860,13 +797,7 @@ function pintarResumen(){
     nota.className='env-nota';
   }
 
-  $('#p-envio').textContent=t.gratis?'Gratis':cop(t.envio);
-  $('#d-envio').textContent=t.gratis
-    ? 'Inter Rapidísimo con número de guía. Con pago anticipado el envío va gratis'
-      +(umbral>0?', porque tu pedido pasó de '+cop(umbral):'')+'.'
-    : 'Inter Rapidísimo con número de guía. 1 a 6 días hábiles según el destino.';
-
-  /* Los dos precios del paso 3 se calculan con su propia forma de pago, para
+  /* Los dos precios de «Cambiar» se calculan con su propia forma de pago, para
      que la diferencia se vea antes de elegir y no después. */
   ['anticipado','contraentrega'].forEach(f=>{
     const tt=calcular(Object.assign({},c,{pago:f}));
@@ -885,181 +816,53 @@ function pintarResumen(){
       +' envío gratis aplica solo al pagar por adelantado.'
     : base;
 
+  pintarPagoElegido(t);
 }
 
-/* ——— «Te puede interesar» ———
- *
- * Sugiere charms parecidos a los que ya lleva: primero de las mismas
- * categorías que eligió —quien puso un charm de Marvel probablemente quiera
- * otro—, y si con eso no se llenan seis, se completa con los destacados del
- * catálogo.
- *
- * Tres reglas que la hacen útil en vez de molesta:
- *
- *   1. Nunca sugiere lo agotado. Ofrecer algo que el servidor va a rechazar en
- *      la pantalla de pago es peor que no ofrecer nada.
- *   2. Nunca sugiere lo que ya lleva.
- *   3. Se calla si no hay nada que decir. Una tira vacía o con dos piezas
- *      sueltas ocupa sitio y no vende.
- *
- * Añadir desde aquí recalcula el total en el resumen de arriba, que está
- * pegado y siempre visible: el precio nunca cambia sin que se vea cambiar.
- */
-const SUG_MAX = 6;
-
-function agotadoSug(id){
-  if(!STOCK || !STOCK.items) return false;      // sin inventario, no se filtra
-  const it=STOCK.items[id];
-  if(!it) return false;
-  return typeof it.stock==='number' ? it.stock<=0 : false;
+/* La forma de pago que se trae del carrito, dicha en una línea, y el botón
+   con lo que va a pasar y cuánto: «Pagar $252.800» o «Confirmar pedido ·
+   pagas al recibir». No se vuelve a preguntar lo que ya se eligió. */
+function pintarPagoElegido(t){
+  t=t||calcular(carrito);
+  const contra=carrito.pago==='contraentrega';
+  $('#pago-elegido-tx').innerHTML=contra
+    ? '<b>Pago contraentrega</b><span>Pagas en efectivo al recibir · envío '+cop(t.envio)+'</span>'
+    : '<b>Pagar ahora con Wompi</b><span>Nequi, Bancolombia, PSE, Daviplata, tarjetas'
+      +(t.gratis?' · envío gratis':'')+'</span>';
+  if(!enviando) $('#confirmar').textContent=contra
+    ? 'Confirmar pedido · '+cop(t.total)
+    : 'Pagar '+cop(t.total);
+  $('#nota-pago').textContent=contra
+    ? 'Pagas en efectivo al mensajero. Confirmamos disponibilidad por WhatsApp antes de despachar.'
+    : 'Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.';
 }
 
-function sugerencias(c){
-  const grupos=(CAT.grupos)||{}, dest=(CAT.destacados)||[];
-  const puestos=new Set(c.charms);
-  const mios=new Set(c.charms.map(id=>grupos[id]).filter(Boolean));
-  const vale=id=> CAT.precios[id]!=null
-    && !puestos.has(id)
-    && !(CAT.pulseras||[]).includes(id)
-    && !/^letra-/.test(id)        /* las iniciales se eligen, no se sugieren */
-    && !agotadoSug(id);
-
-  /* Mismas categorías que lo que ya lleva, en el orden del catálogo. */
-  const mismos=Object.keys(grupos).filter(id=>mios.has(grupos[id]) && vale(id));
-  const salida=[];
-  const meter=id=>{ if(salida.length<SUG_MAX && !salida.includes(id)) salida.push(id); };
-  mismos.forEach(meter);
-  dest.forEach(meter);
-  /* Último recurso: cualquier charm con categoría, para que la tira no salga a
-     medias en un carrito de solo brazalete. */
-  Object.keys(grupos).filter(vale).forEach(meter);
-  return { ids: salida, categorias: [...mios] };
-}
-
-/* Por qué añadir uno más, dicho con la cifra concreta.
- *
- * Antes decía siempre lo mismo —«cada charm que sumes baja el descuento»—, que
- * es cierto y no mueve a nadie. Ahora nombra el tramo que se desbloquea y lo
- * que baja sobre lo que YA lleva, con la misma disciplina que el aviso del
- * armador: nunca se promete que el total baje, porque no baja —el charm que
- * añada lo paga—. Prometer un ahorro que no existe se descubre en la pantalla
- * de pago, con la clienta ya decidida.
- *
- * Los porcentajes salen de las reglas, no del texto: si la escala cambia, esta
- * frase cambia con ella. */
-function motivoSug(){
-  const R=CAT.reglas, nC=carrito.charms.length;
-  const esc=n=>n<=0?0:R.escalaCharms[Math.min(n,R.escalaCharms.length-1)];
-  if(!nC) return 'Cada charm que sumes baja el descuento de todo lo que llevas.';
-
-  const tope=R.escalaCharms.length-1;
-  const brazalete=carrito.base&&nC+1>=R.minCharmsParaDescuento&&nC<R.minCharmsParaDescuento;
-  if(esc(nC+1)<=esc(nC)&&!brazalete){
-    return 'Ya tienes el descuento máximo por cantidad; estos suman a la misma pulsera.';
-  }
-
-  const brutoC=carrito.charms.reduce((s,id)=>s+CAT.precios[id],0);
-  const brutoB=carrito.base?CAT.precios[carrito.base.id]:0;
-  const dcto=n=>brutoC*esc(n)+((carrito.base&&n>=R.minCharmsParaDescuento)?brutoB*R.descuentoBrazalete:0);
-  const extra=Math.round(dcto(nC+1)-dcto(nC));
-
-  /* Al llegar al último tramo la promesa se dice en piezas —«llevas 4 y pagas
-     3»— y no en porcentaje, que es como está anunciada en la portada. Solo si
-     la escala de verdad descuenta uno de cada N; si alguien la mueve, se cae a
-     decir el porcentaje en vez de prometer algo que no se cumple. */
-  const nuevo=nC+1;
-  const paga=nuevo*(1-esc(nuevo));
-  const enPiezas=nuevo>=tope&&Math.abs(paga-Math.round(paga))<1e-9&&paga<nuevo;
-  const gana=enPiezas
-    ? 'Suma uno más y llevas '+nuevo+' pagando '+Math.round(paga)
-    : 'Con un charm más el descuento sube al '+Math.round(esc(nuevo)*100)+'%';
-
-  return gana+(brazalete?' y se activa el 30% del brazalete':'')
-    +(extra>0?': '+cop(extra)+' menos en lo que ya llevas.':'.');
-}
-
-/* La escalera del descuento: dónde está la clienta y qué le da el siguiente
- * charm. Los tramos, los porcentajes y la cifra en pesos salen de las mismas
- * reglas que `calcular()`, así que no pueden prometer otra cosa que lo que el
- * resumen cobra; el siguiente paso lo dice `motivoSug()`, con su misma
- * prudencia (baja lo que ya lleva, no el total). */
+/* Barra de «Lleva 4, paga 3»: cuatro casillas por vuelta, la cuarta es la
+ * gratis, y un aviso que dice cuántas piezas faltan para la próxima. La misma
+ * del carrito (render() en tienda.js). Aquí también sirve: quien llega con 3
+ * piezas puede volver atrás por la cuarta. */
 function pintarDescuento(c,t){
-  const caja=$('#dto'), R=CAT.reglas, nC=c.charms.length;
-  const tope=R.escalaCharms.length-1;
-  const tramo=n=>n<=0?0:R.escalaCharms[Math.min(n,tope)];
-  if(!nC&&!c.base){ caja.hidden=true; return; }
+  const caja=$('#dto'), P=CAT.reglas.promo;
+  const piezas=c.charms.length+(c.base?1:0);
+  if(!piezas){ caja.hidden=true; return; }
   caja.hidden=false;
-
+  const L=P.lleva, vuelta=piezas%L, llenas=vuelta||L, faltan=L-vuelta;
   const pasos=[];
-  for(let n=1;n<=tope;n++){
-    const pct=Math.round(tramo(n)*100);
-    const cls=[nC>=n?'is-on':'', Math.min(nC,tope)===n?'is-ya':''].join(' ').trim();
-    pasos.push('<li'+(cls?' class="'+cls+'"':'')+'>'+n+(n===tope?'+':'')
-      +(pct?' · −'+pct+'%':(n===1?' charm':''))+'</li>');
+  for(let n=1;n<=L;n++){
+    const cls=[n<=llenas?'is-on':'', n===L?'is-free':''].join(' ').trim();
+    pasos.push('<li'+(cls?' class="'+cls+'"':'')+'>'+(n===L?'GRATIS':n)+'</li>');
   }
   const ol=$('#dto-pasos');
-  ol.style.setProperty('--n',tope);
+  ol.style.setProperty('--n',L);
   ol.innerHTML=pasos.join('');
-
-  const max=nC>=tope;
-  caja.classList.toggle('is-max',max);
-  const brz=c.base&&nC>=R.minCharmsParaDescuento;
-  let nota;
-  if(max){
-    nota='✓ Tienes el descuento máximo: <b>'+Math.round(tramo(nC)*100)+'%</b> en charms'
-      +(brz?' y <b>'+Math.round(R.descuentoBrazalete*100)+'%</b> en el brazalete':'')
-      +' (−'+cop(t.descuento)+').';
-  }else if(!nC){
-    let n=1; while(n<tope&&!tramo(n)) n++;
-    nota='Desde '+n+' charms tienes <b>'+Math.round(tramo(n)*100)+'%</b> de descuento, y con '
-      +R.minCharmsParaDescuento+' el brazalete va con '+Math.round(R.descuentoBrazalete*100)+'%.';
-  }else{
-    nota=(t.descuento>0?'Ya ahorras <b>'+cop(t.descuento)+'</b>. ':'')+esc(motivoSug());
-  }
-  $('#dto-nota').innerHTML=nota;
+  caja.classList.toggle('is-max',!vuelta);
+  const pz=n=>n+(n===1?' pieza':' piezas');
+  $('#dto-nota').innerHTML=!vuelta
+    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>! Con '+pz(L)+' más, otra te sale gratis.'
+    : (t.nGratis?'Ya tienes <b>'+pz(t.nGratis)+' GRATIS</b>. ':'')
+      +(faltan===1?'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!'
+        :'¡Agrega <b>'+pz(faltan)+' más</b> y una te sale GRATIS!');
 }
-
-function pintarSugeridos(){
-  const caja=$('#sug');
-  if(!carrito){ caja.hidden=true; return; }
-  const { ids, categorias } = sugerencias(carrito);
-  /* Menos de tres queda pobre: mejor no pintar la sección. */
-  if(ids.length<3){ caja.hidden=true; return; }
-
-  $('#sug-por').textContent = categorias.length
-    ? '· parecidos a ' + categorias.slice(0,2).join(' y ')
-    : '· los favoritos de las clientas';
-  $('#sug-p').textContent = motivoSug();
-
-  $('#sug-tira').innerHTML = ids.map(id=>{
-    const n=esc(CAT.nombres[id]||id);
-    return '<div class="sug-c">'
-      + '<img src="assets/'+esc(id)+'.webp?v=20260822" alt="'+n+'" loading="lazy" decoding="async">'
-      + '<span class="sug-n">'+n+'</span>'
-      + '<span class="sug-pr">'+cop(CAT.precios[id])+'</span>'
-      + '<button class="sug-b" type="button" data-sug="'+esc(id)+'">Añadir</button>'
-      + '</div>';
-  }).join('');
-  caja.hidden=false;
-}
-
-$('#sug-tira').addEventListener('click',e=>{
-  const b=e.target.closest('[data-sug]'); if(!b) return;
-  const id=b.dataset.sug;
-  carrito.charms.push(id);
-  guardarCarrito();
-  pintarResumen();
-  /* Confirmación en el propio botón antes de repintar la tira: si se repinta de
-     golpe, la pieza desaparece de la lista y no queda señal de que se añadió. */
-  b.textContent='Añadido ✓';
-  b.classList.add('is-puesto');
-  b.disabled=true;
-  if(typeof fbq==='function'){
-    fbq('track','AddToCart',{currency:'COP',content_type:'product',
-      content_ids:[id],content_name:CAT.nombres[id]||id,value:CAT.precios[id]});
-  }
-  setTimeout(()=>pintarSugeridos(),900);
-});
 
 /* ——— geografía ——— */
 const OTRO='__otro__';
@@ -1092,9 +895,9 @@ function verOtra(){
 }
 
 /* ——— validación ——— */
-/* El campo se busca por id, no por «el primer input del contenedor»: en
-   documento ese primero es el selector de C.C./NIT, y colgarle ahí el aviso
-   dejaría el número —que es lo que está mal— sin marcar y sin vigilar. */
+/* El campo se busca por id, no por «el primer input del contenedor»: un
+   contenedor puede llevar más de un control (pasó con el documento y su
+   selector de C.C./NIT), y el aviso tiene que ir en el que está mal. */
 const campoDe=nombre=>document.getElementById(nombre);
 const marcar=(nombre,mal)=>{
   const c=document.querySelector('[data-c="'+nombre+'"]');
@@ -1127,13 +930,12 @@ function pintarRegalo(ver){
 }
 
 /* Una regla por campo, en un solo sitio. La usan las dos cosas que validan:
-   el «Continuar», que mira el paso entero, y el aviso en vivo, que mira el
+   el botón de confirmar, que mira la página entera, y el aviso en vivo, que mira el
    campo que la clienta acaba de dejar. Dos listas separadas acabarían
    diciendo cosas distintas del mismo campo. */
 const REGLAS={
   nombre:()=>val('nombre').length>=2,
   apellido:()=>val('apellido').length>=2,
-  documento:()=>val('documento').length>=5,
   /* Celular colombiano: 10 dígitos empezando por 3. Se toleran espacios y
      guiones al escribir, pero lo que se valida y se guarda son los dígitos. */
   celular:()=>/^3\d{9}$/.test(val('celular').replace(/\D/g,'')),
@@ -1146,7 +948,7 @@ const REGLAS={
   direccion:()=>val('direccion').length>=5
 };
 
-function validarPaso1(){
+function validar(){
   let ok=true;
   Object.keys(REGLAS).forEach(n=>{ ok=marcar(n,!REGLAS[n]())&&ok; });
   return ok;
@@ -1194,11 +996,13 @@ function datos(){
   const ciu=$('#ciudad').value===OTRO?val('ciudadotra'):val('ciudad');
   return {
     nombre:val('nombre'), apellido:val('apellido'),
-    tipodoc:$('#tipodoc').value, documento:val('documento'),
     celular:val('celular').replace(/\D/g,''), correo:val('correo').toLowerCase(),
     depto:val('depto'), ciudad:ciu, direccion:val('direccion'),
     adicional:val('adicional'), barrio:val('barrio'),
-    notas:val('notas'), dedicatoria:val('dedicatoria'),
+    /* Lo opcional solo viaja si su casilla está marcada: quien la desmarca
+       después de escribir ya no quiere ese texto en la tarjeta. */
+    notas:$('#con-notas').checked?val('notas'):'',
+    dedicatoria:$('#con-dedicatoria').checked?val('dedicatoria'):'',
     regaloInicial:$('#campo-regalo').hidden?'':$('#regalo-inicial').value,
     /* Autorización para escribirle por algo que no sea este pedido. Viaja con
        el resto y la guarda el registro: es lo que decide, más adelante, si un
@@ -1208,32 +1012,15 @@ function datos(){
   };
 }
 
-/* ——— navegación entre pasos ——— */
-function ir(n){
-  if(n===2&&paso<2&&!validarPaso1()){
-    error('Revisa los campos marcados en rojo para continuar.');
-    const primero=document.querySelector('.campo.mal input,.campo.mal select');
-    if(primero) primero.focus();
-    return;
-  }
-  paso=n;
-  error(null);
-  [1,2,3].forEach(i=>{ $('#panel-'+i).hidden=(i!==n); });
-  document.querySelectorAll('.paso').forEach(p=>{
-    const i=+p.dataset.p;
-    p.classList.toggle('is-on',i===n);
-    p.classList.toggle('is-ya',i<n);
+/* Una casilla que abre su campo (dedicatoria, indicaciones). Al abrir, el
+   foco va al campo: quien la marca es porque va a escribir. */
+function plegable(casilla, campo){
+  const c=$(casilla), f=$(campo);
+  c.addEventListener('change',()=>{
+    f.hidden=!c.checked;
+    c.setAttribute('aria-expanded',c.checked?'true':'false');
+    if(c.checked){ const t=f.querySelector('textarea'); if(t) t.focus(); }
   });
-  if(n===2){
-    const d=datos();
-    $('#dir-resumen-tx').innerHTML='<b style="font-weight:400">'+esc(d.nombre+' '+d.apellido)+'</b><br>'
-      +esc(d.direccion+(d.adicional?', '+d.adicional:''))+'<br>'
-      +esc((d.barrio?d.barrio+' · ':'')+d.ciudad+', '+d.depto)+'<br>'
-      +esc(d.celular)+' · '+esc(d.correo);
-  }
-  if(n===3) track('AddPaymentInfo',{value:calcular(carrito).total,
-    num_items:carrito.charms.length+(carrito.base?1:0)});
-  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function error(msg){
@@ -1246,14 +1033,16 @@ function error(msg){
 let enviando=false;
 async function confirmar(){
   if(enviando) return;
-  if(!$('#acepta').checked){
-    marcar('acepta',true);
-    error('Hay que aceptar los términos y condiciones para poder cobrar.');
-    $('#acepta').focus();
+  /* Todo en una página: si falta algo, se marca en rojo, se dice arriba y se
+     lleva a la clienta al primer campo que falta, sin cambiar de pantalla. */
+  if(!validar()){
+    error('Revisa los campos marcados en rojo.');
+    const primero=document.querySelector('.campo.mal input,.campo.mal select');
+    if(primero){ primero.scrollIntoView({block:'center',behavior:'smooth'}); primero.focus({preventScroll:true}); }
     return;
   }
-  marcar('acepta',false);
-  if(!validarPaso1()){ error('Faltan datos de envío. Vuelve al primer paso.'); ir(1); return; }
+  track('AddPaymentInfo',{value:calcular(carrito).total,
+    num_items:carrito.charms.length+(carrito.base?1:0)});
 
   enviando=true;
   const btn=$('#confirmar');
@@ -1277,7 +1066,7 @@ async function confirmar(){
        del sitio: hay que decirle qué pasó y llevarla a corregirlo, no dejarla
        mirando un mensaje rojo sin salida. */
     if(r.status===409&&d&&d.agotado){
-      enviando=false; btn.disabled=false; btn.textContent='Confirmar pedido';
+      enviando=false; btn.disabled=false; pintarPagoElegido();
       error(d.error);
       const caja=$('#aviso-error-tx');
       if(!caja.parentNode.querySelector('a')){
@@ -1339,8 +1128,6 @@ async function confirmar(){
       'customer-data:email':cuerpo.cliente.correo,
       'customer-data:full-name':cuerpo.cliente.nombre+' '+cuerpo.cliente.apellido,
       'customer-data:phone-number':cuerpo.cliente.celular,
-      'customer-data:legal-id':cuerpo.cliente.documento,
-      'customer-data:legal-id-type':cuerpo.cliente.tipodoc,
       'shipping-address:address-line-1':cuerpo.cliente.direccion,
       'shipping-address:address-line-2':cuerpo.cliente.adicional,
       'shipping-address:country':'CO',
@@ -1356,7 +1143,7 @@ async function confirmar(){
   }catch(e){
     enviando=false;
     btn.disabled=false;
-    btn.textContent='Confirmar pedido';
+    pintarPagoElegido();
     /* Un fallo aquí no puede terminar la visita. Se dice qué pasó y se ofrece
        la salida que siempre funcionó: cerrar por WhatsApp. */
     error(e.message+' — puedes intentar de nuevo, o escribirnos y lo cerramos por WhatsApp.');
@@ -1421,7 +1208,6 @@ Promise.all([
 
   pintarDeptos();
   pintarResumen();
-  pintarSugeridos();
 
   /* El resumen es una barra plegable arriba en móvil y una columna fija al lado
      en escritorio. Es el mismo nodo movido, no dos copias que se desincronizan. */
@@ -1444,12 +1230,18 @@ Promise.all([
      vez: se le quita el rojo porque es un campo nuevo, no uno mal llenado. */
   $('#depto').addEventListener('change',()=>{ pintarCiudades(); marcar('ciudad',false); });
   $('#ciudad').addEventListener('change',verOtra);
-  $('#ir-2').addEventListener('click',()=>ir(2));
-  $('#ir-3').addEventListener('click',()=>ir(3));
-  document.querySelectorAll('[data-atras]').forEach(b=>
-    b.addEventListener('click',()=>ir(+b.dataset.atras)));
   $('#confirmar').addEventListener('click',confirmar);
-  $('#acepta').addEventListener('change',()=>marcar('acepta',false));
+  addEventListener('scroll',()=>{ $('#res').classList.toggle('is-compacto',scrollY>140); },{passive:true});
+  plegable('#con-dedicatoria','#campo-dedicatoria');
+  plegable('#con-notas','#campo-notas');
+  /* «Cambiar» abre las dos formas de pago; elegir una la deja puesta y las
+     vuelve a plegar. */
+  $('#cambiar-pago').addEventListener('click',()=>{
+    const ops=$('#ops-pago'), abrir=ops.hidden;
+    ops.hidden=!abrir;
+    $('#cambiar-pago').setAttribute('aria-expanded',abrir?'true':'false');
+    $('#cambiar-pago').textContent=abrir?'Listo':'Cambiar';
+  });
 
   vigilarCampos();
 
@@ -1458,9 +1250,9 @@ Promise.all([
     carrito.pago=e.target.value;
     guardarCarrito();
     pintarResumen();
-    $('#nota-pago').textContent=carrito.pago==='contraentrega'
-      ? 'Pagas en efectivo al mensajero. Confirmamos disponibilidad por WhatsApp antes de despachar.'
-      : 'Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.';
+    $('#ops-pago').hidden=true;
+    $('#cambiar-pago').setAttribute('aria-expanded','false');
+    $('#cambiar-pago').textContent='Cambiar';
   });
   /* La forma de pago que venía del armador manda sobre la marcada por defecto. */
   const previo=document.querySelector('#ops-pago input[value="'+carrito.pago+'"]');
@@ -1498,7 +1290,7 @@ Promise.all([
   track('InitiateCheckout',{value:calcular(carrito).total,num_items:ids.length,
     content_type:'product',content_ids:Object.keys(cuenta),
     contents:Object.keys(cuenta).map(i=>({id:i,quantity:cuenta[i]})),
-    content_name:'Checkout paso 1'},
+    content_name:'Checkout'},
     'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
 }).catch(()=>{
   /* Sin catálogo no se puede mostrar un precio, y mostrar uno inventado sería

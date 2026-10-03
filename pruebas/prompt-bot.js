@@ -192,24 +192,24 @@ function main() {
      aunque las reglas ya le llegaban dentro de disponibilidad: sencillamente el
      prompt no las nombraba. Ahora las explica, y aqui se comprueba que los
      porcentajes que dice sean los que de verdad se cobran. */
-  const pct = n => Math.round(n * 100);
-  reglas.escalaCharms.forEach((desc, cuantos) => {
-    if (desc === 0) return;
-    /* La palabra «charms» es opcional porque el último tramo de la lista se
-       escribe «4 o mas: 25%» bajo un encabezado que ya dice «por cantidad de
-       charms». Lo que se comprueba de verdad sigue intacto: que ese número de
-       piezas y ese porcentaje aparezcan juntos en la misma línea. */
-    const esperado = new RegExp(`${cuantos}\\s*(charms?\\s*)?(o mas)?[^\\n]*${pct(desc)}\\s*%`, 'i');
-    comprobar(esperado.test(prompt),
-      `anuncia el ${pct(desc)}% con ${cuantos} charms`);
-  });
-
-  comprobar(new RegExp(`${pct(reglas.descuentoBrazalete)}\\s*%`).test(prompt),
-    `anuncia el ${pct(reglas.descuentoBrazalete)}% del brazalete`);
-
-  comprobar(new RegExp(`${reglas.minCharmsParaDescuento} charms o mas`, 'i').test(prompt),
-    `dice desde cuantos charms se activa ese 30%`,
-    `${reglas.minCharmsParaDescuento}`);
+  /* Desde el 2026-10-02 la promo es una sola: «lleva 4, paga 3», con brazalete
+     y charms contando igual. Se comprueba con los números de las reglas, no
+     escritos aquí: si mañana es «lleva 5, paga 4», esto exige el texto nuevo. */
+  const { lleva, paga } = reglas.promo;
+  comprobar(new RegExp(`lleva ${lleva} piezas,? paga ${paga}`, 'i').test(prompt),
+    `anuncia «lleva ${lleva} piezas, paga ${paga}»`);
+  comprobar(/charms y brazaletes cuentan igual/i.test(prompt),
+    'dice que el brazalete cuenta como una pieza más');
+  comprobar(/MENOR valor sale gratis/i.test(prompt),
+    'dice que la gratis es la de menor valor');
+  comprobar(new RegExp(`${2 * lleva} piezas salen ${2 * (lleva - paga)} gratis`).test(prompt),
+    'explica que es cíclica (el doble de piezas, el doble de gratis)');
+  /* La promo vieja no puede seguir anunciándose como vigente: el bot la
+     cobraría de palabra y el checkout no. Solo se admite nombrándola para
+     decir que cambió. */
+  const viejas = prompt.split('\n').filter(l => /\b(8|15|25|30)\s*%/.test(l) && !/ya NO hay|cambio/i.test(l));
+  comprobar(!viejas.length, 'no anuncia los porcentajes de la promo vieja como vigentes',
+    viejas.length ? viejas[0].slice(0, 80) : '');
 
   /* La ley de este repo: un número de precio que no se reproduce con
      calcular() no se escribe. Ya costó una corrección pública cuando un
@@ -289,15 +289,17 @@ function main() {
     'no ofrece ninguna caja ni empaque de pago por encima del incluido',
     ofreceCaja.length ? ofreceCaja[0].trim().slice(0, 90) : undefined);
 
-  /* La promo: misma mecánica (ya comprobada arriba contra `reglas`), redacción
-     nueva. El chat y la página tienen que decir lo mismo palabra por palabra o
-     la clienta cree que son dos ofertas. */
-  comprobar(/paga 3 y ll[eé]vate el cuarto gratis/i.test(prompt),
-    'usa la redacción nueva de la promo: paga 3 y llévate el cuarto gratis');
+  /* La promo: el chat y la página tienen que decir lo mismo palabra por
+     palabra o la clienta cree que son dos ofertas. Desde el 2026-10-02 la
+     página dice «¡Lleva 4 y el 4° es gratis!» en el banner; la redacción del
+     2026-09-22 («paga 3 y llévate el cuarto gratis») acompañaba a la escalera
+     vieja y ya no sale en ninguna parte. */
+  comprobar(/lleva 4 y el 4° es gratis/i.test(prompt),
+    'usa la redacción del banner: «¡Lleva 4 y el 4° es gratis!»');
 
-  const promoVieja = prompt.split('\n').filter(l => /lleva 4 y paga 3/i.test(l));
+  const promoVieja = prompt.split('\n').filter(l => /paga 3 y ll[eé]vate el cuarto gratis/i.test(l));
   comprobar(promoVieja.length === 0,
-    'y ya no usa la vieja «lleva 4 y paga 3», que la página retiró',
+    'y ya no usa la de la escalera vieja, «paga 3 y llévate el cuarto gratis»',
     promoVieja.length ? promoVieja[0].trim().slice(0, 90) : undefined);
 
   console.log('\n8 · Los nombres de pieza que el prompt escribe a mano');

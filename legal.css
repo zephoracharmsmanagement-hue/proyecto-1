@@ -25,7 +25,10 @@ h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;margin:0
   text-decoration:none;color:var(--ink);opacity:.75}
 .back:hover{opacity:1}
 
-.doc{padding:38px 0 60px}
+/* Solo arriba y abajo: el lateral es el de .wrap (main lleva las dos clases),
+   y un `padding` abreviado lo ponía en 0 —el texto quedaba pegado al borde
+   del celular—. Mismo tropiezo que ya tuvo .pp en tienda.css. */
+.doc{padding-top:38px;padding-bottom:60px}
 .eyebrow{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gris-suave)}
 .doc h1{font-size:clamp(30px,7vw,46px);line-height:1.12;margin:10px 0 8px}
 .upd{font-size:12.5px;color:#6d6070;margin:0 0 30px;padding-bottom:22px;
@@ -84,7 +87,7 @@ h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;margin:0
 .foot p{margin:0;color:var(--gris);font-size:12px;letter-spacing:.04em}
 
 @media(min-width:700px){
-  .doc{padding:52px 0 76px}
+  .doc{padding-top:52px;padding-bottom:76px}
   .cta{padding:32px 28px}
 }
 @media(prefers-reduced-motion:reduce){
