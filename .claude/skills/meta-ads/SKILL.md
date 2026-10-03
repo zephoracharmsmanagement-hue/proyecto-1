@@ -61,11 +61,24 @@ Verificar lo vigente antes de afirmarlo (`ads_get_ad_accounts`,
 
 - La cuenta con las campañas (`1583713932705268`) **no tiene portafolio
   comercial**. De ahí salen las tres limitaciones siguientes. Reclamarla hacia
-  el portafolio «Zephora Charms» es manual, en Business Settings.
+  el portafolio «Zephora Charms» es manual, en Business Settings. En agosto Meta
+  lo bloqueaba por antigüedad del portafolio; al 2026-10-03 ya tiene ~7 semanas
+  y toca reintentarlo. **Plan B si sigue bloqueado:** la cuenta
+  `2021753038744595` ya está dentro del portafolio, activa, en COP y con medio
+  de pago. No hace falta crear otra cuenta ni otro píxel.
 - **Dos píxeles.** El viejo (`2130673404542988`) es el único que la cuenta puede
   usar para optimizar y para públicos, y no recibe compras de servidor. El nuevo
-  (`1029982529813994`) sí recibe el `Purchase` del webhook de Wompi, pero la
-  cuenta no lo tiene compartido.
+  (`1029982529813994`) sí recibe el `Purchase` del webhook de Wompi y de
+  `registrar-venta.mjs` (contraentrega y WhatsApp), pero la cuenta no lo tiene
+  compartido. Los dos reciben **los mismos eventos de navegador** desde el 13
+  de agosto, así que mudarse al nuevo no arranca de cero.
+- **Para diagnosticar la CAPI, mirar el píxel nuevo.** El viejo marca
+  `server_last_fired_time` en época cero por diseño: nunca podrá tener CAPI. Un
+  análisis externo (oct 2026) concluyó «la CAPI nunca ha funcionado» por mirar el
+  viejo. La pregunta real es otra: el nuevo registró solo **3 `Purchase` de
+  servidor en 28 días, todos en la misma hora del 29 de septiembre**. Antes de
+  culpar a la cuenta, comparar contra las ventas reales del periodo: si hubo
+  más, faltan registros en `registrar-venta` o el webhook no los reportó.
 - **Sin catálogo** (la cuenta sin portafolio no puede tenerlo): nada de anuncios
   de catálogo ni dinámicos hasta el reclamo.
 - **El público similar está inactivo** (semilla muy chica).
@@ -145,24 +158,60 @@ cuando las ventas sí están ocurriendo y lo que falla es el píxel.
 
 ## Estructura
 
-Es una cuenta con poco historial de compras medidas, así que va el esquema de
-cuenta nueva del curso:
+### Con el volumen de hoy: una campaña, un conjunto
+
+**La cantidad de campañas la decide el volumen de eventos, no el método.** Meta
+necesita del orden de 50 eventos de optimización por semana **en un mismo
+conjunto** para salir de aprendizaje. La cuenta produce **60 a 90 checkouts por
+semana en total**. Con un conjunto, ese conjunto recibe todo y sale de
+aprendizaje. Con dos o tres, cada uno se queda en 30 a 45 y ninguno sale.
+
+Se probó en vivo y está medido (semanas de 2026, toda la cuenta):
+
+| Periodo | Estructura | Gasto/día | Checkouts/semana | Costo/checkout |
+|---|---|---|---|---|
+| 5 ago – 15 sep | 1 campaña | $10.000–19.000 | 38–85 | **$1.275–2.028** |
+| 16–22 sep | 1 campaña | $28.800 | 72 | $2.802 |
+| 23 sep – 2 oct | 3 campañas (escala, prueba, retargeting) | $42.000–45.000 | ~72–89 | **$3.322–4.355** |
+
+Dos lecciones de esa tabla:
+
+1. **Separar empeoró una caída que ya venía.** La subida de costo empezó con
+   una sola campaña (salto de gasto de 48%, fin de Amor y Amistad, anuncios
+   nuevos). Partir la cuenta en tres el 27 de septiembre la agravó. Se
+   consolidó otra vez el 3 de octubre.
+2. **Más gasto no compró más checkouts.** Con el triple de presupuesto salieron
+   los mismos 60–90 por semana. Ese es el techo real hoy (demanda, creativos o
+   inventario), y subir presupuesto por encima de él solo encarece.
+
+Estructura vigente:
+
+- **Una campaña de ventas (`VENTAS · ESCALA · IC`) con un solo conjunto
+  amplio** y presupuesto de campaña. Los ángulos nuevos se prueban **como
+  anuncios dentro de ese conjunto**, no en una campaña aparte: Meta reparte cada
+  creativo a la gente que le responde, y el conjunto no pierde volumen.
+- **Techo de 6 a 8 anuncios activos.** Con menos de 5 falta diversidad (Meta
+  agrupa los parecidos); con más de 8, cada uno recibe migajas y no se puede
+  leer. Un anuncio nuevo entra cuando otro sale.
+- Hombres y mujeres: Marvel y la pulsera clásica en tallas 20-21 venden también
+  a hombres.
+
+**Cuándo sí separar.** Solo si se cumplen las dos: la cuenta pasa de unos
+**150 checkouts por semana**, y cada conjunto separado va a recibir al menos
+50. Ahí sí aplica el esquema de cuenta en crecimiento del curso:
 
 | Campaña | Etapa | Público | Parte del presupuesto |
 |---|---|---|---|
-| `VENTAS · PRES · IC` | Presentación | Frío, excluyendo compradores | La mayor (~70% hoy) |
-| `VENTAS · EVAL-CONV · IC` | Evaluación + conversión | Públicos personalizados 90 días | El resto (~30%) |
+| `VENTAS · PRES · IC` | Presentación | Frío, excluyendo compradores | ~70% |
+| `VENTAS · EVAL-CONV · IC` | Evaluación + conversión | Públicos personalizados 90 días | ~30% |
 | `VENTAS · ASC` | Ascensión | Compradores | Cuando la lista de clientes alcance para entregar |
 
-- **Prueba con presupuesto por conjunto (ABO)**, para que cada conjunto reciba
-  lo mismo y se puedan comparar. **Presupuesto de campaña (CBO) solo para
-  escalar** lo que ya ganó. Nunca mezclar en una misma CBO públicos en prueba
-  con públicos validados.
-- Conjuntos de presentación: el curso usa tres (abierta, intereses, similar).
-  Aquí van dos mientras el similar esté inactivo: **abierta** (público
-  Advantage+) e **intereses** (público original: charms, joyería, pulseras,
-  regalos, Pandora como interés). Hombres y mujeres: Marvel y la pulsera clásica
-  en tallas 20-21 venden también a hombres.
+Con prueba en presupuesto por conjunto (ABO) y escala en presupuesto de campaña
+(CBO), sin mezclar en una misma CBO conjuntos en prueba con validados.
+
+**Antes de subir presupuesto**, comparar checkouts por semana de las dos
+semanas anteriores. Si el gasto subió y los checkouts no, devolver el
+presupuesto al nivel anterior en vez de seguir subiendo.
 - **Evento de optimización: InitiateCheckout, no Purchase.** No es solo por el
   píxel: con el volumen de ventas actual, un conjunto optimizado por compra no
   llega a 50 eventos semanales ni con la medición perfecta, y se queda en
@@ -193,6 +242,40 @@ cuenta nueva del curso:
 - Pausar no es gratis: al reactivar, el conjunto vuelve a aprender y los
   primeros días salen más caros. Antes de proponer una pausa, estimar las ventas
   que se dejan de hacer con la conversión real (no la del píxel).
+
+### Mover un anuncio sin perder la prueba social
+
+Los likes, comentarios y compartidos viven en la **publicación**, no en el
+anuncio. Para pasar un anuncio a otro conjunto o campaña:
+
+- **Por API**: crear el anuncio nuevo con el **mismo `creative_id`**
+  (`ads_create_ad` con `{"creative_id": "…"}`). Apunta a la misma publicación de
+  Facebook e Instagram y la prueba social sigue sumando.
+- **En Ads Manager**: *Duplicar* → *Conjunto de anuncios existente*, y confirmar
+  que diga **«Usar publicación existente»** con el mismo ID. **No editar texto
+  ni imagen**: cualquier cambio crea una publicación nueva que arranca en cero.
+- **Verificar siempre después**: leer el anuncio nuevo y comparar su
+  `creative_id` con el original. El 2026-10-03 un duplicado hecho a mano «se
+  hizo» pero nunca se creó, y solo se supo al leer la cuenta.
+- Pausar la campaña vieja no borra las publicaciones: no hay que tocarlas.
+
+### Trampas del conector de Meta Ads
+
+- **El COP no tiene centavos.** `daily_budget: 5000` son $5.000, aunque la
+  documentación del conector diga «unidad menor (centavos)». El 2026-09-06 un
+  «son centavos» dejó un presupuesto en $500.000/día. Después de tocar un
+  presupuesto, releerlo de la API antes de activar nada.
+- **Editar una campaña la pausa.** `ads_update_entity` sobre una campaña activa
+  devuelve `status_forced_to_paused: true`. Toda edición de campaña son dos
+  llamadas (`ads_update_entity` y `ads_activate_entity`) más una lectura que
+  confirme `effective_status: ACTIVE`. Pasó el 2026-09-10 al subir el
+  presupuesto: la campaña quedó apagada por el cambio que quería escalarla.
+- **En modo Auto, las escrituras se bloquean al azar.** El revisor automático
+  de la sesión bloqueó la mitad de las acciones del 2026-10-03, aprobó otras
+  idénticas, e incluso bloqueó una lectura. La aprobación en el chat no lo
+  levanta y no deja reintentar lo bloqueado. **Para trabajar sobre la pauta, la
+  sesión va en modo «Aceptar ediciones»**: cada acción le llega al propietario
+  para aprobarla en el teléfono, que es justo el acuerdo de la regla 1.
 
 ## Públicos
 
