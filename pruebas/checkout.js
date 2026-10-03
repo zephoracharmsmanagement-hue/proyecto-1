@@ -13,7 +13,6 @@ const { chromium } = require('playwright');
 const crypto = require('crypto');
 const path = require('path');
 
-const fs = require('fs');
 const BASE = process.env.URL || 'http://localhost:8899';
 
 /* El brazalete de las pruebas sale del inventario, no de un id escrito aquí
@@ -301,104 +300,6 @@ async function llenarDatos(p, d) {
     await p.waitForTimeout(600);
     ok((await p.locator('#res-total').textContent()).trim() === limpio,
       'y un enlace viejo con «e=1» tampoco lo resucita');
-    await p.close();
-  }
-
-  // ——— 2bd · el carrito, en la misma página ———
-  out.push('\n2bd · El carrito es esta página: se edita aquí, sin volver a la tienda');
-  {
-    /* Pedido del propietario (2026-10-02): carrito y pago en una sola página
-       completa, en tres bloques —pedido, datos, pago—. Lo que sostiene eso:
-       que cada pieza se pueda subir, bajar o quitar aquí, que «Completa tu
-       set» sume sin salir, que el total que se ve sea el que cobra el
-       servidor, y que el pedido quede guardado para la tienda. */
-    const { calcular, leerPedido } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
-    const inv = JSON.parse(fs.readFileSync(path.join(RAIZ, 'assets', 'stock.json'), 'utf8')).items;
-    const p = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
-    p.on('pageerror', e => errores.push(e.message));
-    const ev = [];
-    await p.exposeBinding('__rec', (_, a) => ev.push(a));
-    await p.addInitScript(() => { window.fbq = (...a) => window.__rec(JSON.parse(JSON.stringify(a))); });
-    await p.addInitScript(() => { if (!sessionStorage.getItem('prueba.ir')) { sessionStorage.setItem('prueba.ir', '1'); sessionStorage.setItem('zephora.ir', 'ver'); } });
-    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['iron-man', 'stitch'], empaque: false, pago: 'anticipado' });
-    await p.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: { vendidas: [{ id: 'deadpool', unidades: 3 }] } }));
-    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
-    await p.waitForTimeout(300);
-    const leer = () => p.evaluate(() => ({
-      orden: [...document.querySelectorAll('.paso-t')].map(h => h.textContent.trim()),
-      resAntes: !!(document.getElementById('res').compareDocumentPosition(document.getElementById('panel-datos')) & 4),
-      filas: document.querySelectorAll('#res-lineas .rrow').length,
-      total: document.getElementById('res-total').textContent.trim(),
-      sug: document.getElementById('sug2').hidden ? null : [...document.querySelectorAll('#sug2-tira [data-sumar]')].map(b => b.dataset.sumar),
-      guardado: JSON.parse(localStorage.getItem('zephora.carrito.v1') || 'null'),
-      ancho: document.documentElement.scrollWidth,
-    }));
-    const esperado = c => cop(calcular(leerPedido({ base: c.base, charms: c.charms, pago: 'anticipado' })).total);
-    let r = await leer();
-    ok(r.orden.join(' | ') === '1Tu pedido | 2Datos de envío | 3Pago' && r.resAntes,
-      'tres bloques en orden en el celular: pedido, datos, pago', r.orden.join(' | '));
-    ok(r.filas === 3 && r.ancho <= 390, `las 3 piezas, cada una en su fila (${r.filas}), sin ensanchar la página`);
-    const ic0 = ev.filter(e => e[1] === 'InitiateCheckout').length;
-    ok(ic0 === 0, 'llegar con «Ver carrito» no cuenta como empezar a comprar (sin InitiateCheckout)');
-    const agotado = id => inv[id] && typeof inv[id].stock === 'number' && inv[id].stock <= 0;
-    ok(r.sug && r.sug.length >= 3 && r.sug[0] === 'deadpool' && !r.sug.some(id => ['iron-man', 'stitch'].includes(id) || /^letra-/.test(id) || agotado(id)),
-      '«Completa tu set» con 3 piezas: lo más vendido primero, sin lo que ya lleva, iniciales ni agotados', (r.sug || []).slice(0, 3).join(', '));
-    // Sumar desde la tira: 4 piezas, una gratis, la tira se va.
-    await p.click('#sug2-tira [data-sumar="deadpool"]');
-    await p.waitForTimeout(200);
-    r = await leer();
-    ok(r.filas === 4 && r.guardado.charms.includes('deadpool') && r.total === esperado(r.guardado),
-      `sumar desde la tira: entra al pedido, se guarda y el total es el del servidor (${r.total})`);
-    ok(r.sug === null, 'con 4 piezas ya no empuja: la tira se esconde');
-    ok(ev.some(e => e[1] === 'AddToCart' && e[2].content_ids[0] === 'deadpool'), 'y cuenta como AddToCart, igual que en la tienda');
-    ok(await p.evaluate(() => document.querySelectorAll('#res-lineas .rrow-p--gratis').length === 1),
-      'la pieza gratis sale tachada con GRATIS');
-    // − y +
-    await p.click('[data-menos="stitch"]');
-    await p.waitForTimeout(200);
-    r = await leer();
-    ok(r.filas === 3 && !r.guardado.charms.includes('stitch') && r.total === esperado(r.guardado), `«−» en la única unidad la quita (${r.total})`);
-    const tope = inv['iron-man'] && typeof inv['iron-man'].stock === 'number' ? inv['iron-man'].stock : Infinity;
-    const masOn = await p.evaluate(() => !document.querySelector('[data-mas="iron-man"]').disabled);
-    ok(masOn === (tope > 1), `«+» se apaga en el tope de stock.json (quedan ${tope})`);
-    if (masOn) {
-      await p.click('[data-mas="iron-man"]');
-      await p.waitForTimeout(200);
-      r = await leer();
-      ok(r.guardado.charms.filter(x => x === 'iron-man').length === 2 && r.total === esperado(r.guardado), `«+» suma otra unidad (${r.total})`);
-    }
-    // Empezar a escribir sí es empezar a comprar.
-    await p.click('#nombre');
-    await p.waitForTimeout(100);
-    ok(ev.filter(e => e[1] === 'InitiateCheckout').length === 1, 'al empezar a escribir los datos sale el InitiateCheckout, una vez');
-    // Quitar todo deja el carrito vacío.
-    await p.evaluate(() => { document.querySelector('[data-quitar-base]').click(); });
-    await p.waitForTimeout(150);
-    /* Hasta que la página diga vacío: al vaciarse, #app se esconde con sus
-       botones dentro, y esos ya no se pueden tocar. */
-    for (let i = 0; i < 10 && await p.evaluate(() => !document.getElementById('app').hidden && !!document.querySelector('[data-quitar]')); i++) {
-      await p.click('[data-quitar] >> nth=0'); await p.waitForTimeout(120);
-    }
-    const vacio = await p.evaluate(() => ({ v: !document.getElementById('vacio').hidden, app: document.getElementById('app').hidden, ls: localStorage.getItem('zephora.carrito.v1') }));
-    ok(vacio.v && vacio.app && !vacio.ls, 'al quitar todo dice «Tu carrito está vacío» y la tienda también lo ve vacío');
-    await p.close();
-  }
-  {
-    /* Recordar los datos: lo más parecido a «pagar a un clic» que hay sin
-       billetera. Se llenan solos con lo guardado en ESTE navegador, y «No soy
-       yo» los borra. */
-    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
-    p.on('pageerror', e => errores.push(e.message));
-    await ponerCarrito(p, { base: null, charms: ['iron-man'], empaque: false, pago: 'anticipado' });
-    await p.addInitScript(() => localStorage.setItem('zephora.datos.v1', JSON.stringify({ nombre: 'Ana', apellido: 'Ruiz', celular: '3001234567',
-      correo: 'ana@ejemplo.com', depto: 'Antioquia', ciudad: 'Medellín', direccion: 'Calle 10 # 5-20', adicional: '', barrio: 'Laureles' })));
-    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
-    const d = await p.evaluate(() => ({ n: document.getElementById('nombre').value, dep: document.getElementById('depto').value,
-      ciu: document.getElementById('ciudad').value, aviso: !document.getElementById('recordado').hidden, rec: document.getElementById('recordar').checked }));
-    ok(d.n === 'Ana' && d.dep === 'Antioquia' && d.ciu === 'Medellín' && d.aviso && d.rec, 'quien ya compró llega con sus datos llenos, ciudad incluida', JSON.stringify(d));
-    await p.click('#olvidar');
-    const d2 = await p.evaluate(() => ({ n: document.getElementById('nombre').value, ls: localStorage.getItem('zephora.datos.v1'), rec: document.getElementById('recordar').checked }));
-    ok(!d2.n && !d2.ls && !d2.rec, '«No soy yo · borrar» los quita de la página y del navegador');
     await p.close();
   }
 

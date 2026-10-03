@@ -660,8 +660,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     for (const ruta of ['/index.html', '/' + archivoDe('mickey-mouse'), '/kits.html', '/checkout.html']) {
       await p.goto(BASE + ruta, { waitUntil: 'networkidle' });
       await p.waitForTimeout(400);
-      /* Ya no se abre la hoja oscura: desde el 2026-10-02 el carrito es
-         checkout.html, página completa y clara, que ya está en esta lista. */
+      await p.evaluate(() => { const d = document.getElementById('dock-open'); if (d) d.click(); });
+      await p.waitForTimeout(400);
       const fallas = await p.evaluate(() => {
         const rgb = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(',').map(parseFloat); return { r: v[0], g: v[1], b: v[2], a: v[3] === undefined ? 1 : v[3] }; };
         const lum = c => { const f = x => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
@@ -685,7 +685,7 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
         }
         return out;
       });
-      ok(!fallas.length, `${ruta}: ningún texto bajo 4,5:1 (con carrito puesto)` + lista(fallas));
+      ok(!fallas.length, `${ruta}: ningún texto bajo 4,5:1 (con el carrito abierto)` + lista(fallas));
     }
     await p.evaluate(() => localStorage.removeItem('zephora.carrito.v1'));
     await ctx12.close();
