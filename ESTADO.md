@@ -270,6 +270,45 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   propietario (se le ofreció el 2026-10-02). Cualquier herramienta que lea
 >   esos almacenes debe usar hoy los «-pruebas».
 >
+> **2026-10-02 · PR #15 (`claude/promo-lleva4-paga3`, incluye el PR #14
+> `claude/checkout-una-pagina`), fusionado con confirmación del propietario
+> («Deploy»):**
+> - **Checkout de una página** (PR #14): sin cédula, sin pasos, sin volver a
+>   preguntar la forma de pago del carrito (una línea con «Cambiar»), sin
+>   pregunta de envío, sin «He leído y acepto» (línea «Al confirmar aceptas…»
+>   con los tres enlaces), sin «Te puede interesar»; dedicatoria e
+>   indicaciones plegadas tras una casilla. `documento` es opcional en
+>   crear-pago y la hoja de despacho no imprime un «CC» vacío.
+> - **Políticas al día** (envíos gratis sin mínimo pagando en línea,
+>   contraentrega $20.000, Wompi, Resend, n8n; FAQ) y margen de las páginas
+>   legales en el celular. `pruebas/regresion.js` amarra las tarifas de las
+>   políticas a `catalogo.json`.
+> - **Promo única «Lleva 4, paga 3»**: brazalete y charms cuentan igual; por
+>   cada 4 piezas sale gratis la de menor valor, cíclica (8 → 2, 12 → 3).
+>   Fuente: `PROMO` en tienda.js → `reglas.promo` (extraer_catalogo.py) →
+>   `_precios.js` (`piezasGratis`, `calcular().gratis`, `detallar().gratis`) y
+>   checkout.html; mismo desempate en los tres (a igual precio, charms antes
+>   que el brazalete). **Ya no existen `escalaCharms`, `descuentoBrazalete` ni
+>   `minCharmsParaDescuento`.** Banner fijo «ARMA TU SET… ¡LLEVA 4 Y EL 4° ES
+>   GRATIS!», un solo recuadro en portada y fichas (sin cuadrícula ni selector
+>   de paquetes), pieza gratis tachada con GRATIS en carrito, checkout y
+>   correo, barra de 4 casillas. Kits, colecciones, FAQ, términos, hoja del
+>   asesor, skill de Meta Ads y prompt del bot reescritos.
+> - **Portada**: sin «Compra por categoría» (siguen en el menú ☰), reseñas en
+>   carrusel con todas las de la tienda (con foto primero, las de texto con
+>   recuadro de comillas), brazaletes y charms abren con lo más vendido
+>   (`mas-vendidos`), brazaletes con solo el primer nivel y «Ver más», charms
+>   favoritos en cuadrícula. **Sin botón flotante de WhatsApp**: el contacto
+>   está en ☰ › Contacto (WhatsApp y correo).
+> - **Fichas**: una sola sección de reseñas, «Lo que dicen nuestras clientas»,
+>   con el formulario debajo (se quitó «Todas las reseñas de la tienda» de
+>   fichas, kits y Más vendidos); «Completa tu set» a la vista en todas.
+> - **Probado y descartado por el propietario**: carrito y pago en una sola
+>   página completa de paleta clara (d076e5b, revertido en 54d5d77). No
+>   volver a proponerlo igual.
+> - **Pendiente**: el video del banner principal (lo graba el propietario);
+>   revisar anuncios activos que mencionen el 30 % del brazalete o la escalera.
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
