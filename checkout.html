@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Finalizar compra · Zephora Charms</title>
+<title>Tu carrito · Zephora Charms</title>
 <meta name="description" content="Completa tu pedido de Zephora Charms. Pago seguro con Nequi, Bancolombia, PSE, tarjeta o Addi, y opción de pago contraentrega. Envíos a toda Colombia.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
@@ -236,12 +236,7 @@ button{font-family:inherit}
 /* En el celular el resumen pegado arriba ocupaba un tercio de la pantalla
    mientras se llenan los datos. Al bajar queda compacto: total y escalera del
    descuento, sin el texto, que ya se leyó al entrar. */
-@media(max-width:759px){
-  .res.is-compacto .dto-nota{display:none}
-  .res.is-compacto .res-bar{padding-top:7px;padding-bottom:5px}
-  .res.is-compacto .res-p{font-size:19px}
-  .res.is-compacto .dto{padding-bottom:7px}
-}
+
 
 /* ——— avisos ——— */
 .aviso{display:flex;gap:10px;align-items:flex-start;border-radius:3px;padding:13px 14px;
@@ -285,6 +280,84 @@ button{font-family:inherit}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+/* ——— Carrito y pago en una sola página completa (pedido del propietario,
+   2026-10-02) ———
+   Esta página ES el carrito: la barra fija de la tienda trae aquí, y todo
+   —revisar y cambiar piezas, datos de envío y pago— pasa en una sola vista,
+   en tres bloques numerados. Paleta clara (referencia que mandó el
+   propietario): fondo casi blanco, tarjetas grises muy suaves, el recuadro de
+   la promo en crema y el rosa de la marca solo en lo que se toca. */
+:root{--fondo:#FCFAF8;--crema:#F7EEE8;--tarjeta:#F6F3F2}
+body{background:var(--fondo)}
+.top{background:#fff}
+.co-t{margin:20px 0 14px}
+/* Los tres bloques: número en un círculo y título. */
+.paso-t{display:flex;align-items:center;gap:10px;font-size:clamp(22px,6vw,27px);line-height:1.15;margin:0 0 6px}
+.paso-t>span{flex:0 0 auto;width:28px;height:28px;border-radius:50%;background:var(--pagar);color:#fff;
+  font:600 14px/28px Jost,system-ui,sans-serif;text-align:center;letter-spacing:0}
+.panel{border-radius:8px;border-color:#ece6e3}
+/* Bloque 1 · Tu pedido: ya no es una barra plegable pegada arriba, es el
+   primer bloque, abierto. */
+.res{position:static;background:#fff;border:1px solid #ece6e3;border-radius:8px;margin:0 0 16px;
+  padding:18px 0 4px}
+.res .paso-t{padding:0 16px;margin-bottom:12px}
+.res-bar{display:none}
+.res-caja,.res.is-on .res-caja{display:block;border:0;background:none}
+.res-in{padding:4px 16px 16px}
+/* La promo, en su recuadro crema: el aviso arriba, la barra debajo. */
+.dto{margin:0 16px 12px;padding:14px 14px 12px;background:var(--crema);border-radius:10px;
+  display:flex;flex-direction:column-reverse;gap:10px;max-width:none}
+.dto-nota{margin:0;text-align:center;font-size:15px;line-height:1.4;color:var(--ink)}
+.dto-nota b{font-weight:600}
+/* Las piezas, cada una en su tarjeta gris suave, con cantidad y quitar. */
+.rrow{background:var(--tarjeta);border-radius:8px;padding:10px;gap:12px;align-items:flex-start}
+.rrow+.rrow{border-top:0;margin-top:8px}
+.rrow img,.rrow-nof{width:64px;height:64px;border-radius:6px;border:0}
+.rrow-n{flex:1;font-size:15px}
+.rrow-acc{display:flex;align-items:center;gap:10px;margin-top:8px}
+.cant{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:4px;background:#fff}
+.cant button{width:34px;height:34px;border:0;background:none;font:400 18px/1 Jost;color:var(--ink);cursor:pointer}
+.cant button[disabled]{color:#c9c1c5;cursor:default}
+.cant output{min-width:30px;display:flex;align-items:center;justify-content:center;font-size:14px;
+  border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.quitar{width:34px;height:34px;border:0;background:none;color:var(--gris);cursor:pointer;border-radius:4px;
+  display:inline-flex;align-items:center;justify-content:center}
+.quitar:hover{color:var(--mal);background:#fff}
+.rrow-p{text-align:right;font-size:14.5px}
+.rrow-p small{display:block;font-size:11.5px;font-weight:600;letter-spacing:.06em;color:var(--bien);margin-top:3px}
+/* «Completa tu set»: solo mientras le falten piezas para la próxima gratis. */
+.sug2{margin:16px 0 4px}
+.sug2-t{margin:0 0 9px;font-family:'Cormorant Garamond',Georgia,serif;font-size:20px}
+.sug2-tira{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:6px;scrollbar-width:none}
+.sug2-tira::-webkit-scrollbar{display:none}
+.sug2-c{flex:0 0 118px;scroll-snap-align:start;border:1px solid #ece6e3;border-radius:8px;background:#fff;
+  padding:8px;display:flex;flex-direction:column;gap:5px;text-align:left;font:inherit;color:inherit}
+.sug2-c img{width:100%;height:84px;object-fit:contain;background:#fff}
+.sug2-n{font-size:12.5px;line-height:1.3;height:2.6em;overflow:hidden}
+.sug2-p{font-size:12.5px;font-weight:600}
+.sug2-c button{border:1px solid var(--pagar);background:#fff;color:var(--pagar);border-radius:4px;
+  font:600 12px/1 Jost;letter-spacing:.06em;text-transform:uppercase;padding:8px 4px;cursor:pointer}
+.sug2-c button:hover{background:var(--pagar);color:#fff}
+.res-editar{display:inline-block;margin-top:14px;font-size:13px}
+/* Recordar los datos en este celular. */
+.op--recordar{margin-top:10px}
+.recordado{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:0 0 14px;
+  padding:10px 12px;background:var(--crema);border-radius:6px;font-size:13px;color:var(--gris)}
+.recordado button{background:none;border:0;color:var(--plum);text-decoration:underline;font:inherit;cursor:pointer;padding:6px 0}
+.barra-pagar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;align-items:center;gap:14px;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #ece6e3;
+  box-shadow:0 -6px 20px rgba(42,31,46,.08)}
+.bp-t{display:flex;flex-direction:column;line-height:1.1}
+.bp-t small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris-suave)}
+.bp-t b{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:25px}
+.barra-pagar .btn{flex:1;padding:15px 12px;font-weight:600}
+body.con-barra .pie{padding-bottom:96px}
+@media(min-width:760px){
+  .res{padding-top:20px}
+  .res-lado{position:static}
+  .barra-pagar{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -307,8 +380,8 @@ button{font-family:inherit}
 
 <!-- Carrito vacío o perdido -->
 <main class="wrap vacio" id="vacio" hidden>
-  <h1>No hay nada que pagar todavía</h1>
-  <p>Tu selección está vacía o venció. Arma tu pulsera y vuelve — el precio se calcula solo.</p>
+  <h1>Tu carrito está vacío</h1>
+  <p>Arma tu pulsera: lleva 4 piezas y la de menor valor te sale gratis.</p>
   <a class="btn btn--pagar" href="index.html#brazaletes">Ver brazaletes y charms</a>
 </main>
 
@@ -316,6 +389,7 @@ button{font-family:inherit}
 
   <!-- resumen: barra plegable en móvil, columna fija en escritorio -->
   <div class="res" id="res">
+    <h2 class="paso-t" id="t0"><span>1</span>Tu pedido</h2>
     <button class="res-bar" type="button" id="res-bar" aria-expanded="false" aria-controls="res-caja">
       <span>
         <span class="res-t">Resumen del pedido</span>
@@ -332,18 +406,22 @@ button{font-family:inherit}
     <div class="res-caja" id="res-caja">
       <div class="res-in">
         <div id="res-lineas"></div>
+        <div class="sug2" id="sug2" hidden>
+          <p class="sug2-t">Completa tu set</p>
+          <div class="sug2-tira" id="sug2-tira" role="list"></div>
+        </div>
         <div id="res-totales"></div>
           <div class="env-bar" id="env-bar" aria-hidden="true"><i></i></div>
           <p class="env-nota" id="env-nota"></p>
           <p class="env-nota env-nota--regalo">🎁 Incluye caja, paño para limpiar la plata y dedicatoria escrita a mano — sin costo.</p>
-        <a class="res-editar" href="index.html#brazaletes">← Modificar mi selección</a>
+        <a class="res-editar" id="seguir" href="index.html">← Seguir comprando</a>
       </div>
     </div>
   </div>
 
   <div class="wrap">
     <div class="cols">
-      <div>
+      <div id="col">
         <!-- Una sola página (pedido del propietario, 2026-10-02): antes eran
              tres pasos —datos, entrega, pago— y cada «Continuar» era una puerta
              más por donde irse. Sin documento (las transportadoras ya no lo
@@ -351,7 +429,7 @@ button{font-family:inherit}
              el carrito, sin la pregunta de envío (hay una sola opción) y sin la
              tira «Te puede interesar», que ya se vio en el carrito y aquí
              distrae. -->
-        <h1 class="co-t">Finaliza tu compra</h1>
+        <h1 class="co-t">Tu carrito</h1>
 
         <div class="aviso aviso--mal" id="aviso-error" hidden>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 7.5v5.5M12 16.3v.2"/></svg>
@@ -368,9 +446,11 @@ button{font-family:inherit}
 
         <!-- ——— datos de envío ——— -->
         <section class="panel" id="panel-datos" aria-labelledby="t1">
-          <h2 id="t1">¿A dónde la enviamos?</h2>
+          <h2 class="paso-t" id="t1"><span>2</span>Datos de envío</h2>
           <p class="panel-sub">Por WhatsApp y correo te llega el número de guía de Inter Rapidísimo.</p>
 
+          <p class="recordado" id="recordado" hidden><span>Llenamos tus datos de la última compra.</span>
+            <button type="button" id="olvidar">No soy yo · borrar</button></p>
           <form class="campos" id="form-1" novalidate>
             <div class="dos">
               <div class="campo" data-c="nombre">
@@ -474,6 +554,11 @@ button{font-family:inherit}
                  medias— necesita permiso propio y separado. Va sin marcar a
                  propósito: una casilla premarcada no es consentimiento, y
                  tampoco condiciona la compra. -->
+            <label class="op op--optin op--recordar">
+              <input type="checkbox" id="recordar" checked>
+              <span><b>Recordar mis datos en este celular</b>
+                <small>La próxima vez llegas con todo lleno. Se guardan solo aquí, no en otro lado.</small></span>
+            </label>
             <label class="op op--optin">
               <input type="checkbox" id="optin" name="optin">
               <span><b>Quiero recibir novedades y ofertas por WhatsApp o correo</b>
@@ -484,7 +569,7 @@ button{font-family:inherit}
 
         <!-- ——— pago ——— -->
         <section class="panel" id="panel-pago" aria-labelledby="t3">
-          <h2 id="t3">Pago</h2>
+          <h2 class="paso-t" id="t3"><span>3</span>Pago</h2>
 
           <!-- La forma de pago ya se eligió en el carrito: aquí solo se
                confirma, con «Cambiar» para quien quiera la otra. -->
@@ -548,6 +633,14 @@ button{font-family:inherit}
     </div>
   </div>
 </main>
+
+<!-- Barra fija del celular: total e «Ir a pagar», siempre a mano mientras se
+     revisa el pedido o se llenan los datos. Lleva al primer dato que falta o,
+     si ya están, al botón de pagar; se esconde cuando ese botón ya se ve. -->
+<div class="barra-pagar" id="barra-pagar" hidden>
+  <span class="bp-t"><small>Total</small><b id="bp-total">$0</b></span>
+  <button class="btn btn--pagar" type="button" id="bp-ir">Ir a pagar</button>
+</div>
 
 <script>
 (function(){
@@ -711,26 +804,100 @@ function lineas(c){
   return out;
 }
 
+/* ——— el pedido se edita aquí mismo ———
+ *
+ * Desde el 2026-10-02 esta página es el carrito: cada pieza tiene su cantidad
+ * (− / +) y su botón de quitar, sin volver a la tienda. Una fila por pieza; si
+ * alguna unidad sale gratis por «lleva 4, paga 3», la fila lo dice: precio
+ * tachado y GRATIS si son todas, o «+N GRATIS» bajo el precio si es parte.
+ * El tope de unidades es el de stock.json —el servidor lo vuelve a revisar al
+ * cobrar— y el del pedido, 60 charms, el mismo de _precios.js. */
+const MAX_CHARMS=60;
+const unidadesDe=id=>{ const it=STOCK&&STOCK.items&&STOCK.items[id]; return it&&typeof it.stock==='number'?it.stock:Infinity; };
+const ICONO_QUITAR='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6"/></svg>';
+function fotoDe(id){ const f=CAT.fotos&&CAT.fotos[id]; return f?'assets/'+f:'assets/'+id+'.webp'; }
+function miniatura(id,nombre){
+  const ini=esc(nombre.trim().charAt(0).toUpperCase());
+  return '<img src="'+esc(fotoDe(id))+'?v=20260822" alt="" loading="lazy" onerror="this.outerHTML='
+    +'&quot;<span class=\\&quot;rrow-nof\\&quot; aria-hidden=\\&quot;true\\&quot;>'+ini+'</span>&quot;">';
+}
+function filasPedido(c){
+  const libres={}; gratisDe(c).forEach(x=>libres[x.id]=(libres[x.id]||0)+1);
+  let h='';
+  if(c.base){
+    const id=c.base.id, n=CAT.nombres[id].replace(/^Pulsera /,'Brazalete '), pr=CAT.precios[id];
+    h+='<div class="rrow" data-id="'+esc(id)+'">'+miniatura(id,n)
+      +'<div class="rrow-n">'+esc(n)+'<small>Baño de plata'+(c.base.talla?' · Talla '+esc(c.base.talla)+' cm':'')+'</small>'
+      +'<div class="rrow-acc"><button type="button" class="quitar" data-quitar-base aria-label="Quitar '+esc(n)+'">'+ICONO_QUITAR+'</button></div></div>'
+      +(libres[id]?'<span class="rrow-p rrow-p--gratis"><s>'+cop(pr)+'</s><b>GRATIS</b></span>':'<span class="rrow-p">'+cop(pr)+'</span>')
+      +'</div>';
+  }
+  const cuenta={}; c.charms.forEach(id=>cuenta[id]=(cuenta[id]||0)+1);
+  Object.keys(cuenta).forEach(id=>{
+    const n=cuenta[id], g=libres[id]||0, pr=CAT.precios[id], nom=CAT.nombres[id];
+    const tope=n>=unidadesDe(id)||c.charms.length>=MAX_CHARMS;
+    const precio=g===n
+      ? '<span class="rrow-p rrow-p--gratis"><s>'+cop(pr*n)+'</s><b>GRATIS</b></span>'
+      : '<span class="rrow-p">'+cop(pr*(n-g))+(g?'<small>+'+g+' GRATIS</small>':'')+'</span>';
+    h+='<div class="rrow" data-id="'+esc(id)+'">'+miniatura(id,nom)
+      +'<div class="rrow-n">'+esc(nom)+'<small>Charm · Plata 925</small>'
+      +'<div class="rrow-acc"><span class="cant"><button type="button" data-menos="'+esc(id)+'" aria-label="Una menos de '+esc(nom)+'">−</button>'
+      +'<output aria-label="Cantidad">'+n+'</output>'
+      +'<button type="button" data-mas="'+esc(id)+'" aria-label="Una más de '+esc(nom)+'"'+(tope?' disabled':'')+'>+</button></span>'
+      +'<button type="button" class="quitar" data-quitar="'+esc(id)+'" aria-label="Quitar '+esc(nom)+'">'+ICONO_QUITAR+'</button></div></div>'
+      +precio+'</div>';
+  });
+  return h;
+}
+
+/* «Completa tu set»: charms para llegar a la próxima pieza gratis, solo
+   mientras falten (con 4, 8… ya no empuja). Lo más vendido primero
+   (mas-vendidos), después los destacados; nunca agotados, ni lo que ya lleva,
+   ni iniciales —se eligen, no se sugieren—. */
+let vendidosIds=[];
+function pintarSug2(c){
+  const caja=$('#sug2'), piezas=c.charms.length+(c.base?1:0), L=CAT.reglas.promo.lleva;
+  if(!piezas||piezas%L===0||c.charms.length>=MAX_CHARMS){ caja.hidden=true; return; }
+  const ya=new Set(c.charms), pul=new Set(CAT.pulseras||[]);
+  const orden=[...new Set(vendidosIds.concat(CAT.destacados||[], Object.keys(CAT.precios)))];
+  const ids=orden.filter(id=>CAT.precios[id]&&!pul.has(id)&&!ya.has(id)&&!/^letra-/.test(id)&&unidadesDe(id)>0).slice(0,10);
+  if(!ids.length){ caja.hidden=true; return; }
+  const faltan=L-piezas%L;
+  caja.querySelector('.sug2-t').textContent=faltan===1?'Suma 1 más y una te sale GRATIS':'Completa tu set: te faltan '+faltan;
+  $('#sug2-tira').innerHTML=ids.map(id=>'<div class="sug2-c" role="listitem">'+miniatura(id,CAT.nombres[id])
+    +'<span class="sug2-n">'+esc(CAT.nombres[id])+'</span><span class="sug2-p">'+cop(CAT.precios[id])+'</span>'
+    +'<button type="button" data-sumar="'+esc(id)+'">Agregar</button></div>').join('');
+  caja.hidden=false;
+}
+
+/* Cambia el pedido, lo guarda para la tienda y repinta. Si queda vacío, se
+   dice en vez de enseñar un formulario para pagar nada. */
+function editarPedido(fn){
+  fn(carrito);
+  if(!carrito.base&&!carrito.charms.length){
+    try{ localStorage.removeItem(LLAVE); }catch(_){}
+    $('#app').hidden=true; $('#vacio').hidden=false; scrollTo(0,0);
+    return;
+  }
+  guardarCarrito();
+  pintarResumen();
+}
+function sumar(id){
+  if(carrito.charms.length>=MAX_CHARMS) return;
+  if(carrito.charms.filter(x=>x===id).length>=unidadesDe(id)) return;
+  editarPedido(c=>c.charms.push(id));
+  /* Mismo AddToCart que la tienda: es el mismo gesto, solo que aquí. */
+  track('AddToCart',{content_type:'product',content_ids:[id],content_name:CAT.nombres[id],value:CAT.precios[id]});
+}
+
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
 function pintarResumen(){
   const c=carrito, t=calcular(c);
   $('#res-total').textContent=cop(t.total);
 
-  $('#res-lineas').innerHTML=lineas(c).map(l=>{
-    /* Los charms sin foto van con la inicial, igual que en el catálogo, en vez
-       de un <img> roto. */
-    const foto=(l.foto||('assets/'+l.id+'.webp'))+'?v=20260822';
-    const ini=esc(l.n.trim().charAt(0).toUpperCase());
-    const img=foto
-      ? '<img src="'+esc(foto)+'" alt="" loading="lazy" onerror="this.outerHTML='
-        +'&quot;<span class=\\&quot;rrow-nof\\&quot; aria-hidden=\\&quot;true\\&quot;>'+ini+'</span>&quot;">'
-      : '<span class="rrow-nof" aria-hidden="true">'+ini+'</span>';
-    return '<div class="rrow">'+img+'<span class="rrow-n">'+esc(l.n)
-      +'<small>'+esc(l.m)+'</small></span>'
-      +(l.gratis?'<span class="rrow-p rrow-p--gratis"><s>'+cop(l.p)+'</s><b>GRATIS</b></span>'
-        :'<span class="rrow-p">'+cop(l.p)+'</span>')+'</div>';
-  }).join('');
+  $('#res-lineas').innerHTML=filasPedido(c);
+  pintarSug2(c);
 
   let h='';
   h+='<div class="tot-row"><span>Subtotal</span><b>'+cop(t.brutoC+t.brutoB)+'</b></div>';
@@ -829,6 +996,7 @@ function pintarPagoElegido(t){
     ? '<b>Pago contraentrega</b><span>Pagas en efectivo al recibir · envío '+cop(t.envio)+'</span>'
     : '<b>Pagar ahora con Wompi</b><span>Nequi, Bancolombia, PSE, Daviplata, tarjetas'
       +(t.gratis?' · envío gratis':'')+'</span>';
+  $('#bp-total').textContent=cop(t.total);
   if(!enviando) $('#confirmar').textContent=contra
     ? 'Confirmar pedido · '+cop(t.total)
     : 'Pagar '+cop(t.total);
@@ -1029,10 +1197,80 @@ function error(msg){
   if(msg) $('#aviso-error-tx').textContent=msg;
 }
 
+/* ——— barra fija «Ir a pagar» (celular) ——— */
+function barraPagar(){
+  const barra=$('#barra-pagar'), boton=$('#confirmar');
+  barra.hidden=false; document.body.classList.add('con-barra');
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(es=>{ es.forEach(e=>{ barra.hidden=e.isIntersecting||$('#app').hidden; }); },
+      {rootMargin:'0px 0px -40px 0px'}).observe(boton);
+  }
+  $('#bp-ir').addEventListener('click',()=>{
+    const falta=[...document.querySelectorAll('#form-1 [required]')].find(el=>!el.closest('[hidden]')&&!el.value.trim());
+    const destino=falta||boton;
+    destino.scrollIntoView({block:'center',behavior:'smooth'});
+    if(falta) setTimeout(()=>falta.focus({preventScroll:true}),350);
+  });
+}
+
+/* ——— InitiateCheckout, una sola vez (ver el arranque) ——— */
+let icMandado=false;
+function iniciarCheckout(){
+  if(icMandado||!carrito) return;
+  icMandado=true;
+  const ids=(carrito.base?[carrito.base.id]:[]).concat(carrito.charms);
+  const cuenta={}; ids.forEach(i=>{ cuenta[i]=(cuenta[i]||0)+1; });
+  track('InitiateCheckout',{value:calcular(carrito).total,num_items:ids.length,
+    content_type:'product',content_ids:Object.keys(cuenta),
+    contents:Object.keys(cuenta).map(i=>({id:i,quantity:cuenta[i]})),
+    content_name:'Checkout'},
+    'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
+}
+
+/* ——— recordar los datos en este celular ———
+ *
+ * Lo que de verdad se parece al «pago a un clic» aquí: quien ya compró vuelve
+ * con todo lleno. Solo en el navegador de ella (localStorage), nunca en el
+ * servidor; se guarda al confirmar si la casilla está marcada, y «No soy yo ·
+ * borrar» lo quita (celular prestado). Lo opcional —dedicatoria, notas— no se
+ * guarda: es de cada pedido. */
+const LLAVE_DATOS='zephora.datos.v1';
+const RECORDABLES=['nombre','apellido','celular','correo','depto','ciudad','ciudadotra','direccion','adicional','barrio'];
+function guardarDatos(){
+  try{
+    if(!$('#recordar').checked){ localStorage.removeItem(LLAVE_DATOS); return; }
+    const d={}; RECORDABLES.forEach(k=>{ d[k]=$('#'+k).value; });
+    localStorage.setItem(LLAVE_DATOS,JSON.stringify(d));
+  }catch(_){}
+}
+function recordarDatos(){
+  let d=null;
+  try{ d=JSON.parse(localStorage.getItem(LLAVE_DATOS)||'null'); }catch(_){}
+  if(!d||typeof d!=='object') return;
+  RECORDABLES.forEach(k=>{
+    const el=$('#'+k); if(!el||typeof d[k]!=='string'||!d[k]) return;
+    if(k==='ciudad'||k==='ciudadotra') return;
+    el.value=d[k];
+    if(k==='depto'){ pintarCiudades(); }
+  });
+  if(d.ciudad&&[...$('#ciudad').options].some(o=>o.value===d.ciudad)){ $('#ciudad').value=d.ciudad; verOtra(); }
+  if(d.ciudadotra){ $('#ciudadotra').value=d.ciudadotra; }
+  $('#recordado').hidden=false;
+  $('#olvidar').addEventListener('click',()=>{
+    try{ localStorage.removeItem(LLAVE_DATOS); }catch(_){}
+    RECORDABLES.forEach(k=>{ const el=$('#'+k); if(el) el.value=''; });
+    pintarCiudades(); verOtra();
+    $('#recordar').checked=false;
+    $('#recordado').hidden=true;
+    $('#nombre').focus();
+  });
+}
+
 /* ——— confirmar ——— */
 let enviando=false;
 async function confirmar(){
   if(enviando) return;
+  iniciarCheckout();
   /* Todo en una página: si falta algo, se marca en rojo, se dice arriba y se
      lleva a la clienta al primer campo que falta, sin cambiar de pantalla. */
   if(!validar()){
@@ -1043,6 +1281,7 @@ async function confirmar(){
   }
   track('AddPaymentInfo',{value:calcular(carrito).total,
     num_items:carrito.charms.length+(carrito.base?1:0)});
+  guardarDatos();
 
   enviando=true;
   const btn=$('#confirmar');
@@ -1212,10 +1451,12 @@ Promise.all([
   /* El resumen es una barra plegable arriba en móvil y una columna fija al lado
      en escritorio. Es el mismo nodo movido, no dos copias que se desincronizan. */
   const anchoGrande=matchMedia('(min-width:760px)');
+  /* En el celular es el bloque 1, antes de los datos; en escritorio, la
+     columna de al lado. */
   const colocar=()=>{
-    const res=$('#res'), lado=$('#res-lado');
+    const res=$('#res'), lado=$('#res-lado'), col=$('#col');
     if(anchoGrande.matches){ if(res.parentNode!==lado) lado.appendChild(res); }
-    else if(res.parentNode!==document.body){ document.body.insertBefore(res,$('#app')); }
+    else if(res.nextElementSibling!==$('#panel-datos')){ col.insertBefore(res,$('#panel-datos')); }
   };
   colocar();
   anchoGrande.addEventListener('change',colocar);
@@ -1231,7 +1472,27 @@ Promise.all([
   $('#depto').addEventListener('change',()=>{ pintarCiudades(); marcar('ciudad',false); });
   $('#ciudad').addEventListener('change',verOtra);
   $('#confirmar').addEventListener('click',confirmar);
-  addEventListener('scroll',()=>{ $('#res').classList.toggle('is-compacto',scrollY>140); },{passive:true});
+  $('#res-lineas').addEventListener('click',e=>{
+    const m=e.target.closest('[data-mas]'), n=e.target.closest('[data-menos]'),
+      q=e.target.closest('[data-quitar]'), qb=e.target.closest('[data-quitar-base]');
+    if(m&&!m.disabled) sumar(m.dataset.mas);
+    else if(n) editarPedido(c=>{ const i=c.charms.lastIndexOf(n.dataset.menos); if(i>=0) c.charms.splice(i,1); });
+    else if(q) editarPedido(c=>{ c.charms=c.charms.filter(x=>x!==q.dataset.quitar); });
+    else if(qb) editarPedido(c=>{ c.base=null; });
+  });
+  $('#sug2-tira').addEventListener('click',e=>{ const b=e.target.closest('[data-sumar]'); if(b) sumar(b.dataset.sumar); });
+  /* «Seguir comprando» vuelve a donde estaba (la ficha, la colección) si llegó
+     desde la tienda; si no, a la portada. */
+  $('#seguir').addEventListener('click',e=>{
+    try{ if(document.referrer&&new URL(document.referrer).origin===location.origin&&history.length>1){ e.preventDefault(); history.back(); } }catch(_){}
+  });
+  fetch('.netlify/functions/mas-vendidos').then(r=>r.ok?r.json():null).then(d=>{
+    if(!d||!Array.isArray(d.vendidas)) return;
+    vendidosIds=d.vendidas.map(v=>v.id);
+    if(carrito) pintarSug2(carrito);
+  }).catch(()=>{});
+  recordarDatos();
+  barraPagar();
   plegable('#con-dedicatoria','#campo-dedicatoria');
   plegable('#con-notas','#campo-notas');
   /* «Cambiar» abre las dos formas de pago; elegir una la deja puesta y las
@@ -1282,16 +1543,21 @@ Promise.all([
   addEventListener('storage',e=>{ if(e.key===LLAVE) releer(); });
 
   $('#year').textContent=new Date().getFullYear();
-  /* El único InitiateCheckout del sitio (tienda.js dejó de mandarlo al tocar
-     pagar: contaba doble). Lleva los ids de catalogo.json de todo el carrito,
-     con cantidades, para que Meta sepa QUÉ piezas llegaron al checkout. */
-  const ids=(carrito.base?[carrito.base.id]:[]).concat(carrito.charms);
-  const cuenta={}; ids.forEach(i=>{ cuenta[i]=(cuenta[i]||0)+1; });
-  track('InitiateCheckout',{value:calcular(carrito).total,num_items:ids.length,
-    content_type:'product',content_ids:Object.keys(cuenta),
-    contents:Object.keys(cuenta).map(i=>({id:i,quantity:cuenta[i]})),
-    content_name:'Checkout'},
-    'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
+  /* El único InitiateCheckout del sitio, y la campaña optimiza por él
+     (CLAUDE.md): tiene que seguir significando lo mismo que antes, «empezó a
+     comprar». Desde que esta página es también el carrito, abrirla para mirar
+     lo que lleva no lo es. Así que:
+       · llegó con «Comprar» / «Comprar ahora» (tienda.js deja `pagar`), por un
+         enlace o sin marca → al cargar, como siempre;
+       · llegó con «Ver carrito» (`ver`) → cuando empieza a escribir sus datos
+         o toca pagar, lo que pase primero.
+     Una sola vez por visita. Lleva los ids de catalogo.json de todo el
+     carrito, con cantidades, para que Meta sepa QUÉ piezas llegaron. */
+  let intento='pagar';
+  try{ intento=sessionStorage.getItem('zephora.ir')||'pagar'; sessionStorage.removeItem('zephora.ir'); }catch(_){}
+  if(intento==='ver'){
+    $('#form-1').addEventListener('focusin',iniciarCheckout,{once:true});
+  }else iniciarCheckout();
 }).catch(()=>{
   /* Sin catálogo no se puede mostrar un precio, y mostrar uno inventado sería
      peor que no mostrar ninguno. Se manda a WhatsApp, que no depende de esto. */

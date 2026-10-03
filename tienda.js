@@ -1418,12 +1418,31 @@ const abrir=v=>{
   $('#dock-open').setAttribute('aria-expanded',v?'true':'false');
   $('#dock-open svg').style.transform=v?'rotate(180deg)':'';
 };
+/* El carrito es una página completa desde el 2026-10-02 (pedido del
+   propietario): checkout.html, donde se revisa y cambia lo que lleva, se
+   llenan los datos y se paga, todo en una vista. La barra fija lleva ahí; la
+   hoja oscura de antes (#sheet) ya no se abre —su marcado sigue porque
+   render() calcula sobre él los totales de la barra—.
+   `zephora.ir` le dice al checkout con qué intención llegó: «ver» el carrito
+   no es empezar a comprar, y el InitiateCheckout, por el que optimiza la
+   campaña, tiene que seguir significando lo mismo (ver checkout.html). */
+function verCarrito(){
+  if(!base&&!sel.length){
+    const b=document.getElementById('brazaletes');
+    if(b&&!document.body.dataset.producto) b.scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  tocado=true;
+  guardar();
+  try{ sessionStorage.setItem('zephora.ir','ver'); }catch(e){}
+  location.href='checkout.html';
+}
 $('#dock').addEventListener('click',e=>{
   if(e.target.closest('#dock-send')) return;
-  abrir(!hojaAbierta);
+  verCarrito();
 });
 $('#dock').addEventListener('keydown',e=>{
-  if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(true)}
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();verCarrito()}
 });
 $('#sheet-x').onclick=()=>abrir(false);
 $('#veil').onclick=()=>abrir(false);
@@ -1603,7 +1622,8 @@ function comprar(){
   /* Sin InitiateCheckout aquí: lo manda checkout.html al cargar, con los ids
      del carrito. Con los dos, cada checkout contaba doble —cada uno con su
      eventID, así que Meta no los deduplicaba—. Decisión del propietario,
-     2026-09-24. */
+     2026-09-24. Con `pagar`, checkout.html lo manda al cargar, como siempre. */
+  try{ sessionStorage.setItem('zephora.ir','pagar'); }catch(e){}
   location.href='checkout.html';
 }
 
