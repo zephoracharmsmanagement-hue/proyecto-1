@@ -250,9 +250,8 @@ function main() {
      mecánica. */
 
   /* Addi. El fallo peligroso no era negarlo —eso ya estaba arreglado— sino
-     meterlo en la lista de medios que se eligen dentro del checkout, porque ahí
-     no está: Wompi no lo soporta y no hay ningún botón. Mandarla a buscarlo la
-     deja dando vueltas en la pantalla de pago. */
+     meterlo en la lista de medios que se pagan dentro del checkout, porque ahí
+     no se cobra: Wompi no lo soporta y Addi termina por WhatsApp. */
   const lineaMedios = prompt.split('\n').find(l => /^MEDIOS DE PAGO/.test(l)) || '';
   comprobar(!/addi/i.test(lineaMedios),
     'no mete Addi en la lista de medios que se eligen en el checkout',
@@ -261,8 +260,19 @@ function main() {
   comprobar(/3 cuotas sin interes|3 CUOTAS SIN INTERES/i.test(prompt),
     'dice la frase pública de Addi: hasta 3 cuotas sin interés');
 
-  comprobar(/no hay ningun boton de Addi|Wompi no lo soporta/i.test(prompt),
-    'advierte que en el checkout no hay botón de Addi');
+  /* Desde el PR #18 (2026-10-04) el checkout sí tiene «Pagar con Addi»: no
+     cobra, abre WhatsApp con el pedido y los datos. El bot tiene que saber que
+     existe —si dice que no hay botón, contradice la pantalla que ella tiene
+     delante— y reconocer el mensaje con que llega, que sale de checkout.html. */
+  comprobar(!/no hay ningun boton de Addi/i.test(prompt),
+    'ya no dice que en el checkout no hay botón de Addi');
+  comprobar(/«Pagar con Addi»/.test(prompt),
+    'nombra la opción «Pagar con Addi» del checkout');
+  const checkout = fs.readFileSync(path.join(RAIZ, 'checkout.html'), 'utf8');
+  const saludoAddi = (checkout.match(/'(Hola, Zephora Charms\. Quiero pagar este pedido con Addi[^'\\]*?):?\\n'/) || [])[1];
+  comprobar(!!saludoAddi && prompt.includes(saludoAddi),
+    'reconoce el mensaje con que llega Addi desde el checkout',
+    saludoAddi || 'no se encontró el mensaje de Addi en checkout.html');
 
   /* Lo que va gratis con cada pedido. El paño nunca se había mencionado en la
      web y ahora está publicado: si lo lee ahí y el bot no lo conoce, lo niega.
