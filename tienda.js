@@ -1251,7 +1251,7 @@ function render(){
       dn.innerHTML='¡Felicidades, tienes <b>'+pz(nGratis)+' GRATIS</b>! Agrega '+pz(PROMO.cada)+' más y otra te sale gratis.';
     }else{
       dn.innerHTML=(nGratis?'Ya tienes <b>'+pz(nGratis)+' GRATIS</b>. ':'')
-        +(faltan===1?'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!'
+        +(faltan===1?(nGratis?'¡Agrega <b>1 pieza más</b> y otra te sale GRATIS!':'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!')
           :'¡Agrega <b>'+pz(faltan)+' más</b> y una te sale GRATIS!');
     }
   }else{
