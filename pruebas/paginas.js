@@ -199,15 +199,15 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
     if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}.png`), fullPage: false });
 
-    /* «Lleva 4, paga 3» en un solo recuadro junto al precio (pedido del
+    /* La promo en un solo recuadro junto al precio (pedido del
        propietario, 2026-10-02): ni la cuadrícula de paquetes ni porcentajes. La
        regla que dice es la de catalogo.json, que es con la que se cobra. */
     if (hay(id)) {
-      const { lleva, paga } = cat.reglas.promo;
+      const { desde } = cat.reglas.promo;
       const caja = await p.evaluate(() => { const c = document.querySelector('#pp-compra .promo-caja');
         return c ? { t: c.textContent.replace(/\s+/g, ' '), antesDeBotones: !!(c.compareDocumentPosition(document.querySelector('#pp-compra .pp-cta')) & 4) } : null; });
-      ok(caja && new RegExp(`Lleva ${lleva} piezas, paga ${paga}`).test(caja.t) && /menor valor/.test(caja.t) && caja.antesDeBotones,
-        `recuadro «lleva ${lleva}, paga ${paga}» junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
+      ok(caja && new RegExp(`Lleva ${desde} piezas, paga ${desde - 1}`).test(caja.t) && /menor valor/.test(caja.t) && caja.antesDeBotones,
+        `recuadro «lleva ${desde}, paga ${desde - 1}» junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
       ok(!(await p.$('.pq, .pq-o')), 'sin la cuadrícula de paquetes');
     }
     if (!cat.pulseras.includes(id) && hay(id)) {

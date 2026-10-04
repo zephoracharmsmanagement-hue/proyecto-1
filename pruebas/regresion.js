@@ -145,7 +145,7 @@ const U = BASE + '/index.html';
   out.push('\nVenta cruzada y envío gratis en la barra fija'
     + `\n  oculto antes de elegir brazalete: ${xsAntes === false ? 'sí ✓' : 'NO ✗ (sale vacío)'}`
     + `\n  aparece al fijar el brazalete: ${xsBase ? 'sí ✓' : 'NO ✗'}`
-    + `\n  y dice cuántas piezas faltan para la GRATIS: ${/Suma 3 piezas más.*GRATIS/.test(xsTxt) ? 'sí ✓' : 'NO ✗'} — "${xsTxt}"`
+    + `\n  y dice cuántas piezas faltan para la GRATIS: ${/Suma 2 piezas más.*GRATIS/.test(xsTxt) ? 'sí ✓' : 'NO ✗'} — "${xsTxt}"`
     + `\n  la barra dice cuánto falta para envío gratis: `
     + `${/para envío gratis|envío gratis/.test(dockBase) ? 'sí ✓' : 'NO ✗'} — "${dockBase}"`
     + `\n  se retira con ${puestos} charms puestos: `

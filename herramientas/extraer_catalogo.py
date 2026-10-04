@@ -63,14 +63,14 @@ def main():
 
     data = json.loads(saca(r'const DATA=(\{.*?\});\n', motor, 'la tabla DATA', 'tienda.js'))
 
-    # PROMO={lleva:4, paga:3} — «Lleva 4, paga 3» desde el 2026-10-02: por cada
-    # `lleva` piezas (brazalete o charm) salen gratis `lleva − paga`, las más
-    # baratas. Reemplazó a la escalera por cantidad de charms (ESC) y al 30%
-    # del brazalete.
+    # PROMO={desde:3, cada:2} — «Lleva 3, paga 2» desde el 2026-10-04: desde
+    # `desde` piezas (brazalete o charm) sale gratis la más barata, y una más
+    # cada `cada` piezas (3 → 1, 5 → 2, 7 → 3). Antes fue «lleva 4, paga 3» y,
+    # antes, la escalera por cantidad de charms (ESC) con el 30% del brazalete.
     promo_txt = saca(r'const PROMO=\{([^}]+)\};', motor, 'la promoción PROMO', 'tienda.js')
     promo = {k.strip(): int(v) for k, v in (par.split(':') for par in promo_txt.split(','))}
-    if set(promo) != {'lleva', 'paga'} or not 0 < promo['paga'] < promo['lleva']:
-        sys.exit('PROMO en tienda.js no tiene la forma {lleva:N, paga:M} con 0 < M < N: %r' % promo)
+    if set(promo) != {'desde', 'cada'} or promo['desde'] < 2 or promo['cada'] < 1:
+        sys.exit('PROMO en tienda.js no tiene la forma {desde:N, cada:M} con N ≥ 2 y M ≥ 1: %r' % promo)
 
     libre = int(saca(r'LIBRE\s*=\s*(\d+)', motor, 'el umbral de envío gratis LIBRE', 'tienda.js'))
     solo_ant = saca(r'const LIBRE_SOLO_ANTICIPADO=(true|false);', motor,
@@ -174,7 +174,7 @@ def main():
 
     n = len(catalogo['precios'])
     print(f'{DESTINO.relative_to(RAIZ)}: {n} piezas con precio y foto')
-    print(f'  promo: lleva {promo["lleva"]}, paga {promo["paga"]} (las más baratas, gratis)')
+    print(f'  promo: desde {promo["desde"]} piezas una gratis, y otra cada {promo["cada"]} (las más baratas)')
     tarifas = ' · '.join(f'{k} ${v:,}'.replace(',', '.') for k, v in envio.items())
     print(f'  envío {tarifas}'
           + f' · gratis desde ${libre:,}'.replace(',', '.'))

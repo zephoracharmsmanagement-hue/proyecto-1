@@ -291,7 +291,7 @@ BLOQUE_BRAZALETES = '''
   <div class="wrap">
     <span class="eyebrow">La base</span>
     <h2>Llévalo en un brazalete</h2>
-    <p class="col-sub">El brazalete cuenta como una pieza más: lleva 4 y la de menor valor te sale gratis.</p>
+    <p class="col-sub">El brazalete cuenta como una pieza más: lleva 3 y la de menor valor te sale gratis.</p>
     <div class="grid">
 {tarjetas}
     </div>
@@ -325,15 +325,15 @@ WA = 'https://wa.me/573018990672?text='
 WA_ADDI = WA + 'Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.'
 
 
-# «Lleva 4, paga 3» en un solo recuadro, junto al precio (pedido del
+# La promo («lleva 3, paga 2» desde el 2026-10-04) en un solo recuadro, junto al precio (pedido del
 # propietario, 2026-10-02). Reemplaza al selector de paquetes «Compra 1 / 2 /
 # 3 / Lleva 4», que con la escalera vieja obligaba a comparar cuatro totales.
 # Es el mismo recuadro de la portada (#promo en index.html).
 PROMO_CAJA = (
     '      <div class="promo-caja">\n'
-    '        <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Lleva 4 piezas, paga&nbsp;3.</b></p>\n'
-    '        <p class="promo-caja-x">Agrega 4 artículos a tu carrito (charms o brazaletes) y el de menor '
-    'valor te sale totalmente <b>GRATIS</b>. <span>(Se aplica automáticamente).</span></p>\n'
+    '        <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Lleva 3 piezas, paga&nbsp;2.</b></p>\n'
+    '        <p class="promo-caja-x">Mezcla charms y brazaletes: con 3 piezas la de menor valor te sale '
+    'totalmente <b>GRATIS</b>, con 5 son 2 gratis, con 7 son 3… <span>(Se aplica automáticamente).</span></p>\n'
     '      </div>')
 
 
@@ -345,7 +345,7 @@ def bloque_compra(pid, tipo, nombre, hay, primeras):
 
     La vitrina (pedido del propietario, 2026-09-26) va en TODAS las fichas,
     debajo de los botones: la clienta suma piezas de cualquier colección sin
-    salir de la página, que es justo lo que pide «lleva 4, paga 3». En los
+    salir de la página, que es justo lo que pide la promo. En los
     charms antes se abría al elegir 2, 3 o 4 en el selector de paquetes, que ya
     no existe; ahora está siempre. Sin pestaña de brazaletes en la ficha de un
     brazalete: el carrito lleva uno solo, y ofrecer otro ahí lo cambiaría."""
@@ -357,7 +357,7 @@ def bloque_compra(pid, tipo, nombre, hay, primeras):
     else:
         botones = ('      <div class="pp-cta">\n        <button class="btn btn--ghost" type="button" data-add="%s">Agregar al carrito</button>\n'
                    '        <button class="btn" type="button" data-comprar="%s">Comprar ahora</button>\n      </div>\n'
-                   '      <div class="pq-mas" id="pq-mas">\n        <p class="pq-mas-t">Completa tu set: con 4 piezas, '
+                   '      <div class="pq-mas" id="pq-mas">\n        <p class="pq-mas-t">Completa tu set: con 3 piezas, '
                    'la de menor valor es <b>GRATIS</b></p>\n        %s\n      </div>'
                    % (pid, pid, vitrina(primeras, 'Relacionados', sin=pid)))
     selector = PROMO_CAJA
@@ -473,7 +473,8 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
               'en piel sensible. Si con el tiempo se oscurece, es natural en la plata real: <b>un paño le '
               'devuelve el brillo</b> en segundos.')
     t3 = ('Combina héroes, iniciales y símbolos en <b>un solo brazalete</b>. Mezcla charms y brazaletes: '
-          '<b>lleva %d piezas y paga %d</b> —la de menor valor te sale gratis—.' % (r['promo']['lleva'], r['promo']['paga']))
+          '<b>lleva %d piezas y paga %d</b> —la de menor valor te sale gratis—, y con %d son 2 gratis.'
+          % (r['promo']['desde'], r['promo']['desde'] - 1, r['promo']['desde'] + r['promo']['cada']))
     t4 = ('Tu pedido llega en <b>su caja</b>, con <b>paño para limpiar la plata</b> y una <b>dedicatoria '
           'escrita a mano</b> con las palabras que tú elijas. Solo falta entregarla… o quedártela.')
 
@@ -580,7 +581,7 @@ def generar(pid, html, cat, stock, b, exigidos):
         rel_eyebrow, rel_titulo, id_rel = 'Brazaletes', 'Más brazaletes', ' id="brazaletes"'
         bloque_b = ''
     else:
-        rel_sub = '<p class="col-sub">Juntos rinden más: lleva 4 piezas y la de menor valor te sale gratis.</p>'
+        rel_sub = '<p class="col-sub">Juntos rinden más: lleva 3 piezas y la de menor valor te sale gratis.</p>'
         mismo = tipo == 'charm' and any(cat['grupos'].get(p) == grupo for p in rel)
         rel_eyebrow = grupo if mismo else 'Zephora'
         rel_titulo = ('Más de %s' % grupo) if mismo else 'Las más pedidas'

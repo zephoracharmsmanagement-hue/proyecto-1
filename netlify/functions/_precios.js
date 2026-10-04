@@ -19,18 +19,19 @@ const ESP = new Set(pulseras);
    sin él, un carrito con 10.000 charms genera un cobro absurdo. */
 const MAX_CHARMS = 60;
 
-/* «Lleva 4, paga 3» (pedido del propietario, 2026-10-02). Brazalete y charms
-   cuentan igual como piezas: por cada `lleva` piezas salen gratis
-   `lleva − paga`, y las gratis son siempre las más baratas. Cíclica: 8 piezas,
-   2 gratis; 12, 3. Reemplaza la escalera por cantidad de charms y el 30% del
-   brazalete, que obligaban a la clienta a hacer cuentas.
+/* «Lleva 3, paga 2» (pedido del propietario, 2026-10-04; del 2026-10-02 al
+   04 fue «lleva 4, paga 3»). Brazalete y charms cuentan igual como piezas:
+   desde `desde` piezas sale gratis la más barata, y una más cada `cada`
+   piezas —3 → 1, 5 → 2, 7 → 3, 9 → 4—. Las gratis son siempre las más
+   baratas.
 
    El orden de las piezas importa solo para decir CUÁL sale gratis cuando hay
    empate de precio —el total es el mismo—: se ordenan por precio y, a igual
    precio, los charms antes que el brazalete, así lo gratis suele ser un charm
    y el brazalete se ve con su precio. La página hace exactamente lo mismo
    (gratisDe en tienda.js y en checkout.html) y pruebas/precios.js lo compara. */
-const cuantasGratis = n => Math.floor(n / reglas.promo.lleva) * (reglas.promo.lleva - reglas.promo.paga);
+const cuantasGratis = n => (n < reglas.promo.desde ? 0
+  : 1 + Math.floor((n - reglas.promo.desde) / reglas.promo.cada));
 
 function piezasGratis(pedido) {
   const piezas = pedido.charms.map(id => ({ id, precio: precios[id] }));

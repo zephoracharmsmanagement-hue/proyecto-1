@@ -215,21 +215,21 @@ Todos los de sitio web sobre el **píxel viejo** (`2130673404542988`).
 La persona tiene que sentir que recibió varias veces lo que pagó. Zephora ya
 regala más de lo que dice en sus anuncios; verificar vigencia en el sitio antes
 de prometerlo: empaque de regalo en todos los pedidos, dedicatoria escrita a
-mano, paño de limpieza, envío gratis con pago anticipado, «lleva 4, paga 3»
-(la pieza de menor valor gratis), Addi, garantía de 30 días, 5 días para cambio
+mano, paño de limpieza, envío gratis con pago anticipado, «lleva 3, paga 2»
+(la pieza de menor valor gratis; con 5, dos), Addi, garantía de 30 días, 5 días para cambio
 de talla.
 
-Promo real desde el 2026-10-02 (`tienda.js`, `PROMO`): **lleva 4 piezas, paga
-3**. Brazalete y charms cuentan igual; por cada 4 piezas sale gratis la de menor
-valor (8 → 2 gratis, 12 → 3). Ya no existe la escalera 8/15/25% ni el −30% del
-brazalete: un anuncio que los prometa promete algo que el checkout no cobra.
-Texto del banner del sitio: «🎁 ARMA TU SET: Mezcla charms y brazaletes. ¡LLEVA
-4 Y EL 4° ES GRATIS! ✨».
+Promo real desde el 2026-10-04 (`tienda.js`, `PROMO`): **lleva 3 piezas, paga
+2**. Brazalete y charms cuentan igual; con 3 piezas sale gratis la de menor
+valor y una más cada 2 (5 → 2 gratis, 7 → 3). Ya no existen «lleva 4, paga 3»,
+la escalera 8/15/25% ni el −30% del brazalete: un anuncio que los prometa
+promete algo que el checkout no cobra. Texto del banner del sitio: «🎁 ARMA TU
+SET: Mezcla charms y brazaletes. ¡LLEVA 3 Y PAGA 2! · Lleva 5 y paga 3 ✨».
 
 - Presentación: ninguna oferta explícita. La idea de armar la pulsera y el
   «desde» del brazalete.
 - Evaluación: Plata 925 con sello, garantía, empaque incluido.
-- Conversión: envío gratis, lleva 4 paga 3 (mezclando charms y brazaletes), Addi.
+- Conversión: envío gratis, lleva 3 paga 2 (mezclando charms y brazaletes), Addi.
 - Ascensión: charms nuevos para la pulsera que ya tiene.
 
 Ojo: las páginas de preguntas frecuentes y de envíos todavía dicen «envío

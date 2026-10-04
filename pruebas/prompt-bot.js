@@ -192,18 +192,18 @@ function main() {
      aunque las reglas ya le llegaban dentro de disponibilidad: sencillamente el
      prompt no las nombraba. Ahora las explica, y aqui se comprueba que los
      porcentajes que dice sean los que de verdad se cobran. */
-  /* Desde el 2026-10-02 la promo es una sola: «lleva 4, paga 3», con brazalete
-     y charms contando igual. Se comprueba con los números de las reglas, no
-     escritos aquí: si mañana es «lleva 5, paga 4», esto exige el texto nuevo. */
-  const { lleva, paga } = reglas.promo;
-  comprobar(new RegExp(`lleva ${lleva} piezas,? paga ${paga}`, 'i').test(prompt),
-    `anuncia «lleva ${lleva} piezas, paga ${paga}»`);
+  /* Desde el 2026-10-04 la promo es «lleva 3, paga 2» (antes, «lleva 4, paga
+     3»), con brazalete y charms contando igual y una gratis más cada 2 piezas.
+     Se comprueba con los números de las reglas, no escritos aquí. */
+  const { desde, cada } = reglas.promo;
+  comprobar(new RegExp(`lleva ${desde} piezas,? paga ${desde - 1}`, 'i').test(prompt),
+    `anuncia «lleva ${desde} piezas, paga ${desde - 1}»`);
   comprobar(/charms y brazaletes cuentan igual/i.test(prompt),
     'dice que el brazalete cuenta como una pieza más');
   comprobar(/MENOR valor sale gratis/i.test(prompt),
     'dice que la gratis es la de menor valor');
-  comprobar(new RegExp(`${2 * lleva} piezas salen ${2 * (lleva - paga)} gratis`).test(prompt),
-    'explica que es cíclica (el doble de piezas, el doble de gratis)');
+  comprobar(new RegExp(`${desde + cada} piezas salen 2 gratis`).test(prompt) && new RegExp(`${desde + 2 * cada} salen 3`).test(prompt),
+    `explica que sube: con ${desde + cada} piezas 2 gratis, con ${desde + 2 * cada} 3`);
   /* La promo vieja no puede seguir anunciándose como vigente: el bot la
      cobraría de palabra y el checkout no. Solo se admite nombrándola para
      decir que cambió. */
@@ -291,11 +291,11 @@ function main() {
 
   /* La promo: el chat y la página tienen que decir lo mismo palabra por
      palabra o la clienta cree que son dos ofertas. Desde el 2026-10-02 la
-     página dice «¡Lleva 4 y el 4° es gratis!» en el banner; la redacción del
+     página dice «¡Lleva 3 y paga 2!» en el banner (antes, «¡Lleva 4 y el 4° es gratis!»); la redacción del
      2026-09-22 («paga 3 y llévate el cuarto gratis») acompañaba a la escalera
      vieja y ya no sale en ninguna parte. */
-  comprobar(/lleva 4 y el 4° es gratis/i.test(prompt),
-    'usa la redacción del banner: «¡Lleva 4 y el 4° es gratis!»');
+  comprobar(/lleva 3 y paga 2/i.test(prompt),
+    'usa la redacción del banner: «¡Lleva 3 y paga 2!»');
 
   const promoVieja = prompt.split('\n').filter(l => /paga 3 y ll[eé]vate el cuarto gratis/i.test(l));
   comprobar(promoVieja.length === 0,

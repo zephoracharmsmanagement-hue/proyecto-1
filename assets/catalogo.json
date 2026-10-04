@@ -536,8 +536,8 @@
  },
  "reglas": {
   "promo": {
-   "lleva": 4,
-   "paga": 3
+   "desde": 3,
+   "cada": 2
   },
   "envioGratisDesde": 0,
   "envioGratisSoloAnticipado": true,

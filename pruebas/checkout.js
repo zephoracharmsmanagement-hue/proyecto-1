@@ -211,18 +211,19 @@ async function llenarDatos(p, d) {
   }
 
   // ——— 2ba · la escalera del descuento ———
-  out.push('\n2ba · La barra de «lleva 4, paga 3», visible sin abrir el resumen');
+  out.push('\n2ba · La barra de «lleva 3, paga 2», visible sin abrir el resumen');
   {
     /* Lo que sostiene la barra: que se vea en el móvil con el resumen cerrado
        —si hay que abrirlo, no empuja—, que llene una casilla por pieza de la
        vuelta en curso (brazalete y charms cuentan igual) y que diga cuántas
        faltan para la gratis, o la celebre. */
     const casos = [
-      { charms: [], base: true, llenos: 1, dice: /Agrega 3 piezas más/i },
-      { charms: ['iron-man'], base: true, llenos: 2, dice: /Agrega 2 piezas más/i },
-      { charms: ['iron-man', 'stitch'], base: true, llenos: 3, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, llenos: 4, dice: /Felicidades, tienes 1 pieza GRATIS/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, llenos: 2, dice: /Ya tienes 1 pieza GRATIS.*Agrega 2 piezas más/i },
+      /* 1…3 hasta la primera gratis; después, tramos de 2 (4 → 5, 6 → 7). */
+      { charms: [], base: true, tramos: 3, llenos: 1, dice: /Agrega 2 piezas más/i },
+      { charms: ['iron-man'], base: true, tramos: 3, llenos: 2, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
+      { charms: ['iron-man', 'stitch'], base: true, tramos: 3, llenos: 3, dice: /Felicidades, tienes 1 pieza GRATIS/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, tramos: 2, llenos: 1, dice: /Ya tienes 1 pieza GRATIS.*Agrega 1 pieza más/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 2, llenos: 1, dice: /Ya tienes 2 piezas GRATIS.*Agrega 1 pieza más/i },
     ];
     for (const k of casos) {
       const p = await b.newPage({ viewport: { width: 390, height: 844 } });
@@ -240,7 +241,7 @@ async function llenarDatos(p, d) {
       });
       const n = k.charms.length + ' charm' + (k.charms.length === 1 ? '' : 's') + (k.base ? ' + brazalete' : '');
       ok(r.visible && r.cerrado, `${n}: la barra se ve con el resumen cerrado`);
-      ok(r.tramos === 4 && r.llenos === k.llenos, `${n}: llena ${k.llenos} de 4 casillas`, `${r.llenos}/${r.tramos}`);
+      ok(r.tramos === k.tramos && r.llenos === k.llenos, `${n}: llena ${k.llenos} de ${k.tramos} casillas`, `${r.llenos}/${r.tramos}`);
       ok(k.dice.test(r.nota), `${n}: dice lo que corresponde`, r.nota);
       /* Con una gratis, la línea de esa pieza va tachada con «GRATIS» y lo
          tachado es exactamente el renglón del descuento del resumen. */
@@ -252,7 +253,7 @@ async function llenarDatos(p, d) {
             dice: [...document.querySelectorAll('#res-lineas .rrow-p--gratis b')].every(b => b.textContent.trim() === 'GRATIS'),
             resumen: f ? +f.textContent.replace(/\D/g, '') : 0 };
         });
-        ok(g.lineas === 1 && g.dice && g.tachado === g.resumen && g.resumen > 0,
+        ok(g.lineas >= 1 && g.dice && g.tachado === g.resumen && g.resumen > 0,
           `${n}: la pieza gratis sale tachada con «GRATIS» y cuadra con el resumen`, JSON.stringify(g));
       }
       await p.close();
