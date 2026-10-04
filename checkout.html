@@ -85,7 +85,7 @@ button{font-family:inherit}
 .rrow-n small{display:block;font-size:12px;color:var(--gris-suave);letter-spacing:.05em;
   text-transform:uppercase;margin-top:1px}
 .rrow-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
-/* La pieza que sale gratis por «lleva 4, paga 3»: precio tachado y GRATIS
+/* La pieza que sale gratis por la promo: precio tachado y GRATIS
    resaltado, como pidió el propietario. */
 .rrow-p--gratis{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}
 .rrow-p--gratis s{font-size:12px;color:var(--gris-suave)}
@@ -230,6 +230,7 @@ button{font-family:inherit}
 .cambiar{background:none;border:0;color:var(--plum);font:400 13px/1 Jost;text-decoration:underline;
   text-underline-offset:3px;cursor:pointer;padding:10px 4px;min-height:44px;flex:0 0 auto}
 #ops-pago{margin:0 0 14px}
+#addi-atajo .cambiar{min-height:0;padding:0;font-size:inherit}
 .btn--grande{padding:18px 24px;font-size:15px;letter-spacing:.08em;font-weight:600}
 .legal{margin:10px 0 0;font-size:12px;color:var(--gris);line-height:1.5;text-align:center}
 #panel-pago .atras{display:block;margin:10px auto 0}
@@ -397,6 +398,14 @@ button{font-family:inherit}
                 <span class="error">Revisa el correo: falta el @ o el dominio</span>
               </div>
             </div>
+            <!-- Solo con Addi: la piden para aprobar el cupo. Con los otros
+                 pagos no se pide (las transportadoras ya no la exigen). -->
+            <div class="campo" data-c="cedula" id="campo-cedula" hidden>
+              <label for="cedula">Cédula <span class="req">*</span></label>
+              <input id="cedula" name="cedula" type="text" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="1.000.000.000">
+              <span class="pista">Addi la pide para aprobar tu cupo.</span>
+              <span class="error">Escribe tu número de cédula</span>
+            </div>
 
             <div class="dos">
               <div class="campo" data-c="depto">
@@ -508,6 +517,19 @@ button{font-family:inherit}
                 <span class="op-d" id="d-contra">Pagas en efectivo cuando el mensajero te entregue el paquete. El recaudo lo cobra la transportadora, por eso el envío cuesta más.</span>
               </span>
             </label>
+            <!-- Addi entre los pagos principales (pedido del propietario,
+                 2026-10-04: mucha gente compra así y estaba escondido en un
+                 enlace). Wompi no lo soporta, así que no pasa por la pasarela:
+                 lleva a WhatsApp con el pedido armado y allá se manda el
+                 enlace de Addi. No crea pedido ni aparta inventario: la venta
+                 se registra al aprobarse, como cualquier venta por chat. -->
+            <label class="op op--addi">
+              <input type="radio" name="pago" value="addi">
+              <span class="op-tx">
+                <span class="op-t"><b>Pagar con Addi</b><span class="precio" id="p-addi">—</span></span>
+                <span class="op-d">Hasta 3 cuotas sin interés. Te llevamos a WhatsApp para terminar tu pedido: allá te enviamos el enlace de Addi para aprobar tu cupo. Envío gratis.</span>
+              </span>
+            </label>
           </div>
 
           <div class="aval">
@@ -523,7 +545,7 @@ button{font-family:inherit}
                aceptarlos, como en cualquier tienda en línea. -->
           <p class="legal">Al confirmar aceptas los <a href="terminos-y-condiciones.html" target="_blank" rel="noopener">términos</a>, la <a href="politica-de-privacidad.html" target="_blank" rel="noopener">política de privacidad</a> y la de <a href="envios-y-devoluciones.html" target="_blank" rel="noopener">envíos y devoluciones</a>.</p>
           <p class="legal" id="nota-pago">Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.</p>
-          <p class="legal">¿Monto alto? <a data-wa="pagos" href="https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.">Divide tu compra en 3 cuotas sin interés pagando con Addi</a>.</p>
+          <p class="legal" id="addi-atajo">¿Monto alto? <button type="button" class="cambiar" id="elegir-addi">Divide tu compra en 3 cuotas sin interés pagando con Addi</button>.</p>
           <a class="atras" href="index.html#brazaletes">← Seguir viendo el catálogo</a>
         </section>
       </div>
@@ -596,7 +618,7 @@ function leerCarrito(){
      interfaz que lo muestre ni casilla que lo quite, heredarlo sería cobrar
      $40.000 que la clienta no puede ver. Se pisa aquí, en la puerta. */
   return {base:base,charms:charms,empaque:false,
-    pago:d.pago==='contraentrega'?'contraentrega':'anticipado'};
+    pago:['contraentrega','addi'].includes(d.pago)?d.pago:'anticipado'};
 }
 /* ——— el carrito puede llegar en el enlace ———
  *
@@ -639,7 +661,7 @@ function carritoDeUrl(){
   /* Igual que arriba: el «e=1» de los correos de recuperación ya enviados se
      lee y se descarta. */
   return {base:base,charms:charms,empaque:false,
-    pago:q.get('pago')==='contraentrega'?'contraentrega':'anticipado'};
+    pago:['contraentrega','addi'].includes(q.get('pago'))?q.get('pago'):'anticipado'};
 }
 
 /* Quita de la URL lo que ya se aplicó. Si no, recargar vuelve a imponer el
@@ -663,15 +685,16 @@ function guardarCarrito(){
 /* Las mismas reglas que index.html y que netlify/functions/_precios.js. Aquí
    solo se muestran: lo que se cobra lo vuelve a calcular el servidor, que es
    el único que no se puede alterar desde la consola del navegador. */
-/* «Lleva 4, paga 3»: por cada 4 piezas —brazalete o charm— salen gratis las
-   más baratas. Mismo desempate que piezasGratis() de _precios.js (a igual
+/* «Paga 3, lleva 1 gratis · paga 5, lleva 2 gratis»: con 4 piezas —brazalete
+   o charm— sale gratis la más barata, con 7 las dos más baratas, y no más.
+   Mismo desempate que piezasGratis() de _precios.js (a igual
    precio, los charms antes que el brazalete), para que la línea tachada aquí
    sea la misma que dice el correo. */
 function gratisDe(c){
   const P=CAT.reglas.promo;
   const piezas=c.charms.map(id=>({id:id,p:CAT.precios[id]}));
   if(c.base) piezas.push({id:c.base.id,p:CAT.precios[c.base.id]});
-  const n=Math.floor(piezas.length/P.lleva)*(P.lleva-P.paga);
+  const n=P.tramos.reduce((g,t)=>piezas.length>=t[0]?t[1]:g,0);
   return piezas.map((x,i)=>[x,i]).sort((a,b)=>a[0].p-b[0].p||a[1]-b[1]).slice(0,n).map(x=>x[0]);
 }
 function calcular(c){
@@ -684,8 +707,10 @@ function calcular(c){
   /* El envío gratis es solo del pago anticipado; la contraentrega lo paga
      siempre. Misma regla que index.html y que _precios.js, que es quien cobra. */
   const alcanza=subtotal>=R.envioGratisDesde;
-  const gratis=alcanza&&(!R.envioGratisSoloAnticipado||c.pago==='anticipado');
-  const envio=(subtotal<=0||gratis)?0:R.envio[c.pago];
+  /* Addi es pago por adelantado: mismo envío que «Pagar ahora». */
+  const pe=c.pago==='contraentrega'?'contraentrega':'anticipado';
+  const gratis=alcanza&&(!R.envioGratisSoloAnticipado||pe==='anticipado');
+  const envio=(subtotal<=0||gratis)?0:R.envio[pe];
   return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(desc),nGratis:libres.length,
     subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,
     total:Math.round(subtotal+envio)};
@@ -735,7 +760,7 @@ function pintarResumen(){
   let h='';
   h+='<div class="tot-row"><span>Subtotal</span><b>'+cop(t.brutoC+t.brutoB)+'</b></div>';
   if(t.descuento>0) h+='<div class="tot-row save"><span>'+(t.nGratis>1?t.nGratis+' piezas gratis':'Pieza gratis')
-    +' · lleva 4, paga 3</span><b>− '+cop(t.descuento)+'</b></div>';
+    +' · promo</span><b>− '+cop(t.descuento)+'</b></div>';
   h+=t.gratis
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
@@ -799,7 +824,7 @@ function pintarResumen(){
 
   /* Los dos precios de «Cambiar» se calculan con su propia forma de pago, para
      que la diferencia se vea antes de elegir y no después. */
-  ['anticipado','contraentrega'].forEach(f=>{
+  ['anticipado','contraentrega','addi'].forEach(f=>{
     const tt=calcular(Object.assign({},c,{pago:f}));
     $('#p-'+f).textContent=cop(tt.total);
   });
@@ -824,43 +849,62 @@ function pintarResumen(){
    pagas al recibir». No se vuelve a preguntar lo que ya se eligió. */
 function pintarPagoElegido(t){
   t=t||calcular(carrito);
-  const contra=carrito.pago==='contraentrega';
+  const contra=carrito.pago==='contraentrega', addi=carrito.pago==='addi';
   $('#pago-elegido-tx').innerHTML=contra
     ? '<b>Pago contraentrega</b><span>Pagas en efectivo al recibir · envío '+cop(t.envio)+'</span>'
+    : addi
+    ? '<b>Pagar con Addi</b><span>Hasta 3 cuotas sin interés · terminas por WhatsApp'
+      +(t.gratis?' · envío gratis':'')+'</span>'
     : '<b>Pagar ahora con Wompi</b><span>Nequi, Bancolombia, PSE, Daviplata, tarjetas'
       +(t.gratis?' · envío gratis':'')+'</span>';
   if(!enviando) $('#confirmar').textContent=contra
     ? 'Confirmar pedido · '+cop(t.total)
+    : addi
+    ? 'Continuar por WhatsApp · '+cop(t.total)
     : 'Pagar '+cop(t.total);
   $('#nota-pago').textContent=contra
     ? 'Pagas en efectivo al mensajero. Confirmamos disponibilidad por WhatsApp antes de despachar.'
+    : addi
+    ? 'Al continuar te llevamos a WhatsApp con tu pedido armado. Allá te enviamos el enlace de Addi para aprobar tu cupo.'
     : 'Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.';
+  /* La cédula solo con Addi; el atajo de abajo sobra cuando ya está elegido. */
+  $('#campo-cedula').hidden=!addi;
+  if(!addi) marcar('cedula',false);
+  $('#addi-atajo').hidden=addi;
 }
 
-/* Barra de «Lleva 4, paga 3»: cuatro casillas por vuelta, la cuarta es la
- * gratis, y un aviso que dice cuántas piezas faltan para la próxima. La misma
- * del carrito (render() en tienda.js). Aquí también sirve: quien llega con 3
- * piezas puede volver atrás por la cuarta. */
+/* Barra de la promo: una casilla por pieza del tramo en curso (1…4, después
+ * 5…7; desde 7, llena: es el máximo), y un aviso que dice cuántas piezas
+ * faltan para la próxima. La misma del carrito (render() y tramoPromo() en
+ * tienda.js). Aquí también sirve: quien llega con 3 piezas puede volver atrás
+ * por la cuarta. */
 function pintarDescuento(c,t){
   const caja=$('#dto'), P=CAT.reglas.promo;
   const piezas=c.charms.length+(c.base?1:0);
   if(!piezas){ caja.hidden=true; return; }
   caja.hidden=false;
-  const L=P.lleva, vuelta=piezas%L, llenas=vuelta||L, faltan=L-vuelta;
+  const sig=P.tramos.find(x=>x[0]>piezas), hechos=P.tramos.filter(x=>x[0]<=piezas);
+  const ult=hechos[hechos.length-1], prev=hechos[hechos.length-2];
+  const tr=!sig?{ini:prev?prev[0]:0,fin:ult[0],completo:true,max:true}
+    :(ult&&ult[0]===piezas)?{ini:prev?prev[0]:0,fin:piezas,completo:true,sig:sig}
+    :{ini:ult?ult[0]:0,fin:sig[0],completo:false,sig:sig};
+  const faltan=tr.fin-piezas;
   const pasos=[];
-  for(let n=1;n<=L;n++){
-    const cls=[n<=llenas?'is-on':'', n===L?'is-free':''].join(' ').trim();
-    pasos.push('<li'+(cls?' class="'+cls+'"':'')+'>'+(n===L?'GRATIS':n)+'</li>');
+  for(let n=tr.ini+1;n<=tr.fin;n++){
+    const cls=[n<=piezas?'is-on':'', n===tr.fin?'is-free':''].join(' ').trim();
+    pasos.push('<li'+(cls?' class="'+cls+'"':'')+'>'+(n===tr.fin?'GRATIS':n)+'</li>');
   }
   const ol=$('#dto-pasos');
-  ol.style.setProperty('--n',L);
+  ol.style.setProperty('--n',tr.fin-tr.ini);
   ol.innerHTML=pasos.join('');
-  caja.classList.toggle('is-max',!vuelta);
+  caja.classList.toggle('is-max',tr.completo);
   const pz=n=>n+(n===1?' pieza':' piezas');
-  $('#dto-nota').innerHTML=!vuelta
-    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>! Con '+pz(L)+' más, otra te sale gratis.'
+  $('#dto-nota').innerHTML=tr.max
+    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>, lo máximo de la promo!'
+    : tr.completo
+    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>! Con '+pz(tr.sig[0]-piezas)+' más te salen '+tr.sig[1]+' gratis.'
     : (t.nGratis?'Ya tienes <b>'+pz(t.nGratis)+' GRATIS</b>. ':'')
-      +(faltan===1?'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!'
+      +(faltan===1?(t.nGratis?'¡Agrega <b>1 pieza más</b> y otra te sale GRATIS!':'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!')
         :'¡Agrega <b>'+pz(faltan)+' más</b> y una te sale GRATIS!');
 }
 
@@ -945,7 +989,9 @@ const REGLAS={
   /* Solo cuenta cuando el municipio no estaba en la lista; el resto del tiempo
      el campo está oculto y vacío, y marcarlo sería marcar algo invisible. */
   ciudadotra:()=>$('#ciudad').value!==OTRO||val('ciudadotra').length>=3,
-  direccion:()=>val('direccion').length>=5
+  direccion:()=>val('direccion').length>=5,
+  /* Solo cuenta con Addi; con los otros pagos el campo está oculto. */
+  cedula:()=>carrito.pago!=='addi'||val('cedula').replace(/\D/g,'').length>=5
 };
 
 function validar(){
@@ -1043,6 +1089,15 @@ async function confirmar(){
   }
   track('AddPaymentInfo',{value:calcular(carrito).total,
     num_items:carrito.charms.length+(carrito.base?1:0)});
+
+  /* Addi: no hay cobro aquí. Se abre WhatsApp con el pedido y los datos, y
+     la venta la registra la tienda al aprobarse el cupo. Se mide como el
+     resto de salidas a WhatsApp de la tienda (Contact, con su etiqueta). */
+  if(carrito.pago==='addi'){
+    track('Contact',{content_name:'WhatsApp · addi-checkout',value:calcular(carrito).total});
+    location.href=waPedido();
+    return;
+  }
 
   enviando=true;
   const btn=$('#confirmar');
@@ -1158,14 +1213,23 @@ async function confirmar(){
 
 /* Respaldo: el mismo pedido, en texto, para WhatsApp. */
 function waPedido(){
-  const t=calcular(carrito), d=datos();
-  let s='Hola, Zephora Charms. Armé este pedido en la página y quiero confirmarlo:\n';
-  lineas(carrito).forEach(l=>{ s+='\n• '+l.n+' — '+cop(l.p); });
-  s+='\n\nEnvío: '+(t.gratis?'gratis':cop(t.envio))+' ('+carrito.pago+')';
+  const t=calcular(carrito), d=datos(), addi=carrito.pago==='addi';
+  let s=addi
+    ? 'Hola, Zephora Charms. Quiero pagar este pedido con Addi (hasta 3 cuotas sin interés):\n'
+    : 'Hola, Zephora Charms. Armé este pedido en la página y quiero confirmarlo:\n';
+  lineas(carrito).forEach(l=>{
+    const talla=/Talla/.test(l.m)?' ('+l.m.replace(/^.*Talla /,'talla ')+')':'';
+    s+='\n• '+l.n+talla+' — '+(l.gratis?'GRATIS (promo)':cop(l.p));
+  });
+  s+='\n\nEnvío: '+(t.gratis?'gratis':cop(t.envio))+(addi?'':' ('+carrito.pago+')');
   s+='\nTotal: '+cop(t.total);
   if(d.nombre) s+='\n\nA nombre de '+d.nombre+' '+d.apellido
-    +'\n'+d.direccion+(d.adicional?', '+d.adicional:'')
-    +'\n'+d.ciudad+', '+d.depto+'\nCel. '+d.celular;
+    +(addi&&val('cedula')?'\nCédula: '+val('cedula'):'')
+    +'\nCel. '+d.celular+(addi&&d.correo?'\nCorreo: '+d.correo:'')
+    +'\n'+d.direccion+(d.adicional?', '+d.adicional:'')+(d.barrio?', '+d.barrio:'')
+    +'\n'+d.ciudad+', '+d.depto;
+  if(d.notas) s+='\nIndicaciones de entrega: '+d.notas;
+  if(d.dedicatoria) s+='\n\nDedicatoria: '+d.dedicatoria;
   return 'https://wa.me/'+WA+'?text='+encodeURIComponent(s);
 }
 
@@ -1244,6 +1308,12 @@ Promise.all([
   });
 
   vigilarCampos();
+
+  $('#elegir-addi').addEventListener('click',()=>{
+    const r=document.querySelector('#ops-pago input[value="addi"]');
+    r.checked=true; r.dispatchEvent(new Event('change',{bubbles:true}));
+    $('#panel-pago').scrollIntoView({behavior:'smooth',block:'start'});
+  });
 
   $('#ops-pago').addEventListener('change',e=>{
     if(e.target.name!=='pago') return;

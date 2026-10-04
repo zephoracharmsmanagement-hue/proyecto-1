@@ -182,6 +182,7 @@ console.log(JSON.stringify({
   dos: cop(dos.total),
   tres: cop(tres.total),
   ahorroTres: cop(tres.descuento),
+  ahorroDos: cop(dos.descuento),
   tercerCharm: cop(tres.total - dos.total),
   contraentrega: cop(calcular({base, charms: charms.slice(0, 3), pago: 'contraentrega'}).total),
 }));
@@ -244,8 +245,8 @@ PAGINA = '''<!DOCTYPE html>
      escribe el generador corriendo el mismo código que firma el cobro. -->
 <section class="col-combo wrap" id="combo">
   <h2>El combo de la colección</h2>
-  <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: con «lleva 4, paga 3», la de
-  menor valor te sale <b>gratis</b>. Se aplica solo en el carrito.</p>
+  <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
+  sale <b>gratis</b>. Con 7 piezas son 2 gratis. Se aplica solo en el carrito.</p>
   <div class="col-escalera">
     <div class="col-paso"><span class="col-paso-n">Brazalete solo</span><b>{pulsera_sola}</b></div>
     <div class="col-paso"><span class="col-paso-n">+ 2 charms</span><b>{dos}</b></div>
@@ -401,7 +402,7 @@ def generar(col, html, escribir):
         tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [col['base']])),
         tercer_charm=p['tercerCharm'], charm_solo=p['charmSolo'],
         pulsera_sola=p['pulseraSola'], dos=p['dos'], tres=p['tres'],
-        ahorro_tres=p['ahorroTres'], contraentrega=p['contraentrega'],
+        ahorro_tres=p['ahorroTres'], ahorro_dos=p['ahorroDos'], contraentrega=p['contraentrega'],
     )
 
     pagina = arregla_nav(pagina)
@@ -426,10 +427,10 @@ def generar(col, html, escribir):
 # calcular(), el mismo código que firma el cobro, así que un kit no puede
 # prometer un número que el checkout no vaya a cobrar.
 #
-# Lo que la página enseña es la promo que la tienda YA aplica, «lleva 4, paga
-# 3» (desde el 2026-10-02): el mismo kit a 1, 2, 3 y 4 dijes. El salto que
-# importa es brazalete + 3 dijes, que son 4 piezas y ahí la de menor valor sale
-# gratis. A ese escalón apunta la pauta, y por eso va marcado.
+# Lo que la página enseña es la promo que la tienda YA aplica, «paga 3, lleva
+# 1 gratis» (desde el 2026-10-04): el mismo kit a 1, 2, 3 y 4 dijes. Con
+# brazalete + 3 dijes (4 piezas) la de menor valor sale gratis: ese es el paso
+# marcado. (Las 2 gratis llegan con 7 piezas; un kit tiene 5.)
 #
 # **El enlace NO arma el carrito por la clienta.** Antes cada paso ponía el
 # brazalete Y los N dijes directamente en el carrito (`?p=base,charm1,charm2`)
@@ -505,7 +506,7 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
         <p class="kit-entrada">{entrada}</p>
       </div>
       <div class="kit-piezas">{fotos}</div>
-      <p class="kit-tercer">Brazalete + 3 dijes son 4 piezas: <b>la de menor valor te sale gratis</b> y ahorras {ahorro_cuatro}.</p>
+      <p class="kit-tercer">Brazalete + 3 dijes son 4 piezas: <b>pagas 3 y la de menor valor te sale gratis</b>; ahorras {ahorro_cuatro}.</p>
       <div class="kit-escalera">
 {pasos}
       </div>
@@ -532,7 +533,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kits Zephora · Dijes de Plata 925 y brazalete · Lleva 4, paga 3</title>
+<title>Kits Zephora · Dijes de Plata 925 y brazalete · Paga 3, lleva 1 gratis</title>
 <meta name="description" content="{desc}">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
 <meta name="theme-color" content="#2A1F2E">
@@ -570,8 +571,8 @@ PAGINA_KITS = '''<!DOCTYPE html>
      recuadro de la portada y de las fichas. -->
 <section class="kits-esc wrap">
   <div class="promo-caja">
-    <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Lleva 4 piezas, paga&nbsp;3.</b></p>
-    <p class="promo-caja-x">El brazalete cuenta como una pieza: con brazalete + 3 dijes, el de menor valor te sale totalmente <b>GRATIS</b>. <span>(Se aplica automáticamente).</span></p>
+    <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis.</b></p>
+    <p class="promo-caja-x">El brazalete cuenta como una pieza: con brazalete + 3 dijes, el de menor valor te sale totalmente <b>GRATIS</b>; con 7 piezas, 2 gratis. <span>(Se aplica automáticamente).</span></p>
   </div>
 </section>
 
@@ -629,6 +630,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
 def generar_kits(html, escribir):
     cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
     kits = json.loads(KITS_JSON.read_text(encoding='utf-8'))['kits']
+    promo = cat['reglas']['promo']
     fotos = cat['fotos']
     nombres = cat['nombres']
 
@@ -647,15 +649,20 @@ def generar_kits(html, escribir):
 
         filas = []
         for p in pasos:
-            mejor = (p['n'] == 3)   # brazalete + 3 = 4 piezas: una gratis
+            pz = p['n'] + 1
+            gratis = 0
+            for piezas_t, gratis_t in promo['tramos']:
+                if pz >= piezas_t:
+                    gratis = gratis_t
+            mejor = (p['n'] == 3)   # brazalete + 3 = 4 piezas: la primera gratis
             filas.append(PASO_KIT.format(
                 clase=' kit-paso--best' if mejor else '',
                 piezas=','.join(p['piezas']),
                 n=p['n'], s='s' if p['n'] > 1 else '',
                 total=p['totalTexto'],
                 lista=p['listaTexto'] if p['dto'] > 0 else '',
-                marca=('4 piezas: una GRATIS · ahorras %s' % p['ahorro']) if mejor
-                      else ('ahorras %s' % p['ahorro'] if p['dto'] > 0 else 'precio de lista'),
+                marca=('%d piezas: %s · ahorras %s' % (pz, 'una GRATIS' if gratis == 1 else '%d GRATIS' % gratis, p['ahorro']))
+                      if gratis else 'precio de lista',
             ))
 
         tercero = pasos[2]
@@ -663,7 +670,7 @@ def generar_kits(html, escribir):
             id=k['id'], eyebrow=k['eyebrow'], nombre=k['nombre'],
             lema=k['lema'], entrada=k['entrada'],
             fotos=''.join(miniaturas),
-            ahorro_cuatro=tercero['ahorro'],
+            ahorro_cuatro=pasos[2]['ahorro'],
             pasos='\n'.join(filas),
             base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
             vitrina=vitrina(k['charms'], 'De este kit', brazaletes=False),
@@ -673,7 +680,7 @@ def generar_kits(html, escribir):
     n_catalogo = len(cat['precios'])
     desc = ('Kits con dijes en Plata Esterlina 925 con sello grabado y brazalete con '
             'baño de plata de alta calidad. '
-            'Lleva 4 piezas y paga 3: la de menor valor sale gratis, y se aplica solo. '
+            'Paga 3 y llévate 1 gratis (paga 5 y llévate 2): la de menor valor sale gratis, y se aplica solo. '
             'Envío gratis a toda Colombia.')
 
     from gen_productos import bloques_media   # aquí: gen_productos importa este módulo

@@ -57,7 +57,9 @@ const CUENTAS = { envio: 0, envioGratis: true, total: 353000 };
                       no está en la lista
    La lista es corta a propósito. Cada nombre que se añada aquí es un campo que
    deja de estar vigilado, así que hay que poder explicar por qué. */
-const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra']);
+/* `cedula` solo existe con Addi (2026-10-04) y viaja en el mensaje de WhatsApp,
+   nunca a crear-pago: con Addi no se crea pedido en la tienda. */
+const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra', 'cedula']);
 
 (async () => {
   const correo = require(path.join(RAIZ, 'netlify', 'functions', '_correo.js'));
@@ -246,7 +248,7 @@ const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra'
     else process.env.CORREO_TIENDA = guardada;
   }
 
-  console.log('\n· «Lleva 4, paga 3» en el correo de la clienta');
+  console.log('\n· La promo en el correo de la clienta');
   {
     /* Las líneas del correo van a precio de lista; sin el renglón de la promo
        la suma no daba el total y la pieza gratis no aparecía por ningún lado. */
@@ -260,7 +262,7 @@ const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra'
     const h = correo.plantilla(datos), t = correo.texto(datos);
     const suma = lineas.reduce((s, l) => s + l.precio, 0) - cuentas.descuento + cuentas.envio;
     comprobar(cuentas.descuento > 0 && suma === cuentas.total, 'líneas − promo + envío = total', `${precios.cop(suma)} vs ${precios.cop(cuentas.total)}`);
-    comprobar(/Lleva 4, paga 3/.test(h) && h.includes(precios.cop(cuentas.descuento)) && /Lleva 4, paga 3: − /.test(t),
+    comprobar(/Promo: piezas gratis/.test(h) && h.includes(precios.cop(cuentas.descuento)) && /Promo, piezas gratis: − /.test(t),
       'el correo trae el renglón de la promo, en HTML y en texto');
     comprobar(/GRATIS/.test(h) && /\(GRATIS\)/.test(t), 'y marca la pieza que salió gratis', cuentas.gratis.join(','));
     comprobar(/×2/.test(h), 'las líneas con varias unidades dicen cuántas');
