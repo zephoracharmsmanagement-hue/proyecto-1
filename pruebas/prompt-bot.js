@@ -192,18 +192,18 @@ function main() {
      aunque las reglas ya le llegaban dentro de disponibilidad: sencillamente el
      prompt no las nombraba. Ahora las explica, y aqui se comprueba que los
      porcentajes que dice sean los que de verdad se cobran. */
-  /* Desde el 2026-10-04 la promo es «lleva 3, paga 2» (antes, «lleva 4, paga
-     3»), con brazalete y charms contando igual y una gratis más cada 2 piezas.
-     Se comprueba con los números de las reglas, no escritos aquí. */
-  const { desde, cada } = reglas.promo;
-  comprobar(new RegExp(`lleva ${desde} piezas,? paga ${desde - 1}`, 'i').test(prompt),
-    `anuncia «lleva ${desde} piezas, paga ${desde - 1}»`);
+  /* Desde el 2026-10-04 la promo es «paga 3, lleva 1 gratis · paga 5, lleva
+     2 gratis», con brazalete y charms contando igual y tope de 2. Se comprueba
+     con los números de las reglas, no escritos aquí. */
+  const [[p1, g1], [p2, g2]] = [reglas.promo.tramos[0], reglas.promo.tramos[reglas.promo.tramos.length - 1]];
+  comprobar(new RegExp(`paga ${p1 - g1} y llevate ${g1} gratis`, 'i').test(prompt) && new RegExp(`paga ${p2 - g2} y llevate ${g2} gratis`, 'i').test(prompt),
+    `anuncia «paga ${p1 - g1}, lleva ${g1} gratis» y «paga ${p2 - g2}, lleva ${g2}»`);
   comprobar(/charms y brazaletes cuentan igual/i.test(prompt),
     'dice que el brazalete cuenta como una pieza más');
   comprobar(/MENOR valor sale gratis/i.test(prompt),
     'dice que la gratis es la de menor valor');
-  comprobar(new RegExp(`${desde + cada} piezas salen 2 gratis`).test(prompt) && new RegExp(`${desde + 2 * cada} salen 3`).test(prompt),
-    `explica que sube: con ${desde + cada} piezas 2 gratis, con ${desde + 2 * cada} 3`);
+  comprobar(new RegExp(`con ${p1} piezas`).test(prompt) && new RegExp(`con ${p2} piezas salen gratis las ${g2}`).test(prompt) && /nunca prometas 3/i.test(prompt),
+    `explica los dos tramos (${p1} → ${g1}, ${p2} → ${g2}) y que no pasa de ${g2}`);
   /* La promo vieja no puede seguir anunciándose como vigente: el bot la
      cobraría de palabra y el checkout no. Solo se admite nombrándola para
      decir que cambió. */
@@ -291,11 +291,11 @@ function main() {
 
   /* La promo: el chat y la página tienen que decir lo mismo palabra por
      palabra o la clienta cree que son dos ofertas. Desde el 2026-10-02 la
-     página dice «¡Lleva 3 y paga 2!» en el banner (antes, «¡Lleva 4 y el 4° es gratis!»); la redacción del
+     página dice «¡Paga 3 y llévate 1 gratis!» en el banner (antes, «¡Lleva 4 y el 4° es gratis!»); la redacción del
      2026-09-22 («paga 3 y llévate el cuarto gratis») acompañaba a la escalera
      vieja y ya no sale en ninguna parte. */
-  comprobar(/lleva 3 y paga 2/i.test(prompt),
-    'usa la redacción del banner: «¡Lleva 3 y paga 2!»');
+  comprobar(/paga 3 y llevate 1 gratis/i.test(prompt),
+    'usa la redacción del banner: «¡Paga 3 y llévate 1 gratis!»');
 
   const promoVieja = prompt.split('\n').filter(l => /paga 3 y ll[eé]vate el cuarto gratis/i.test(l));
   comprobar(promoVieja.length === 0,

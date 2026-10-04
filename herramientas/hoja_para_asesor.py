@@ -224,19 +224,21 @@ def main():
 
     # ── Promociones, con las cifras sacadas de las reglas reales ──
     A(Paragraph('Promociones', H1))
-    # Desde el 2026-10-04: «lleva 3, paga 2», brazalete y charms contando
-    # igual, una gratis más cada 2 piezas, y lo gratis es lo de menor valor.
-    desde, cada = reglas['promo']['desde'], reglas['promo']['cada']
+    # Desde el 2026-10-04: «paga 3, lleva 1 gratis · paga 5, lleva 2 gratis»,
+    # brazalete y charms contando igual, lo gratis es lo de menor valor, y no
+    # pasa de 2.
+    (p1, g1), (p2, g2) = reglas['promo']['tramos'][0], reglas['promo']['tramos'][-1]
     A(Paragraph(
         f'Es <b>una sola</b> y se aplica sola en el carrito del sitio, sin códigos '
-        f'ni letra pequeña: <b>lleva {desde} piezas, paga {desde - 1}</b>. Charms y '
-        f'brazaletes cuentan igual como piezas: con {desde} piezas la de <b>menor '
-        f'valor</b> sale gratis, y sale una más cada {cada} piezas —con {desde + cada} '
-        f'son 2 gratis, con {desde + 2 * cada} son 3—.', P))
+        f'ni letra pequeña: <b>paga {p1 - g1} y llévate {g1} gratis; paga {p2 - g2} y '
+        f'llévate {g2} gratis</b>. Charms y brazaletes cuentan igual como piezas: con '
+        f'{p1} piezas la de <b>menor valor</b> sale gratis, y con {p2} las {g2} de menor '
+        f'valor. Con más piezas siguen siendo {g2}.', P))
     A(Paragraph(
-        'Ya no hay descuento por porcentaje, ni descuento aparte del brazalete, ni '
-        '«lleva 4, paga 3». El dato que más cierra pedidos: a quien lleva '
-        f'{desde - 1} piezas, contarle que con una más la de menor valor le sale gratis.', P))
+        'Ya no hay descuento por porcentaje ni descuento aparte del brazalete. El '
+        f'dato que más cierra pedidos: a quien lleva {p1 - 1} piezas, contarle que con '
+        f'una más la de menor valor le sale gratis; y a quien lleva {p2 - 1}, que con '
+        f'una más le salen {g2}.', P))
 
     # ── Pagos y envíos ──
     A(Paragraph('Pagos y envíos', H1))

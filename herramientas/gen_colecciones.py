@@ -245,13 +245,13 @@ PAGINA = '''<!DOCTYPE html>
      escribe el generador corriendo el mismo código que firma el cobro. -->
 <section class="col-combo wrap" id="combo">
   <h2>El combo de la colección</h2>
-  <p class="col-sub">Brazalete + 2 charms son <b>3 piezas</b>: con «lleva 3, paga 2», la de
-  menor valor te sale <b>gratis</b>. Con 5 piezas son 2 gratis. Se aplica solo en el carrito.</p>
+  <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
+  sale <b>gratis</b>. Con 7 piezas son 2 gratis. Se aplica solo en el carrito.</p>
   <div class="col-escalera">
     <div class="col-paso"><span class="col-paso-n">Brazalete solo</span><b>{pulsera_sola}</b></div>
-    <div class="col-paso col-paso--best"><span class="col-paso-n">+ 2 charms · 3 piezas</span><b>{dos}</b>
-      <span class="col-paso-ahorro">una GRATIS · ahorras {ahorro_dos}</span></div>
-    <div class="col-paso"><span class="col-paso-n">+ 3 charms · 4 piezas</span><b>{tres}</b></div>
+    <div class="col-paso"><span class="col-paso-n">+ 2 charms</span><b>{dos}</b></div>
+    <div class="col-paso col-paso--best"><span class="col-paso-n">+ 3 charms · 4 piezas</span><b>{tres}</b>
+      <span class="col-paso-ahorro">una GRATIS · ahorras {ahorro_tres}</span></div>
   </div>
   <p class="col-nota">Precios con pago anticipado y envío gratis. Contraentrega: {contraentrega}
   (el envío lo cobra la transportadora al recaudar).</p>
@@ -427,10 +427,10 @@ def generar(col, html, escribir):
 # calcular(), el mismo código que firma el cobro, así que un kit no puede
 # prometer un número que el checkout no vaya a cobrar.
 #
-# Lo que la página enseña es la promo que la tienda YA aplica, «lleva 3, paga
-# 2» (desde el 2026-10-04): el mismo kit a 1, 2, 3 y 4 dijes. Con brazalete +
-# 2 dijes (3 piezas) la de menor valor sale gratis; con los 4 dijes (5 piezas)
-# salen 2. Ese último es el que va marcado.
+# Lo que la página enseña es la promo que la tienda YA aplica, «paga 3, lleva
+# 1 gratis» (desde el 2026-10-04): el mismo kit a 1, 2, 3 y 4 dijes. Con
+# brazalete + 3 dijes (4 piezas) la de menor valor sale gratis: ese es el paso
+# marcado. (Las 2 gratis llegan con 7 piezas; un kit tiene 5.)
 #
 # **El enlace NO arma el carrito por la clienta.** Antes cada paso ponía el
 # brazalete Y los N dijes directamente en el carrito (`?p=base,charm1,charm2`)
@@ -506,7 +506,7 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
         <p class="kit-entrada">{entrada}</p>
       </div>
       <div class="kit-piezas">{fotos}</div>
-      <p class="kit-tercer">Brazalete + 2 dijes son 3 piezas: <b>la de menor valor te sale gratis</b>. Con los 4 dijes son 2 gratis y ahorras {ahorro_cuatro}.</p>
+      <p class="kit-tercer">Brazalete + 3 dijes son 4 piezas: <b>pagas 3 y la de menor valor te sale gratis</b>; ahorras {ahorro_cuatro}.</p>
       <div class="kit-escalera">
 {pasos}
       </div>
@@ -533,7 +533,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kits Zephora · Dijes de Plata 925 y brazalete · Lleva 3, paga 2</title>
+<title>Kits Zephora · Dijes de Plata 925 y brazalete · Paga 3, lleva 1 gratis</title>
 <meta name="description" content="{desc}">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
 <meta name="theme-color" content="#2A1F2E">
@@ -571,8 +571,8 @@ PAGINA_KITS = '''<!DOCTYPE html>
      recuadro de la portada y de las fichas. -->
 <section class="kits-esc wrap">
   <div class="promo-caja">
-    <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Lleva 3 piezas, paga&nbsp;2.</b></p>
-    <p class="promo-caja-x">El brazalete cuenta como una pieza: con brazalete + 2 dijes, el de menor valor te sale totalmente <b>GRATIS</b>; con brazalete + 4 dijes, 2 gratis. <span>(Se aplica automáticamente).</span></p>
+    <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis.</b></p>
+    <p class="promo-caja-x">El brazalete cuenta como una pieza: con brazalete + 3 dijes, el de menor valor te sale totalmente <b>GRATIS</b>; con 7 piezas, 2 gratis. <span>(Se aplica automáticamente).</span></p>
   </div>
 </section>
 
@@ -649,9 +649,12 @@ def generar_kits(html, escribir):
 
         filas = []
         for p in pasos:
-            mejor = (p['n'] == 4)   # brazalete + 4 = 5 piezas: dos gratis
             pz = p['n'] + 1
-            gratis = 0 if pz < promo['desde'] else 1 + (pz - promo['desde']) // promo['cada']
+            gratis = 0
+            for piezas_t, gratis_t in promo['tramos']:
+                if pz >= piezas_t:
+                    gratis = gratis_t
+            mejor = (p['n'] == 3)   # brazalete + 3 = 4 piezas: la primera gratis
             filas.append(PASO_KIT.format(
                 clase=' kit-paso--best' if mejor else '',
                 piezas=','.join(p['piezas']),
@@ -667,7 +670,7 @@ def generar_kits(html, escribir):
             id=k['id'], eyebrow=k['eyebrow'], nombre=k['nombre'],
             lema=k['lema'], entrada=k['entrada'],
             fotos=''.join(miniaturas),
-            ahorro_cuatro=pasos[-1]['ahorro'],
+            ahorro_cuatro=pasos[2]['ahorro'],
             pasos='\n'.join(filas),
             base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
             vitrina=vitrina(k['charms'], 'De este kit', brazaletes=False),
@@ -677,7 +680,7 @@ def generar_kits(html, escribir):
     n_catalogo = len(cat['precios'])
     desc = ('Kits con dijes en Plata Esterlina 925 con sello grabado y brazalete con '
             'baño de plata de alta calidad. '
-            'Lleva 3 piezas y paga 2: la de menor valor sale gratis (con 5, dos), y se aplica solo. '
+            'Paga 3 y llévate 1 gratis (paga 5 y llévate 2): la de menor valor sale gratis, y se aplica solo. '
             'Envío gratis a toda Colombia.')
 
     from gen_productos import bloques_media   # aquí: gen_productos importa este módulo

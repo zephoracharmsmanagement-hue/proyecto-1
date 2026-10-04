@@ -685,15 +685,16 @@ function guardarCarrito(){
 /* Las mismas reglas que index.html y que netlify/functions/_precios.js. Aquí
    solo se muestran: lo que se cobra lo vuelve a calcular el servidor, que es
    el único que no se puede alterar desde la consola del navegador. */
-/* «Lleva 3, paga 2»: desde 3 piezas —brazalete o charm— sale gratis la más
-   barata, y una más cada 2 (5 → 2, 7 → 3). Mismo desempate que piezasGratis() de _precios.js (a igual
+/* «Paga 3, lleva 1 gratis · paga 5, lleva 2 gratis»: con 4 piezas —brazalete
+   o charm— sale gratis la más barata, con 7 las dos más baratas, y no más.
+   Mismo desempate que piezasGratis() de _precios.js (a igual
    precio, los charms antes que el brazalete), para que la línea tachada aquí
    sea la misma que dice el correo. */
 function gratisDe(c){
   const P=CAT.reglas.promo;
   const piezas=c.charms.map(id=>({id:id,p:CAT.precios[id]}));
   if(c.base) piezas.push({id:c.base.id,p:CAT.precios[c.base.id]});
-  const n=piezas.length<P.desde?0:1+Math.floor((piezas.length-P.desde)/P.cada);
+  const n=P.tramos.reduce((g,t)=>piezas.length>=t[0]?t[1]:g,0);
   return piezas.map((x,i)=>[x,i]).sort((a,b)=>a[0].p-b[0].p||a[1]-b[1]).slice(0,n).map(x=>x[0]);
 }
 function calcular(c){
@@ -759,7 +760,7 @@ function pintarResumen(){
   let h='';
   h+='<div class="tot-row"><span>Subtotal</span><b>'+cop(t.brutoC+t.brutoB)+'</b></div>';
   if(t.descuento>0) h+='<div class="tot-row save"><span>'+(t.nGratis>1?t.nGratis+' piezas gratis':'Pieza gratis')
-    +' · lleva 3, paga 2</span><b>− '+cop(t.descuento)+'</b></div>';
+    +' · promo</span><b>− '+cop(t.descuento)+'</b></div>';
   h+=t.gratis
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
@@ -872,19 +873,21 @@ function pintarPagoElegido(t){
   $('#addi-atajo').hidden=addi;
 }
 
-/* Barra de la promo: una casilla por pieza del tramo en curso (1, 2, GRATIS;
- * después de a dos), y un aviso que dice cuántas piezas faltan para la
- * próxima. La misma del carrito (render() y tramoPromo() en tienda.js). Aquí
- * también sirve: quien llega con 2 piezas puede volver atrás por la tercera. */
+/* Barra de la promo: una casilla por pieza del tramo en curso (1…4, después
+ * 5…7; desde 7, llena: es el máximo), y un aviso que dice cuántas piezas
+ * faltan para la próxima. La misma del carrito (render() y tramoPromo() en
+ * tienda.js). Aquí también sirve: quien llega con 3 piezas puede volver atrás
+ * por la cuarta. */
 function pintarDescuento(c,t){
   const caja=$('#dto'), P=CAT.reglas.promo;
   const piezas=c.charms.length+(c.base?1:0);
   if(!piezas){ caja.hidden=true; return; }
   caja.hidden=false;
-  let tr;
-  if(piezas<P.desde) tr={ini:0,fin:P.desde,completo:false};
-  else{ const k=(piezas-P.desde)%P.cada;
-    tr=!k?{ini:piezas===P.desde?0:piezas-P.cada,fin:piezas,completo:true}:{ini:piezas-k,fin:piezas-k+P.cada,completo:false}; }
+  const sig=P.tramos.find(x=>x[0]>piezas), hechos=P.tramos.filter(x=>x[0]<=piezas);
+  const ult=hechos[hechos.length-1], prev=hechos[hechos.length-2];
+  const tr=!sig?{ini:prev?prev[0]:0,fin:ult[0],completo:true,max:true}
+    :(ult&&ult[0]===piezas)?{ini:prev?prev[0]:0,fin:piezas,completo:true,sig:sig}
+    :{ini:ult?ult[0]:0,fin:sig[0],completo:false,sig:sig};
   const faltan=tr.fin-piezas;
   const pasos=[];
   for(let n=tr.ini+1;n<=tr.fin;n++){
@@ -896,8 +899,10 @@ function pintarDescuento(c,t){
   ol.innerHTML=pasos.join('');
   caja.classList.toggle('is-max',tr.completo);
   const pz=n=>n+(n===1?' pieza':' piezas');
-  $('#dto-nota').innerHTML=tr.completo
-    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>! Con '+pz(P.cada)+' más, otra te sale gratis.'
+  $('#dto-nota').innerHTML=tr.max
+    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>, lo máximo de la promo!'
+    : tr.completo
+    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>! Con '+pz(tr.sig[0]-piezas)+' más te salen '+tr.sig[1]+' gratis.'
     : (t.nGratis?'Ya tienes <b>'+pz(t.nGratis)+' GRATIS</b>. ':'')
       +(faltan===1?(t.nGratis?'¡Agrega <b>1 pieza más</b> y otra te sale GRATIS!':'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!')
         :'¡Agrega <b>'+pz(faltan)+' más</b> y una te sale GRATIS!');
@@ -1214,7 +1219,7 @@ function waPedido(){
     : 'Hola, Zephora Charms. Armé este pedido en la página y quiero confirmarlo:\n';
   lineas(carrito).forEach(l=>{
     const talla=/Talla/.test(l.m)?' ('+l.m.replace(/^.*Talla /,'talla ')+')':'';
-    s+='\n• '+l.n+talla+' — '+(l.gratis?'GRATIS (lleva 3, paga 2)':cop(l.p));
+    s+='\n• '+l.n+talla+' — '+(l.gratis?'GRATIS (promo)':cop(l.p));
   });
   s+='\n\nEnvío: '+(t.gratis?'gratis':cop(t.envio))+(addi?'':' ('+carrito.pago+')');
   s+='\nTotal: '+cop(t.total);

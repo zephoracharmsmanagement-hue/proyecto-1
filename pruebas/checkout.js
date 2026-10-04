@@ -211,19 +211,20 @@ async function llenarDatos(p, d) {
   }
 
   // ——— 2ba · la escalera del descuento ———
-  out.push('\n2ba · La barra de «lleva 3, paga 2», visible sin abrir el resumen');
+  out.push('\n2ba · La barra de «paga 3, lleva 1 gratis», visible sin abrir el resumen');
   {
     /* Lo que sostiene la barra: que se vea en el móvil con el resumen cerrado
        —si hay que abrirlo, no empuja—, que llene una casilla por pieza de la
        vuelta en curso (brazalete y charms cuentan igual) y que diga cuántas
        faltan para la gratis, o la celebre. */
     const casos = [
-      /* 1…3 hasta la primera gratis; después, tramos de 2 (4 → 5, 6 → 7). */
-      { charms: [], base: true, tramos: 3, llenos: 1, dice: /Agrega 2 piezas más/i },
-      { charms: ['iron-man'], base: true, tramos: 3, llenos: 2, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
-      { charms: ['iron-man', 'stitch'], base: true, tramos: 3, llenos: 3, dice: /Felicidades, tienes 1 pieza GRATIS/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, tramos: 2, llenos: 1, dice: /Ya tienes 1 pieza GRATIS.*Agrega 1 pieza más/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 2, llenos: 1, dice: /Ya tienes 2 piezas GRATIS.*Agrega 1 pieza más/i },
+      /* 1…4 hasta la primera gratis; después 5…7; desde 7, el máximo. */
+      { charms: [], base: true, tramos: 4, llenos: 1, dice: /Agrega 3 piezas más/i },
+      { charms: ['iron-man'], base: true, tramos: 4, llenos: 2, dice: /Agrega 2 piezas más/i },
+      { charms: ['iron-man', 'stitch'], base: true, tramos: 4, llenos: 3, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, tramos: 4, llenos: 4, dice: /Felicidades, tienes 1 pieza GRATIS.*te salen 2 gratis/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 3, llenos: 2, dice: /Ya tienes 1 pieza GRATIS.*Agrega 1 pieza más y otra/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse', 'ariel'], base: true, tramos: 3, llenos: 3, dice: /tienes 2 piezas GRATIS, lo máximo/i },
     ];
     for (const k of casos) {
       const p = await b.newPage({ viewport: { width: 390, height: 844 } });

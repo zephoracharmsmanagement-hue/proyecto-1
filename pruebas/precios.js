@@ -159,15 +159,16 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
        para la próxima. Todo contra las reglas del servidor, no contra la página. */
     {
       const R = require(path.join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
-      const { desde, cada } = R.promo;
+      const T = R.promo.tramos;
       const piezas = charms.length + (base ? 1 : 0);
-      /* El tramo de la barra: 1…desde antes de la primera gratis; después, de
-         a `cada`. «completo» justo en desde, desde+cada… */
-      const k = piezas >= desde ? (piezas - desde) % cada : null;
-      const completo = piezas >= desde && k === 0;
-      const fin = piezas < desde ? desde : (completo ? piezas : piezas - k + cada);
-      const ini = piezas < desde ? 0 : (completo ? (piezas === desde ? 0 : piezas - cada) : piezas - k);
-      const llenas = piezas ? piezas - ini : null;
+      /* El tramo de la barra: 1…4 hasta la primera gratis, después 5…7; desde
+         7, el último lleno (máximo). */
+      const sig = T.find(t => t[0] > piezas), hechos = T.filter(t => t[0] <= piezas);
+      const ult = hechos[hechos.length - 1], prev = hechos[hechos.length - 2];
+      const max = !sig, completo = max || (ult && ult[0] === piezas);
+      const fin = max ? ult[0] : (completo ? piezas : sig[0]);
+      const ini = completo ? (prev ? prev[0] : 0) : (ult ? ult[0] : 0);
+      const llenas = piezas ? Math.min(piezas, fin) - ini : null;
       const tachado = enPantalla.tachado.reduce((a, b) => a + b, 0);
       if (tachado !== servidor.descuento) {
         fallas++;
@@ -183,6 +184,7 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       }
       const nG = servidor.gratis.length;
       const espera = !piezas ? null
+        : max ? new RegExp(`tienes ${nG} piezas GRATIS, lo máximo`)
         : completo ? new RegExp(`Felicidades, tienes ${nG} pieza`)
         : new RegExp(`Agrega ${fin - piezas} pieza`);
       if (espera && !(enPantalla.descNota && espera.test(enPantalla.descNota))) {
@@ -247,31 +249,31 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
   {
     const R = require(path.join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
     const CAT = require(path.join(__dirname, '..', 'assets', 'catalogo.json'));
-    const { desde, cada } = R.promo;
+    const [p1, g1] = R.promo.tramos[0], [p2, g2] = R.promo.tramos[R.promo.tramos.length - 1];
     const caja = (await p.textContent('#promo .promo-caja')).replace(/\s+/g, ' ');
-    ok(new RegExp(`Lleva ${desde} piezas, paga ${desde - 1}`, 'i').test(caja) && new RegExp(`con ${desde + cada} son 2 gratis`).test(caja),
-      `el recuadro anuncia «lleva ${desde}, paga ${desde - 1}» y «con ${desde + cada} son 2 gratis»`, caja.slice(0, 60));
+    ok(new RegExp(`Paga ${p1 - g1} y llévate ${g1} gratis`, 'i').test(caja) && new RegExp(`con ${p1} piezas`).test(caja) && new RegExp(`con ${p2} piezas te salen ${g2} gratis`).test(caja),
+      `el recuadro anuncia «paga ${p1 - g1}, lleva ${g1} gratis» con ${p1} piezas y ${g2} gratis con ${p2}`, caja.slice(0, 60));
     ok(/menor valor/i.test(caja) && /GRATIS/.test(caja), 'y que la de menor valor sale gratis');
     ok(!(await p.$('#esc')), 'la cuadrícula de tramos viejos ya no está');
     const banner = (await p.textContent('.ann')).replace(/\s+/g, ' ');
-    ok(new RegExp(`LLEVA ${desde} Y PAGA ${desde - 1}`).test(banner) && new RegExp(`Lleva ${desde + cada} y paga ${desde + cada - 2}`).test(banner),
+    ok(new RegExp(`PAGA ${p1 - g1} Y LLÉVATE ${g1} GRATIS`).test(banner) && new RegExp(`Paga ${p2 - g2} y llévate ${g2}`).test(banner),
       'el banner de arriba dice la misma promo', banner.trim());
 
     const ch = Object.keys(CAT.precios).filter(id => !CAT.pulseras.includes(id));
     const barato = ch.reduce((a, b) => (CAT.precios[a] <= CAT.precios[b] ? a : b));
     const caro = ch.reduce((a, b) => (CAT.precios[a] >= CAT.precios[b] ? a : b));
+    const c4 = calcular(leerPedido({ charms: [caro, caro, caro, barato], pago: 'anticipado' }));
+    ok(c4.descuento === CAT.precios[barato] && c4.gratis[0] === barato,
+      'con 4 piezas (paga 3) sale gratis la de menor valor', `${barato} ${cop(CAT.precios[barato])}`);
     const c3 = calcular(leerPedido({ charms: [caro, caro, barato], pago: 'anticipado' }));
-    ok(c3.descuento === CAT.precios[barato] && c3.gratis[0] === barato,
-      'con 3 piezas sale gratis la de menor valor', `${barato} ${cop(CAT.precios[barato])}`);
-    const c2 = calcular(leerPedido({ charms: [caro, barato], pago: 'anticipado' }));
-    ok(c2.descuento === 0, 'con 2 piezas no hay descuento');
+    ok(c3.descuento === 0, 'con 3 piezas no hay descuento');
     const b = CAT.pulseras.reduce((a, x) => (CAT.precios[a] <= CAT.precios[x] ? a : x));
-    const cb = calcular(leerPedido({ base: { id: b, talla: null }, charms: [caro, caro], pago: 'anticipado' }));
+    const cb = calcular(leerPedido({ base: { id: b, talla: null }, charms: [caro, caro, caro], pago: 'anticipado' }));
     ok(cb.descuento === Math.min(CAT.precios[b], CAT.precios[caro]),
-      'el brazalete cuenta como pieza: brazalete + 2 charms ya son 3', cop(cb.descuento));
+      'el brazalete cuenta como pieza: brazalete + 3 charms ya son 4', cop(cb.descuento));
     const n = k => calcular(leerPedido({ charms: Array(k).fill(caro), pago: 'anticipado' })).gratis.length;
-    ok(n(4) === 1 && n(5) === 2 && n(6) === 2 && n(7) === 3 && n(9) === 4,
-      'una gratis más cada 2 piezas: 4 → 1, 5 → 2, 6 → 2, 7 → 3, 9 → 4', [4, 5, 6, 7, 9].map(n).join(' · '));
+    ok(n(3) === 0 && n(4) === 1 && n(6) === 1 && n(7) === 2 && n(8) === 2 && n(12) === 2,
+      'paga 3 lleva 1, paga 5 lleva 2, y ahí para: 3 → 0, 4 → 1, 6 → 1, 7 → 2, 8 → 2, 12 → 2', [3, 4, 6, 7, 8, 12].map(n).join(' · '));
   }
 
   /* Que el servidor rechace lo que no debería aceptar. Cada uno de estos es un

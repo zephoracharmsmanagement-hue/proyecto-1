@@ -203,11 +203,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
        propietario, 2026-10-02): ni la cuadrícula de paquetes ni porcentajes. La
        regla que dice es la de catalogo.json, que es con la que se cobra. */
     if (hay(id)) {
-      const { desde } = cat.reglas.promo;
+      const [p1, g1] = cat.reglas.promo.tramos[0];
       const caja = await p.evaluate(() => { const c = document.querySelector('#pp-compra .promo-caja');
         return c ? { t: c.textContent.replace(/\s+/g, ' '), antesDeBotones: !!(c.compareDocumentPosition(document.querySelector('#pp-compra .pp-cta')) & 4) } : null; });
-      ok(caja && new RegExp(`Lleva ${desde} piezas, paga ${desde - 1}`).test(caja.t) && /menor valor/.test(caja.t) && caja.antesDeBotones,
-        `recuadro «lleva ${desde}, paga ${desde - 1}» junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
+      ok(caja && new RegExp(`Paga ${p1 - g1} y llévate ${g1}`).test(caja.t) && /menor valor/.test(caja.t) && caja.antesDeBotones,
+        `recuadro «paga ${p1 - g1}, lleva ${g1} gratis» junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
       ok(!(await p.$('.pq, .pq-o')), 'sin la cuadrícula de paquetes');
     }
     if (!cat.pulseras.includes(id) && hay(id)) {

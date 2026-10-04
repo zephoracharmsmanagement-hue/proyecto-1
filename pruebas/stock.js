@@ -83,7 +83,7 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
     console.log('  · no hay ninguna inicial en cero: nada que comprobar');
   }
 
-  console.log('5 · «lleva 3, paga 2» intacto: brazalete + 3 charms (4 piezas), una gratis');
+  console.log('5 · «paga 3, lleva 1 gratis» intacto: brazalete + 3 charms (4 piezas), una gratis');
   /* Desde que el carrito persiste en localStorage, recargar ya no lo vacía:
      la Letra A del paso 4 volvería y descuadraría los totales de este paso.
      Se limpia explícito, que es lo que hoy significa «empezar de cero». */

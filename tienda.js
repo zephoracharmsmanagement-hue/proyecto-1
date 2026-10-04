@@ -59,21 +59,22 @@ const agotado = id => {
 /* Tope de unidades por charm, para no vender 5 de algo que tiene 1. */
 const tope = id => { const u=unidades(id); return u===null?Infinity:u; };
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
-/* «Lleva 3, paga 2» (pedido del propietario, 2026-10-04; antes «lleva 4,
-   paga 3»): brazalete y charms cuentan igual; desde `desde` piezas sale gratis
-   la de menor valor, y una más cada `cada` piezas: 3 → 1 gratis, 5 → 2,
-   7 → 3, 9 → 4… Siempre las más baratas. extraer_catalogo.py copia PROMO a
-   catalogo.json, de donde cobra _precios.js: este objeto es la fuente. */
-const PROMO={desde:3, cada:2};
-const cuantasGratis=n=>n<PROMO.desde?0:1+Math.floor((n-PROMO.desde)/PROMO.cada);
-/* El tramo de la barra en el que va: de qué pieza a qué pieza, y si ya lo
-   completó (justo en 3, 5, 7…). Antes de la primera gratis el tramo es 1…3;
-   después, de a 2 piezas. */
+/* «Paga 3, lleva 1 gratis · paga 5, lleva 2 gratis» (pedido del propietario,
+   2026-10-04): brazalete y charms cuentan igual; con 4 piezas sale gratis la de
+   menor valor y con 7, las dos de menor valor. Y ahí para: con 8 o más siguen
+   siendo 2 («dejemos la promoción hasta ahí»). Cada tramo es [piezas, gratis].
+   extraer_catalogo.py copia PROMO a catalogo.json, de donde cobra
+   _precios.js: este objeto es la fuente. */
+const PROMO={tramos:[[4,1],[7,2]]};
+const cuantasGratis=n=>PROMO.tramos.reduce((g,t)=>n>=t[0]?t[1]:g,0);
+/* El tramo de la barra en el que va: de qué pieza a qué pieza (1…4, después
+   5…7), si ya lo completó y si llegó al máximo de la promo. */
 function tramoPromo(n){
-  if(n<PROMO.desde) return {ini:0, fin:PROMO.desde, completo:false};
-  const k=(n-PROMO.desde)%PROMO.cada;
-  if(!k) return {ini:n===PROMO.desde?0:n-PROMO.cada, fin:n, completo:true};
-  return {ini:n-k, fin:n-k+PROMO.cada, completo:false};
+  const T=PROMO.tramos, sig=T.find(t=>t[0]>n), hechos=T.filter(t=>t[0]<=n);
+  const ult=hechos[hechos.length-1], prev=hechos[hechos.length-2];
+  if(!sig) return {ini:prev?prev[0]:0, fin:ult[0], completo:true, max:true};
+  if(ult&&ult[0]===n) return {ini:prev?prev[0]:0, fin:n, completo:true, max:false, sig:sig};
+  return {ini:ult?ult[0]:0, fin:sig[0], completo:false, max:false, sig:sig};
 }
 /* Cuáles salen gratis. Mismo orden que piezasGratis() de _precios.js: por
    precio y, a igual precio, los charms (en el orden en que se eligieron) antes
@@ -1227,8 +1228,8 @@ function render(){
 
   /* Barra de progreso de la promo (pedido del propietario).
    *
-   * Una casilla por pieza del tramo en curso —1, 2, GRATIS antes de la primera
-   * gratis; después, de a dos—. El aviso dice cuántas faltan para la próxima
+   * Una casilla por pieza del tramo en curso —1, 2, 3, GRATIS hasta la
+   * primera gratis; después 5, 6, GRATIS; desde 7, llena: es el máximo—. El aviso dice cuántas faltan para la próxima
    * gratis y, si ya tiene alguna, la celebra. Cuenta piezas —brazalete o
    * charm, da igual—: ni porcentajes ni montos. */
   const dn=$('#desc-nota'), dto=$('#hoja-dto');
@@ -1247,8 +1248,10 @@ function render(){
     dn.classList.toggle('is-max',t.completo);
     dn.hidden=false;
     const pz=n=>n+(n===1?' pieza':' piezas');
-    if(t.completo){
-      dn.innerHTML='¡Felicidades, tienes <b>'+pz(nGratis)+' GRATIS</b>! Agrega '+pz(PROMO.cada)+' más y otra te sale gratis.';
+    if(t.max){
+      dn.innerHTML='¡Felicidades, tienes <b>'+pz(nGratis)+' GRATIS</b>, lo máximo de la promo!';
+    }else if(t.completo){
+      dn.innerHTML='¡Felicidades, tienes <b>'+pz(nGratis)+' GRATIS</b>! Con '+pz(t.sig[0]-piezas)+' más te salen '+t.sig[1]+' gratis.';
     }else{
       dn.innerHTML=(nGratis?'Ya tienes <b>'+pz(nGratis)+' GRATIS</b>. ':'')
         +(faltan===1?(nGratis?'¡Agrega <b>1 pieza más</b> y otra te sale GRATIS!':'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!')
@@ -1405,12 +1408,12 @@ $('#sug-tira').addEventListener('click',e=>{
 });
 
 /* Venta cruzada, al fijar el brazalete: le recuerda en ese momento que con
-   3 piezas una sale gratis, y cuántas le faltan. Se apaga al llegar a 3, que
+   4 piezas una sale gratis, y cuántas le faltan. Se apaga al llegar a 4, que
    es donde la promo ya está activa; seguir empujando sería pedir por pedir. */
 function pintarCross(piezas){
-  const xs=$('#xs');
-  if(xsFuera||!base||piezas>=PROMO.desde){ xs.hidden=true; return; }
-  const faltan=PROMO.desde-piezas;
+  const xs=$('#xs'), primera=PROMO.tramos[0][0];
+  if(xsFuera||!base||piezas>=primera){ xs.hidden=true; return; }
+  const faltan=primera-piezas;
   $('#xs-tx').innerHTML='Tu brazalete ya está. Suma <b>'+faltan+(faltan===1?' pieza más':' piezas más')
     +'</b> y la de menor valor te sale <b>GRATIS</b>.';
   xs.hidden=false;

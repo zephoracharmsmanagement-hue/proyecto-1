@@ -53,7 +53,7 @@ function correoTienda() {
 /* Sin imágenes ni fuentes externas: los clientes de correo bloquean lo remoto
    por defecto, y una plantilla que depende de eso llega rota. Tabla y estilos
    en línea porque Gmail descarta el <style> del <head>. */
-/* La promo («lleva 3, paga 2»): la línea dice cuántas unidades salieron gratis y, aparte,
+/* La promo (paga 3 lleva 1 gratis, paga 5 lleva 2): la línea dice cuántas unidades salieron gratis y, aparte,
    va el renglón del descuento, para que la suma de las líneas cuadre con el
    total. Un pedido viejo, sin `gratis` ni `descuento`, se ve como siempre. */
 const nGratis = l => (Number(l.gratis) > 0 ? Number(l.gratis) : 0);
@@ -99,7 +99,7 @@ function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, de
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       ${lineas.map(fila).join('')}
       ${descuento > 0 ? `<tr>
-        <td style="padding:9px 0;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">Lleva 3, paga 2</td>
+        <td style="padding:9px 0;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">Promo: piezas gratis</td>
         <td style="padding:9px 0;text-align:right;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">− ${esc(cop(descuento))}</td>
       </tr>` : ''}
       <tr>
@@ -166,7 +166,7 @@ function texto({ titulo, entrada, referencia, lineas, envio, envioGratis, descue
     titulo, '', entrada, '',
     `Referencia: ${referencia}`, '',
     ...l,
-    ...(descuento > 0 ? [`Lleva 3, paga 2: − ${cop(descuento)}`] : []),
+    ...(descuento > 0 ? [`Promo, piezas gratis: − ${cop(descuento)}`] : []),
     `Envío: ${envioGratis ? 'Gratis' : cop(envio)}`,
     `Total: ${cop(total)} (${pago === 'contraentrega' ? 'contraentrega' : 'pagado por adelantado'})`, '',
     'Enviamos a:',

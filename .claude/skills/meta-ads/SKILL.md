@@ -215,21 +215,22 @@ Todos los de sitio web sobre el **píxel viejo** (`2130673404542988`).
 La persona tiene que sentir que recibió varias veces lo que pagó. Zephora ya
 regala más de lo que dice en sus anuncios; verificar vigencia en el sitio antes
 de prometerlo: empaque de regalo en todos los pedidos, dedicatoria escrita a
-mano, paño de limpieza, envío gratis con pago anticipado, «lleva 3, paga 2»
-(la pieza de menor valor gratis; con 5, dos), Addi, garantía de 30 días, 5 días para cambio
+mano, paño de limpieza, envío gratis con pago anticipado, «paga 3, lleva 1
+gratis · paga 5, lleva 2 gratis» (lo de menor valor), Addi, garantía de 30 días, 5 días para cambio
 de talla.
 
-Promo real desde el 2026-10-04 (`tienda.js`, `PROMO`): **lleva 3 piezas, paga
-2**. Brazalete y charms cuentan igual; con 3 piezas sale gratis la de menor
-valor y una más cada 2 (5 → 2 gratis, 7 → 3). Ya no existen «lleva 4, paga 3»,
-la escalera 8/15/25% ni el −30% del brazalete: un anuncio que los prometa
-promete algo que el checkout no cobra. Texto del banner del sitio: «🎁 ARMA TU
-SET: Mezcla charms y brazaletes. ¡LLEVA 3 Y PAGA 2! · Lleva 5 y paga 3 ✨».
+Promo real desde el 2026-10-04 (`tienda.js`, `PROMO`): **paga 3 y llévate 1
+gratis; paga 5 y llévate 2 gratis**. Brazalete y charms cuentan igual; con 4
+piezas sale gratis la de menor valor, con 7 las dos de menor valor, y no pasa
+de 2. Ya no existen la escalera 8/15/25% ni el −30% del brazalete: un anuncio
+que los prometa promete algo que el checkout no cobra. Texto del banner del
+sitio: «🎁 ARMA TU SET: Mezcla charms y brazaletes. ¡PAGA 3 Y LLÉVATE 1 GRATIS!
+· Paga 5 y llévate 2 ✨».
 
 - Presentación: ninguna oferta explícita. La idea de armar la pulsera y el
   «desde» del brazalete.
 - Evaluación: Plata 925 con sello, garantía, empaque incluido.
-- Conversión: envío gratis, lleva 3 paga 2 (mezclando charms y brazaletes), Addi.
+- Conversión: envío gratis, paga 3 lleva 1 gratis (mezclando charms y brazaletes), Addi.
 - Ascensión: charms nuevos para la pulsera que ya tiene.
 
 Ojo: las páginas de preguntas frecuentes y de envíos todavía dicen «envío
