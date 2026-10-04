@@ -469,6 +469,44 @@ async function llenarDatos(p, d) {
     await p.close();
   }
 
+  // ——— 3b · Addi, entre los pagos principales ———
+  out.push('\n3b · Addi: tercera opción, termina por WhatsApp');
+  {
+    /* Pedido del propietario (2026-10-04): Addi a la vista entre las formas de
+       pago, no en un enlace chico. No pasa por Wompi ni por crear-pago: pide la
+       cédula (Addi la exige), y abre WhatsApp con el pedido y los datos. */
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    const cap = [];
+    await interceptar(p, cap);
+    let wa = null;
+    await p.route(/wa\.me|api\.whatsapp\.com/, r => { wa = r.request().url(); r.fulfill({ status: 200, body: 'wa' }); });
+    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse', 'stitch', 'iron-man'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+    await llenarDatos(p, DATOS);
+    ok(!(await p.locator('#campo-cedula').isVisible()), 'con «Pagar ahora» no se pide cédula');
+    await p.click('#cambiar-pago');
+    ok(await p.locator('#ops-pago input[value="addi"]').count() === 1, '«Cambiar» trae Addi como tercera opción');
+    const ant = await p.locator('#p-anticipado').textContent(), add = await p.locator('#p-addi').textContent();
+    ok(ant === add, 'Addi cuesta lo mismo que pagar ahora: envío gratis', `${add}`);
+    await p.check('#ops-pago input[value="addi"]');
+    await p.waitForTimeout(200);
+    const r = await p.evaluate(() => ({ b: document.getElementById('confirmar').textContent, n: document.getElementById('nota-pago').textContent,
+      c: !document.getElementById('campo-cedula').hidden, l: document.getElementById('pago-elegido-tx').textContent }));
+    ok(/Continuar por WhatsApp/.test(r.b) && /WhatsApp/.test(r.n) && /Addi/.test(r.l), 'el botón y la nota dicen que se termina por WhatsApp', r.b);
+    ok(r.c, 'y aparece la cédula');
+    await p.click('#confirmar'); await p.waitForTimeout(300);
+    ok(!wa && await p.evaluate(() => document.querySelector('[data-c="cedula"]').classList.contains('mal')), 'sin cédula no sigue: la marca en rojo');
+    await p.fill('#cedula', '1069306205');
+    await p.click('#confirmar'); await p.waitForTimeout(800);
+    const texto = wa ? decodeURIComponent((wa.split('text=')[1] || '').replace(/\+/g, ' ')) : '';
+    ok(/Addi/.test(texto) && /1069306205/.test(texto) && /GRATIS/.test(texto) && /talla/.test(texto) && /Total: \$/.test(texto),
+      'abre WhatsApp con el pedido: Addi, cédula, talla, la gratis y el total', texto.split('\n')[0]);
+    ok(!cap.length, 'y no crea pedido en la tienda ni pasa por Wompi');
+    await p.close();
+  }
+
   // ——— 4 · contraentrega ———
   out.push('\n4 · Contraentrega');
   {

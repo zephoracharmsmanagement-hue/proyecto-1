@@ -57,7 +57,9 @@ const CUENTAS = { envio: 0, envioGratis: true, total: 353000 };
                       no está en la lista
    La lista es corta a propósito. Cada nombre que se añada aquí es un campo que
    deja de estar vigilado, así que hay que poder explicar por qué. */
-const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra']);
+/* `cedula` solo existe con Addi (2026-10-04) y viaja en el mensaje de WhatsApp,
+   nunca a crear-pago: con Addi no se crea pedido en la tienda. */
+const NO_SON_DATOS = new Set(['pago', 'entrega', 'optin', 'acepto', 'ciudadotra', 'cedula']);
 
 (async () => {
   const correo = require(path.join(RAIZ, 'netlify', 'functions', '_correo.js'));

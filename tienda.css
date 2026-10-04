@@ -1560,3 +1560,69 @@ p,li,dd,.pp-acc-in{line-height:1.55}
   color:var(--rose);opacity:.55;padding-top:34px}
 /* El formulario para reseñar, debajo del carrusel en las fichas. */
 .social .rp-escribir{margin-top:22px}
+
+/* ——— Carrito en paleta clara (pedido del propietario, 2026-10-04) ———
+   El fondo ciruela oscuro no dejaba leer bien ni limpio. Mismos tonos de la
+   página: fondo blanco, texto tinta, grises de la marca para lo secundario,
+   el rosa de pagar en lo que se toca y el verde de «gratis» de siempre.
+   Va al final para ganarle a las reglas oscuras de arriba sin reescribirlas;
+   los grises claros (--silver) no pasan contraste sobre blanco, por eso aquí
+   lo secundario es --gris-suave. */
+.sheet{background:#fff;color:var(--ink);box-shadow:0 -10px 40px rgba(42,31,46,.16)}
+.veil{background:rgba(42,31,46,.35)}
+.sheet-grab{background:var(--line)}
+.sheet-x{border-color:var(--line);color:var(--ink)}
+.sheet-x:hover{border-color:var(--ink)}
+.sheet-scroll{scrollbar-color:var(--line) transparent}
+.sheet-scroll::-webkit-scrollbar-thumb{background:var(--line)}
+.srow{border-bottom-color:var(--line)}
+.srow img{border:1px solid var(--line)}
+.srow-nof{background:var(--rose-soft);color:var(--plum)}
+.srow-n small,.srow--gratis .srow-p s{color:var(--gris-suave)}
+.srow--gratis .srow-p b{background:#1F7A5C;color:#fff}
+.srow-x{background:var(--bone);color:var(--gris)}
+.srow-x:hover{background:var(--pagar);color:#fff}
+.s-empty{color:var(--gris-suave)}
+.hoja-dto-caja{background:#F7EEE8;border-color:#EDE0D8}
+.hoja-dto-t,.hoja-dto li{color:var(--gris-suave)}
+.hoja-dto li::before{background:#E6DAD3}
+.hoja-dto li.is-on::before{background:var(--pagar)}
+.hoja-dto li.is-free{color:var(--pagar)}
+.hoja-dto.is-max li.is-on::before{background:#1F7A5C}
+.desc-nota{color:var(--gris)}
+.desc-nota b{color:var(--pagar);font-weight:600}
+.desc-nota.is-max,.desc-nota.is-max b{color:#1F7A5C}
+.sug{border-top-color:var(--line)}
+.sug-h span{color:var(--gris-suave)}
+.sug-c{border-color:var(--line);background:#fff;color:var(--ink)}
+@media(hover:hover){.sug-c:hover{border-color:var(--pagar);background:var(--rose-soft)}}
+.sug-c img,.sug-c .mono{border:1px solid #F1ECEE}
+.sug-mas{background:var(--pagar)}
+.sug-n{color:var(--ink)}
+.sug-c.is-puesto{border-color:#1F7A5C;background:#EAF5F0}
+.sug-c.is-puesto .sug-mas{background:#1F7A5C}
+.sug-c.is-puesto .sug-p{color:#1F7A5C}
+.pbtn{border-color:var(--line);background:#fff;color:var(--ink)}
+@media(hover:hover){.pbtn:hover{border-color:var(--gris-suave)}}
+.pbtn small{color:var(--gris-suave)}
+.pbtn.is-on{background:var(--rose-soft);border-color:var(--pagar);color:var(--ink);box-shadow:0 0 0 1px var(--pagar)}
+.pbtn.is-on small{color:var(--pagar)}
+.pbtn small.pb-gratis,.pbtn.is-on small.pb-gratis{color:#1F7A5C}
+.tot-row{color:var(--gris)}
+.tot-row.save{color:var(--pagar)}
+.ship-note{color:var(--gris-suave)}
+.ship-bar{background:var(--line)}
+.ship-ok{color:#1F7A5C}
+.ship-casi{color:#8a5a00}
+.ship-cta{color:var(--pagar)}
+@media(hover:hover){.ship-cta:hover{color:var(--ink)}}
+.sheet-info{border-top-color:var(--line)}
+.sheet-note{color:var(--gris)}
+.sheet-note--regalo{color:#1F7A5C}
+.sheet-note--addi{color:var(--pagar)}
+.sheet .stock-nota{color:var(--gris-suave)}
+.sheet-tot{background:#fff;border-top-color:var(--line)}
+.sheet-tot::before{background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,0))}
+.tot-big span{color:var(--gris-suave)}
+.tot-big b{color:var(--ink)}
+.sheet-seguro{color:var(--gris-suave)}
