@@ -191,6 +191,29 @@ async function main() {
     comprobar(!('iron-man' in v), 'con 2 no se dice nada (ni el regalo cuenta)');
   }
 
+  console.log('\n5 · Lo que se cuenta es lo que se ve (2026-10-06)');
+  {
+    const a = almacen();
+    mod._interno.usar(a);
+    const alta = (id, o) => a.setJSON(id, Object.assign({ id, producto: 'tienda', estrellas: 5, texto: 'Muy linda, gracias', nombre: id,
+      ciudad: '', verificada: false, fotos: [], video: null, estado: 'aprobada', fecha: '2026-09-01T00:00:00Z' }, o));
+    for (let i = 0; i < 40; i++) await alta('t/texto-' + String(i).padStart(2, '0'), { orden: 2000 + i });
+    await alta('t/clara', { orden: 0, fotos: ['t/clara/f1.jpg'] });
+    await alta('t/vieja', { orden: 4000, fotos: ['t/vieja/f1.jpg'] });          // pieza que ya no se vende
+    await alta('t/solo-foto', { texto: '', orden: 5000, fotos: ['t/solo-foto/f1.jpg'] });
+    await alta('t/solo-estrellas', { texto: '', estrellas: 1 });               // sin texto ni foto: no hay tarjeta
+    await alta('t/oculta', { estado: 'rechazada', orden: -1 });
+    await alta('t/nueva-con-foto', { fotos: ['t/nueva-con-foto/f1.jpg'], fecha: '2026-10-06T00:00:00Z' });  // del formulario, sin orden
+    await alta('t/nueva-texto', { fecha: '2026-10-06T00:00:00Z' });
+    const l = await listar('x');
+    const ids = l.resenas.map(r => r.nombre);
+    comprobar(l.total === 45 && l.resenas.length === 45, 'sin tope de 30: el total es exactamente lo que trae la lista', `${l.total} / ${l.resenas.length}`);
+    comprobar(!ids.includes('t/solo-estrellas') && l.promedio === 5, 'la de solo estrellas no entra ni en el total ni en el promedio', `${l.promedio}`);
+    comprobar(ids[0] === 't/clara' && ids[1] === 't/nueva-con-foto' && ids[2] === 't/nueva-texto' && ids[3] === 't/texto-00',
+      'manda `orden`; las nuevas con foto van tras las de foto clara y las de texto al frente de las de texto', ids.slice(0, 4).join(' '));
+    comprobar(ids[ids.length - 2] === 't/vieja' && ids[ids.length - 1] === 't/solo-foto', 'las de piezas que ya no están, atrás; la de solo foto, al final');
+  }
+
   console.log(fallos ? `\n${fallos} comprobaciones en rojo.` : '\nTodo en verde.');
 }
 main().catch(e => console.log('  ✗ FALLA la batería reventó — ' + (e.stack || e.message)));

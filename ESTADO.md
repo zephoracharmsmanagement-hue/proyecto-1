@@ -5,6 +5,57 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Reseñas del Excel del propietario — cargadas el 2026-10-06
+
+El propietario pasó su base de reseñas (`Pictureseviews zephora`: Excel
+*Clientas_y_fotos_Zephora_Sin_Fechas.xlsx* + zip de fotos + hojas de
+contacto numeradas) y confirmó que **son clientas reales y cada foto es de la
+clienta de su reseña**. Se cargaron **163 de 167** al almacén que lee la página
+(`resenas-pruebas`, ver el OJO de `herramientas/resenas.mjs`), ya aprobadas,
+con `herramientas/importar-resenas.mjs`. Sin despliegue: la página ya pintaba
+lo que hubiera en el almacén. En vivo: **4,9 de 5 · 179 reseñas**.
+
+- **Omitidas 4** que ya estaban publicadas desde el formulario (Excel #2, #5,
+  #6 y #13 = «Andrea V»): la misma clienta no sale dos veces.
+- **Nombre como «Nombre I.»**, igual que las fijas de la portada; sin
+  «Compra verificada» (no hay pedido web detrás): dicen «Reseña en la página».
+- **Sin fecha real** (el Excel no la trae): `fecha` va detrás de la más
+  vieja publicada y la página no la muestra. El orden lo manda `orden`
+  (abajo).
+- Ids `tienda/impNNN-xxxxxx` (NNN = ID del Excel): volver a correr no duplica
+  y respeta las que alguien haya ocultado. Hasta 3 fotos por reseña (la
+  clienta del Excel #53 trae 5). Fotos sin EXIF, ≤1280 px.
+- Numeración de fotos ↔ archivos del zip: 1–88 = IMG_1571–1658, 89 =
+  IMG_1658(1), 90–99 = IMG_1659–1668 (no hay IMG_1669), 100–111 =
+  IMG_1670–1681, 112–153 = los de nombre UUID en orden alfabético. Faltaba la
+  hoja de contacto 1–20; se comprobó a ojo con una propia.
+- **Deshacer todo el lote:** `node herramientas/importar-resenas.mjs <lote> --ocultar`.
+  Una sola: `node herramientas/resenas.mjs ocultar tienda/impNNN-…`.
+- El lote (`lote.json` + fotos) tiene nombres de clientas: **no va a git**.
+  Copia en `Pictures\reviews zephora\lote-importado-2026-10-06`.
+
+**Lo que se cuenta es lo que se ve (propietario, 2026-10-06).** «Si decimos
+179 reseñas tenemos que mostrarlas todas; si tenemos menos, bajamos el
+número.» Desde entonces la función no tiene tope de 30, y una reseña de solo
+estrellas (sin texto ni foto: no hay tarjeta) no cuenta ni para el total ni
+para el promedio: las 4 del Excel así (#4, #21, #29, #37) siguen aprobadas
+pero no se ven ni se cuentan. Las 3 tarjetas fijas de la portada sí entran
+en el número (tienda.js, `contarFijas`). Resultado: **178 reseñas, 178
+tarjetas**. Con más de 12 tarjetas los puntos pasan a «4 / 178».
+
+**Orden, también del propietario:** primero las de mejor foto con joyas que
+hoy están en la tienda; las de piezas que ya no se venden se publican, pero
+no entre las primeras. Va en el campo `orden` de cada reseña, por grupos de
+mil: 0 foto clara de pieza actual (41) · 1000 foto aceptable (50) · 2000
+solo texto (40) · 3000 foto floja (13) · 4000 pieza que ya no está (22:
+collares, letras deslizables de cuero o strass, bus, taza, moto, copas,
+bicicleta, carro, maleta, brazalete dorado…) · 5000 solo foto, sin texto
+(9). Dentro de cada grupo, el texto más completo primero. La clasificación
+de las 153 fotos fue a ojo contra `producto-*.html`; la primera foto de cada
+reseña es la mejor de las suyas. Las nuevas del formulario no traen `orden`
+y entran solas: con foto en 999,5 (tras las claras), sin foto en 1999,5.
+Mover una: `node herramientas/resenas.mjs orden <id> <n>`.
+
 ## 🔒 Reclamado — contenido orgánico, retomado el 2026-09-20
 
 Regla 4 de `CLAUDE.md`. El propietario pidió un plan de escalamiento integral
@@ -74,7 +125,8 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   abreviado pisa el lateral de `.wrap`; CSS `fill` gana al atributo del SVG.
 >
 > **Pendiente (espera datos del propietario):** credenciales de Addi (hoy
-> sigue por WhatsApp); fotos y textos de reseñas; hora de corte de Bogotá si
+> sigue por WhatsApp); ~~fotos y textos de reseñas~~ (cargadas el 2026-10-06, ver
+> § *Reseñas del Excel*); hora de corte de Bogotá si
 > se quiere «pide hoy, llega mañana»; fotos de Ñ y Q. El prompt del bot de
 > WhatsApp aún dice «Bogotá 1-2 días» (lo lleva la sesión del bot). **No
 > fusionar** `claude/zephora-charms-automation-rzbthc` (rama del bot: toca
