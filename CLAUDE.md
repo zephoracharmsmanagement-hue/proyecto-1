@@ -37,17 +37,19 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
   (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
   `Purchase`**: es la limitación de fondo, no un descuido. 7 anuncios activos
-  desde el 2026-10-03: Spider-Man · 5 textos en uno, novio superhéroes
-  (evergreen), Colección Avengers, Video Inicial y mascota, y tres traídos de la
-  prueba con su misma publicación (Regalo · Dedicatoria, Pareja · Luciérnaga,
-  Empieza con uno · Atrapasueños).
+  desde el 2026-10-03 y **6 desde el 2026-10-06**, cuando se pausó Spider-Man:
+  novio superhéroes (evergreen), Colección Avengers, Video Inicial y mascota, y
+  tres traídos de la prueba con su misma publicación (Regalo · Dedicatoria,
+  Pareja · Luciérnaga, Empieza con uno · Atrapasueños).
 
-  **Primera lectura: 2026-10-10**, con 7 días completos. Con el conteo nuevo,
+  **Primera lectura: 2026-10-10**, con 7 días completos y 6 anuncios; hasta ahí
+  no se toca nada más. Con el conteo nuevo,
   la meta es bajar de ~$4.600 a ~$3.500 o menos por checkout (el costo
   comparable de la primera mitad de septiembre). Del 3 al 6 de octubre: 18
   checkouts, $4.333 cada uno.
 
-  **Spider-Man · 5 textos en uno es el anuncio que cuesta.** Del 3 al 6 de
+  **Spider-Man · 5 textos en uno (`120248222251280534`) se pausó el
+  2026-10-06 porque era el anuncio que costaba.** Del 3 al 6 de
   octubre gastó $30.486 (39% del gasto de la campaña) y trajo 3 checkouts,
   **$10.162**, contra $2.258–4.053 de los otros cuatro anuncios con datos, que
   corren a la vez y con el mismo conteo. Sus 60+ likes no cambian eso, y se
