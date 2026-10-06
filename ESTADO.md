@@ -34,6 +34,7 @@ lo que hubiera en el almacén. En vivo: **4,9 de 5 · 179 reseñas**.
 - **Deshacer todo el lote:** `node herramientas/importar-resenas.mjs <lote> --ocultar`.
   Una sola: `node herramientas/resenas.mjs ocultar tienda/impNNN-…`.
 - El lote (`lote.json` + fotos) tiene nombres de clientas: **no va a git**.
+  Copia en `Pictures\reviews zephora\lote-importado-2026-10-06`.
 
 **Pendiente, si se quiere mostrar más de 30:** `resenas.mjs` corta en
 `lista.slice(0, 30)`; subirlo pide despliegue y pensar los puntos del
