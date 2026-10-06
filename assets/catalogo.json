@@ -536,8 +536,16 @@
  },
  "reglas": {
   "promo": {
-   "lleva": 4,
-   "paga": 3
+   "tramos": [
+    [
+     4,
+     1
+    ],
+    [
+     7,
+     2
+    ]
+   ]
   },
   "envioGratisDesde": 0,
   "envioGratisSoloAnticipado": true,

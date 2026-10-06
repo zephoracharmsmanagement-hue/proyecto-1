@@ -309,6 +309,26 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > - **Pendiente**: el video del banner principal (lo graba el propietario);
 >   revisar anuncios activos que mencionen el 30 % del brazalete o la escalera.
 >
+> **2026-10-04 · PR #19 (`claude/promo-3x2`, incluye el PR #18
+> `claude/carrito-claro-addi`), fusionado con confirmación del propietario
+> («Deploy»):**
+> - **Promo «paga 3, lleva 1 gratis · paga 5, lleva 2 gratis»**, con tope:
+>   con 4 piezas sale gratis la de menor valor, con 7 las dos de menor valor,
+>   y con 8 o más siguen siendo 2 («dejemos la promoción hasta ahí»).
+>   `PROMO={tramos:[[4,1],[7,2]]}` en tienda.js → `reglas.promo` →
+>   `_precios.js` y checkout.html. Reemplaza «lleva 4, paga 3» cíclica. (Hubo
+>   una versión intermedia «lleva 3, paga 2» que no llegó a producción: el
+>   propietario la corrigió antes del deploy.)
+> - **Carrito («Tu selección») en paleta clara**: bloque al final de
+>   tienda.css que pisa las reglas oscuras; contraste WCAG AA en verde.
+> - **Addi entre las formas de pago del checkout**: tercera opción; con Addi
+>   aparece la cédula (obligatoria) y «Continuar por WhatsApp» abre el chat con
+>   el pedido y todos los datos (piezas, talla, gratis, total, nombre, cédula,
+>   celular, correo, dirección, barrio, ciudad, indicaciones). No crea pedido
+>   ni aparta inventario: la venta se registra al aprobarse (registrar-venta).
+> - **Descartado por el propietario el 2026-10-02**: carrito y pago en una
+>   sola página completa (revertido). El carrito sigue siendo la hoja.
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo

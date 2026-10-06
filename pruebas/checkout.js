@@ -211,18 +211,20 @@ async function llenarDatos(p, d) {
   }
 
   // ——— 2ba · la escalera del descuento ———
-  out.push('\n2ba · La barra de «lleva 4, paga 3», visible sin abrir el resumen');
+  out.push('\n2ba · La barra de «paga 3, lleva 1 gratis», visible sin abrir el resumen');
   {
     /* Lo que sostiene la barra: que se vea en el móvil con el resumen cerrado
        —si hay que abrirlo, no empuja—, que llene una casilla por pieza de la
        vuelta en curso (brazalete y charms cuentan igual) y que diga cuántas
        faltan para la gratis, o la celebre. */
     const casos = [
-      { charms: [], base: true, llenos: 1, dice: /Agrega 3 piezas más/i },
-      { charms: ['iron-man'], base: true, llenos: 2, dice: /Agrega 2 piezas más/i },
-      { charms: ['iron-man', 'stitch'], base: true, llenos: 3, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, llenos: 4, dice: /Felicidades, tienes 1 pieza GRATIS/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, llenos: 2, dice: /Ya tienes 1 pieza GRATIS.*Agrega 2 piezas más/i },
+      /* 1…4 hasta la primera gratis; después 5…7; desde 7, el máximo. */
+      { charms: [], base: true, tramos: 4, llenos: 1, dice: /Agrega 3 piezas más/i },
+      { charms: ['iron-man'], base: true, tramos: 4, llenos: 2, dice: /Agrega 2 piezas más/i },
+      { charms: ['iron-man', 'stitch'], base: true, tramos: 4, llenos: 3, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, tramos: 4, llenos: 4, dice: /Felicidades, tienes 1 pieza GRATIS.*te salen 2 gratis/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 3, llenos: 2, dice: /Ya tienes 1 pieza GRATIS.*Agrega 1 pieza más y otra/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse', 'ariel'], base: true, tramos: 3, llenos: 3, dice: /tienes 2 piezas GRATIS, lo máximo/i },
     ];
     for (const k of casos) {
       const p = await b.newPage({ viewport: { width: 390, height: 844 } });
@@ -240,7 +242,7 @@ async function llenarDatos(p, d) {
       });
       const n = k.charms.length + ' charm' + (k.charms.length === 1 ? '' : 's') + (k.base ? ' + brazalete' : '');
       ok(r.visible && r.cerrado, `${n}: la barra se ve con el resumen cerrado`);
-      ok(r.tramos === 4 && r.llenos === k.llenos, `${n}: llena ${k.llenos} de 4 casillas`, `${r.llenos}/${r.tramos}`);
+      ok(r.tramos === k.tramos && r.llenos === k.llenos, `${n}: llena ${k.llenos} de ${k.tramos} casillas`, `${r.llenos}/${r.tramos}`);
       ok(k.dice.test(r.nota), `${n}: dice lo que corresponde`, r.nota);
       /* Con una gratis, la línea de esa pieza va tachada con «GRATIS» y lo
          tachado es exactamente el renglón del descuento del resumen. */
@@ -252,7 +254,7 @@ async function llenarDatos(p, d) {
             dice: [...document.querySelectorAll('#res-lineas .rrow-p--gratis b')].every(b => b.textContent.trim() === 'GRATIS'),
             resumen: f ? +f.textContent.replace(/\D/g, '') : 0 };
         });
-        ok(g.lineas === 1 && g.dice && g.tachado === g.resumen && g.resumen > 0,
+        ok(g.lineas >= 1 && g.dice && g.tachado === g.resumen && g.resumen > 0,
           `${n}: la pieza gratis sale tachada con «GRATIS» y cuadra con el resumen`, JSON.stringify(g));
       }
       await p.close();
@@ -466,6 +468,44 @@ async function llenarDatos(p, d) {
       ok(aWompi.url.includes('signature:integrity='),
         'los nombres con dos puntos viajan literales, no escapados a %3A');
     }
+    await p.close();
+  }
+
+  // ——— 3b · Addi, entre los pagos principales ———
+  out.push('\n3b · Addi: tercera opción, termina por WhatsApp');
+  {
+    /* Pedido del propietario (2026-10-04): Addi a la vista entre las formas de
+       pago, no en un enlace chico. No pasa por Wompi ni por crear-pago: pide la
+       cédula (Addi la exige), y abre WhatsApp con el pedido y los datos. */
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    const cap = [];
+    await interceptar(p, cap);
+    let wa = null;
+    await p.route(/wa\.me|api\.whatsapp\.com/, r => { wa = r.request().url(); r.fulfill({ status: 200, body: 'wa' }); });
+    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse', 'stitch', 'iron-man'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+    await llenarDatos(p, DATOS);
+    ok(!(await p.locator('#campo-cedula').isVisible()), 'con «Pagar ahora» no se pide cédula');
+    await p.click('#cambiar-pago');
+    ok(await p.locator('#ops-pago input[value="addi"]').count() === 1, '«Cambiar» trae Addi como tercera opción');
+    const ant = await p.locator('#p-anticipado').textContent(), add = await p.locator('#p-addi').textContent();
+    ok(ant === add, 'Addi cuesta lo mismo que pagar ahora: envío gratis', `${add}`);
+    await p.check('#ops-pago input[value="addi"]');
+    await p.waitForTimeout(200);
+    const r = await p.evaluate(() => ({ b: document.getElementById('confirmar').textContent, n: document.getElementById('nota-pago').textContent,
+      c: !document.getElementById('campo-cedula').hidden, l: document.getElementById('pago-elegido-tx').textContent }));
+    ok(/Continuar por WhatsApp/.test(r.b) && /WhatsApp/.test(r.n) && /Addi/.test(r.l), 'el botón y la nota dicen que se termina por WhatsApp', r.b);
+    ok(r.c, 'y aparece la cédula');
+    await p.click('#confirmar'); await p.waitForTimeout(300);
+    ok(!wa && await p.evaluate(() => document.querySelector('[data-c="cedula"]').classList.contains('mal')), 'sin cédula no sigue: la marca en rojo');
+    await p.fill('#cedula', '1069306205');
+    await p.click('#confirmar'); await p.waitForTimeout(800);
+    const texto = wa ? decodeURIComponent((wa.split('text=')[1] || '').replace(/\+/g, ' ')) : '';
+    ok(/Addi/.test(texto) && /1069306205/.test(texto) && /GRATIS/.test(texto) && /talla/.test(texto) && /Total: \$/.test(texto),
+      'abre WhatsApp con el pedido: Addi, cédula, talla, la gratis y el total', texto.split('\n')[0]);
+    ok(!cap.length, 'y no crea pedido en la tienda ni pasa por Wompi');
     await p.close();
   }
 

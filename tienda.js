@@ -59,12 +59,23 @@ const agotado = id => {
 /* Tope de unidades por charm, para no vender 5 de algo que tiene 1. */
 const tope = id => { const u=unidades(id); return u===null?Infinity:u; };
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
-/* «Lleva 4, paga 3» (pedido del propietario, 2026-10-02): brazalete y charms
-   cuentan igual, y por cada 4 piezas la de menor valor sale gratis —con 8, las
-   dos más baratas; con 12, las tres—. extraer_catalogo.py copia PROMO a
-   catalogo.json, de donde cobra _precios.js: este objeto es la fuente. */
-const PROMO={lleva:4, paga:3};
-const cuantasGratis=n=>Math.floor(n/PROMO.lleva)*(PROMO.lleva-PROMO.paga);
+/* «Paga 3, lleva 1 gratis · paga 5, lleva 2 gratis» (pedido del propietario,
+   2026-10-04): brazalete y charms cuentan igual; con 4 piezas sale gratis la de
+   menor valor y con 7, las dos de menor valor. Y ahí para: con 8 o más siguen
+   siendo 2 («dejemos la promoción hasta ahí»). Cada tramo es [piezas, gratis].
+   extraer_catalogo.py copia PROMO a catalogo.json, de donde cobra
+   _precios.js: este objeto es la fuente. */
+const PROMO={tramos:[[4,1],[7,2]]};
+const cuantasGratis=n=>PROMO.tramos.reduce((g,t)=>n>=t[0]?t[1]:g,0);
+/* El tramo de la barra en el que va: de qué pieza a qué pieza (1…4, después
+   5…7), si ya lo completó y si llegó al máximo de la promo. */
+function tramoPromo(n){
+  const T=PROMO.tramos, sig=T.find(t=>t[0]>n), hechos=T.filter(t=>t[0]<=n);
+  const ult=hechos[hechos.length-1], prev=hechos[hechos.length-2];
+  if(!sig) return {ini:prev?prev[0]:0, fin:ult[0], completo:true, max:true};
+  if(ult&&ult[0]===n) return {ini:prev?prev[0]:0, fin:n, completo:true, max:false, sig:sig};
+  return {ini:ult?ult[0]:0, fin:sig[0], completo:false, max:false, sig:sig};
+}
 /* Cuáles salen gratis. Mismo orden que piezasGratis() de _precios.js: por
    precio y, a igual precio, los charms (en el orden en que se eligieron) antes
    que el brazalete. El total no depende del desempate, pero la línea que se ve
@@ -1215,35 +1226,35 @@ function render(){
     nota.className='ship-note'; relleno.style.width=Math.min(100,subtotal/LIBRE*100)+'%';
   }
 
-  /* Barra de progreso de «Lleva 4, paga 3» (pedido del propietario).
+  /* Barra de progreso de la promo (pedido del propietario).
    *
-   * Cuatro casillas, una por pieza de la vuelta en curso; la cuarta es la
-   * gratis. El aviso dice cuántas faltan para la próxima gratis y, si ya tiene
-   * alguna, la celebra. Cuenta piezas —brazalete o charm, da igual—, que es lo
-   * único que la clienta tiene que saber: ni porcentajes ni montos. */
+   * Una casilla por pieza del tramo en curso —1, 2, 3, GRATIS hasta la
+   * primera gratis; después 5, 6, GRATIS; desde 7, llena: es el máximo—. El aviso dice cuántas faltan para la próxima
+   * gratis y, si ya tiene alguna, la celebra. Cuenta piezas —brazalete o
+   * charm, da igual—: ni porcentajes ni montos. */
   const dn=$('#desc-nota'), dto=$('#hoja-dto');
   dto.hidden=!piezas;
   $('#hoja-dto-caja').hidden=!piezas;
   if(piezas){
-    const L=PROMO.lleva, vuelta=piezas%L, llenas=vuelta||L;
-    const faltan=L-vuelta;
+    const t=tramoPromo(piezas), faltan=t.fin-piezas;
     let h='';
-    for(let n=1;n<=L;n++){
-      const cls=[n<=llenas?'is-on':'', n===L?'is-free':''].join(' ').trim();
-      h+='<li'+(cls?' class="'+cls+'"':'')+'>'+(n===L?'GRATIS':n)+'</li>';
+    for(let n=t.ini+1;n<=t.fin;n++){
+      const cls=[n<=piezas?'is-on':'', n===t.fin?'is-free':''].join(' ').trim();
+      h+='<li'+(cls?' class="'+cls+'"':'')+'>'+(n===t.fin?'GRATIS':n)+'</li>';
     }
     dto.innerHTML=h;
-    dto.style.setProperty('--n',L);
-    const completa=!vuelta;
-    dto.classList.toggle('is-max',completa);
-    dn.classList.toggle('is-max',completa);
+    dto.style.setProperty('--n',t.fin-t.ini);
+    dto.classList.toggle('is-max',t.completo);
+    dn.classList.toggle('is-max',t.completo);
     dn.hidden=false;
     const pz=n=>n+(n===1?' pieza':' piezas');
-    if(completa){
-      dn.innerHTML='¡Felicidades, tienes <b>'+pz(nGratis)+' GRATIS</b>! Agrega '+pz(L)+' más y otra te sale gratis.';
+    if(t.max){
+      dn.innerHTML='¡Felicidades, tienes <b>'+pz(nGratis)+' GRATIS</b>, lo máximo de la promo!';
+    }else if(t.completo){
+      dn.innerHTML='¡Felicidades, tienes <b>'+pz(nGratis)+' GRATIS</b>! Con '+pz(t.sig[0]-piezas)+' más te salen '+t.sig[1]+' gratis.';
     }else{
       dn.innerHTML=(nGratis?'Ya tienes <b>'+pz(nGratis)+' GRATIS</b>. ':'')
-        +(faltan===1?'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!'
+        +(faltan===1?(nGratis?'¡Agrega <b>1 pieza más</b> y otra te sale GRATIS!':'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!')
           :'¡Agrega <b>'+pz(faltan)+' más</b> y una te sale GRATIS!');
     }
   }else{
@@ -1274,10 +1285,10 @@ function render(){
   const falta=Math.max(0,LIBRE-subtotal);
   /* La promo manda sobre el envío en la barra fija: el envío gratis ya se dice
      en el banner y en la hoja, y «1 más y es GRATIS» es lo que hace sumar una. */
-  const vuelta=piezas%PROMO.lleva;
+  const unaMas=piezas&&tramoPromo(piezas).fin-piezas===1&&!tramoPromo(piezas).completo;
   $('#dock-n').textContent = piezas
     ? piezas+(piezas===1?' pieza':' piezas')
-      +(vuelta===PROMO.lleva-1?' · ¡1 más y es GRATIS!'
+      +(unaMas?' · ¡1 más y es GRATIS!'
         :nGratis?' · '+nGratis+' GRATIS'
         :libre?' · envío gratis'
         :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
@@ -1400,9 +1411,9 @@ $('#sug-tira').addEventListener('click',e=>{
    4 piezas una sale gratis, y cuántas le faltan. Se apaga al llegar a 4, que
    es donde la promo ya está activa; seguir empujando sería pedir por pedir. */
 function pintarCross(piezas){
-  const xs=$('#xs');
-  if(xsFuera||!base||piezas>=PROMO.lleva){ xs.hidden=true; return; }
-  const faltan=PROMO.lleva-piezas;
+  const xs=$('#xs'), primera=PROMO.tramos[0][0];
+  if(xsFuera||!base||piezas>=primera){ xs.hidden=true; return; }
+  const faltan=primera-piezas;
   $('#xs-tx').innerHTML='Tu brazalete ya está. Suma <b>'+faltan+(faltan===1?' pieza más':' piezas más')
     +'</b> y la de menor valor te sale <b>GRATIS</b>.';
   xs.hidden=false;
