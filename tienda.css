@@ -1541,6 +1541,7 @@ p,li,dd,.pp-acc-in{line-height:1.55}
 .tst-pts{display:flex;justify-content:center;gap:7px;margin:12px 0 0}
 .tst-pts i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background .2s}
 .tst-pts i.is-on{background:var(--plum)}
+.tst-pts--n{font-size:13px;letter-spacing:.08em;color:var(--plum);font-variant-numeric:tabular-nums}
 @media(min-width:700px){.tst-rail{grid-auto-columns:calc((100% - 24px)/3)}}
 
 /* Contacto en el menú ☰ */

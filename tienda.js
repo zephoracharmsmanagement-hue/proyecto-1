@@ -917,24 +917,40 @@ const mediosResena=r=>{
    cualquier página que traiga la lista —desde el 2026-09-27 también
    kits.html—, no solo en las fichas. */
 if($('#rp-lista')||$('#pp-estrellas')||$('#tst-rail')) fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
-  .then(d=>{ pintarResenas(d); sumarAlCarrusel(d); }).catch(()=>{});
+  .then(d=>{ contarFijas(d); pintarResenas(d); sumarAlCarrusel(d); }).catch(()=>{});
+/* Lo que se cuenta es lo que se ve (propietario, 2026-10-06): las tarjetas
+   fijas del carrusel también son reseñas de clientas, así que entran en el
+   total y en el promedio; si no, la página mostraría más de las que dice. */
+function contarFijas(d){
+  const fijas=[...document.querySelectorAll('#tst-rail > .tst')];
+  if(!d||!fijas.length) return;
+  const suma=fijas.reduce((n,t)=>{ const e=t.querySelector('.estrellas'); return n+(parseInt(e&&e.getAttribute('aria-label'),10)||5); },0);
+  d.promedio=Math.round((d.promedio*d.total+suma)/(d.total+fijas.length)*10)/10;
+  d.total+=fijas.length;
+}
 
 /* Carrusel de reseñas de la portada (#tst-rail, pedido del propietario,
    2026-10-02). Detrás de las tres fijas van las reseñas aprobadas que traen
    foto, con la primera foto arriba: todas las tarjetas iguales. Las que son
    solo texto siguen en la lista de cada ficha; aquí, sin foto, la tarjeta
    quedaría coja al lado de las demás. Los puntos de abajo dicen en cuál va. */
+/* Con todas las reseñas a la vista son más de cien tarjetas: un punto por
+   tarjeta llenaría filas enteras, así que pasado un puñado van «12 / 178». */
+const MAX_PUNTOS=12;
 function puntosCarrusel(){
   const rail=$('#tst-rail'), pts=$('#tst-pts'); if(!rail||!pts) return;
   const n=rail.children.length;
-  pts.innerHTML=n>1?'<i></i>'.repeat(n):'';
+  pts.classList.toggle('tst-pts--n',n>MAX_PUNTOS);
+  pts.innerHTML=n>1&&n<=MAX_PUNTOS?'<i></i>'.repeat(n):'';
   marcarPunto();
 }
 function marcarPunto(){
-  const rail=$('#tst-rail'), pts=$('#tst-pts'); if(!rail||!pts||!pts.children.length) return;
+  const rail=$('#tst-rail'), pts=$('#tst-pts'); if(!rail||!pts||!rail.children.length) return;
+  const n=rail.children.length;
   const ancho=rail.firstElementChild.getBoundingClientRect().width+12;
   const fin=rail.scrollLeft>=rail.scrollWidth-rail.clientWidth-4;
-  const i=fin?pts.children.length-1:Math.round(rail.scrollLeft/ancho);
+  const i=fin?n-1:Math.min(n-1,Math.round(rail.scrollLeft/ancho));
+  if(n>MAX_PUNTOS){ pts.textContent=(i+1)+' / '+n; return; }
   [...pts.children].forEach((p,k)=>p.classList.toggle('is-on',k===i));
 }
 function sumarAlCarrusel(d){
@@ -944,20 +960,20 @@ function sumarAlCarrusel(d){
   if(prom){ prom.innerHTML=estrellasHTML(d.promedio)+'<span>'+d.promedio.toFixed(1).replace('.',',')+' de 5 · '
     +d.total+(d.total===1?' reseña':' reseñas')+' en la página</span>'; prom.hidden=false; }
   /* Todas las reseñas de la tienda (pedido del propietario, 2026-10-02: en la
-     ficha esta sección reemplazó a la lista «Todas las reseñas de la tienda»).
-     Primero las que traen foto; las de solo texto llevan en el lugar de la
-     foto un recuadro con comillas del mismo tamaño, para que todas las
-     tarjetas sigan siendo iguales. */
+     ficha esta sección reemplazó a la lista «Todas las reseñas de la tienda»),
+     en el orden en que llegan: el servidor ya pone primero las de mejor foto
+     con joyas de la tienda actual (2026-10-06). Las de solo texto llevan en
+     el lugar de la foto un recuadro con comillas del mismo tamaño, para que
+     todas las tarjetas sigan siendo iguales; las de solo foto, sin cita. */
   const conFoto=r=>(r.fotos||[]).some(propia);
-  const todas=d.resenas.filter(r=>r.texto);
-  todas.filter(conFoto).concat(todas.filter(r=>!conFoto(r))).forEach(r=>{
+  d.resenas.filter(r=>r.texto||conFoto(r)).forEach(r=>{
     const f=document.createElement('figure'); f.className='tst'+(conFoto(r)?'':' tst--txt');
     f.innerHTML=(conFoto(r)
       ? '<button type="button" class="rp-foto tst-ph" aria-label="Ampliar foto"><img src="'+r.fotos.filter(propia)[0]
         +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>'
       : '<div class="tst-ph tst-ph--txt" aria-hidden="true"><span>“</span></div>')
       +'<div class="tst-tx"><div class="estrellas" aria-label="'+(+r.estrellas||5)+' de 5 estrellas">'+estrellasHTML(r.estrellas)+'</div>'
-      +'<blockquote>'+escHTML(r.texto)+'</blockquote><figcaption><span class="rev-name">'+escHTML(r.nombre)+'</span>'
+      +(r.texto?'<blockquote>'+escHTML(r.texto)+'</blockquote>':'')+'<figcaption><span class="rev-name">'+escHTML(r.nombre)+'</span>'
       +'<span class="rev-city">'+(r.ciudad?escHTML(r.ciudad)+' · ':'')+(r.verificada?'Compra verificada':'Reseña en la página')+'</span></figcaption></div>';
     rail.appendChild(f);
   });

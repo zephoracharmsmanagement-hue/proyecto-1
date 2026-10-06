@@ -234,7 +234,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
           lista: !!document.getElementById('rp-lista') || !!document.getElementById('resenas-pieza'),
           form: !!document.querySelector('#reseñas #rp-form'), vend: document.getElementById('pp-vendidas').textContent };
       });
-      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2 && r.href === '#reseñas', `estrellas con el promedio y conteo reales («${r.top.trim()}»), que llevan al carrusel`);
+      /* 2 del servidor + las 3 fijas del carrusel, que también se ven (2026-10-06). */
+      ok(/4,8 · 5 reseñas/.test(r.top) && r.items === 2 && r.href === '#reseñas', `estrellas con el promedio y conteo reales («${r.top.trim()}»), que llevan al carrusel`);
       ok(r.orden === 'foto,texto', `las dos reseñas en el carrusel, la de foto primero (${r.orden})`);
       ok(!r.lista && r.form, 'una sola sección de reseñas, con el formulario debajo del carrusel');
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');

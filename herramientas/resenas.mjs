@@ -4,6 +4,16 @@
 //   node herramientas/resenas.mjs                 lista todas: id, estado, estrellas, nombre, texto
 //   node herramientas/resenas.mjs ocultar <id>    la quita de la página (estado «rechazada»)
 //   node herramientas/resenas.mjs publicar <id>   la vuelve a mostrar (estado «aprobada»)
+//   node herramientas/resenas.mjs orden <id> <n>  la pone en el puesto n del carrusel (menor = antes)
+//   node herramientas/resenas.mjs ordenar <plan.json>  [{id, orden, fotos?}]: varias de una vez;
+//                                                 `fotos` reordena las suyas (la primera es la
+//                                                 del carrusel), nunca agrega ni quita
+//
+// El orden (propietario, 2026-10-06): primero las de foto clara con joyas que
+// hoy están en la tienda, después las de foto aceptable, las de solo texto,
+// las de foto floja, las de piezas que ya no se venden y al final las de solo
+// foto. Puestos por grupo de mil: 0…, 1000…, 2000…, 3000…, 4000…, 5000….
+// Sin `orden`, netlify/functions/resenas.mjs la ubica sola (ver su cabecera).
 //
 // Ocultar no borra: la reseña y sus fotos se quedan guardadas y se puede
 // volver a publicar. Es lo mismo que hace el enlace «Rechazar» del correo de
@@ -47,6 +57,24 @@ if (!accion) {
   r.moderada = new Date().toISOString();
   await s.setJSON(id, r);
   console.log(`${accion === 'ocultar' ? 'Oculta' : 'Publicada'}: ${r.nombre || ''} — «${String(r.texto || '').slice(0, 60)}»`);
+} else if (accion === 'orden') {
+  const n = Number(process.argv[4]);
+  const r = id && await s.get(id, { type: 'json' });
+  if (!r || !Number.isFinite(n)) { console.error('Uso: node herramientas/resenas.mjs orden <id> <número>'); process.exit(1); }
+  r.orden = n; await s.setJSON(id, r);
+  console.log(`Puesto ${n}: ${r.nombre || ''} — «${String(r.texto || '').slice(0, 60)}»`);
+} else if (accion === 'ordenar') {
+  const plan = JSON.parse(fs.readFileSync(id, 'utf8'));
+  let n = 0;
+  for (const p of plan) {
+    const r = await s.get(p.id, { type: 'json' });
+    if (!r || !Number.isFinite(p.orden)) { console.error('Se salta (no existe o sin orden):', p.id); continue; }
+    r.orden = p.orden;
+    const misma = a => JSON.stringify([...a].sort());
+    if (Array.isArray(p.fotos) && misma(p.fotos) === misma(r.fotos || [])) r.fotos = p.fotos;
+    await s.setJSON(p.id, r); n++;
+  }
+  console.log(`Ordenadas: ${n} de ${plan.length}.`);
 } else {
-  console.error('Uso: node herramientas/resenas.mjs [ocultar|publicar <id>]'); process.exit(1);
+  console.error('Uso: node herramientas/resenas.mjs [ocultar|publicar <id> | orden <id> <n> | ordenar <plan.json>]'); process.exit(1);
 }
