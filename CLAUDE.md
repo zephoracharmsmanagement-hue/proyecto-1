@@ -25,10 +25,13 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
 `2021753038744595` ("cuenta publicitaria 1 ZC", dentro del portafolio
 "Zephora Charms"), existe pero no tiene campañas.
 
-**Estado al 2026-10-03: una sola campaña activa.** Se consolidó ese día
-después de una semana con tres campañas en paralelo que subió el costo por
-checkout de ~$2.000 a ~$4.300. Por qué una sola, con la tabla semanal que lo
-demuestra, en la skill § *Estructura*. No volver a separar sin leerla.
+**Estado al 2026-10-06: una sola campaña activa.** Se consolidó el 2026-10-03
+(antes corrían ESCALA, PRUEBA y RMK en paralelo). La razón es de **volumen**:
+con ~35 checkouts por semana ni un conjunto único llega a los 50 que Meta pide.
+**No** es porque separar haya doblado el costo: la primera versión de esta nota
+lo decía y era un error de medición, porque el sitio dejó de contar doble el
+`InitiateCheckout` el 27 de septiembre y se comparaban conteos distintos. La
+tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*.
 
 - **`VENTAS · ESCALA · IC`** (`120247398773240534`, antes "Nueva campaña de
   Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
@@ -39,11 +42,20 @@ demuestra, en la skill § *Estructura*. No volver a separar sin leerla.
   prueba con su misma publicación (Regalo · Dedicatoria, Pareja · Luciérnaga,
   Empieza con uno · Atrapasueños).
 
-  **Primera lectura: 2026-10-10**, con 7 días completos. Meta: volver a
-  ~$2.500 por checkout y 60–80 checkouts por semana. Ese día se decide si sale
-  Superhéroes ($5.062 por checkout, el doble del promedio). Ojo con Spider-Man:
-  pasó de $2.436 (30 días) a $3.912 (7 días) por checkout en 13 días al aire —
-  fatiga, y es el que más gasta.
+  **Primera lectura: 2026-10-10**, con 7 días completos. Con el conteo nuevo,
+  la meta es bajar de ~$4.600 a ~$3.500 o menos por checkout (el costo
+  comparable de la primera mitad de septiembre). Del 3 al 6 de octubre: 18
+  checkouts, $4.333 cada uno.
+
+  **Spider-Man · 5 textos en uno es el anuncio que cuesta.** Del 3 al 6 de
+  octubre gastó $30.486 (39% del gasto de la campaña) y trajo 3 checkouts,
+  **$10.162**, contra $2.258–4.053 de los otros cuatro anuncios con datos, que
+  corren a la vez y con el mismo conteo. Sus 60+ likes no cambian eso, y se
+  conservan al pausarlo, porque viven en la publicación, no en el anuncio. **Una
+  corrección:** no se debe comparar contra su historial de 30 días ($2.436),
+  porque mezcla conteo doble y simple. Tampoco «novio superhéroes» es el doble
+  del promedio, como se escribió el 3 de octubre: sus $5.062 están dentro de lo
+  que cuesta la campaña (~$4.600–5.500), y Meta ya casi no le da gasto.
 
   Lección que sigue vigente: **Copia 4 tenía el mejor CTR de la cuenta
   (15,43%) y era de los peores en conversión.** La métrica que manda es costo
@@ -165,10 +177,13 @@ Por orden de impacto sobre el dinero:
    unidades** ($2,64M para habilitar ~$11,7M de utilidad), priorizando
    charms (88% de margen) sobre pulseras (71%).
 2. **Averiguar por qué el píxel nuevo vio solo 3 `Purchase` de servidor en 28
-   días** (todos el 29 de septiembre, en la misma hora). Comparar contra las
-   ventas reales del mismo periodo: si hubo más, faltan registros en
-   `registrar-venta` o el webhook de Wompi no los reportó. Es la mitad del
-   problema de medición que no depende de la cuenta.
+   días** (todos el 29 de septiembre, en la misma hora; del 29 de septiembre al
+   6 de octubre, 5 del navegador y 1 de servidor). Comparar contra las ventas
+   reales del mismo periodo: si hubo más, faltan registros en `registrar-venta`
+   o el webhook de Wompi no los reportó. Es la mitad del problema de medición
+   que no depende de la cuenta. **Ojo:** una de esas ventas fue contraentrega y
+   se canceló, y Meta la sigue contando, porque el `Purchase` sale al confirmar
+   el pedido y no al recibirlo.
 3. **Probar el `Purchase` de servidor** con `META_TEST_EVENT_CODE` y
    confirmar en Events Manager que aparece **una sola vez** por compra (no
    dos) en el píxel nuevo. **Quitar la variable de prueba al terminar.**
@@ -178,8 +193,9 @@ Por orden de impacto sobre el dinero:
    vuelve reposición informada.
 5. **Reintentar el reclamo de la cuenta** `1583713932705268` hacia el
    portafolio (Business Settings → Cuentas publicitarias → Reclamar). En agosto
-   lo frenaba la antigüedad del portafolio; al 2026-10-03 ya tiene ~7 semanas.
-   Si entra: asignarle el píxel `1029982529813994` y cambiar el píxel del
+   lo frenaba la antigüedad del portafolio; al 2026-10-03 ya tenía ~7 semanas
+   y se intentó, y **el 2026-10-06 todavía no se había podido reclamar**: sigue
+   abierta la vía de soporte de Meta. Si entra: asignarle el píxel `1029982529813994` y cambiar el píxel del
    conjunto en un solo movimiento. Si sigue bloqueado: mudar la campaña única a
    `2021753038744595` (ya en el portafolio, con medio de pago), reutilizando
    las mismas publicaciones. En cualquier caso, después sacar el segundo
