@@ -385,7 +385,7 @@ export default async (req) => {
 
   /* Comprobante a la clienta y copia a la tienda. En paralelo y sin dejar que
      un fallo de correo tumbe el pedido: allSettled, no all. */
-  const correos = { referencia: ref, lineas, cuentas, pago: pedido.pago, cliente, regalo };
+  const correos = { referencia: ref, lineas, cuentas, pago: addi ? 'addi' : pedido.pago, cliente, regalo };
   const [aCliente, aTienda] = await Promise.allSettled([
     pedidoRecibido(correos), avisoTienda(correos),
   ]);

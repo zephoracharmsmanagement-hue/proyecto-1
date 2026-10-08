@@ -195,6 +195,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   <div class="hbanner-fixed">
     <div class="hbanner-fixed-in">
       <p class="hero-badges"><a class="foot-ig" href="https://instagram.com/zephora_charms">@zephora_charms<svg class="vf" viewBox="0 0 24 24" width="15" height="15" aria-label="Cuenta verificada"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="dot">·</span><span class="stars" aria-label="5 de 5 estrellas"><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="13" height="13" viewBox="0 0 24 24" fill="#B4657F"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span><span class="hero-badge-n">+2.400 pulseras creadas</span></p>
+      <a class="hero-addi" data-addi-checkout href="checkout.html?pago=addi"><img class="addi-logo" src="assets/pagos/addi.webp?v=20260913" alt="Addi" width="183" height="70" decoding="async"><span>Paga en hasta <b>3 cuotas sin interés</b></span></a>
     </div>
   </div>
 </section>
@@ -243,6 +244,16 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis.</b></p>
     <p class="promo-caja-x">Mezcla charms y brazaletes: con 4 piezas la de menor valor te sale totalmente <b>GRATIS</b>, y con 7 piezas te salen <b>2 gratis</b>. <span>(Se aplica automáticamente).</span></p>
   </div>
+  <!-- Addi a la vista (pedido del propietario, 2026-10-08: «mejor visibilidad
+       del método de pago para más conversión»). «Sin interés» es el plan Addi
+       Pago de la tienda, hasta $600.000 (config pública de Addi); el carrito y
+       las fichas dicen la cuota exacta. -->
+  <a class="addi-caja" data-addi-checkout href="checkout.html?pago=addi">
+    <img class="addi-logo" src="assets/pagos/addi.webp?v=20260913" alt="Addi" width="183" height="70" loading="lazy" decoding="async">
+    <span class="addi-caja-tx"><b>Paga en hasta 3 cuotas sin interés</b>
+      <span>Elígelo al pagar: apruebas tu cupo en minutos, solo con tu cédula.</span></span>
+    <span class="addi-caja-fl" aria-hidden="true">→</span>
+  </a>
 </section>
 
 <!-- 4b · CALCULADORA DE TALLA -->
@@ -1088,6 +1099,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   <!-- Fijo abajo: solo lo que decide la compra. -->
   <div class="sheet-tot">
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
+    <a class="tot-addi" id="tot-addi" data-addi-checkout href="checkout.html?pago=addi" hidden></a>
     <button class="btn btn--pagar" type="button" id="send">Finalizar compra</button>
     <!-- El sello se queda aquí, pegado al botón, porque es justo ahí donde
          aparece la duda de «¿esto es seguro?». El resto del texto —medios de

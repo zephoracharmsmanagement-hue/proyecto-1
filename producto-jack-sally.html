@@ -171,7 +171,8 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
     <article class="pc pc--pp" data-id="jack-sally" data-g="Disney">
 <div class="pc-img"><img src="assets/jack-y-sally.webp?v=20260822" alt="Jack &amp; Sally" width="440" height="440" fetchpriority="high" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h1 class="pc-name">Jack &amp; Sally</h1><p class="pc-meta">Pesadilla antes de Navidad</p>
-<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="jack-sally" aria-label="Agregar Jack &amp; Sally">Agregar</button></div></div></article>
+<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="jack-sally" aria-label="Agregar Jack &amp; Sally">Agregar</button></div>
+<p class="pp-cuotas">o hasta 3 cuotas de <b>$31.667</b> sin interés con <img class="addi-logo" src="assets/pagos/addi.webp?v=20260913" alt="Addi" width="183" height="70" decoding="async"></p></div></article>
     <!-- El orden de la ficha es el de automatizaciones/tienda/ENCARGO-FICHA.md:
          estrellas, disponibilidad real, paquetes, botones, Addi, beneficios,
          acordeones. Estrellas, disponibilidad y «N compraron este mes» los
@@ -625,6 +626,7 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   <!-- Fijo abajo: solo lo que decide la compra. -->
   <div class="sheet-tot">
     <div class="tot-big"><span>Total</span><b id="v-tot">$0</b></div>
+    <a class="tot-addi" id="tot-addi" data-addi-checkout href="checkout.html?pago=addi" hidden></a>
     <button class="btn btn--pagar" type="button" id="send">Finalizar compra</button>
     <!-- El sello se queda aquí, pegado al botón, porque es justo ahí donde
          aparece la duda de «¿esto es seguro?». El resto del texto —medios de
