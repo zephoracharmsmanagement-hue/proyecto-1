@@ -381,8 +381,33 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > - **Descartado por el propietario el 2026-10-02**: carrito y pago en una
 >   sola página completa (revertido). El carrito sigue siendo la hoja.
 >
-> **Espera datos del propietario:** credenciales de Addi (el botón sigue a
-> WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
+> **2026-10-08 · PR #22 (`claude/addi-integracion`), fusionado con
+> confirmación del propietario («deploy»):**
+> - **Addi integrado** (integración custom `zephoracharms-ecommerce` del portal
+>   de aliados): «Pagar con Addi» ya no va a WhatsApp. `crear-pago` pide la
+>   cédula, revisa los topes ($50.000 – $3.000.000), aparta 2 h 15 min y crea
+>   la solicitud en Addi antes de los correos (si Addi no responde: libera y
+>   ofrece WhatsApp). `addi-callback` (Basic Auth con las credenciales de
+>   notificación, responde el mismo cuerpo) cierra el pedido con `_cierre.mjs`,
+>   el mismo cierre que ahora usa `wompi-webhook`. `gracias.html?modo=addi`
+>   consulta `estado-pedido`.
+> - **Addi a la vista**: cuota «hasta 3 de $X sin interés» bajo el precio de
+>   las fichas y bajo el total del carrito (sin interés solo hasta $600.000,
+>   plan Addi Pago), recuadro bajo la promo en la portada, widget oficial de
+>   Addi en las 135 fichas (no se ve hasta que Addi active la cuenta). La
+>   píldora del hero se quitó a pedido del propietario.
+> - **Correos**: con Addi dicen «ADDI — esperando que Addi apruebe» y «aprobado
+>   por Addi» (no «Wompi»).
+> - **Variables en Netlify** (secretas): `ADDI_CLIENT_ID`, `ADDI_CLIENT_SECRET`,
+>   `ADDI_NOTIF_USUARIO`, `ADDI_NOTIF_CLAVE`; y `ADDI_ALLY_SLUG`. Claves en
+>   `material-sin-publicar/claves-addi.txt` (nunca al repo).
+> - **Ojo con las pruebas en la vista previa**: comparten `inventario-pruebas`
+>   con producción. La prueba del propietario (ZC-261008-D3C41A3A) apartó las
+>   2 Mickey y el Stitch; se liberó a mano y quedó `prueba-cancelada`.
+>
+> **Espera datos del propietario:** que Addi active la cuenta (su config
+> pública dice `isActiveAlly: false`; el propietario lo gestiona en el portal
+> o con soporte_aliados@addi.com); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
 > si se quieren videos largos en reseñas. Paleta: se mantiene la original.
 
