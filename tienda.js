@@ -1638,6 +1638,20 @@ function comprar(){
    se retiró: los enlaces de asesoría del resto de la página siguen ahí. */
 $('#send').onclick=comprar;
 $('#dock-send').onclick=comprar;
+
+/* «Pagar con Addi» desde el carrito o la portada: al checkout con Addi ya
+   elegido (desde 2026-10-07 Addi se paga ahí, integrado; antes era un enlace a
+   WhatsApp). La forma de pago se guarda solo para el checkout: aquí `pago` sigue
+   siendo la del carrito, que es la que decide el envío que se muestra. */
+document.addEventListener('click',e=>{
+  const a=e.target.closest&&e.target.closest('[data-addi-checkout]');
+  if(!a) return;
+  e.preventDefault();
+  if(!base&&!sel.length){ comprar(); return; }
+  const antes=pago;
+  tocado=true; pago='addi'; guardar(); pago=antes;
+  location.href='checkout.html';
+});
 /* El atajo del aviso de envío: aplica el pago anticipado sin que la clienta
    tenga que buscar el botón. Delegado porque el aviso se repinta en cada render. */
 document.getElementById('ship-note').addEventListener('click',e=>{

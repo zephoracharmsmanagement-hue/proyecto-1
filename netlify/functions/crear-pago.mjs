@@ -13,10 +13,16 @@
  *   WOMPI_INTEGRIDAD        prod_integrity_… — NUNCA en el repo ni en el HTML
  *   URL_SITIO               https://zephoracharms.com (opcional; Netlify ya da URL)
  *   PEDIDOS_WEBHOOK         opcional: a dónde avisar de cada pedido nuevo
+ *   ADDI_CLIENT_ID / ADDI_CLIENT_SECRET   pago con Addi (ver _addi.mjs)
+ *
+ * Addi tampoco pasa por Wompi: se le pide a Addi una «solicitud de crédito» y
+ * se manda a la clienta a la URL que devuelve. El resultado llega después a
+ * addi-callback. Si Addi no responde, no hay pedido a medias: se liberan las
+ * unidades y el checkout ofrece cerrarlo por WhatsApp, como antes.
  */
 import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario, nombres } from './_precios.js';
+  PedidoInvalido, SinInventario, nombres, fotos } from './_precios.js';
 import { reservar, confirmar, liberar } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
@@ -24,6 +30,13 @@ import { pedidoRecibido, avisoTienda } from './_correo.js';
 import { purchase, hashearCliente } from './_meta.js';
 import { guardar as guardarSenales } from './_atribucion.mjs';
 import { regaloPara, usarRegalo } from './_suscriptores.mjs';
+import { configuracion as configAddi, crearSolicitud } from './_addi.mjs';
+
+/* Cuánto se apartan las unidades de un pedido con Addi. Addi decide entre 20
+   segundos y 10 minutos y deja la solicitud abierta hasta 2 horas: la reserva
+   tiene que durar más que eso, o una compra aprobada a la hora y media
+   llegaría a confirmar() sin reserva y no se descontaría. */
+const VIGENCIA_ADDI_MS = (2 * 60 + 15) * 60 * 1000;
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -220,10 +233,24 @@ export default async (req) => {
     return responder(400, { error: 'El pedido no llegó en JSON válido' });
   }
 
+  /* Addi se cobra por adelantado —mismo envío que «Pagar ahora»—, así que para
+     el cálculo es un pago anticipado más (leerPedido lo lee así). Lo que cambia
+     es la pasarela. */
+  const addi = cuerpo.pago === 'addi';
+
   let pedido, cliente, cuentas;
   try {
     pedido = leerPedido(cuerpo);
     cliente = leerCliente(cuerpo.cliente);
+    if (addi) {
+      /* Addi solo opera con cédula de ciudadanía, y la necesita para aprobar
+         el cupo. */
+      cliente.tipodoc = 'CC';
+      cliente.documento = String(cliente.documento || '').replace(/\D/g, '');
+      if (!/^\d{5,10}$/.test(cliente.documento)) {
+        throw new PedidoInvalido('Para pagar con Addi necesitamos tu cédula (solo números)');
+      }
+    }
     comprobarInventario(pedido);
     cuentas = calcular(pedido);
   } catch (e) {
@@ -236,6 +263,18 @@ export default async (req) => {
 
   if (cuentas.total <= 0) {
     return responder(400, { error: 'El total del pedido es cero' });
+  }
+
+  /* Los topes de Addi para la tienda. El checkout ya deshabilita la opción
+     fuera de ellos, pero el checkout no manda. */
+  if (addi) {
+    const tope = await configAddi(cuentas.total);
+    if (cuentas.total < tope.min || cuentas.total > tope.max) {
+      return responder(400, {
+        error: `Addi aplica para compras entre ${cop(tope.min)} y ${cop(tope.max)}. `
+          + 'Puedes elegir otro medio de pago.',
+      });
+    }
   }
 
   const ref = referencia();
@@ -252,7 +291,7 @@ export default async (req) => {
    * la venta sigue: la reserva es una red de seguridad, no un peaje. */
   let reserva;
   try {
-    reserva = await reservar(ref, pedido);
+    reserva = await reservar(ref, pedido, addi ? VIGENCIA_ADDI_MS : undefined);
   } catch (e) {
     if (e instanceof SinInventario) return responder(409, { error: e.message, agotado: true });
     throw e;
@@ -282,7 +321,7 @@ export default async (req) => {
     evento: 'pedido_creado',
     referencia: ref,
     total: cuentas.total,
-    pago: pedido.pago,
+    pago: addi ? 'addi' : pedido.pago,
     piezas: pedido.charms.length + (pedido.base ? 1 : 0),
     ciudad: `${cliente.ciudad}, ${cliente.depto}`,
     /* Queda escrito si las unidades se apartaron de verdad o si la reserva se
@@ -302,7 +341,7 @@ export default async (req) => {
      se pierde, esto sigue diciendo qué despachar y a dónde. */
   const registro = await guardar(ref, {
     estado: pedido.pago === 'contraentrega' ? 'confirmado' : 'esperando-pago',
-    pago: pedido.pago, lineas, cuentas, cliente, regalo,
+    pago: addi ? 'addi' : pedido.pago, lineas, cuentas, cliente, regalo,
   });
   if (!registro.ok) {
     console.error(JSON.stringify({
@@ -310,10 +349,33 @@ export default async (req) => {
     }));
   }
 
+  /* Addi: la solicitud se crea ANTES de los correos y del aviso. Si Addi no
+     la acepta (credenciales, comercio sin activar, caída), la clienta no
+     recibe un «pedido recibido» de algo que nunca llegó a la pasarela: se
+     liberan las unidades y el checkout le ofrece WhatsApp. */
+  let solicitudAddi = null;
+  if (addi) {
+    solicitudAddi = await crearSolicitud({ referencia: ref, cliente, lineas, cuentas, sitio, fotos });
+    if (!solicitudAddi.ok) {
+      console.error(JSON.stringify({
+        evento: 'addi_sin_solicitud', referencia: ref, motivo: solicitudAddi.motivo,
+        detalle: solicitudAddi.detalle || null,
+      }));
+      await liberar(ref);
+      await marcar(ref, { estado: 'no-llego-a-addi', motivo: solicitudAddi.motivo });
+      return responder(503, {
+        error: 'Addi no está disponible en este momento. Puedes elegir otro medio de pago, '
+          + 'o escribirnos y te enviamos el enlace de Addi por WhatsApp.',
+        whatsapp: true,
+      });
+    }
+    console.log(JSON.stringify({ evento: 'addi_solicitud_creada', referencia: ref, total: cuentas.total }));
+  }
+
   await avisar({
     evento: 'pedido_creado',
     referencia: ref,
-    pago: pedido.pago,
+    pago: addi ? 'addi' : pedido.pago,
     total: cuentas.total,
     totalTexto: cop(cuentas.total),
     envio: cuentas.envio,
@@ -399,6 +461,17 @@ export default async (req) => {
     }));
 
     return responder(200, Object.assign({ modo: 'contraentrega' }, base));
+  }
+
+  if (addi) {
+    /* Las señales para el Purchase que mandará addi-callback al aprobarse. */
+    const guardadoAddi = await guardarSenales(ref, senales);
+    if (guardadoAddi.modo !== 'guardado') {
+      console.log(JSON.stringify({
+        evento: 'atribucion_no_guardada', referencia: ref, modo: guardadoAddi.modo,
+      }));
+    }
+    return responder(200, Object.assign({ modo: 'addi', url: solicitudAddi.url }, base));
   }
 
   const llave = process.env.WOMPI_LLAVE_PUBLICA;

@@ -281,6 +281,7 @@ PAGINA = '''<!DOCTYPE html>
 </div>
 
 {chrome}
+{addi_script}
 </body>
 </html>
 '''
@@ -322,7 +323,12 @@ PAGOS = ('        <p class="pp-pagos" aria-label="Medios de pago">' + ''.join(
                  ('daviplata', 'Daviplata'), ('bancolombia', 'Bancolombia'), ('addi', 'Addi')]) + '</p>\n')
 
 WA = 'https://wa.me/573018990672?text='
-WA_ADDI = WA + 'Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.'
+# Widget de Addi (manual de Addi, «Instalación del Addi Widget»): calcula solo
+# la cuota mínima para el precio de la pieza. Desde 2026-10-07 Addi se paga en
+# el checkout (integración propia), así que el «pregúntanos por WhatsApp» que
+# iba aquí sobra. El script se carga una vez por página, al final (ADDI_SCRIPT).
+ADDI_SLUG = 'zephoracharms-ecommerce'
+ADDI_SCRIPT = '<script src="https://s3.amazonaws.com/widgets.addi.com/bundle.min.js" defer></script>'
 
 
 # La promo («paga 3, lleva 1 gratis · paga 5, lleva 2», 2026-10-04) en un solo recuadro, junto al precio (pedido del
@@ -337,7 +343,7 @@ PROMO_CAJA = (
     '      </div>')
 
 
-def bloque_compra(pid, tipo, nombre, hay, primeras):
+def bloque_compra(pid, tipo, nombre, hay, primeras, precio):
     """Recuadro de la promo, botones, vitrina, medios de pago y suscripción.
     Todo el bloque se esconde si la pieza está agotada (lo decide tienda.js con
     la disponibilidad real, y aquí con el conteo de stock.json para quien no
@@ -364,14 +370,14 @@ def bloque_compra(pid, tipo, nombre, hay, primeras):
     oculto = '' if hay else ' hidden'
     return ('      <div class="pp-compra" id="pp-compra"%s>\n%s\n%s\n'
             '        <div class="pp-pago">\n%s'
-            '        <p class="pp-addi">También a cuotas con Addi · <a data-wa="pagos" href="%s">pregúntanos por WhatsApp</a></p>\n'
+            '        <div class="pp-addi"><addi-widget price="%d" ally-slug="%s"></addi-widget></div>\n'
             '        </div>\n'
             '        <p class="pp-susc"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
             'stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">%s</svg><span><a href="#" data-susc>Suscríbete y '
             'llévate de regalo el charm de tu inicial</a> en tu primera compra de 2 charms o más.</span></p>\n'
             '      </div>\n'
             '      <p class="pp-agotado" id="pp-agotado"%s>Esta pieza está agotada. <a data-wa="encargo" id="pp-encargo" href="%s">Pídela por encargo por WhatsApp</a> y te avisamos cuando vuelva.</p>'
-            % (oculto, selector, botones, PAGOS, WA_ADDI, ICONO['regalo'], '' if not hay else ' hidden',
+            % (oculto, selector, botones, PAGOS, precio, ADDI_SLUG, ICONO['regalo'], '' if not hay else ' hidden',
                WA + urllib.parse.quote('Hola, Zephora Charms. Vi en la página que «%s» está agotado. '
                                         '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?' % nombre)))
 
@@ -603,13 +609,14 @@ def generar(pid, html, cat, stock, b, exigidos):
                                     list(dict.fromkeys(
                                         c for c in (rel + cat['destacados'] + list(cat['precios']))
                                         if c != pid and c in cat['precios'] and c not in cat['pulseras']
-                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16]),
+                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16],
+                                    precio),
         beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat),
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
         resenas=resenas_con_formulario(b['resenas'], H.escape(nombre)), historia=b['historia'],
-        bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'],
+        bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'], addi_script=ADDI_SCRIPT,
         bloques_media=bloques_media(pid, tipo, hay, cat),
         pagos=b['pagos'], footer=b['footer'], chrome=b['chrome'],
     )
