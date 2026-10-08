@@ -7,7 +7,8 @@ deshacer sin querer**.
 
 ## Reseñas del Excel del propietario — cargadas el 2026-10-06
 
-El propietario pasó su base de reseñas (`Pictureseviews zephora`: Excel
+El propietario pasó su base de reseñas (`Pictures
+eviews zephora`: Excel
 *Clientas_y_fotos_Zephora_Sin_Fechas.xlsx* + zip de fotos + hojas de
 contacto numeradas) y confirmó que **son clientas reales y cada foto es de la
 clienta de su reseña**. Se cargaron **163 de 167** al almacén que lee la página
@@ -405,9 +406,17 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   con producción. La prueba del propietario (ZC-261008-D3C41A3A) apartó las
 >   2 Mickey y el Stitch; se liberó a mano y quedó `prueba-cancelada`.
 >
-> **Espera datos del propietario:** que Addi active la cuenta (su config
-> pública dice `isActiveAlly: false`; el propietario lo gestiona en el portal
-> o con soporte_aliados@addi.com); hora de corte y mensajería para 24 h en Bogotá (no se publica
+> **Addi activo desde el 2026-10-08:** la config pública de
+> `zephoracharms-ecommerce` ya dice `isActiveAlly: true` (topes $50.000 –
+> $3.000.000; `ADDI_PAGO` sin interés hasta $600.000, `ADDI_FINANCIA` hasta
+> $3.000.000; `isActivePayNow: false`, producto aparte que no se usa). Ojo: son
+> **dos comercios** en el portal — la cuenta de la integración (la que tiene
+> menú *Integraciones*) no tiene tiendas, y no las necesita: «Crear una tienda»
+> solo crea tiendas **físicas** para links de pago. La tienda «zephora charms»
+> de la otra cuenta es para links por redes y no afecta la web. Falta una
+> compra de prueba real de punta a punta (callback → gracias.html).
+>
+> **Espera datos del propietario:** hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
 > si se quieren videos largos en reseñas. Paleta: se mantiene la original.
 
