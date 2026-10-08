@@ -276,7 +276,7 @@ async function transaccion(mutar, etiqueta) {
 /* Aparta las unidades de un pedido. Lanza SinInventario si no alcanzan —el
    mismo error que ya sabe manejar crear-pago.js, para que el checkout siga
    diciéndole a la clienta qué ajustar. */
-async function reservar(referencia, pedido) {
+async function reservar(referencia, pedido, vigencia = VIGENCIA_MS) {
   const piden = itemsDe(pedido);
   return transaccion(estado => {
     const faltan = [];
@@ -289,7 +289,10 @@ async function reservar(referencia, pedido) {
         'Se agotó algo de tu selección mientras la armabas: ' + faltan.join('; ')
         + '. Ajusta tu pulsera o escríbenos y lo conseguimos por encargo.');
     }
-    estado.reservas[referencia] = { items: piden, vence: Date.now() + VIGENCIA_MS };
+    /* Addi pasa otra vigencia: su solicitud puede tardar hasta 2 horas en
+       decidirse, y una reserva vencida haría que confirmar() no descontara
+       una venta aprobada. */
+    estado.reservas[referencia] = { items: piden, vence: Date.now() + vigencia };
     return { ok: true, modo: 'reservado', items: piden };
   }, 'reservar');
 }

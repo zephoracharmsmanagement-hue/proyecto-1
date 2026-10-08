@@ -1209,6 +1209,7 @@ function render(){
   $('#l-save').textContent=nGratis>1?nGratis+' piezas gratis':'Pieza gratis';
   $('#v-save').textContent='− '+cop(ahorro);
   $('#v-tot').textContent=cop(total);
+  pintarCuotasAddi(total);
 
   const ship=$('#v-ship'), nota=$('#ship-note'), barra=$('#ship-bar');
   /* La barra de progreso solo tiene sentido mientras haya un umbral que
@@ -1638,6 +1639,37 @@ function comprar(){
    se retiró: los enlaces de asesoría del resto de la página siguen ahí. */
 $('#send').onclick=comprar;
 $('#dock-send').onclick=comprar;
+
+/* La cuota de Addi bajo el total del carrito. Topes de la config pública de
+   Addi para la tienda: compras de $50.000 a $3.000.000, y «sin interés» (plan
+   Addi Pago) hasta $600.000; por encima es financiación, así que ahí no se
+   promete «sin interés». La cuota es el total entre 3, redondeada hacia arriba
+   al peso: nunca menos de lo que va a pagar. */
+const ADDI_LOGO='<img class="addi-logo" src="assets/pagos/addi.webp?v=20260913" alt="Addi" width="183" height="70" decoding="async">';
+function pintarCuotasAddi(total){
+  const el=$('#tot-addi'); if(!el) return;
+  if(total>=50000&&total<=600000){
+    el.innerHTML='o hasta 3 cuotas de <b>'+cop(Math.ceil(total/3))+'</b> sin interés con '+ADDI_LOGO;
+    el.hidden=false;
+  }else if(total>600000&&total<=3000000){
+    el.innerHTML='o págalo a cuotas con '+ADDI_LOGO;
+    el.hidden=false;
+  }else el.hidden=true;
+}
+
+/* «Pagar con Addi» desde el carrito o la portada: al checkout con Addi ya
+   elegido (desde 2026-10-07 Addi se paga ahí, integrado; antes era un enlace a
+   WhatsApp). La forma de pago se guarda solo para el checkout: aquí `pago` sigue
+   siendo la del carrito, que es la que decide el envío que se muestra. */
+document.addEventListener('click',e=>{
+  const a=e.target.closest&&e.target.closest('[data-addi-checkout]');
+  if(!a) return;
+  e.preventDefault();
+  if(!base&&!sel.length){ comprar(); return; }
+  const antes=pago;
+  tocado=true; pago='addi'; guardar(); pago=antes;
+  location.href='checkout.html';
+});
 /* El atajo del aviso de envío: aplica el pago anticipado sin que la clienta
    tenga que buscar el botón. Delegado porque el aviso se repinta en cada render. */
 document.getElementById('ship-note').addEventListener('click',e=>{
