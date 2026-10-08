@@ -337,8 +337,15 @@ WA = 'https://wa.me/573018990672?text='
 # la cuota mínima para el precio de la pieza. Desde 2026-10-07 Addi se paga en
 # el checkout (integración propia), así que el «pregúntanos por WhatsApp» que
 # iba aquí sobra. El script se carga una vez por página, al final (ADDI_SCRIPT).
+#
+# Solo en el dominio de la tienda y en las vistas previas de Netlify: el CDN de
+# Addi rechaza otros orígenes (CORS) y su widget llena la consola de errores
+# («reading 'isProxied'»). Pasó en las pruebas de GitHub, que sirven el sitio
+# desde localhost: la consola limpia es una de las cosas que vigilan.
 ADDI_SLUG = 'zephoracharms-ecommerce'
-ADDI_SCRIPT = '<script src="https://s3.amazonaws.com/widgets.addi.com/bundle.min.js" defer></script>'
+ADDI_SCRIPT = ('<script>/(^|\\.)zephoracharms\\.com$|\\.netlify\\.app$/.test(location.hostname)'
+               '&&document.head.appendChild(Object.assign(document.createElement("script"),'
+               '{src:"https://s3.amazonaws.com/widgets.addi.com/bundle.min.js",defer:true}))</script>')
 
 
 # La promo («paga 3, lleva 1 gratis · paga 5, lleva 2», 2026-10-04) en un solo recuadro, junto al precio (pedido del
