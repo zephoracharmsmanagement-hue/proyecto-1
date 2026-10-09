@@ -32,6 +32,9 @@ BLANCO, GRIS, KIE = MSP / 'fotos-mejoradas-blanco', MSP / 'fotos-mejoradas', MSP
 ASSETS, HD = RAIZ / 'assets', RAIZ / 'assets' / 'hd'
 OCUPA = 0.90
 LADO_HD, LADO_REJILLA = 1200, 600
+# Texto sobre la foto cuando la foto sola se presta a confusión (pedido del
+# propietario, 2026-10-09): el Camaleón sale en sus dos tonos y parecen dos piezas.
+ANOTACIONES = {'camaleon-verde': 'La misma pieza · cambia de color con la temperatura'}
 
 
 def fondo_blanco(im, tol=28):
@@ -76,6 +79,25 @@ def a_blanco(im):
     return Image.merge('RGB', [c.point(lambda v, g=f[i]: min(255, round(v * 255 / g))) for i, c in enumerate(im.split())])
 
 
+def anotar(im, texto):
+    """Una línea centrada abajo, en el morado de la marca, sobre el blanco que
+    deja el encuadre al 90 %. Se escala con la foto: en la rejilla de 600 px
+    queda a la mitad."""
+    from PIL import ImageFont
+    im = im.copy(); d = ImageDraw.Draw(im)
+    tam = 44
+    f = ImageFont.truetype('segoeuisl.ttf', tam)
+    while d.textlength(texto, font=f) > im.width * 0.9 and tam > 20:
+        tam -= 2; f = ImageFont.truetype('segoeuisl.ttf', tam)
+    w = d.textlength(texto, font=f)
+    # Debajo de la joya: busca la última fila con producto y deja aire.
+    gris = im.convert('L').point(lambda v: 255 if v < 235 else 0)
+    caja = gris.getbbox() or (0, 0, im.width, int(im.height * .75))
+    y = min(im.height - tam - 40, caja[3] + 40)
+    d.text(((im.width - w) / 2, y), texto, fill=(92, 61, 99), font=f)
+    return im
+
+
 def guardar(im, destino, limite_kb):
     for q in (86, 82, 78, 74, 70):
         im.save(destino, 'webp', quality=q, method=6)
@@ -102,6 +124,8 @@ def main():
                 grande = grande.resize((LADO_HD, LADO_HD), Image.LANCZOS)
         else:
             faltan.append(archivo); continue
+        if stem in ANOTACIONES:
+            grande = anotar(grande, ANOTACIONES[stem])
         q1 = guardar(grande, HD / f'{stem}.webp', 110)
         q2 = guardar(grande.resize((LADO_REJILLA, LADO_REJILLA), Image.LANCZOS), ASSETS / f'{stem}.webp', 38)
         print(f'{stem:40s} hd {(HD / (stem + ".webp")).stat().st_size // 1024:4d} KB q{q1} · '
