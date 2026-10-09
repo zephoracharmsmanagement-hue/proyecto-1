@@ -38,6 +38,7 @@ o si el precio que muestra la tarjeta no es el de catalogo.json.
 """
 import html as H
 import json
+import os
 import re
 import sys
 import urllib.parse
@@ -132,7 +133,7 @@ def tarjeta_inicial(html, pid, cat):
     # la del grupo. `?v=` con la fecha en que entraron, por la caché de una
     # semana de las .webp (netlify.toml).
     if cat['fotos'][pid] != img.split('/')[-1].split('?')[0]:
-        img = 'assets/%s?v=20260925' % cat['fotos'][pid]
+        img = 'assets/%s?v=20261009' % cat['fotos'][pid]
     sello = re.search(r'<span class="pc-mark[^"]*">[^<]*</span>', letras).group(0)
     n = H.escape(cat['nombres'][pid])
     return ('<article class="pc" data-id="%s" data-g="Letras">\n'
@@ -594,7 +595,9 @@ def generar(pid, html, cat, stock, b, exigidos):
     sello = re.search(r'<span class="pc-mark[^"]*">([^<]*)</span>', tarjeta).group(1)
     meta = re.search(r'<p class="pc-meta">([^<]*)</p>', tarjeta).group(1)
     foto = re.search(r'<img src="([^"]+)"', tarjeta).group(1)
-    imagen = SITIO + foto
+    # Para compartir (WhatsApp, Facebook) va la de 1200 px de assets/hd/ si existe.
+    hd = re.sub(r'^assets/', 'assets/hd/', foto)
+    imagen = SITIO + (hd if os.path.exists(os.path.join(RAIZ, hd.split('?')[0])) else foto)
     canon = SITIO + href_de(pid)
     hay = (unidades(stock.get(pid)) or 0) > 0
 
