@@ -55,6 +55,7 @@ import { disponibles } from './_inventario.mjs';
  * —que es justo la clase de paso olvidable que deja al bot mandando la imagen
  * vieja—.
  *
+ * Sale de assets/hd/ (1200 px, todas las fotos de producto desde 2026-10-09).
  * 800 px es de sobra para el chat y deja el archivo en decenas de KB, no en
  * cientos.
  */
@@ -64,7 +65,7 @@ function fotoDe(id, origen) {
   const archivo = fotos && fotos[id];
   if (!archivo) return null;
   return `${origen}/.netlify/images`
-    + `?url=${encodeURIComponent('/assets/' + archivo)}&fm=jpg&w=800`;
+    + `?url=${encodeURIComponent('/assets/hd/' + archivo)}&fm=jpg&w=800`;
 }
 
 const CABECERAS = {

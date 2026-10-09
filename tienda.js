@@ -222,21 +222,39 @@ const VIDEOS = new Set((
 const vidSrc=id=>'media/joya-'+id+'-v3.mp4';
 const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261003';
 
-/* Fotos de Flow con versión de 880 px (assets/hd/, herramientas/fotos_hd.py).
-   La rejilla sigue con la de 440 —es lo que baja cada tarjeta—; las galerías
-   de la página y de la ficha, que la enseñan a todo el ancho, usan esta. Por
-   nombre de archivo de la foto, no por id: así está en catalogo.json. */
+/* Versión nítida de cada foto de producto (1200 px, assets/hd/, herramientas/
+   fotos_hd.py, 2026-10-09). La rejilla usa la de 600 px —es lo que baja cada
+   tarjeta—; las galerías de la página y de la ficha, que la enseñan a todo el
+   ancho, usan esta. Por nombre de archivo de la foto, no por id: así está en
+   catalogo.json. Antes eran solo las 41 de Flow, a 880 px. */
 const FOTOS_HD = new Set((
-  'atrapasuenos-corazon-multicolor avion-globo-y-pasaporte bola-azul-con-flor-rosa bola-roja-remolino '
-  +'bola-rosa-con-flores camaleon-verde carrusel-rosado casa-de-los-globos clip-forever-multicolor '
-  +'corazon-de-filigrana corazon-mama-e-hija dalmata elefantito-rosa esfera-azul-con-cristales gato-cheshire '
-  +'libelula-morada lilo-y-stitch manos-orando-con-cruz mariposas-tricolor-colgantes mascara-spider-man-roja '
-  +'mickey-mouse mike-wazowski minnie-mouse olaf-de-frozen osito-con-rosa-y-corazon osito-graduacion '
-  +'osito-pave-con-corazon pulpo-azul-cristal pulsera-clasica-cierre-barril pulsera-copo-de-nieve '
-  +'pulsera-corazon-pave pulsera-corazon-pave-pequeno pulsera-corona-con-cristales pulsera-corona-pave '
-  +'pulsera-mickey-mouse-pave pulsera-trebol-verde stitch-azul sulley torre-eiffel-y-camara wall-e atrapasuenos-azul'
+  'acuario angel angel-guardian ariel aries atrapasuenos-azul atrapasuenos-corazon-multicolor '
+  +'avion-globo-y-pasaporte blancanieves bola-azul-con-flor-rosa bola-roja-remolino bola-rosa-con-flores '
+  +'buzz-lightyear caballo-herradura cadena-seguridad-hamsa-y-ojo cadena-seguridad-love-forever '
+  +'cadena-seguridad-luna-y-sol camaleon-verde cancer capitan-america capricornio carrusel-rosado '
+  +'casa-de-los-globos casco-iron-man cenicienta charm-fisioterapia charm-medicina charm-odontologia '
+  +'charm-psicologia charms-de-letras-pave clip-forever-multicolor clip-infinito-con-corazon '
+  +'clip-mariposas-de-colores clip-orquideas-moradas conejita-con-corazon-rosa corazon-arbol-de-la-vida '
+  +'corazon-de-filigrana corazon-mama-e-hija dalmata deadpool elefantito-rosa escorpio '
+  +'escudo-capitan-america esfera-azul-con-cristales esfera-telarana-spider-man flor-azul-con-cristales '
+  +'gatito-con-corazon-azul gato-cheshire geminis groot-bebe guantelete-del-infinito huella-con-huesito '
+  +'hulk iron-man jack-y-sally jasmine leo letra-a letra-b letra-c letra-d letra-e letra-f letra-g '
+  +'letra-h letra-i letra-j letra-k letra-l letra-m letra-n letra-o letra-p letra-r letra-s letra-t '
+  +'letra-u letra-v letra-w letra-x letra-y letra-z libelula-morada libra lilo-y-stitch '
+  +'luciernaga-you-are-my-light manos-orando-con-cruz mariposas-tricolor-colgantes '
+  +'mascara-spider-man-roja mascara-un-gran-poder mickey-mouse mike-wazowski minnie-mouse '
+  +'mjolnir-martillo-de-thor olaf-de-frozen osito-con-rosa-y-corazon osito-graduacion '
+  +'osito-pave-con-corazon piscis princesa-bella pulpo-azul-cristal pulsera-avengers '
+  +'pulsera-candado-rosa-con-cadena pulsera-clasica-cierre-barril pulsera-copo-de-nieve '
+  +'pulsera-corazon-con-diamante pulsera-corazon-liso pulsera-corazon-luminoso pulsera-corazon-pave '
+  +'pulsera-corazon-pave-pequeno pulsera-corazon-rosado-con-cadena pulsera-corona-con-cristales '
+  +'pulsera-corona-pave pulsera-mano-de-hamsa pulsera-mickey-mouse-pave pulsera-mono-rosa-con-cadena '
+  +'pulsera-rosa-clasica pulsera-sol-con-cadena-seguridad pulsera-trebol-verde sagitario '
+  +'sol-y-luna-con-cristales spider-man spider-man-pave stitch stitch-azul sulley tauro '
+  +'torre-eiffel-y-camara tortuga-marina-cristal trebol-verde-giratorio virgen-maria virgo wall-e '
+  +'wolverine'
 ).split(' '));
-const hdDe=src=>{ const m=/assets\/([^/?]+)\.webp/.exec(src||''); return m&&FOTOS_HD.has(m[1])?'assets/hd/'+m[1]+'.webp?v=20261001':src; };
+const hdDe=src=>{ const m=/assets\/([^/?]+)\.webp/.exec(src||''); return m&&FOTOS_HD.has(m[1])?'assets/hd/'+m[1]+'.webp?v=20261009':src; };
 
 let base=null, sel=[];
 /* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
@@ -258,7 +276,7 @@ let CAT=null, vitConStock=false;
    Más vendidos). Las fotos se sirven con una semana de caché y conservan el
    nombre al cambiar: al reemplazar fotos hay que subir esta fecha, igual que
    el ?v= de las tarjetas de index.html. */
-const VFOTO='?v=20261002';
+const VFOTO='?v=20261009';
 function pestanasDe(v){
   const sin=v.dataset.vitSin||'', tabs=[];
   const rel=(v.dataset.vit||'').split(',').filter(id=>id&&id!==sin&&(CH[id]||PU[id]));
@@ -472,7 +490,7 @@ document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); 
 /* Desde el 2026-09-25 cada inicial tiene su foto (assets/letra-x.webp), salvo
    las que no llegaron (hoy Ñ y Q): esas caen a la foto del grupo con onerror,
    sin una lista escrita aquí que se desincronice de assets/. */
-const fotoLetra=id=>'assets/'+encodeURIComponent(id)+'.webp?v=20260925';
+const fotoLetra=id=>'assets/'+encodeURIComponent(id)+'.webp?v=20261009';
 const fotoGrupoLetras=()=>{ const el=document.querySelector('.pc[data-id="letras"] img');
   return el?(el.dataset.grupo||el.getAttribute('src')):''; };
 /* La foto de una pieza. Primero la de su tarjeta, si está en la página (es la

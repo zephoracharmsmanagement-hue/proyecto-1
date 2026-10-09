@@ -38,6 +38,7 @@ o si el precio que muestra la tarjeta no es el de catalogo.json.
 """
 import html as H
 import json
+import os
 import re
 import sys
 import urllib.parse
@@ -132,7 +133,7 @@ def tarjeta_inicial(html, pid, cat):
     # la del grupo. `?v=` con la fecha en que entraron, por la caché de una
     # semana de las .webp (netlify.toml).
     if cat['fotos'][pid] != img.split('/')[-1].split('?')[0]:
-        img = 'assets/%s?v=20260925' % cat['fotos'][pid]
+        img = 'assets/%s?v=20261009' % cat['fotos'][pid]
     sello = re.search(r'<span class="pc-mark[^"]*">[^<]*</span>', letras).group(0)
     n = H.escape(cat['nombres'][pid])
     return ('<article class="pc" data-id="%s" data-g="Letras">\n'
@@ -428,7 +429,16 @@ def beneficios(tipo, cat):
                      for k, t in items)
 
 
-def acordeones(tipo, meta, grupo, cat):
+# Lo que la foto sola no explica (pedido del propietario, 2026-10-09: la foto del
+# Camaleón muestra dos camaleones y se puede leer como dos piezas). Solo hechos
+# que dio el propietario; sin inventar de qué color llega.
+NOTAS_PIEZA = {
+    'camaleon-verde': 'Cambia de color con la temperatura. En la foto ves <b>la misma pieza en sus dos '
+                      'tonos</b>: recibes un solo charm.',
+}
+
+
+def acordeones(tipo, meta, grupo, cat, pid=None):
     """Descripción · Materiales · Envíos · Contraentrega · Cuidados. Los textos
     salen de lo que el sitio ya publica en preguntas-frecuentes.html; no se
     inventa ni se amplía una promesa aquí. La ficha técnica (#pp-specs) y la
@@ -453,8 +463,9 @@ def acordeones(tipo, meta, grupo, cat):
                 '<li><b>Guardado ideal:</b> guárdala en su caja, en un lugar seco, cuando no la uses.</li>'
                 '<li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul>')
     secciones = [
-        ('Descripción', '<p>%s.</p><p id="pp-desc"></p>' % (
-            H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo)), True),
+        ('Descripción', '<p>%s.</p>%s<p id="pp-desc"></p>' % (
+            H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo),
+            '<p class="pp-nota">%s</p>' % NOTAS_PIEZA[pid] if pid in NOTAS_PIEZA else ''), True),
         ('Materiales', '<dl class="fx-specs" id="pp-specs"></dl>', False),
         ('Envíos gratis', '<p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los '
                           'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
@@ -594,7 +605,9 @@ def generar(pid, html, cat, stock, b, exigidos):
     sello = re.search(r'<span class="pc-mark[^"]*">([^<]*)</span>', tarjeta).group(1)
     meta = re.search(r'<p class="pc-meta">([^<]*)</p>', tarjeta).group(1)
     foto = re.search(r'<img src="([^"]+)"', tarjeta).group(1)
-    imagen = SITIO + foto
+    # Para compartir (WhatsApp, Facebook) va la de 1200 px de assets/hd/ si existe.
+    hd = re.sub(r'^assets/', 'assets/hd/', foto)
+    imagen = SITIO + (hd if os.path.exists(os.path.join(RAIZ, hd.split('?')[0])) else foto)
     canon = SITIO + href_de(pid)
     hay = (unidades(stock.get(pid)) or 0) > 0
 
@@ -628,7 +641,7 @@ def generar(pid, html, cat, stock, b, exigidos):
                                         if c != pid and c in cat['precios'] and c not in cat['pulseras']
                                         and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16],
                                     precio),
-        beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat),
+        beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat, pid),
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
