@@ -37,7 +37,7 @@
  *     nadie empezó. Peor: si ese registro fantasma llevara `optin`, saldría un
  *     correo automático de recuperación por una compra imaginaria.
  *   · **El registro no se puede construir.** `leerCliente()` exige nombre,
- *     apellido, documento, celular, correo, departamento, ciudad y dirección.
+ *     apellido, celular, correo, departamento, ciudad y dirección.
  *     El bot tiene un dato: un número de teléfono.
  *   · **Duplicaría estado que ya tiene dueño.** `/reanudar` existe para
  *     resucitar un checkout abandonado de verdad; que el bot acuñe referencias

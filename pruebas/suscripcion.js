@@ -219,8 +219,11 @@ async function main() {
     await p.waitForTimeout(200);
     comprobar(!(await p.locator('.susc').count()) && await p.locator('.susc-fab').isVisible(),
       'al cerrarla con la X queda el botón de regalo');
-    const wa = await p.locator('.wa-float').boundingBox(), fab = await p.locator('.susc-fab').boundingBox();
-    comprobar(fab.x < 60 && wa.x > 300 && Math.abs(fab.y - wa.y) < 4, 'al lado contrario del de WhatsApp, a su altura');
+    /* El botón flotante de WhatsApp se quitó el 2026-10-02: queda solo el de
+       regalo, abajo a la izquierda, por encima de la barra del carrito. */
+    const fab = await p.locator('.susc-fab').boundingBox(), dock = await p.locator('#dock').boundingBox();
+    comprobar(fab.x < 60 && fab.y + fab.height <= dock.y && !(await p.locator('.wa-float').count()),
+      'abajo a la izquierda, sobre la barra del carrito, y sin el botón de WhatsApp');
     await p.click('.susc-fab');
     await p.waitForTimeout(200);
     comprobar(await p.locator('.susc').isVisible() && !(await p.locator('.susc-fab').isVisible()), 'y el botón la vuelve a abrir');

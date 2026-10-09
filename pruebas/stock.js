@@ -83,7 +83,7 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
     console.log('  · no hay ninguna inicial en cero: nada que comprobar');
   }
 
-  console.log('5 · descuentos intactos: 30% brazalete, 15% charms');
+  console.log('5 · «paga 3, lleva 1 gratis» intacto: brazalete + 3 charms (4 piezas), una gratis');
   /* Desde que el carrito persiste en localStorage, recargar ya no lo vacía:
      la Letra A del paso 4 volvería y descuadraría los totales de este paso.
      Se limpia explícito, que es lo que hoy significa «empezar de cero». */
@@ -117,8 +117,8 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
     charms: ['mickey-mouse', 'ariel', 'hulk'], pago: 'anticipado' }));
   console.log('   ', JSON.stringify(tot));
   ok(tot.save.replace(/\D/g, '') === String(esperado.descuento),
-    'ahorro = 30% del brazalete + 15% de los charms: ' + cop(esperado.descuento));
-  ok(esperado.descuento > 0, 'y los dos descuentos de verdad se aplicaron');
+    'ahorro = la pieza de menor valor, gratis: ' + cop(esperado.descuento));
+  ok(esperado.descuento > 0 && esperado.gratis.length === 1, 'y de verdad salió una pieza gratis', esperado.gratis.join(','));
   ok(tot.total.replace(/\D/g, '') === String(esperado.total),
     'el total de la pantalla es el que cobraría el servidor: ' + cop(esperado.total));
   ok(tot.lb.includes('18 cm'), 'el resumen muestra la talla');
@@ -169,8 +169,18 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
     await p.waitForTimeout(250);
     ok(await p.evaluate(() => document.querySelector('.sug-c').classList.contains('is-puesto')),
       'la tarjeta confirma en el sitio en vez de desaparecer');
-    ok((await p.locator('#v-tot').textContent()) !== antes,
-      'y el total de la hoja se mueve', `${antes} → ${await p.locator('#v-tot').textContent()}`);
+    /* Antes se pedía que el total «se moviera». Con «lleva 3, paga 2»
+       (2026-10-04) sumar una pieza puede costar $0 —de 4 a 5 piezas sale una
+       gratis más—, así que lo que se comprueba es que el total sea el que
+       cobraría el servidor con la pieza ya puesta. */
+    {
+      const { leerPedido, calcular } = require(path.join(__dirname, '..', 'netlify', 'functions', '_precios.js'));
+      const guardado = await p.evaluate(() => JSON.parse(localStorage.getItem('zephora.carrito.v1') || '{}'));
+      const esperadoSug = calcular(leerPedido({ base: guardado.base, charms: guardado.charms, pago: 'anticipado' }));
+      const ahora = (await p.locator('#v-tot').textContent()).replace(/\D/g, '');
+      ok(guardado.charms.includes(puesto) && ahora === String(esperadoSug.total),
+        'y el total de la hoja es el que cobraría el servidor con la pieza puesta', `${antes} → ${await p.locator('#v-tot').textContent()}`);
+    }
     /* Pasada la confirmación, la tira se rehace: la pieza que entró sale de la
        lista y llega otra por detrás, para que nunca quede a medias. */
     await p.waitForTimeout(1100);

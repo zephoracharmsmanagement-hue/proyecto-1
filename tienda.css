@@ -1,6 +1,6 @@
 :root{
   --bone:#F6F3F4; --ink:#2A1F2E; --plum:#5C3D63; --rose:#B4657F; --rose-soft:#F3E6EB;
-  --silver:#A9A6AE; --line:#E4DDE0; --white:#fff; --wa:#25806a; --pagar:#9E4E68;
+  --silver:#A9A6AE; --gris:#5E5463; --gris-suave:#6E6473; --line:#E4DDE0; --white:#fff; --wa:#25806a; --pagar:#9E4E68;
   --w:1180px; --dock:64px;
   /* Estrellas de reseñas: amarillas en todo el sitio (encargo de la ficha).
      El CSS le gana al atributo fill de cada <svg>. */
@@ -9,14 +9,14 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bone);color:var(--ink);
-  font:300 16px/1.6 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  font:400 16px/1.55 Jost,system-ui,sans-serif;-webkit-font-smoothing:antialiased;
   padding-bottom:var(--dock)}
 img{display:block;max-width:100%;height:auto}
-h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;margin:0;letter-spacing:.01em}
+h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;margin:0;letter-spacing:.04em}
 a{color:inherit}
 button{font-family:inherit}
 .wrap{max-width:var(--w);margin:0 auto;padding:0 16px}
-.eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--silver);font-weight:400}
+.eyebrow{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gris-suave);font-weight:400}
 :focus-visible{outline:2px solid var(--rose);outline-offset:3px}
 .vf{vertical-align:-2px;margin-left:3px}
 
@@ -32,6 +32,10 @@ button{font-family:inherit}
 .ann-slide:nth-child(2){animation-delay:-10s}
 .ann-slide:nth-child(3){animation-delay:-5s}
 .ann b{font-weight:500;color:#fff}
+/* Un solo aviso, fijo: sin rotación. Es un enlace a la promo de la portada. */
+.ann-slide:only-child{opacity:1;animation:none}
+a.ann-slide{color:inherit;text-decoration:none}
+.ann-slide:only-child b{font-weight:600;letter-spacing:.06em}
 @keyframes annf{0%{opacity:0}4%,29%{opacity:1}33%,100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){
   .ann-slide{animation:none;opacity:0}
@@ -84,7 +88,7 @@ button{font-family:inherit}
   text-decoration:none;color:var(--ink);border-bottom:1px solid var(--line)}
 .menu-panel a:last-child{border-bottom:none}
 .menu-panel a b{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:19px}
-.menu-panel a small{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--silver)}
+.menu-panel a small{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--gris-suave)}
 
 /* Cuelga de la cabecera, que es pegajosa, así que el panel viaja con ella. */
 .busq{position:absolute;left:0;right:0;top:100%;background:var(--bone);
@@ -95,15 +99,15 @@ button{font-family:inherit}
    media pantalla del nombre y la lista se leía como dos columnas sueltas. */
 .busq-in{max-width:640px;margin:0 auto;padding:14px 16px 18px}
 .busq-campo{position:relative}
-.busq-campo input{width:100%;font:300 16px/1 Jost,sans-serif;padding:14px 40px 14px 40px;
+.busq-campo input{width:100%;font:400 16px/1 Jost,sans-serif;padding:14px 40px 14px 40px;
   border:1px solid var(--line);border-radius:3px;background:var(--white);color:var(--ink)}
 .busq-campo input::-webkit-search-cancel-button{-webkit-appearance:none}
 .busq-campo>svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);
-  color:var(--silver);pointer-events:none}
+  color:var(--gris-suave);pointer-events:none}
 .busq-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;
-  border:0;background:none;color:var(--silver);font-size:15px;cursor:pointer;line-height:1}
+  border:0;background:none;color:var(--gris-suave);font-size:15px;cursor:pointer;line-height:1}
 .busq-x[hidden]{display:none}
-.busq-nota{margin:11px 0 0;font-size:12.5px;color:var(--silver)}
+.busq-nota{margin:11px 0 0;font-size:12.5px;color:var(--gris-suave)}
 .busq-res{list-style:none;margin:10px 0 0;padding:0}
 .busq-r{display:flex;align-items:center;gap:12px;width:100%;padding:9px 8px;
   border:0;border-radius:3px;background:none;font:inherit;color:var(--ink);
@@ -114,9 +118,9 @@ button{font-family:inherit}
 .busq-r.is-marcado{background:var(--white)}
 .busq-r img{width:44px;height:44px;border-radius:2px;background:#fff;object-fit:contain;flex:0 0 auto}
 .busq-n{min-width:0;line-height:1.3;font-size:14px}
-.busq-n small{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;
-  color:var(--silver);margin-top:2px}
-.busq-n small .out{color:var(--rose)}
+.busq-n small{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--gris-suave);margin-top:2px}
+.busq-n small .out{color:var(--pagar)}
 .busq-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
 
 /* botones */
@@ -192,53 +196,8 @@ button{font-family:inherit}
 .ben svg{flex:0 0 auto;margin-top:1px}
 .ben b{font-weight:500;color:var(--ink)}
 
-/* 3 · promo · escalera de descuento
- *
- * La escala por cantidad —8 / 15 / 25%— existía desde el principio, pero solo
- * se veía dentro del armador, cuando la clienta ya había elegido. Aquí sube a
- * la portada como lo que en realidad es: el motivo para llevar un charm más.
- * Antes este sitio era una tarjeta de texto que describía dos descuentos
- * anidados en prosa y obligaba a hacer la cuenta.
- *
- * Las cuentas ensartadas no son adorno: cada tramo dibuja tantas como charms
- * pide, van sobre un hilo que cruza los cuatro, y en el último la cuarta va
- * hueca porque es justo la que no se paga. */
-.promo{padding:34px 0}
-.promo-head{max-width:640px;margin:0 auto 22px;text-align:center}
-.promo-head h2{font-size:clamp(26px,6.4vw,38px);line-height:1.15;margin:9px 0 10px}
-.promo-head p{margin:0 auto;color:#6d6070;font-size:14.5px;max-width:50ch}
-
-.esc{list-style:none;margin:0 0 20px;padding:0;position:relative;
-  display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.esc-t{background:var(--white);border:1px solid var(--line);border-radius:3px;
-  padding:20px 10px 14px;text-align:center;display:flex;flex-direction:column;
-  align-items:center;position:relative}
-/* El tramo que la clienta ya alcanzó, marcado desde el armador. */
-.esc-t.is-now{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
-.esc-t--top{border-color:var(--rose)}
-
-/* Las cuentas. z-index las deja por encima del hilo, que pasa por detrás. */
-.esc-b{display:flex;gap:5px;align-items:center;justify-content:center;
-  height:14px;position:relative;z-index:2}
-.esc-b i{display:block;width:9px;height:9px;border-radius:50%;background:var(--plum);
-  box-shadow:0 0 0 3px var(--white)}
-.esc-b i.free{width:11px;height:11px;background:transparent;
-  border:1.5px solid var(--rose);box-shadow:0 0 0 3px var(--white)}
-
-.esc-n{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;
-  font-size:clamp(34px,9vw,44px);line-height:1;margin-top:14px}
-.esc-u{font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--silver);margin-top:6px}
-.esc-p{margin-top:14px;width:100%;font-size:11px;letter-spacing:.09em;
-  text-transform:uppercase;padding:9px 4px;border-radius:2px;
-  border:1px solid var(--line);color:var(--silver);line-height:1.25}
-.esc-t--off .esc-p{background:var(--rose-soft);border-color:var(--rose-soft);color:var(--plum)}
-.esc-t--top .esc-p{background:var(--rose);border-color:var(--rose);color:#fff;font-weight:400}
-.esc-x{margin-top:8px;font-size:11.5px;color:#6d6070;line-height:1.35;min-height:2.7em}
-.esc-x b{font-weight:500;color:var(--ink)}
-.esc-tag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);
-  background:var(--ink);color:var(--bone);font-size:9.5px;letter-spacing:.14em;
-  text-transform:uppercase;padding:4px 9px;border-radius:1px;white-space:nowrap}
+/* Promo de la portada: un solo recuadro (.promo-caja, al final del archivo). */
+.promo{padding-top:34px;padding-bottom:34px}   /* sin tocar el lateral de .wrap */
 
 /* secciones producto */
 section{scroll-margin-top:64px}
@@ -256,24 +215,24 @@ section{scroll-margin-top:64px}
    `is-sel`, en rosa para no confundirse con "ya está en tu carrito". */
 .pc.is-sug{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
 .pc.is-sug .pc-img::after{content:'Sugerido';position:absolute;
-  top:7px;right:7px;background:var(--rose);color:#fff;font-size:8.5px;
+  top:7px;right:7px;background:var(--pagar);color:#fff;font-size:12px;
   letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:2px}
 .pc-img{position:relative;aspect-ratio:1;overflow:hidden;background:#fff;border-radius:3px 3px 0 0}
 .pc-img img{width:100%;height:100%;object-fit:contain}
-.pc-mark{position:absolute;top:7px;left:7px;font-size:8.5px;letter-spacing:.1em;
-  padding:3px 6px;border:1px solid var(--silver);color:#837f88;
+.pc-mark{position:absolute;top:7px;left:7px;font-size:12px;letter-spacing:.1em;
+  padding:3px 6px;border:1px solid var(--silver);color:var(--gris);
   background:rgba(255,255,255,.92);border-radius:1px;text-transform:uppercase}
-.pc-mark--b{border-color:var(--rose);color:var(--rose)}
+.pc-mark--b{border-color:var(--rose);color:var(--pagar)}
 .pc-body{padding:11px 12px 12px;display:flex;flex-direction:column;flex:1}
 .pc-name{font-size:15.5px;line-height:1.22;margin:0 0 3px}
-.pc-meta{font-size:10.5px;color:var(--silver);letter-spacing:.05em;margin:0 0 9px;text-transform:uppercase}
+.pc-meta{font-size:12px;color:var(--gris-suave);letter-spacing:.05em;margin:0 0 9px;text-transform:uppercase}
 /* Apilado, no en fila. En las tarjetas angostas (2 columnas en móvil, y el
    carrusel) el precio y el botón no caben juntos y el flex-wrap los partía
    dejando el botón suelto a media fila. Apilados quedan iguales en todas las
    tarjetas y el botón gana ancho de toque. */
 .pc-foot{margin-top:auto;display:grid;gap:8px}
 .pc-price{font-size:14.5px}
-.pc-add{font:400 11px/1 Jost;letter-spacing:.07em;text-transform:uppercase;
+.pc-add{font:400 12px/1 Jost;letter-spacing:.07em;text-transform:uppercase;
   padding:8px 11px;border:1px solid var(--ink);background:transparent;color:var(--ink);
   border-radius:2px;cursor:pointer;transition:.18s;min-height:32px}
 @media(hover:hover){.pc-add:hover{background:var(--ink);color:var(--bone)}}
@@ -282,7 +241,7 @@ section{scroll-margin-top:64px}
 .tier-head{display:flex;align-items:baseline;gap:12px;padding-bottom:9px;margin-bottom:14px;
   border-bottom:1px solid var(--line)}
 .tier-price{font-family:'Cormorant Garamond',serif;font-size:25px}
-.tier-count{font-size:11.5px;color:var(--silver);letter-spacing:.08em;margin-left:auto}
+.tier-count{font-size:12px;color:var(--gris-suave);letter-spacing:.08em;margin-left:auto}
 
 /* catalogo completo plegado */
 .more-wrap{text-align:center;margin-top:22px}
@@ -294,8 +253,8 @@ section{scroll-margin-top:64px}
   padding:10px 15px;border:1px solid var(--line);background:var(--white);color:#6d6070;
   border-radius:2px;cursor:pointer;transition:.18s;min-height:38px}
 .fbtn:hover{border-color:var(--silver);color:var(--ink)}
-.fgroup{flex:0 0 auto;align-self:center;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--silver);padding:0 4px 0 10px;border-left:1px solid var(--line)}
+.fgroup{flex:0 0 auto;align-self:center;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gris-suave);padding:0 4px 0 10px;border-left:1px solid var(--line)}
 .fbtn.is-on{background:var(--ink);border-color:var(--ink);color:var(--bone)}
 
 
@@ -363,7 +322,7 @@ section{scroll-margin-top:64px}
 .case figcaption{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
 .stars{display:inline-flex;gap:2px;margin-bottom:10px}
 .rev-name{font-size:14px;letter-spacing:.04em;font-weight:400}
-.rev-city{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver)}
+.rev-city{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris-suave)}
 .revs{display:grid;grid-template-columns:1fr;gap:14px}
 .rev{margin:0;background:var(--white);border:1px solid var(--line);border-radius:3px;padding:22px 20px}
 .rev blockquote{margin:8px 0 14px;font-family:'Cormorant Garamond',serif;font-size:19px;
@@ -380,7 +339,7 @@ section{scroll-margin-top:64px}
    no hay cursor y el navegador lo dispararía al tocar, dejando la foto
    agrandada de forma pegajosa. En celular el camino es tocar y abrir el visor. */
 @media(hover:hover){.shot-b:hover img{transform:scale(1.06)}}
-.ph-tag{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--silver);
+.ph-tag{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--gris-suave);
   margin:7px 0 0;display:flex;align-items:center;gap:5px;line-height:1.4}
 .ph-tag svg{flex:0 0 auto}
 
@@ -421,7 +380,7 @@ section{scroll-margin-top:64px}
   gap:7px;background:linear-gradient(160deg,#f8f2f5,#ece2e7)}
 .nofoto-m{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(38px,11vw,52px);
   line-height:1;color:var(--plum);opacity:.5}
-.nofoto-t{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:#9a8ea0}
+.nofoto-t{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#9a8ea0}
 .pc.is-out .pc-img--nofoto{opacity:.5}
 .srow-nof{width:46px;height:46px;border-radius:2px;background:#3a2c40;color:#c3b4c6;
   display:flex;align-items:center;justify-content:center;flex:0 0 auto;
@@ -433,25 +392,25 @@ section{scroll-margin-top:64px}
    etiquetas no caben en la misma fila y se montaban una sobre otra. Además la
    disponibilidad es información de compra, y su sitio es junto al precio. */
 .pc-stock{display:flex;align-items:center;gap:5px;margin:0 0 8px;
-  font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--rose);line-height:1.3}
+  font-size:12px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--pagar);line-height:1.3}
 .pc-stock::before{content:'';width:5px;height:5px;border-radius:50%;
   background:currentColor;flex:0 0 auto}
-.pc-stock--0{color:#7c7681}
+.pc-stock--0{color:var(--gris)}
 .pc.is-out .pc-img img{filter:grayscale(.85);opacity:.5}
-.pc.is-out .pc-name{color:#7c7681}
-.pc-add[disabled],.pc-add[aria-disabled="true"]{border-color:var(--line);color:#948e99;
+.pc.is-out .pc-name{color:var(--gris)}
+.pc-add[disabled],.pc-add[aria-disabled="true"]{border-color:var(--line);color:var(--gris-suave);
   background:transparent;cursor:not-allowed}
-.pc-add[disabled]:hover,.pc-add[aria-disabled="true"]:hover{background:transparent;color:#948e99}
+.pc-add[disabled]:hover,.pc-add[aria-disabled="true"]:hover{background:transparent;color:var(--gris-suave)}
 /* Pedir por encargo lo agotado: la venta no se pierde, se mueve al chat */
-.pc-encargo{justify-self:start;font-size:11.5px;letter-spacing:.04em;text-decoration:none;
+.pc-encargo{justify-self:start;font-size:12px;letter-spacing:.04em;text-decoration:none;
   color:var(--plum);border-bottom:1px solid currentColor;white-space:nowrap;
   padding:6px 0;min-height:32px;display:inline-flex;align-items:center}
 
 /* selector de tallas dentro de la tarjeta del brazalete */
 .tallas{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .tallas[hidden]{display:none}
-.tallas-t{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver);
+.tallas-t{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris-suave);
   margin:0 0 7px}
 .tallas-row{display:flex;flex-wrap:wrap;gap:6px}
 .tbtn{font:400 12px/1 Jost;min-width:44px;min-height:38px;padding:9px 8px;cursor:pointer;
@@ -463,7 +422,7 @@ section{scroll-margin-top:64px}
 .tbtn[aria-disabled="true"]{color:#a9a3ae;background:#faf8f9;cursor:not-allowed;
   text-decoration:line-through;text-decoration-color:#cdc6d0}
 .tbtn[aria-disabled="true"]:hover{border-color:var(--line)}
-.tallas-ayuda{font-size:11px;color:#6d6070;margin:8px 0 0;line-height:1.5}
+.tallas-ayuda{font-size:12px;color:#6d6070;margin:8px 0 0;line-height:1.5}
 .tallas-ayuda a{color:var(--plum)}
 
 /* grilla de iniciales */
@@ -478,12 +437,12 @@ section{scroll-margin-top:64px}
 .lbtn.is-on{background:var(--plum);border-color:var(--plum);color:#fff}
 .lbtn[aria-disabled="true"]{color:#b3adb7;background:#faf8f9;cursor:not-allowed}
 .lbtn[aria-disabled="true"]:hover{border-color:var(--line)}
-.lbtn small{display:block;font-size:8px;letter-spacing:.02em;margin-top:2px;text-transform:none}
+.lbtn small{display:block;font-size:12px;letter-spacing:.02em;margin-top:2px;text-transform:none}
 
 .fbtn--disp[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:#fff}
 
 /* aviso de que el conteo es referencial, nunca una promesa */
-.stock-nota{font-size:11.5px;color:#8d7f92;text-align:center;margin:10px 0 0;line-height:1.5}
+.stock-nota{font-size:12px;color:var(--gris);text-align:center;margin:10px 0 0;line-height:1.5}
 .sheet .stock-nota{color:#9b8ca0}
 
 /* ——— calculadora de talla ——— */
@@ -503,30 +462,30 @@ section{scroll-margin-top:64px}
 .talla-des-in{padding-top:18px;margin-top:16px;border-top:1px solid var(--line)}
 .calc{display:grid;gap:20px;max-width:760px;margin:0 auto}
 .calc-in{background:var(--rose-soft);border:1px solid #e9d3dc;border-radius:3px;padding:18px 20px}
-.calc-in label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+.calc-in label{display:block;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
   color:#6b5c70;margin-bottom:9px}
 .calc-campo{display:flex;align-items:center;gap:9px}
-.calc-campo input{flex:0 1 140px;font:300 26px/1 'Cormorant Garamond',Georgia,serif;
+.calc-campo input{flex:0 1 140px;font:400 26px/1 'Cormorant Garamond',Georgia,serif;
   padding:10px 12px;border:1px solid var(--line);border-radius:2px;background:var(--white);
   color:var(--ink);min-height:52px}
 .calc-campo span{font-size:15px;color:#6b5c70}
-.calc-hint{font-size:12px;color:#7d6f82;margin:9px 0 0}
+.calc-hint{font-size:12px;color:var(--gris);margin:9px 0 0}
 .calc-out{display:grid;gap:8px}
-.calc-vacia{font-size:14px;color:#7d6f82;text-align:center;padding:14px 0;margin:0}
+.calc-vacia{font-size:14px;color:var(--gris);text-align:center;padding:14px 0;margin:0}
 .tfila{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:baseline;
   border:1px solid var(--line);border-radius:3px;padding:13px 15px;background:var(--white)}
 .tfila-t{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;line-height:1;
   grid-row:span 2;align-self:center}
-.tfila-v{font-size:11px;letter-spacing:.13em;text-transform:uppercase}
+.tfila-v{font-size:12px;letter-spacing:.13em;text-transform:uppercase}
 .tfila-d{font-size:13.5px;color:#5f5364;line-height:1.5;margin:0}
 .tfila-d b{font-weight:500;color:var(--ink)}
 .tfila--best{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum);background:#fbf7fc}
 .tfila--best .tfila-v{color:var(--plum)}
-.tfila--ok .tfila-v{color:#5d7a68}
-.tfila--warn .tfila-v{color:#9a7340}
+.tfila--ok .tfila-v{color:#476352}
+.tfila--warn .tfila-v{color:#7A5A2E}
 .tfila--bad{opacity:.62}
-.tfila--bad .tfila-v{color:#8a8290}
-.tfila-ago{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--silver)}
+.tfila--bad .tfila-v{color:var(--gris)}
+.tfila-ago{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--gris-suave)}
 .porque{max-width:640px;margin:28px auto 0;text-align:center;padding-top:22px;
   border-top:1px solid var(--line)}
 .porque h3{font-size:21px;margin:0 0 8px}
@@ -576,11 +535,14 @@ section{scroll-margin-top:64px}
  * Con una sola foto no se pinta nada de esto: ni tira, ni puntos, ni
  * miniaturas. Una galería de un elemento es ruido que promete algo que no hay. */
 .fx-ph{position:relative;overflow:hidden}
-/* `touch-action:pan-x` deja que el arrastre VERTICAL sobre la foto lo
-   reciba la ficha y no la tira: sin eso, empezar a deslizar encima de la
-   imagen no movía nada y parecía que la ficha se habia colgado. */
+/* `pan-x pan-y`: de lado pasa de lámina y hacia arriba o abajo mueve la
+   página (o la ficha). Estuvo en `pan-x` solo, que hace justo lo contrario de
+   lo que decía este comentario: el celular descarta el desliz vertical que
+   empieza sobre la foto. En la página de la pieza la galería ocupa media
+   pantalla y la página «no bajaba» (reportado 2026-10-02; lo vigila
+   pruebas/regresion.js con toques reales). */
 .fx-gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
-  touch-action:pan-x;overscroll-behavior-x:contain;
+  touch-action:pan-x pan-y;overscroll-behavior-x:contain;
   width:100%;height:100%;gap:0;scrollbar-width:none;-ms-overflow-style:none}
 .fx-gal::-webkit-scrollbar{display:none}
 .fx-gal>figure{flex:0 0 100%;scroll-snap-align:center;margin:0;display:flex;
@@ -600,50 +562,61 @@ section{scroll-margin-top:64px}
 .fx-mini button.is-on{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
 .fx-mini img{width:100%;height:100%;object-fit:contain}
 @media(prefers-reduced-motion:reduce){.fx-gal{scroll-behavior:auto}}
+/* El video de la pieza (grabado sobre el plato negro): llena la lámina, con
+   la portada de fondo mientras llega el primer cuadro. */
+.fx-gal>figure.fx-vid{padding:0}
+.fx-vid video{width:100%;height:100%;object-fit:cover;border-radius:3px;background:#1d1a1f}
+/* Su miniatura lleva un ▶ para que se lea como video y no como otra foto. */
+.fx-mini button[data-video]{position:relative}
+.fx-mini button[data-video]::after{content:'';position:absolute;inset:0;margin:auto;width:0;height:0;
+  border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent #fff;
+  filter:drop-shadow(0 0 2px rgba(0,0,0,.6))}
+/* Todo vertical, sin excepción (pedido del propietario, 2026-10-01): la
+   galería de la ficha y la de la página de la pieza van en 4:5. Las fotos de
+   estudio, cuadradas y sobre blanco, se ven enteras (contain) sobre el mismo
+   blanco; los videos ya vienen grabados y recortados en 4:5. */
+.fx-ph{aspect-ratio:4/5}
+.pc--pp .pc-img{aspect-ratio:4/5}
+.pp-gal .fx-gal{position:absolute;inset:0}
+.pp-gal .fx-vid video{border-radius:0}
+.pp-gal .pc-mark{z-index:2}
+.pp-mini{padding:10px 12px 0}
 .fx-tx{padding:20px 22px 24px}
 .fx-tx h3{font-size:clamp(24px,6vw,31px);line-height:1.15;margin:6px 0 6px}
 .fx-p{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;margin:0 0 4px}
 .fx-est{font-size:12px;letter-spacing:.06em;margin:0 0 16px}
-.fx-est--ok{color:#5d7a68}
-.fx-est--few{color:var(--rose)}
-.fx-est--out{color:#8a8290}
+.fx-est--ok{color:#476352}
+.fx-est--few{color:var(--pagar)}
+.fx-est--out{color:var(--gris)}
 .fx-specs{margin:0 0 12px;padding:0;border-top:1px solid var(--line)}
 .fx-specs div{display:grid;grid-template-columns:1fr 1.4fr;gap:12px;padding:10px 0;
   border-bottom:1px solid var(--line)}
-.fx-specs dt{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver);
+.fx-specs dt{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris-suave);
   margin:0}
 .fx-specs dd{margin:0;font-size:14px;color:#4a3d4e;line-height:1.5}
-.fx-nota{font-size:11.5px;color:#8a8290;margin:0 0 18px;line-height:1.5}
+.fx-nota{font-size:12px;color:var(--gris);margin:0 0 18px;line-height:1.5}
 .fx-cta{display:grid;gap:9px}
 .fx-cta .btn{width:100%}
-/* Siempre visible, no en hover: en móvil no hay hover y nadie descubriría
-   que la tarjeta se abre. Va abajo a la izquierda, ya sin nada que la estorbe:
-   la disponibilidad se mudó al cuerpo de la tarjeta. */
-.pc-ver{position:absolute;left:7px;bottom:7px;display:flex;align-items:center;gap:4px;
-  font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;
-  border-radius:1px;border:1px solid var(--line);background:rgba(255,255,255,.9);
-  color:#8a8290;pointer-events:none;transition:.18s;max-width:calc(100% - 14px)}
 .pc-img{cursor:pointer}
 .pc-name{cursor:pointer}
 /* Los estados de hover solo donde hay puntero. En una pantalla táctil el
    :hover se queda pegado después del toque: la tarjeta tocada se quedaba con
    el nombre subrayado y el borde encendido como si siguiera seleccionada. */
 @media(hover:hover){
-  .pc:hover .pc-ver{border-color:var(--plum);color:var(--plum)}
   .pc:hover .pc-name{text-decoration:underline;text-decoration-color:var(--line);
     text-underline-offset:3px}
 }
 
 /* ——— buscador ——— */
 .buscar{position:relative;margin:0 0 14px}
-.buscar input{width:100%;font:300 15px/1 Jost,sans-serif;padding:13px 40px 13px 38px;
+.buscar input{width:100%;font:400 15px/1 Jost,sans-serif;padding:13px 40px 13px 38px;
   border:1px solid var(--line);border-radius:2px;background:var(--white);color:var(--ink);
   min-height:48px;-webkit-appearance:none}
 .buscar input::-webkit-search-cancel-button{-webkit-appearance:none}
 .buscar svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);
-  color:var(--silver);pointer-events:none}
+  color:var(--gris-suave);pointer-events:none}
 .buscar-x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;
-  border:0;background:none;color:var(--silver);font-size:15px;cursor:pointer;line-height:1}
+  border:0;background:none;color:var(--gris-suave);font-size:15px;cursor:pointer;line-height:1}
 .buscar-x[hidden]{display:none}
 .sin-res{text-align:center;padding:28px 10px;color:#6d6070;font-size:14.5px}
 .sin-res b{display:block;font-family:'Cormorant Garamond',Georgia,serif;font-size:21px;
@@ -708,8 +681,8 @@ section{scroll-margin-top:64px}
 .mp-redes img{display:block;height:15px;width:auto}
 .mp-tx{min-width:0;line-height:1.25}
 .mp-n{display:block;font-size:13px;color:var(--ink);letter-spacing:.01em}
-.mp-d{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--silver);margin-top:2px}
+.mp-d{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--gris-suave);margin-top:2px}
 /* Addi va con su logotipo y no con una ficha de la rejilla de arriba, porque
    no es lo mismo: los de arriba se pagan aquí, este se coordina por chat.
    Mezclarlos prometería un botón que no existe. */
@@ -717,7 +690,7 @@ section{scroll-margin-top:64px}
 .pe-tabla{width:100%;border-collapse:collapse;font-size:13.5px}
 .pe-tabla th,.pe-tabla td{text-align:left;padding:9px 0;border-bottom:1px solid var(--line);
   color:#4a3d4e;vertical-align:top}
-.pe-tabla th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver);
+.pe-tabla th{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gris-suave);
   font-weight:400}
 .pe-tabla td:last-child{text-align:right;white-space:nowrap;padding-left:12px}
 .pe-pie{font-size:12.5px;color:#6d6070;margin:14px 0 0;line-height:1.55}
@@ -728,24 +701,12 @@ section{scroll-margin-top:64px}
 .sec-head--c p{margin:11px auto 0;max-width:54ch}
 .sec-top{display:flex;flex-direction:column;align-items:flex-start;gap:15px;margin-bottom:20px}
 .sec-top .sec-head{margin-bottom:0}
-.link-all{flex:0 0 auto;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+.link-all{flex:0 0 auto;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
   text-decoration:none;color:var(--ink);border:1px solid var(--ink);border-radius:2px;
   padding:11px 16px;background:transparent;cursor:pointer;transition:.18s;font-family:inherit}
 .link-all:hover{background:var(--ink);color:var(--bone)}
 
 /* compra por categoría */
-.cats{padding:34px 0;border-top:1px solid var(--line)}
-.cats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.cat{display:block;text-decoration:none;background:var(--white);border:1px solid var(--line);
-  border-radius:3px;overflow:hidden;transition:border-color .2s}
-.cat:hover{border-color:var(--plum)}
-.cat-ph{aspect-ratio:1;background:#fff;overflow:hidden}
-.cat-ph img{width:100%;height:100%;object-fit:contain;transition:transform .5s ease}
-.cat:hover .cat-ph img{transform:scale(1.06)}
-.cat-label{padding:12px 8px;text-align:center;font-size:10.5px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--ink);border-top:1px solid var(--line);background:var(--rose-soft)}
-.cat-label small{display:block;font-size:10px;letter-spacing:.08em;text-transform:none;
-  color:#8a7d8e;margin-top:4px}
 
 /* carrusel horizontal de producto */
 .rail-wrap{position:relative}
@@ -767,7 +728,7 @@ section{scroll-margin-top:64px}
    de al lado, así que ahí van por dentro. */
 .plata-rail .rail-btn--prev{left:4px}
 .plata-rail .rail-btn--next{right:4px}
-.rail-hint{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);
+.rail-hint{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris-suave);
   margin:4px 0 0;text-align:center}
 
 /* franja de garantías */
@@ -775,7 +736,7 @@ section{scroll-margin-top:64px}
 .guar-in{max-width:var(--w);margin:0 auto;padding:28px 16px;
   display:grid;grid-template-columns:repeat(2,1fr);gap:24px 12px}
 .guar-in>div{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
-.guar span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#6b5c70;
+.guar span{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#6b5c70;
   line-height:1.6;max-width:18ch}
 
 /* pie */
@@ -784,7 +745,7 @@ section{scroll-margin-top:64px}
 .foot .brand em{color:#d7a9bd}
 .foot a{color:#e3d6e7}
 .foot-in{display:grid;grid-template-columns:1fr;gap:30px}
-.foot h3{font-family:Jost,sans-serif;font-size:11px;font-weight:400;letter-spacing:.2em;
+.foot h3{font-family:Jost,sans-serif;font-size:12px;font-weight:400;letter-spacing:.2em;
   text-transform:uppercase;color:#fff;margin:0 0 14px}
 .foot p{margin:0 0 9px;font-size:13.5px;line-height:1.6}
 .foot-brand p{color:#a495a8;max-width:34ch;margin-top:14px}
@@ -795,7 +756,7 @@ section{scroll-margin-top:64px}
 .foot-line svg{flex:0 0 auto;margin-top:3px;opacity:.75}
 .foot-bot{max-width:var(--w);margin:26px auto 0;padding:18px 16px 0;
   border-top:1px solid rgba(255,255,255,.13);display:flex;flex-wrap:wrap;gap:8px 18px;
-  justify-content:space-between;font-size:11.5px;color:#93849a;letter-spacing:.04em}
+  justify-content:space-between;font-size:12px;color:#bdb1c0;letter-spacing:.04em}
 .foot-ig{display:inline-flex;align-items:center;gap:2px;text-decoration:none}
 
 /* barra fija + hoja */
@@ -806,26 +767,22 @@ section{scroll-margin-top:64px}
    que sirve. Al no haber texto visible, el aria-label del enlace deja de ser
    un extra y pasa a ser la unica forma de saber que hace este boton con un
    lector de pantalla. */
-.wa-float{position:fixed;right:14px;bottom:calc(var(--dock) + 14px);z-index:70;
-  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;
-  background:var(--wa);color:#fff;border-radius:50%;width:52px;height:52px;
-  box-shadow:0 6px 20px rgba(42,31,46,.22)}
-@media(hover:hover){.wa-float:hover{background:#1e6b58}}
+/* .wa-float (botón flotante de WhatsApp) se retiró el 2026-10-02. */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:var(--bone);
   border-top:1px solid rgba(255,255,255,.14);height:var(--dock);
   display:flex;align-items:center;gap:10px;padding:0 12px;cursor:pointer}
 .dock-info{min-width:0;flex:1 1 auto}
-.dock-n{font-size:11px;color:#a495a8;letter-spacing:.06em;white-space:nowrap;
+.dock-n{font-size:12px;color:#a495a8;letter-spacing:.06em;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis}
 .dock-p{font-family:'Cormorant Garamond',serif;font-size:23px;line-height:1.05}
 /* nowrap y sin encogerse: a 375 px «Ver detalle» se partía en dos renglones y
    descuadraba la barra entera */
 .dock-open{margin-left:auto;flex:0 0 auto;display:flex;align-items:center;gap:5px;
-  font-size:11px;white-space:nowrap;
+  font-size:12px;white-space:nowrap;
   letter-spacing:.06em;text-transform:uppercase;color:#c3b4c6;background:none;border:0;
   cursor:pointer;padding:8px 2px}
 .dock-open svg{transition:transform .25s}
-.dock .btn--wa{padding:11px 14px;font-size:11.5px;letter-spacing:.07em}
+.dock .btn--wa{padding:11px 14px;font-size:12px;letter-spacing:.07em}
 /* Barra de progreso hacia el envío gratis, pegada al borde superior del dock.
    Vive aquí y no solo dentro de la hoja porque el umbral solo servía a quien
    ya había abierto el detalle: el resto armaba sin saber que le faltaban
@@ -851,9 +808,9 @@ section{scroll-margin-top:64px}
 .xs[hidden]{display:none}
 .xs-tx{flex:1 1 auto;min-width:0;font-size:12.5px;line-height:1.45;color:#3B2A40}
 .xs-tx b{color:#5C3D63}
-.xs-go{flex:0 0 auto;padding:10px 13px;font-size:11.5px;letter-spacing:.06em;
+.xs-go{flex:0 0 auto;padding:10px 13px;font-size:12px;letter-spacing:.06em;
   white-space:nowrap}
-.xs-x{flex:0 0 auto;background:none;border:0;cursor:pointer;color:#A9A6AE;
+.xs-x{flex:0 0 auto;background:none;border:0;cursor:pointer;color:var(--gris-suave);
   font-size:13px;line-height:1;padding:6px 2px}
 body.sheet-open .xs{display:none}
 @media(min-width:900px){.xs{left:auto;right:24px;width:380px}}
@@ -870,7 +827,7 @@ body.sheet-open .sheet{transform:none;visibility:visible}
    pone tienda.js con la posición guardada, y la devuelve al cerrar. */
 body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .sheet-head{display:flex;align-items:center;gap:12px;padding:14px 18px 10px;flex:0 0 auto}
-.sheet-head b{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:300;letter-spacing:.03em}
+.sheet-head b{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;letter-spacing:.03em}
 .sheet-x{margin-left:auto;width:38px;height:38px;border:1px solid rgba(255,255,255,.22);
   border-radius:50%;background:none;color:var(--bone);font-size:17px;cursor:pointer;line-height:1}
 .sheet-grab{width:40px;height:4px;border-radius:2px;background:rgba(255,255,255,.25);
@@ -897,8 +854,8 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
  * toca, y al tocarla se queda en verde en vez de desaparecer. */
 .sug{padding:14px 18px 2px;margin-top:4px;border-top:1px solid rgba(255,255,255,.09)}
 .sug-h{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;margin:0 0 8px}
-.sug-h b{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:300;letter-spacing:.03em}
-.sug-h span{font-size:11.5px;color:#8d7f92}
+.sug-h b{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;letter-spacing:.03em}
+.sug-h span{font-size:12px;color:var(--silver)}
 /* Sin barra de desplazamiento visible: en una hoja pequeña roba altura y la
    tarjeta cortada del borde ya dice que hay más a la derecha. */
 .sug-tira{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;
@@ -924,7 +881,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   background:var(--rose);color:#fff;font-size:14px;line-height:21px;text-align:center}
 /* Dos líneas como tope: hay nombres de tres —«Escudo Capitán América»— y una
    sola tarjeta más alta estira las seis. */
-.sug-n{font-size:11px;line-height:1.3;height:2.6em;overflow:hidden;color:#d9cede;
+.sug-n{font-size:12px;line-height:1.3;height:2.6em;overflow:hidden;color:#d9cede;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 /* Empujado al fondo: los nombres van de una a tres líneas y sin esto cada
    precio quedaba a una altura distinta, que es lo que hace que una tira de
@@ -936,12 +893,17 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .srow{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.09)}
 .srow img{width:46px;height:46px;border-radius:2px;background:#fff;object-fit:contain;flex:0 0 auto}
 .srow-n{font-size:14px;line-height:1.3;min-width:0}
-.srow-n small{display:block;font-size:11px;color:#a495a8;letter-spacing:.05em;text-transform:uppercase}
+.srow-n small{display:block;font-size:12px;color:#a495a8;letter-spacing:.05em;text-transform:uppercase}
 .srow-p{margin-left:auto;font-size:13.5px;white-space:nowrap}
+/* La pieza gratis de «lleva 4, paga 3»: precio tachado y GRATIS resaltado. */
+.srow--gratis .srow-p{display:flex;flex-direction:column;align-items:flex-end;line-height:1.2}
+.srow--gratis .srow-p s{font-size:12px;color:#a495a8}
+.srow--gratis .srow-p b{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:#1b3b30;
+  background:#7fc7ae;border-radius:3px;padding:2px 7px;margin-top:2px}
 .srow-x{width:30px;height:30px;border:0;border-radius:50%;background:rgba(255,255,255,.1);
   color:#d9cede;font-size:14px;cursor:pointer;flex:0 0 auto;line-height:1}
 .srow-x:hover{background:var(--rose);color:#fff}
-.s-empty{padding:22px 0;color:#8d7f92;font-size:14px;text-align:center}
+.s-empty{padding:22px 0;color:var(--gris);font-size:14px;text-align:center}
 .sheet-tot{position:relative;flex:0 0 auto;padding:12px 18px calc(16px + env(safe-area-inset-bottom));
   border-top:1px solid rgba(255,255,255,.14);background:#231a27}
 /* Difumina el corte de arriba para que se lea que ahí sigue habiendo contenido
@@ -950,6 +912,9 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   pointer-events:none;background:linear-gradient(to top,rgba(35,26,39,.92),rgba(35,26,39,0))}
 .tot-row{display:flex;justify-content:space-between;font-size:13.5px;color:#c3b4c6;margin-bottom:5px}
 .tot-row.save{color:#e39aae}
+/* display:flex le ganaba al [hidden]: con solo el brazalete salía
+   «Descuento promo − $0». Mismo empate que .pc[hidden] y .xs[hidden]. */
+.tot-row[hidden]{display:none}
 .ship-note{font-size:12px;color:#a495a8;margin:2px 0 0;line-height:1.45}
 /* El aviso del siguiente tramo de descuento. Mismo tono discreto que el del
    envío: es información, no un empujón. Dice una cifra comprobable —lo que
@@ -957,6 +922,23 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
    porque el charm que añada lo paga igual. */
 .desc-nota{font-size:12px;color:#c9a5b6;margin:5px 0 0;line-height:1.45}
 .desc-nota b{color:var(--bone);font-weight:400}
+/* Escalera del descuento en barra, sobre el fondo oscuro de la hoja: los
+   mismos tonos rosa y verde de las notas de Addi y del regalo. */
+.hoja-dto-caja{margin:14px 18px 6px;padding:12px 14px 13px;border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;background:rgba(255,255,255,.04)}
+.hoja-dto-caja[hidden]{display:none}
+.hoja-dto-t{margin:0 0 10px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--silver)}
+.hoja-dto-caja .desc-nota{margin:10px 0 0;font-size:12.5px}
+.hoja-dto{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:4px;list-style:none;margin:0;padding:0}
+.hoja-dto[hidden]{display:none}
+.hoja-dto li{font-size:12px;line-height:1.3;color:var(--silver);text-align:center;white-space:nowrap}
+.hoja-dto li::before{content:"";display:block;height:5px;border-radius:3px;background:rgba(255,255,255,.13);
+  margin-bottom:4px;transition:background .3s ease}
+.hoja-dto li.is-on::before{background:#e39aae}
+.hoja-dto li.is-free{color:#f0c6d3;font-weight:600;letter-spacing:.06em}
+.hoja-dto.is-max li.is-on::before{background:#7fc7ae}
+.desc-nota.is-max,.desc-nota.is-max b{color:#7fc7ae}
+@media(prefers-reduced-motion:reduce){.hoja-dto li::before{transition:none}}
 .ship-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.13);margin:7px 0 2px;overflow:hidden}
 .ship-bar i{display:block;height:100%;background:var(--rose);width:0;transition:width .3s}
 .ship-ok{color:#7fc7ae}
@@ -966,15 +948,15 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   text-decoration:underline;text-underline-offset:2px}
 @media(hover:hover){.ship-cta:hover{color:#fff}}
 .tot-big{display:flex;justify-content:space-between;align-items:baseline;margin:10px 0 12px}
-.tot-big span{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8d7f92}
-.tot-big b{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300}
+.tot-big span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver)}
+.tot-big b{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:400}
 .sheet-tot .btn--wa,.sheet-tot .btn--pagar{width:100%}
 /* Sin salida a WhatsApp aquí a propósito: a esta altura la clienta ya decidió
    comprar, y una opción de menor compromiso justo al lado del botón de pagar
    se come checkouts terminados en vez de sumar pedidos. WhatsApp sigue en el
    resto de la página, y en el checkout aparece si algo falla — que es donde
    de verdad rescata una venta. */
-.sheet-note{font-size:11.5px;color:#8d7f92;text-align:center;margin:9px 0 0;line-height:1.5}
+.sheet-note{font-size:12px;color:var(--silver);text-align:center;margin:9px 0 0;line-height:1.5}
 /* Los dos avisos que sí queremos que se lean usan los colores que esta hoja ya
    tiene asignados en el carrito oscuro: el menta es el de «Envío GRATIS»
    (.pb-gratis) y el rosa el de «Descuento promo» (.tot-row.save). Antes el
@@ -984,18 +966,23 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .sheet-note--addi{color:#e39aae}
 .sheet-note a{color:inherit;font-weight:500;text-decoration:underline;
   text-underline-offset:2px}
+.sheet-info{list-style:none;margin:16px 0 0;padding:14px 0 0;border-top:1px solid rgba(255,255,255,.09);
+  display:grid;gap:10px}
+.sheet-info .sheet-note{display:flex;gap:10px;align-items:flex-start;text-align:left;margin:0}
+.sheet-info svg{width:16px;height:16px;flex:0 0 auto;margin-top:2px;fill:none;stroke:currentColor;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 /* Justo debajo del botón de pagar, que es donde aparece la duda de «¿esto es
    seguro?». Dice quién cobra —un nombre que la clienta reconoce— y no promete
    nada que la tienda no pueda sostener. */
 .sheet-seguro{display:flex;align-items:center;justify-content:center;gap:6px;
-  font-size:11.5px;color:#8d7f92;margin:10px 0 0}
+  font-size:12px;color:var(--silver);margin:10px 0 0}
 .sheet-seguro svg{flex:0 0 auto;opacity:.8}
 .pago{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
 .pbtn{font:400 12.5px/1.3 Jost;text-align:left;padding:10px 12px;cursor:pointer;
   border:1px solid rgba(255,255,255,.22);background:transparent;color:#c3b4c6;
   border-radius:2px;transition:.16s;min-height:52px}
 @media(hover:hover){.pbtn:hover{border-color:rgba(255,255,255,.45)}}
-.pbtn small{display:block;font-size:11px;color:#8d7f92;margin-top:3px}
+.pbtn small{display:block;font-size:12px;color:var(--silver);margin-top:3px}
 .pbtn.is-on{background:rgba(180,101,127,.18);border-color:var(--rose);color:var(--bone)}
 .pbtn.is-on small{color:#e39aae}
 /* El envío gratis del anticipado se ve aunque esa opción no esté elegida:
@@ -1023,12 +1010,6 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .hbanner-copy{padding:48px 16px 0}
   .bens-in{grid-template-columns:repeat(4,1fr);gap:0 26px;padding:6px 24px}
   .ben+.ben{border-top:0}
-  .esc{grid-template-columns:repeat(4,1fr);gap:12px}
-  /* El hilo solo aparece con los cuatro tramos en una fila: en 2×2
-     cruzaría en diagonal y dejaría de leerse como una pulsera. */
-  .esc::before{content:'';position:absolute;left:14px;right:14px;top:30px;
-    height:1px;background:var(--line);z-index:1}
-  .esc-t{padding:22px 14px 16px}
   .plata-in{grid-template-columns:1.1fr .9fr;gap:52px;align-items:center}
   /* El .rail sangra 16px a cada lado para llegar al borde de la pantalla en
      celular. Dentro de una columna de escritorio eso se sale del contenedor,
@@ -1043,7 +1024,8 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .trust div+div{border-top:0;border-left:1px solid var(--line)}
   .trust div:nth-child(n+4){border-top:1px solid var(--line)}
   .trust div:nth-child(4){border-left:0}
-  .sec,.social,.trust-sec,.cats,.promo{padding:46px 0}
+  .sec,.social,.trust-sec{padding:46px 0}
+  .promo{padding-top:46px;padding-bottom:46px}
   .story,.plata{padding:52px 0}
   .sec-top{flex-direction:row;align-items:flex-end;justify-content:space-between;gap:24px}
   .talla-sec,.pe{padding:46px 0}
@@ -1063,7 +1045,6 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   .pc--letras .pc-img{flex:0 0 210px;aspect-ratio:auto;border-radius:3px 0 0 3px}
   .pc--letras .pc-body{flex:1;padding:18px 20px}
   .letras-grid{grid-template-columns:repeat(auto-fill,minmax(48px,1fr))}
-  .cats-grid{grid-template-columns:repeat(4,1fr);gap:14px}
   .guar-in{grid-template-columns:repeat(4,1fr);padding:34px 24px}
   .rail{grid-auto-columns:minmax(200px,1fr);gap:16px;margin:0;padding:2px 0 10px}
   .rail-btn{display:flex}
@@ -1120,8 +1101,8 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   flex-wrap:wrap}
 .col-paso--best b{color:var(--plum)}
 .col-paso-ahorro{flex-basis:100%;font-size:12px;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--rose)}
-.col-nota{margin:0;color:var(--silver);font-size:12.5px;line-height:1.55;text-align:center}
+  text-transform:uppercase;color:var(--pagar)}
+.col-nota{margin:0;color:var(--gris-suave);font-size:12.5px;line-height:1.55;text-align:center}
 
 /* Una sola pieza en la rejilla: sin esto se estira a todo el ancho de la
    columna y queda una tarjeta gigante al lado de un vacío. */
@@ -1157,9 +1138,9 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .kits-esc-fila{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:18px}
 .kits-esc-p{background:var(--white);border:1px solid var(--line);border-radius:3px;
   padding:12px 8px;display:flex;flex-direction:column;gap:4px}
-.kits-esc-p span{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--silver)}
+.kits-esc-p span{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gris-suave)}
 .kits-esc-p b{font-size:17px;font-weight:400;color:var(--ink)}
-.kits-esc-p i{display:block;font-style:normal;font-size:12px;color:var(--rose)}
+.kits-esc-p i{display:block;font-style:normal;font-size:12px;color:var(--pagar)}
 .kits-esc-p--best{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
 
 .kits{padding:28px 0;display:grid;gap:22px}
@@ -1185,19 +1166,19 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .kit-paso-n{font-size:14px}
 .kit-paso-p{text-align:right;white-space:nowrap}
 .kit-paso-p b{font-size:18px;font-weight:400}
-.kit-paso-p s{margin-left:7px;color:var(--silver);font-size:13px}
-.kit-paso-d{grid-column:1/-1;font-size:12px;letter-spacing:.06em;color:var(--silver)}
+.kit-paso-p s{margin-left:7px;color:var(--gris-suave);font-size:13px}
+.kit-paso-d{grid-column:1/-1;font-size:12px;letter-spacing:.06em;color:var(--gris-suave)}
 .kit-paso--best{border-color:var(--rose);box-shadow:0 0 0 1px var(--rose)}
 .kit-paso--best .kit-paso-p b{color:var(--plum)}
-.kit-paso--best .kit-paso-d{color:var(--rose);text-transform:uppercase;letter-spacing:.1em}
+.kit-paso--best .kit-paso-d{color:var(--pagar);text-transform:uppercase;letter-spacing:.1em}
 /* Una pieza del paso ya no tiene stock: no se puede prometer un carrito que
    el checkout va a rechazar, así que el paso pasa a pedir por WhatsApp. */
 .kit-paso--agotado{border-color:var(--line);background:var(--bone)}
-.kit-paso--agotado .kit-paso-p b{color:#7c7681;font-size:15px}
+.kit-paso--agotado .kit-paso-p b{color:var(--gris);font-size:15px}
 .kit-paso--agotado .kit-paso-p s{display:none}
-.kit-paso--agotado .kit-paso-d{color:#7c7681;text-transform:none;letter-spacing:normal}
+.kit-paso--agotado .kit-paso-d{color:var(--gris);text-transform:none;letter-spacing:normal}
 
-.kit-nota{margin:14px 0 0;font-size:12.5px;color:var(--silver)}
+.kit-nota{margin:14px 0 0;font-size:12.5px;color:var(--gris-suave)}
 
 @media(min-width:700px){
   .kits-esc-fila{grid-template-columns:repeat(4,1fr);gap:12px}
@@ -1210,7 +1191,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 /* ── Página de producto (producto-<id>.html, generada por
    herramientas/gen_productos.py). La pieza es su tarjeta de la portada con la
    clase pc--pp: mismo botón, mismas tallas, mismas marcas de agotado. ── */
-.migas{padding-top:14px;font-size:12px;letter-spacing:.04em;color:var(--silver)}
+.migas{padding-top:14px;font-size:12px;letter-spacing:.04em;color:var(--gris-suave)}
 .migas ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:4px 6px}
 .migas li+li::before{content:'›';margin-right:6px}
 .migas a{color:#6d6070;text-decoration:none;border-bottom:1px solid transparent}
@@ -1225,10 +1206,10 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .pp-in{display:grid;gap:20px}
 .pc--pp .pc-body{padding:16px 16px 18px}
 .pc--pp .pc-name{font-size:clamp(28px,7.5vw,40px);line-height:1.08;margin:0 0 6px}
-.pc--pp .pc-meta{font-size:11.5px;margin:0 0 14px}
+.pc--pp .pc-meta{font-size:12px;margin:0 0 14px}
 .pc--pp .pc-price{font-size:22px}
 .pc--pp .pc-add{min-height:46px;font-size:12px}
-.pc--pp .pc-mark{font-size:10px;padding:4px 8px;top:10px;left:10px}
+.pc--pp .pc-mark{font-size:12px;padding:4px 8px;top:10px;left:10px}
 .pp-info .fx-est{margin:0 0 14px}
 .pp-info .fx-est:empty{display:none}
 .pp-envio{margin:16px 0 0;font-size:13.5px;line-height:1.5;color:var(--plum)}
@@ -1277,7 +1258,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .susc-ok input{margin:3px 0 0;width:17px;height:17px;flex:0 0 auto}
 .susc-ok a{color:var(--plum)}
 .susc-f .btn{width:100%}
-.susc-msg{margin:0;min-height:1em;font-size:13px;color:var(--rose)}
+.susc-msg{margin:0;min-height:1em;font-size:13px;color:var(--pagar)}
 .susc-listo{margin:0;font-size:15px;line-height:1.55;color:var(--ink)}
 @media(min-width:700px){
   .susc{align-items:center;padding:16px}
@@ -1296,7 +1277,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .estrellas svg.est-off{fill:#E4DDE0}
 .pp-vendidas{margin:-6px 0 14px;font-size:13px;color:var(--plum)}
 .pq{border:0;margin:0 0 14px;padding:0;display:grid;gap:8px}
-.pq-t{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--silver);margin:0 0 4px;padding:0}
+.pq-t{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gris-suave);margin:0 0 4px;padding:0}
 .pq-o{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 10px;padding:12px 14px;
   background:var(--white);border:1px solid var(--line);border-radius:4px;cursor:pointer}
 .pq--b .pq-o{grid-template-columns:1fr auto;cursor:default}
@@ -1304,13 +1285,13 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .pq-o:has(input:checked){border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
 .pq-n{font-size:14.5px}
 .pq-p{text-align:right;white-space:nowrap}
-.pq-p s{color:var(--silver);font-size:12.5px;margin-right:4px}
+.pq-p s{color:var(--gris-suave);font-size:12.5px;margin-right:4px}
 .pq-p b{font-weight:500;font-size:15.5px}
 .pq-a{grid-column:1/-1;justify-self:end;font-size:12px;color:#1F7A5C;font-weight:500}
 .pq--b .pq-a{grid-row:2;grid-column:2}
 .pq-o--best{border-color:var(--rose)}
 .pq-o--best .pq-n{font-weight:500;color:var(--pagar)}
-.pq-nota{margin:2px 0 0;font-size:12px;line-height:1.5;color:#8a8290}
+.pq-nota{margin:2px 0 0;font-size:12px;line-height:1.5;color:var(--gris)}
 .pq-mas{margin-top:8px;padding:14px 0 6px;border-top:1px solid var(--line);display:grid;gap:10px}
 .pq-mas[hidden]{display:none}
 .pq-mas--b{margin-top:10px}
@@ -1319,14 +1300,14 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
    propietario, 2026-09-26: la zona se veía «arrejuntada»). */
 .pp-cta{display:grid;gap:10px;margin:18px 0 0}
 .pp-cta .btn{width:100%;padding:16px 12px}
-.pp-nota-t{margin:8px 0 0;font-size:12.5px;color:#8a8290}
+.pp-nota-t{margin:8px 0 0;font-size:12.5px;color:var(--gris)}
 .pp-pago{margin:18px 0 0;padding:14px 14px 12px;border:1px solid var(--line);border-radius:4px;background:var(--white);
   text-align:center}
 .pp-addi{margin:10px 0 0;font-size:13px;line-height:1.5;color:#5a4d5e}
 .pp-addi a,.pp-susc a{color:var(--plum)}
 .pp-susc{display:flex;align-items:center;gap:12px;margin:12px 0 0;padding:12px 14px;background:var(--rose-soft);
   border-radius:4px;font-size:13.5px;line-height:1.45;color:#4a3d4e}
-.pp-susc svg{flex:0 0 auto;color:var(--rose)}
+.pp-susc svg{flex:0 0 auto;color:var(--pagar)}
 .pp-agotado{margin:0 0 14px;padding:12px 14px;background:var(--rose-soft);border-radius:4px;font-size:14px}
 .pp-agotado a{color:var(--plum)}
 .pp-bens{list-style:none;margin:24px 0 8px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
@@ -1336,7 +1317,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .pp-acc{border-bottom:1px solid var(--line)}
 .pp-acc summary{list-style:none;cursor:pointer;padding:14px 0;font-size:14.5px;display:flex;justify-content:space-between}
 .pp-acc summary::-webkit-details-marker{display:none}
-.pp-acc summary::after{content:'+';color:var(--silver);font-size:18px;line-height:1}
+.pp-acc summary::after{content:'+';color:var(--gris-suave);font-size:18px;line-height:1}
 .pp-acc[open] summary::after{content:'−'}
 .pp-acc-in{padding:0 0 14px;font-size:14px;line-height:1.6;color:#4a3d4e}
 .pp-acc-in p{margin:0 0 8px}
@@ -1347,10 +1328,10 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .rp-resumen{display:flex;align-items:center;gap:8px;margin:6px 0 14px;font-size:14px;color:#5a4d5e}
 .rp-resumen:empty{display:none}
 .rp-lista{display:grid;gap:12px;margin:0 0 16px}
-.rp-vacio{margin:0;font-size:14px;color:#8a8290}
+.rp-vacio{margin:0;font-size:14px;color:var(--gris)}
 .rp-it{margin:0;padding:14px;background:var(--white);border:1px solid var(--line);border-radius:3px}
 .rp-it blockquote{margin:8px 0;font-size:15px;line-height:1.55}
-.rp-it figcaption{font-size:12.5px;color:#8a8290}
+.rp-it figcaption{font-size:12.5px;color:var(--gris)}
 .rp-ok{color:#1F7A5C}
 .rp-fotos{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px}
 .rp-foto{padding:0;border:0;background:none;line-height:0;cursor:zoom-in;border-radius:3px}
@@ -1371,8 +1352,17 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .rp-est label::after{content:'★';color:var(--estrella)}
 .rp-est label:has(input:checked){border-color:var(--plum)}
 .rp-dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.rp-nota{margin:0;font-size:12px;color:#8a8290}
-.rp-msg{margin:0;min-height:1em;font-size:13px;color:var(--rose)}
+/* En el celular el formulario se ensanchaba a ~750 px al abrirlo (reporte del
+   propietario, 2026-10-02): una celda de grid no encoge por debajo de su
+   contenido, y cada campo de archivo mide lo que su texto («Seleccionar
+   archivos · ningún archivo seleccionado»). Columnas que sí encogen, campos a
+   todo el ancho de su celda, y en pantallas angostas uno debajo del otro. */
+.rp-form{grid-template-columns:minmax(0,1fr)}
+.rp-form>*,.rp-dos>*{min-width:0}
+.rp-form textarea,.rp-form input:not([type=radio]){width:100%;min-width:0;box-sizing:border-box}
+@media(max-width:520px){.rp-dos{grid-template-columns:minmax(0,1fr)}}
+.rp-nota{margin:0;font-size:12px;color:var(--gris)}
+.rp-msg{margin:0;min-height:1em;font-size:13px;color:var(--pagar)}
 .rp-gracias{margin:0;font-size:15px}
 @media(min-width:700px){ .pp-bens{grid-template-columns:1fr 1fr 1fr} }
 
@@ -1391,19 +1381,19 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   gap:4px;text-align:center;padding:10px 8px;background:var(--white);border:1px solid var(--line);border-radius:4px}
 .vit-it.is-sel{border-color:var(--plum)}
 .vit-it[data-n]:not([data-n=""])::after{content:attr(data-n);position:absolute;top:6px;right:6px;min-width:22px;
-  padding:3px 6px;border-radius:999px;background:var(--plum);color:#fff;font-size:11px;line-height:1.2}
+  padding:3px 6px;border-radius:999px;background:var(--plum);color:#fff;font-size:12px;line-height:1.2}
 .vit-it img,.vit-nof{width:96px;height:96px;object-fit:contain}
 .vit-n{font-size:12.5px;line-height:1.25;min-height:2.5em}
 .vit .vit-it img,.vit .vit-n{cursor:pointer}
-.vit-it small{color:#8a8290;font-size:12px}
-.vit-add{width:100%;margin-top:auto;font:400 11px/1 Jost;letter-spacing:.06em;text-transform:uppercase;padding:9px 6px;
+.vit-it small{color:var(--gris);font-size:12px}
+.vit-add{width:100%;margin-top:auto;font:400 12px/1 Jost;letter-spacing:.06em;text-transform:uppercase;padding:9px 6px;
   min-height:36px;border:1px solid var(--ink);background:transparent;color:var(--ink);border-radius:2px;cursor:pointer}
 .vit-it.is-sel .vit-add{background:var(--plum);border-color:var(--plum);color:#fff}
 .vit-add[aria-disabled="true"]{cursor:default}
 .vit-tallas{justify-content:center;gap:4px}
 .vit-tallas[hidden]{display:none}
-.vit-tallas .tbtn{min-width:34px;min-height:34px;padding:7px 4px;font-size:11.5px}
-.vit-desliza{margin:0;font-size:11.5px;color:#8a8290}
+.vit-tallas .tbtn{min-width:34px;min-height:34px;padding:7px 4px;font-size:12px}
+.vit-desliza{margin:0;font-size:12px;color:var(--gris)}
 /* Kits: talla y charms en la misma tarjeta del kit. */
 .kit-paso{font:inherit;color:inherit;text-align:left;width:100%;cursor:pointer;background:transparent}
 .kit-paso.is-on{border-color:var(--plum);box-shadow:0 0 0 1px var(--plum)}
@@ -1425,6 +1415,9 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
   border:0;border-radius:50%;background:var(--rose);color:#fff;display:inline-flex;align-items:center;
   justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(42,31,46,.22)}
 .susc-fab[hidden]{display:none}
+/* En la página de una pieza, mientras se ven su nombre y su precio, el botón
+   no se les pone encima (lo cambia tienda.js al hacer scroll). */
+body.pp-precio-a-la-vista:not(.susc-recien-cerrada) .susc-fab{visibility:hidden}
 @media(hover:hover){.susc-fab:hover{background:var(--pagar)}}
 
 /* Bloques con foto o video de la ficha (ENCARGO-FICHA-2 § 1): en el celular,
@@ -1435,7 +1428,7 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .bv-m{border-radius:4px;overflow:hidden;background:var(--rose-soft)}
 .bv-m img,.bv-v{display:block;width:100%;height:auto}
 .bv-t h2{font-size:clamp(22px,5.8vw,28px);line-height:1.2;margin:0 0 10px}
-.bv-t h2 span{color:var(--rose)}
+.bv-t h2 span{color:var(--pagar)}
 .bv-t p{margin:0;font-size:15px;line-height:1.65;color:#4a3d4e}
 .bv-t b{color:var(--ink);font-weight:500}
 .bv-cta{margin-top:18px}
@@ -1462,10 +1455,10 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .menu-cat{border-bottom:1px solid var(--line)}
 .menu-cat summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:2px;padding:13px 4px;position:relative}
 .menu-cat summary::-webkit-details-marker{display:none}
-.menu-cat summary::after{content:'+';position:absolute;right:6px;top:14px;color:var(--silver);font-size:20px}
+.menu-cat summary::after{content:'+';position:absolute;right:6px;top:14px;color:var(--gris-suave);font-size:20px}
 .menu-cat[open] summary::after{content:'−'}
 .menu-cat summary b{font-family:'Cormorant Garamond',Georgia,serif;font-weight:400;font-size:19px}
-.menu-cat summary small{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--silver)}
+.menu-cat summary small{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--gris-suave)}
 .menu-cat-l{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;padding:0 4px 12px}
 .menu-panel .menu-cat-l a{display:block;padding:9px 0;border:0;font-size:15px;color:var(--ink);text-decoration:none}
 .menu-panel .menu-cat-l a:first-child{grid-column:1/-1;color:var(--pagar);font-weight:500}
@@ -1478,10 +1471,158 @@ body.sheet-open{overflow:hidden;position:fixed;width:100%;left:0;right:0}
 .mv-ir{display:flex;flex-direction:column;align-items:center;gap:4px;color:inherit;text-decoration:none;width:100%}
 .mv-ir img{width:100%;max-width:160px;height:auto;aspect-ratio:1;object-fit:contain}
 .mv-sello{position:absolute;top:8px;left:8px;padding:3px 8px;border-radius:999px;background:var(--pagar);color:#fff;
-  font-size:10px;letter-spacing:.08em;text-transform:uppercase;z-index:1}
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;z-index:1}
 .mv-aviso,.mv-cargando{margin:0 0 14px;font-size:14px;color:#6d6070}
 @media(min-width:760px){ .mv-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
 
 /* Fotos y videos sin «guardar imagen» al mantener presionado ni arrastre
    (ver tienda.js: el clic derecho se bloquea allí). */
 img,video{-webkit-touch-callout:none;-webkit-user-drag:none;user-select:none;-webkit-user-select:none}
+
+/* ── Legibilidad (pedido del propietario, 2026-09-28) ──
+   Precios y llamados a la acción con contraste marcado y seminegrita; nada
+   de texto de 8–11 px (el piso es 12). Los colores de texto que no llegaban a
+   4,5:1 sobre el fondo pasaron a --gris / --gris-suave / --pagar arriba. */
+.btn{font-weight:600;font-size:14px;letter-spacing:.08em}
+.pc-add,.vit-add{font-weight:600;font-size:12.5px}
+.pc-price{font-size:16px;font-weight:600;color:var(--ink)}
+.vit-it small{font-size:14px;font-weight:600;color:var(--ink)}
+/* En la hoja del carrito (fondo oscuro) el precio hereda el color claro:
+   solo más peso. Con color tinta desaparecía sobre el fondo. */
+.sug-p{font-weight:600}
+.pq-p b,.kit-paso-p b{font-weight:600;color:var(--ink)}
+.fx-p,.dock-p{font-weight:600}
+.pc-name{font-weight:500}
+.eyebrow{font-weight:500}
+p,li,dd,.pp-acc-in{line-height:1.55}
+
+/* Etiqueta sobre la foto (Plata 925): legible a 12 px pero
+   compactas, en tipo oración y con poco espaciado, para no tapar la joya. */
+.pc-mark{text-transform:none;letter-spacing:.02em;font-weight:500;padding:2px 6px}
+
+/* Videos: la portada también de fondo (la pone tienda.js), para que el
+   recuadro nunca quede en blanco ni en negro mientras llega el primer cuadro;
+   y un tono suave mientras llega la propia portada. */
+.ugc-v,.bv-v{background-position:center;background-size:contain;background-repeat:no-repeat}
+.bv-v{background-color:var(--rose-soft)}
+
+/* «Lleva 4, paga 3» en un solo recuadro: portada (#promo) y fichas de
+   producto, junto al precio. Reemplaza a la cuadrícula de tramos (.esc) y al
+   selector de paquetes (.pq). */
+.promo-caja{border:1px solid var(--rose);background:var(--rose-soft,#F3E6EB);border-radius:6px;
+  padding:14px 16px;text-align:left}
+.promo-caja p{margin:0}
+.promo-caja-t{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--plum);margin-bottom:6px!important}
+.promo-caja-t b{font-weight:600;color:var(--ink)}
+.promo-caja-x{font-size:14px;line-height:1.5;color:#4a3d4e}
+.promo-caja-x b{font-weight:700;color:var(--pagar,#8E3B5C);letter-spacing:.04em}
+.promo-caja-x span{color:var(--gris,#6d6070);font-size:13px}
+#promo{padding-top:26px;padding-bottom:26px}
+#promo .promo-caja{max-width:620px;margin:0 auto;padding:18px 20px}
+.pp-compra .promo-caja{margin:0 0 14px}
+
+/* Reseñas de la portada en carrusel: tarjetas iguales, foto arriba (cuadrada),
+   estrellas, texto y nombre. Una tarjeta y un pedazo de la siguiente a la vista
+   en el celular, para que se lea que se desliza. */
+.tst-rail{grid-auto-columns:78%;gap:12px;align-items:stretch;scroll-snap-type:x mandatory}
+.tst{margin:0;background:var(--white);border:1px solid var(--line);border-radius:4px;
+  display:flex;flex-direction:column;overflow:hidden;scroll-snap-align:start;position:relative}
+.tst-ph{border-radius:0}
+.tst-ph img{aspect-ratio:4/3;width:100%;object-fit:cover;border-radius:0}
+.tst-tx{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1}
+.tst .estrellas{display:flex;gap:2px;margin-bottom:8px}
+.tst blockquote{margin:0 0 14px;font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:18px;line-height:1.35;color:var(--ink);flex:1}
+.tst figcaption{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--line);padding-top:10px}
+.tst-tag{position:absolute;top:10px;left:10px;margin:0;background:rgba(255,255,255,.92);
+  padding:5px 8px;border-radius:2px;font-size:11px}
+.tst-prom{display:flex;align-items:center;gap:6px;margin:6px 0 0;font-size:14px;color:var(--gris)}
+.tst-prom[hidden]{display:none}
+.tst-pts{display:flex;justify-content:center;gap:7px;margin:12px 0 0}
+.tst-pts i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background .2s}
+.tst-pts i.is-on{background:var(--plum)}
+@media(min-width:700px){.tst-rail{grid-auto-columns:calc((100% - 24px)/3)}}
+
+/* Contacto en el menú ☰ */
+.menu-panel .menu-contacto-l{grid-template-columns:1fr}
+.menu-panel .menu-contacto-l a,.menu-panel .menu-contacto-l a:first-child{display:flex;flex-direction:column;gap:2px;
+  color:var(--pagar);font-weight:500;font-size:16px}
+.menu-contacto-l a span{font-size:11px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--gris-suave)}
+/* Brazaletes: el primer nivel a la vista y los demás tras «Ver más». */
+#brazaletes:not(.ver-todos) .tier~.tier{display:none}
+#brazaletes.ver-todos .b-mas-wrap{display:none}
+.b-mas-wrap{margin-top:-6px}
+/* Reseña de solo texto en el carrusel: en el lugar de la foto, un recuadro con
+   comillas del mismo alto (4:3), para que las tarjetas sigan siendo iguales. */
+.tst-ph--txt{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--rose-soft),#e9d6de)}
+.tst-ph--txt span{font-family:'Cormorant Garamond',Georgia,serif;font-size:120px;line-height:.6;
+  color:var(--rose);opacity:.55;padding-top:34px}
+/* El formulario para reseñar, debajo del carrusel en las fichas. */
+.social .rp-escribir{margin-top:22px}
+
+/* ——— Carrito en paleta clara (pedido del propietario, 2026-10-04) ———
+   El fondo ciruela oscuro no dejaba leer bien ni limpio. Mismos tonos de la
+   página: fondo blanco, texto tinta, grises de la marca para lo secundario,
+   el rosa de pagar en lo que se toca y el verde de «gratis» de siempre.
+   Va al final para ganarle a las reglas oscuras de arriba sin reescribirlas;
+   los grises claros (--silver) no pasan contraste sobre blanco, por eso aquí
+   lo secundario es --gris-suave. */
+.sheet{background:#fff;color:var(--ink);box-shadow:0 -10px 40px rgba(42,31,46,.16)}
+.veil{background:rgba(42,31,46,.35)}
+.sheet-grab{background:var(--line)}
+.sheet-x{border-color:var(--line);color:var(--ink)}
+.sheet-x:hover{border-color:var(--ink)}
+.sheet-scroll{scrollbar-color:var(--line) transparent}
+.sheet-scroll::-webkit-scrollbar-thumb{background:var(--line)}
+.srow{border-bottom-color:var(--line)}
+.srow img{border:1px solid var(--line)}
+.srow-nof{background:var(--rose-soft);color:var(--plum)}
+.srow-n small,.srow--gratis .srow-p s{color:var(--gris-suave)}
+.srow--gratis .srow-p b{background:#1F7A5C;color:#fff}
+.srow-x{background:var(--bone);color:var(--gris)}
+.srow-x:hover{background:var(--pagar);color:#fff}
+.s-empty{color:var(--gris-suave)}
+.hoja-dto-caja{background:#F7EEE8;border-color:#EDE0D8}
+.hoja-dto-t,.hoja-dto li{color:var(--gris-suave)}
+.hoja-dto li::before{background:#E6DAD3}
+.hoja-dto li.is-on::before{background:var(--pagar)}
+.hoja-dto li.is-free{color:var(--pagar)}
+.hoja-dto.is-max li.is-on::before{background:#1F7A5C}
+.desc-nota{color:var(--gris)}
+.desc-nota b{color:var(--pagar);font-weight:600}
+.desc-nota.is-max,.desc-nota.is-max b{color:#1F7A5C}
+.sug{border-top-color:var(--line)}
+.sug-h span{color:var(--gris-suave)}
+.sug-c{border-color:var(--line);background:#fff;color:var(--ink)}
+@media(hover:hover){.sug-c:hover{border-color:var(--pagar);background:var(--rose-soft)}}
+.sug-c img,.sug-c .mono{border:1px solid #F1ECEE}
+.sug-mas{background:var(--pagar)}
+.sug-n{color:var(--ink)}
+.sug-c.is-puesto{border-color:#1F7A5C;background:#EAF5F0}
+.sug-c.is-puesto .sug-mas{background:#1F7A5C}
+.sug-c.is-puesto .sug-p{color:#1F7A5C}
+.pbtn{border-color:var(--line);background:#fff;color:var(--ink)}
+@media(hover:hover){.pbtn:hover{border-color:var(--gris-suave)}}
+.pbtn small{color:var(--gris-suave)}
+.pbtn.is-on{background:var(--rose-soft);border-color:var(--pagar);color:var(--ink);box-shadow:0 0 0 1px var(--pagar)}
+.pbtn.is-on small{color:var(--pagar)}
+.pbtn small.pb-gratis,.pbtn.is-on small.pb-gratis{color:#1F7A5C}
+.tot-row{color:var(--gris)}
+.tot-row.save{color:var(--pagar)}
+.ship-note{color:var(--gris-suave)}
+.ship-bar{background:var(--line)}
+.ship-ok{color:#1F7A5C}
+.ship-casi{color:#8a5a00}
+.ship-cta{color:var(--pagar)}
+@media(hover:hover){.ship-cta:hover{color:var(--ink)}}
+.sheet-info{border-top-color:var(--line)}
+.sheet-note{color:var(--gris)}
+.sheet-note--regalo{color:#1F7A5C}
+.sheet-note--addi{color:var(--pagar)}
+.sheet .stock-nota{color:var(--gris-suave)}
+.sheet-tot{background:#fff;border-top-color:var(--line)}
+.sheet-tot::before{background:linear-gradient(to top,rgba(255,255,255,.95),rgba(255,255,255,0))}
+.tot-big span{color:var(--gris-suave)}
+.tot-big b{color:var(--ink)}
+.sheet-seguro{color:var(--gris-suave)}

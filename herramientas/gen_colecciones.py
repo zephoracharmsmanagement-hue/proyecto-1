@@ -182,6 +182,7 @@ console.log(JSON.stringify({
   dos: cop(dos.total),
   tres: cop(tres.total),
   ahorroTres: cop(tres.descuento),
+  ahorroDos: cop(dos.descuento),
   tercerCharm: cop(tres.total - dos.total),
   contraentrega: cop(calcular({base, charms: charms.slice(0, 3), pago: 'contraentrega'}).total),
 }));
@@ -244,13 +245,13 @@ PAGINA = '''<!DOCTYPE html>
      escribe el generador corriendo el mismo código que firma el cobro. -->
 <section class="col-combo wrap" id="combo">
   <h2>El combo de la colección</h2>
-  <p class="col-sub">Brazalete + 3 charms. El descuento por brazalete y la escala por
-  cantidad se aplican juntos, así que <b>el tercer charm cuesta {tercer_charm}</b> en vez de {charm_solo}.</p>
+  <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
+  sale <b>gratis</b>. Con 7 piezas son 2 gratis. Se aplica solo en el carrito.</p>
   <div class="col-escalera">
     <div class="col-paso"><span class="col-paso-n">Brazalete solo</span><b>{pulsera_sola}</b></div>
     <div class="col-paso"><span class="col-paso-n">+ 2 charms</span><b>{dos}</b></div>
-    <div class="col-paso col-paso--best"><span class="col-paso-n">+ 3 charms</span><b>{tres}</b>
-      <span class="col-paso-ahorro">ahorras {ahorro_tres}</span></div>
+    <div class="col-paso col-paso--best"><span class="col-paso-n">+ 3 charms · 4 piezas</span><b>{tres}</b>
+      <span class="col-paso-ahorro">una GRATIS · ahorras {ahorro_tres}</span></div>
   </div>
   <p class="col-nota">Precios con pago anticipado y envío gratis. Contraentrega: {contraentrega}
   (el envío lo cobra la transportadora al recaudar).</p>
@@ -401,7 +402,7 @@ def generar(col, html, escribir):
         tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [col['base']])),
         tercer_charm=p['tercerCharm'], charm_solo=p['charmSolo'],
         pulsera_sola=p['pulseraSola'], dos=p['dos'], tres=p['tres'],
-        ahorro_tres=p['ahorroTres'], contraentrega=p['contraentrega'],
+        ahorro_tres=p['ahorroTres'], ahorro_dos=p['ahorroDos'], contraentrega=p['contraentrega'],
     )
 
     pagina = arregla_nav(pagina)
@@ -426,10 +427,10 @@ def generar(col, html, escribir):
 # calcular(), el mismo código que firma el cobro, así que un kit no puede
 # prometer un número que el checkout no vaya a cobrar.
 #
-# Lo que la página enseña es la escalera que la tienda YA aplica: el mismo kit
-# a 1, 2, 3 y 4 dijes. El salto que importa es del segundo al tercero —de ~5% a
-# ~20%— porque ahí entra el 30% del brazalete además de la escala por cantidad.
-# A ese escalón apunta la pauta, y por eso va marcado.
+# Lo que la página enseña es la promo que la tienda YA aplica, «paga 3, lleva
+# 1 gratis» (desde el 2026-10-04): el mismo kit a 1, 2, 3 y 4 dijes. Con
+# brazalete + 3 dijes (4 piezas) la de menor valor sale gratis: ese es el paso
+# marcado. (Las 2 gratis llegan con 7 piezas; un kit tiene 5.)
 #
 # **El enlace NO arma el carrito por la clienta.** Antes cada paso ponía el
 # brazalete Y los N dijes directamente en el carrito (`?p=base,charm1,charm2`)
@@ -505,7 +506,7 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
         <p class="kit-entrada">{entrada}</p>
       </div>
       <div class="kit-piezas">{fotos}</div>
-      <p class="kit-tercer">Con brazalete, <b>el tercer dije cuesta {tercer_dije}</b> en vez de {tercer_lista}.</p>
+      <p class="kit-tercer">Brazalete + 3 dijes son 4 piezas: <b>pagas 3 y la de menor valor te sale gratis</b>; ahorras {ahorro_cuatro}.</p>
       <div class="kit-escalera">
 {pasos}
       </div>
@@ -532,7 +533,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kits Zephora · Dijes de Plata 925 y brazalete, con descuento por cantidad</title>
+<title>Kits Zephora · Dijes de Plata 925 y brazalete · Paga 3, lleva 1 gratis</title>
 <meta name="description" content="{desc}">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
 <meta name="theme-color" content="#2A1F2E">
@@ -565,18 +566,13 @@ PAGINA_KITS = '''<!DOCTYPE html>
   con acabado en baño de plata.</p>
 </section>
 
-<!-- LA ESCALERA, explicada una vez arriba y luego aplicada kit por kit. No es
-     una promoción aparte: es el descuento que la tienda ya aplica sola. -->
+<!-- LA PROMO, dicha una vez arriba y luego aplicada kit por kit. No es una
+     promoción aparte: es la que la tienda ya aplica sola, la misma del
+     recuadro de la portada y de las fichas. -->
 <section class="kits-esc wrap">
-  <h2>El descuento sube con cada dije</h2>
-  <p class="col-sub">No hay códigos ni letra pequeña: se aplica solo al armar. Son dos
-  descuentos que se suman — la escala por cantidad de dijes, y un <b>30% en el
-  brazalete</b> a partir del tercero. Por eso el tercer dije es el que más baja el precio.</p>
-  <div class="kits-esc-fila">
-    <div class="kits-esc-p"><span>1 dije</span><b>—</b></div>
-    <div class="kits-esc-p"><span>2 dijes</span><b>8%</b></div>
-    <div class="kits-esc-p kits-esc-p--best"><span>3 dijes</span><b>15% <i>+ 30% brazalete</i></b></div>
-    <div class="kits-esc-p"><span>4 o más</span><b>25% <i>+ 30% brazalete</i></b></div>
+  <div class="promo-caja">
+    <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis.</b></p>
+    <p class="promo-caja-x">El brazalete cuenta como una pieza: con brazalete + 3 dijes, el de menor valor te sale totalmente <b>GRATIS</b>; con 7 piezas, 2 gratis. <span>(Se aplica automáticamente).</span></p>
   </div>
 </section>
 
@@ -598,7 +594,6 @@ PAGINA_KITS = '''<!DOCTYPE html>
      videos de clientas. Salen de gen_productos.py, no se copian a mano. -->
 {bloques_media}
 
-{resenas_tienda}
 
 {resenas}
 
@@ -635,6 +630,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
 def generar_kits(html, escribir):
     cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
     kits = json.loads(KITS_JSON.read_text(encoding='utf-8'))['kits']
+    promo = cat['reglas']['promo']
     fotos = cat['fotos']
     nombres = cat['nombres']
 
@@ -653,15 +649,20 @@ def generar_kits(html, escribir):
 
         filas = []
         for p in pasos:
-            mejor = (p['n'] == 3)
+            pz = p['n'] + 1
+            gratis = 0
+            for piezas_t, gratis_t in promo['tramos']:
+                if pz >= piezas_t:
+                    gratis = gratis_t
+            mejor = (p['n'] == 3)   # brazalete + 3 = 4 piezas: la primera gratis
             filas.append(PASO_KIT.format(
                 clase=' kit-paso--best' if mejor else '',
                 piezas=','.join(p['piezas']),
                 n=p['n'], s='s' if p['n'] > 1 else '',
                 total=p['totalTexto'],
                 lista=p['listaTexto'] if p['dto'] > 0 else '',
-                marca=('El mejor salto · ahorras %s' % p['ahorro']) if mejor
-                      else ('ahorras %s' % p['ahorro'] if p['dto'] > 0 else 'precio de lista'),
+                marca=('%d piezas: %s · ahorras %s' % (pz, 'una GRATIS' if gratis == 1 else '%d GRATIS' % gratis, p['ahorro']))
+                      if gratis else 'precio de lista',
             ))
 
         tercero = pasos[2]
@@ -669,7 +670,7 @@ def generar_kits(html, escribir):
             id=k['id'], eyebrow=k['eyebrow'], nombre=k['nombre'],
             lema=k['lema'], entrada=k['entrada'],
             fotos=''.join(miniaturas),
-            tercer_dije=tercero['esteDije'], tercer_lista=tercero['listaDije'],
+            ahorro_cuatro=pasos[2]['ahorro'],
             pasos='\n'.join(filas),
             base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
             vitrina=vitrina(k['charms'], 'De este kit', brazaletes=False),
@@ -679,14 +680,14 @@ def generar_kits(html, escribir):
     n_catalogo = len(cat['precios'])
     desc = ('Kits con dijes en Plata Esterlina 925 con sello grabado y brazalete con '
             'baño de plata de alta calidad. '
-            'El descuento sube con cada dije y se aplica solo: hasta 25% en dijes '
-            'y 30% en el brazalete. Envío gratis a toda Colombia.')
+            'Paga 3 y llévate 1 gratis (paga 5 y llévate 2): la de menor valor sale gratis, y se aplica solo. '
+            'Envío gratis a toda Colombia.')
 
-    from gen_productos import bloques_media, resenas_tienda   # aquí: gen_productos importa este módulo
+    from gen_productos import bloques_media   # aquí: gen_productos importa este módulo
     pagina = PAGINA_KITS.format(
         head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
         bloques_media=bloques_media(None, 'charm', False, cat, arma_href='#kits'),
-        resenas_tienda=resenas_tienda(), historia=b['historia'],
+        historia=b['historia'],
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
         footer=b['footer'], chrome=b['chrome'],
         tarjetas=''.join(tarjetas_html), n_catalogo=n_catalogo, desc=desc,
@@ -751,12 +752,12 @@ def generar_mas_vendidos(html, escribir):
     b = bloques(html)
     desc = ('Las piezas de Zephora que más se venden, contadas de pedidos reales: charms en Plata '
             'Esterlina 925 y brazaletes con baño de plata, con 3 unidades o más disponibles.')
-    from gen_productos import bloques_media, resenas_tienda
+    from gen_productos import bloques_media
     cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
     pagina = (cabeza + MV_CUERPO + PAGINA_KITS[fin:]).format(
         head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
         bloques_media=bloques_media(None, 'charm', False, cat, arma_href='kits.html'),
-        resenas_tienda=resenas_tienda(), historia=b['historia'],
+        historia=b['historia'],
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
         footer=b['footer'], chrome=b['chrome'], desc=desc)
     pagina = arregla_nav(pagina)

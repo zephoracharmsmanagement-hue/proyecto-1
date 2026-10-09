@@ -48,7 +48,7 @@ const reglas = CAT.reglas;
 /* El prompt va dentro de un bloque ```text en el documento. */
 function leerPrompt() {
   const doc = fs.readFileSync(COPIA, 'utf8');
-  const m = doc.match(/```text\n([\s\S]*?)\n```/);
+  const m = doc.replace(/\r\n/g, '\n').match(/```text\n([\s\S]*?)\n```/);   // CRLF en Windows
   if (!m) throw new Error('no se encontró el bloque ```text en ' + COPIA);
   return m[1];
 }
@@ -192,24 +192,24 @@ function main() {
      aunque las reglas ya le llegaban dentro de disponibilidad: sencillamente el
      prompt no las nombraba. Ahora las explica, y aqui se comprueba que los
      porcentajes que dice sean los que de verdad se cobran. */
-  const pct = n => Math.round(n * 100);
-  reglas.escalaCharms.forEach((desc, cuantos) => {
-    if (desc === 0) return;
-    /* La palabra «charms» es opcional porque el último tramo de la lista se
-       escribe «4 o mas: 25%» bajo un encabezado que ya dice «por cantidad de
-       charms». Lo que se comprueba de verdad sigue intacto: que ese número de
-       piezas y ese porcentaje aparezcan juntos en la misma línea. */
-    const esperado = new RegExp(`${cuantos}\\s*(charms?\\s*)?(o mas)?[^\\n]*${pct(desc)}\\s*%`, 'i');
-    comprobar(esperado.test(prompt),
-      `anuncia el ${pct(desc)}% con ${cuantos} charms`);
-  });
-
-  comprobar(new RegExp(`${pct(reglas.descuentoBrazalete)}\\s*%`).test(prompt),
-    `anuncia el ${pct(reglas.descuentoBrazalete)}% del brazalete`);
-
-  comprobar(new RegExp(`${reglas.minCharmsParaDescuento} charms o mas`, 'i').test(prompt),
-    `dice desde cuantos charms se activa ese 30%`,
-    `${reglas.minCharmsParaDescuento}`);
+  /* Desde el 2026-10-04 la promo es «paga 3, lleva 1 gratis · paga 5, lleva
+     2 gratis», con brazalete y charms contando igual y tope de 2. Se comprueba
+     con los números de las reglas, no escritos aquí. */
+  const [[p1, g1], [p2, g2]] = [reglas.promo.tramos[0], reglas.promo.tramos[reglas.promo.tramos.length - 1]];
+  comprobar(new RegExp(`paga ${p1 - g1} y llevate ${g1} gratis`, 'i').test(prompt) && new RegExp(`paga ${p2 - g2} y llevate ${g2} gratis`, 'i').test(prompt),
+    `anuncia «paga ${p1 - g1}, lleva ${g1} gratis» y «paga ${p2 - g2}, lleva ${g2}»`);
+  comprobar(/charms y brazaletes cuentan igual/i.test(prompt),
+    'dice que el brazalete cuenta como una pieza más');
+  comprobar(/MENOR valor sale gratis/i.test(prompt),
+    'dice que la gratis es la de menor valor');
+  comprobar(new RegExp(`con ${p1} piezas`).test(prompt) && new RegExp(`con ${p2} piezas salen gratis las ${g2}`).test(prompt) && /nunca prometas 3/i.test(prompt),
+    `explica los dos tramos (${p1} → ${g1}, ${p2} → ${g2}) y que no pasa de ${g2}`);
+  /* La promo vieja no puede seguir anunciándose como vigente: el bot la
+     cobraría de palabra y el checkout no. Solo se admite nombrándola para
+     decir que cambió. */
+  const viejas = prompt.split('\n').filter(l => /\b(8|15|25|30)\s*%/.test(l) && !/ya NO hay|cambio/i.test(l));
+  comprobar(!viejas.length, 'no anuncia los porcentajes de la promo vieja como vigentes',
+    viejas.length ? viejas[0].slice(0, 80) : '');
 
   /* La ley de este repo: un número de precio que no se reproduce con
      calcular() no se escribe. Ya costó una corrección pública cuando un
@@ -250,9 +250,8 @@ function main() {
      mecánica. */
 
   /* Addi. El fallo peligroso no era negarlo —eso ya estaba arreglado— sino
-     meterlo en la lista de medios que se eligen dentro del checkout, porque ahí
-     no está: Wompi no lo soporta y no hay ningún botón. Mandarla a buscarlo la
-     deja dando vueltas en la pantalla de pago. */
+     meterlo en la lista de medios que se pagan dentro del checkout, porque ahí
+     no se cobra: Wompi no lo soporta y Addi termina por WhatsApp. */
   const lineaMedios = prompt.split('\n').find(l => /^MEDIOS DE PAGO/.test(l)) || '';
   comprobar(!/addi/i.test(lineaMedios),
     'no mete Addi en la lista de medios que se eligen en el checkout',
@@ -261,8 +260,19 @@ function main() {
   comprobar(/3 cuotas sin interes|3 CUOTAS SIN INTERES/i.test(prompt),
     'dice la frase pública de Addi: hasta 3 cuotas sin interés');
 
-  comprobar(/no hay ningun boton de Addi|Wompi no lo soporta/i.test(prompt),
-    'advierte que en el checkout no hay botón de Addi');
+  /* Desde el PR #18 (2026-10-04) el checkout sí tiene «Pagar con Addi»: no
+     cobra, abre WhatsApp con el pedido y los datos. El bot tiene que saber que
+     existe —si dice que no hay botón, contradice la pantalla que ella tiene
+     delante— y reconocer el mensaje con que llega, que sale de checkout.html. */
+  comprobar(!/no hay ningun boton de Addi/i.test(prompt),
+    'ya no dice que en el checkout no hay botón de Addi');
+  comprobar(/«Pagar con Addi»/.test(prompt),
+    'nombra la opción «Pagar con Addi» del checkout');
+  const checkout = fs.readFileSync(path.join(RAIZ, 'checkout.html'), 'utf8');
+  const saludoAddi = (checkout.match(/'(Hola, Zephora Charms\. Quiero pagar este pedido con Addi[^'\\]*?):?\\n'/) || [])[1];
+  comprobar(!!saludoAddi && prompt.includes(saludoAddi),
+    'reconoce el mensaje con que llega Addi desde el checkout',
+    saludoAddi || 'no se encontró el mensaje de Addi en checkout.html');
 
   /* Lo que va gratis con cada pedido. El paño nunca se había mencionado en la
      web y ahora está publicado: si lo lee ahí y el bot no lo conoce, lo niega.
@@ -289,15 +299,17 @@ function main() {
     'no ofrece ninguna caja ni empaque de pago por encima del incluido',
     ofreceCaja.length ? ofreceCaja[0].trim().slice(0, 90) : undefined);
 
-  /* La promo: misma mecánica (ya comprobada arriba contra `reglas`), redacción
-     nueva. El chat y la página tienen que decir lo mismo palabra por palabra o
-     la clienta cree que son dos ofertas. */
-  comprobar(/paga 3 y ll[eé]vate el cuarto gratis/i.test(prompt),
-    'usa la redacción nueva de la promo: paga 3 y llévate el cuarto gratis');
+  /* La promo: el chat y la página tienen que decir lo mismo palabra por
+     palabra o la clienta cree que son dos ofertas. Desde el 2026-10-02 la
+     página dice «¡Paga 3 y llévate 1 gratis!» en el banner (antes, «¡Lleva 4 y el 4° es gratis!»); la redacción del
+     2026-09-22 («paga 3 y llévate el cuarto gratis») acompañaba a la escalera
+     vieja y ya no sale en ninguna parte. */
+  comprobar(/paga 3 y llevate 1 gratis/i.test(prompt),
+    'usa la redacción del banner: «¡Paga 3 y llévate 1 gratis!»');
 
-  const promoVieja = prompt.split('\n').filter(l => /lleva 4 y paga 3/i.test(l));
+  const promoVieja = prompt.split('\n').filter(l => /paga 3 y ll[eé]vate el cuarto gratis/i.test(l));
   comprobar(promoVieja.length === 0,
-    'y ya no usa la vieja «lleva 4 y paga 3», que la página retiró',
+    'y ya no usa la de la escalera vieja, «paga 3 y llévate el cuarto gratis»',
     promoVieja.length ? promoVieja[0].trim().slice(0, 90) : undefined);
 
   console.log('\n8 · Los nombres de pieza que el prompt escribe a mano');

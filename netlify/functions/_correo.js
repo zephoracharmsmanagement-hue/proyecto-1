@@ -53,14 +53,20 @@ function correoTienda() {
 /* Sin imágenes ni fuentes externas: los clientes de correo bloquean lo remoto
    por defecto, y una plantilla que depende de eso llega rota. Tabla y estilos
    en línea porque Gmail descarta el <style> del <head>. */
-function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, total, pago, cliente, pasos }) {
+/* La promo (paga 3 lleva 1 gratis, paga 5 lleva 2): la línea dice cuántas unidades salieron gratis y, aparte,
+   va el renglón del descuento, para que la suma de las líneas cuadre con el
+   total. Un pedido viejo, sin `gratis` ni `descuento`, se ve como siempre. */
+const nGratis = l => (Number(l.gratis) > 0 ? Number(l.gratis) : 0);
+const rotuloGratis = l => (nGratis(l) ? (nGratis(l) === Number(l.unidades || 1) ? 'GRATIS' : `${nGratis(l)} gratis`) : '');
+
+function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, descuento, total, pago, cliente, pasos }) {
   const fila = l => `
     <tr>
       <td style="padding:9px 0;border-bottom:1px solid #E4DDE0;font:400 14px/1.4 Georgia,serif;color:#2A1F2E">
-        ${esc(l.nombre)}${l.talla ? `<br><span style="font-size:12px;color:#8a8290">Talla ${esc(l.talla)} cm</span>` : ''}
+        ${esc(l.nombre)}${Number(l.unidades) > 1 ? ` ×${esc(l.unidades)}` : ''}${l.talla ? `<br><span style="font-size:12px;color:#8a8290">Talla ${esc(l.talla)} cm</span>` : ''}
       </td>
       <td style="padding:9px 0;border-bottom:1px solid #E4DDE0;text-align:right;font:400 14px/1.4 Georgia,serif;color:#2A1F2E;white-space:nowrap">
-        ${esc(cop(l.precio))}
+        ${esc(cop(l.precio))}${rotuloGratis(l) ? `<br><b style="font:700 12px/1.6 Arial,sans-serif;letter-spacing:.06em;color:#1F7A5C">${esc(rotuloGratis(l))}</b>` : ''}
       </td>
     </tr>`;
 
@@ -92,6 +98,10 @@ function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, to
   <tr><td style="padding:0 26px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       ${lineas.map(fila).join('')}
+      ${descuento > 0 ? `<tr>
+        <td style="padding:9px 0;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">Promo: piezas gratis</td>
+        <td style="padding:9px 0;text-align:right;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">− ${esc(cop(descuento))}</td>
+      </tr>` : ''}
       <tr>
         <td style="padding:9px 0;font:400 14px/1.4 Arial,sans-serif;color:#6d6070">Envío</td>
         <td style="padding:9px 0;text-align:right;font:400 14px/1.4 Arial,sans-serif;color:${envioGratis ? '#1F7A5C' : '#2A1F2E'}">
@@ -149,12 +159,14 @@ function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, to
 /* Versión en texto plano. No es un adorno: sin ella, varios filtros marcan el
    correo como sospechoso, y un comprobante de compra en spam es un comprobante
    que no existe. */
-function texto({ titulo, entrada, referencia, lineas, envio, envioGratis, total, pago, cliente }) {
-  const l = lineas.map(x => `- ${x.nombre}${x.talla ? ` (talla ${x.talla} cm)` : ''}: ${cop(x.precio)}`);
+function texto({ titulo, entrada, referencia, lineas, envio, envioGratis, descuento, total, pago, cliente }) {
+  const l = lineas.map(x => `- ${x.nombre}${Number(x.unidades) > 1 ? ` x${x.unidades}` : ''}`
+    + `${x.talla ? ` (talla ${x.talla} cm)` : ''}: ${cop(x.precio)}${rotuloGratis(x) ? ` (${rotuloGratis(x)})` : ''}`);
   return [
     titulo, '', entrada, '',
     `Referencia: ${referencia}`, '',
     ...l,
+    ...(descuento > 0 ? [`Promo, piezas gratis: − ${cop(descuento)}`] : []),
     `Envío: ${envioGratis ? 'Gratis' : cop(envio)}`,
     `Total: ${cop(total)} (${pago === 'contraentrega' ? 'contraentrega' : 'pagado por adelantado'})`, '',
     'Enviamos a:',
@@ -209,7 +221,7 @@ async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente, rega
       ? 'Lo estamos preparando. Pagas en efectivo cuando el mensajero te lo entregue.'
       : 'Estamos confirmando tu pago. En cuanto quede aprobado te escribimos otra vez.') + conRegalo,
     referencia, lineas,
-    envio: cuentas.envio, envioGratis: cuentas.envioGratis, total: cuentas.total,
+    envio: cuentas.envio, envioGratis: cuentas.envioGratis, descuento: cuentas.descuento || 0, total: cuentas.total,
     pago, cliente,
     pasos: contra
       ? ['Te escribimos por WhatsApp para confirmar existencias y la talla.',
@@ -354,7 +366,7 @@ function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado, r
     esc(cliente.ciudad) + ', ' + esc(cliente.depto),
   ].filter(Boolean).join('<br>');
   const contacto = `${esc(cliente.nombre)} ${esc(cliente.apellido)}<br>`
-    + `${esc(cliente.tipodoc)} ${esc(cliente.documento)}<br>`
+    + (cliente.documento ? `${esc(cliente.tipodoc)} ${esc(cliente.documento)}<br>` : '')
     + `Cel. ${esc(cliente.celular)}<br>${esc(cliente.correo)}`;
 
   return `<!doctype html><html lang="es"><head><meta charset="utf-8">
@@ -423,7 +435,7 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regal
     '',
     'PARA LA GUÍA:',
     `${cliente.nombre} ${cliente.apellido}`,
-    `${cliente.tipodoc} ${cliente.documento}`,
+    ...(cliente.documento ? [`${cliente.tipodoc} ${cliente.documento}`] : []),
     `Cel. ${cliente.celular}`,
     cliente.correo,
     `${cliente.direccion}${cliente.adicional ? ', ' + cliente.adicional : ''}`,

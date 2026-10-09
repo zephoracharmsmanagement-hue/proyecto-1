@@ -63,10 +63,17 @@ def main():
 
     data = json.loads(saca(r'const DATA=(\{.*?\});\n', motor, 'la tabla DATA', 'tienda.js'))
 
-    # ESC=[0,0,.08,.15,.20] — descuento por cantidad de charms. JSON no admite
-    # el «.08» sin cero delante que sí acepta JavaScript.
-    esc_txt = saca(r'const ESC=\[([^\]]+)\];', motor, 'la escala de descuento ESC', 'tienda.js')
-    esc = [float(x.strip()) for x in esc_txt.split(',')]
+    # PROMO={tramos:[[4,1],[7,2]]} — «Paga 3, lleva 1 gratis · paga 5, lleva 2
+    # gratis» desde el 2026-10-04: con 4 piezas (brazalete o charm) sale gratis
+    # la más barata, con 7 las dos más baratas, y de ahí no pasa. Antes fueron
+    # «lleva 4, paga 3» cíclica y la escalera ESC con el 30% del brazalete.
+    promo_txt = saca(r'const PROMO=(\{.*?\});', motor, 'la promoción PROMO', 'tienda.js')
+    promo = json.loads(re.sub(r'(\w+):', r'"\1":', promo_txt))
+    t = promo.get('tramos') if isinstance(promo, dict) else None
+    if (set(promo) != {'tramos'} or not t or any(len(x) != 2 for x in t)
+            or [x[0] for x in t] != sorted({x[0] for x in t}) or [x[1] for x in t] != sorted({x[1] for x in t})
+            or any(not 0 < x[1] < x[0] for x in t)):
+        sys.exit('PROMO en tienda.js no tiene la forma {tramos:[[piezas,gratis],…]} creciente: %r' % promo)
 
     libre = int(saca(r'LIBRE\s*=\s*(\d+)', motor, 'el umbral de envío gratis LIBRE', 'tienda.js'))
     solo_ant = saca(r'const LIBRE_SOLO_ANTICIPADO=(true|false);', motor,
@@ -77,11 +84,6 @@ def main():
         for k, v in (par.split(':') for par in envio_txt.split(','))
     }
 
-    # El 30% del brazalete y el mínimo de charms que lo activa.
-    desc_b = saca(r'const descB=\(base&&nC>=(\d+)\)\?brutoB\*\.(\d+):0', motor,
-                  'el descuento del brazalete', 'tienda.js')
-    min_charms = int(desc_b)
-    pct_b = float('.' + re.search(r'brutoB\*\.(\d+)', motor).group(1))
 
     # data-g en cada tarjeta lleva la categoría; .pc--top marca los destacados.
     grupos = {
@@ -152,9 +154,7 @@ def main():
         # para armar la URL que el bot de WhatsApp le manda a la clienta.
         'fotos': fotos,
         'reglas': {
-            'escalaCharms': esc,
-            'descuentoBrazalete': pct_b,
-            'minCharmsParaDescuento': min_charms,
+            'promo': promo,
             'envioGratisDesde': libre,
             'envioGratisSoloAnticipado': solo_ant,
             'envio': envio,
@@ -177,7 +177,7 @@ def main():
 
     n = len(catalogo['precios'])
     print(f'{DESTINO.relative_to(RAIZ)}: {n} piezas con precio y foto')
-    print(f'  escala de charms {esc} · brazalete −{pct_b:.0%} desde {min_charms} charms')
+    print('  promo: ' + ' · '.join(f'{p} piezas → {g} gratis' for p, g in promo['tramos']) + ' (las más baratas; tope)')
     tarifas = ' · '.join(f'{k} ${v:,}'.replace(',', '.') for k, v in envio.items())
     print(f'  envío {tarifas}'
           + f' · gratis desde ${libre:,}'.replace(',', '.'))

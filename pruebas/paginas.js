@@ -145,7 +145,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
-  const { calcular } = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
 
   const b = await chromium.launch();
   for (const [tipo, id] of tipos) {
@@ -200,41 +199,54 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
     if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}.png`), fullPage: false });
 
-    // Los paquetes que se publican son los que cobra el servidor.
-    const pq = await p.$$eval('.pq [data-total]', bs => bs.map(x => +x.dataset.total));
-    if (cat.pulseras.includes(id)) {
-      const nota = await p.textContent('.pq-nota');
-      const refP = +((nota.match(/charms de \$([\d.]+)/) || [])[1] || '0').replace(/\./g, '');
-      const ref = Object.keys(cat.precios).find(i => cat.precios[i] === refP && !cat.pulseras.includes(i));
-      const esperado = [1, 2, 3, 4].map(n => calcular({ base: { id, talla: null }, charms: Array(n).fill(ref), pago: 'anticipado' }).total);
-      ok(ref && JSON.stringify(pq) === JSON.stringify(esperado), `paquetes brazalete + 1–4 charms = calcular() (${pq.join(' · ')})`);
-    } else if (hay(id)) {
-      const esperado = [1, 2, 3, 4].map(n => calcular({ base: null, charms: Array(n).fill(id), pago: 'anticipado' }).total);
-      ok(JSON.stringify(pq) === JSON.stringify(esperado), `paquetes 1–4 = calcular() (${pq.join(' · ')})`);
-      await p.check('.pq input[value="3"]');
-      const mas = await p.evaluate(() => ({ v: !document.getElementById('pq-mas').hidden, f: document.getElementById('pq-faltan').textContent,
+    /* La promo en un solo recuadro junto al precio (pedido del
+       propietario, 2026-10-02): ni la cuadrícula de paquetes ni porcentajes. La
+       regla que dice es la de catalogo.json, que es con la que se cobra. */
+    if (hay(id)) {
+      const [p1, g1] = cat.reglas.promo.tramos[0];
+      const caja = await p.evaluate(() => { const c = document.querySelector('#pp-compra .promo-caja');
+        return c ? { t: c.textContent.replace(/\s+/g, ' '), antesDeBotones: !!(c.compareDocumentPosition(document.querySelector('#pp-compra .pp-cta')) & 4) } : null; });
+      ok(caja && new RegExp(`Paga ${p1 - g1} y llévate ${g1}`).test(caja.t) && /menor valor/.test(caja.t) && caja.antesDeBotones,
+        `recuadro «paga ${p1 - g1}, lleva ${g1} gratis» junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
+      ok(!(await p.$('.pq, .pq-o')), 'sin la cuadrícula de paquetes');
+    }
+    if (!cat.pulseras.includes(id) && hay(id)) {
+      const mas = await p.evaluate(() => ({ v: !!document.getElementById('pq-mas') && !document.getElementById('pq-mas').hidden,
         n: document.querySelectorAll('#pq-mas [data-add]').length }));
-      ok(mas.v && mas.f === '2 charms' && mas.n > 0, `al elegir 3 se abre «completa tu paquete: elige ${mas.f} más» con ${mas.n} opciones`);
+      ok(mas.v && mas.n > 0, `«Completa tu set» a la vista, con ${mas.n} piezas para sumar sin salir de la página`);
       const dock0 = { n: (await p.textContent('#dock-n')).trim(), b: (await p.textContent('#dock-send')).trim() };
       ok(dock0.n === (await p.evaluate(() => document.querySelector('.pc--pp .pc-name').textContent)).trim() && dock0.b === 'Agregar',
         `con el carrito vacío la barra fija ofrece «${dock0.b}» esta pieza`);
     }
 
     if (conDatos) {
-      const r = await p.evaluate(() => ({ top: document.getElementById('pp-estrellas').hidden ? '' : document.getElementById('pp-estrellas').textContent,
-        items: document.querySelectorAll('#rp-lista .rp-it').length, txt: document.getElementById('rp-lista').textContent,
-        html: document.getElementById('rp-lista').innerHTML, vend: document.getElementById('pp-vendidas').textContent }));
-      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2, `estrellas con el promedio y conteo reales («${r.top.trim()}»)`);
+      /* Desde el 2026-10-02 la ficha tiene una sola sección de reseñas, el
+         carrusel «Lo que dicen nuestras clientas» (#tst-rail): las tres fijas
+         y, detrás, todas las de la tienda —con foto primero, las de solo
+         texto después—, con el formulario debajo. Ya no está la lista
+         «Todas las reseñas de la tienda». */
+      const r = await p.evaluate(() => {
+        const nuevas = [...document.querySelectorAll('#tst-rail .tst')].slice(3);
+        return { top: document.getElementById('pp-estrellas').hidden ? '' : document.getElementById('pp-estrellas').textContent,
+          href: document.getElementById('pp-estrellas').getAttribute('href'),
+          items: nuevas.length, txt: nuevas.map(n => n.textContent).join(' '), html: nuevas.map(n => n.innerHTML).join(''),
+          orden: nuevas.map(n => n.classList.contains('tst--txt') ? 'texto' : 'foto').join(','),
+          lista: !!document.getElementById('rp-lista') || !!document.getElementById('resenas-pieza'),
+          form: !!document.querySelector('#reseñas #rp-form'), vend: document.getElementById('pp-vendidas').textContent };
+      });
+      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2 && r.href === '#reseñas', `estrellas con el promedio y conteo reales («${r.top.trim()}»), que llevan al carrusel`);
+      ok(r.orden === 'foto,texto', `las dos reseñas en el carrusel, la de foto primero (${r.orden})`);
+      ok(!r.lista && r.form, 'una sola sección de reseñas, con el formulario debajo del carrusel');
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
       ok((r.html.match(/<img /g) || []).length === 1 && r.html.includes('/resenas?medio=hulk') && !/javascript:|otro\.sitio/.test(r.html),
         'las fotos de la reseña salen, y solo las servidas por la propia tienda');
       // Tocar la foto la amplía en el visor de la página; antes era un enlace
       // a otra pestaña, y algunos celulares la descargaban (2026-09-27).
       const url0 = p.url();
-      await p.evaluate(() => document.querySelector('#rp-lista .rp-foto').click());
+      await p.evaluate(() => document.querySelector('#tst-rail .rp-foto').click());
       await p.waitForTimeout(200);
       const lb = await p.evaluate(() => ({ on: document.getElementById('lb').classList.contains('is-on'),
-        src: document.getElementById('lb-img').getAttribute('src') || '', enlaces: document.querySelectorAll('#rp-lista a[href*="medio="]').length }));
+        src: document.getElementById('lb-img').getAttribute('src') || '', enlaces: document.querySelectorAll('#tst-rail a[href*="medio="]').length }));
       ok(lb.on && lb.src.includes('medio=hulk') && p.url() === url0 && !lb.enlaces, 'tocar la foto de una reseña la amplía en la misma página, sin enlace que la descargue');
       await p.keyboard.press('Escape');
       ok((r.html.match(/Compra verificada/g) || []).length === 1, 'solo la reseña con pedido lleva «Compra verificada»');
@@ -358,7 +370,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 
     const charm = tipos.find(t => t[0] === 'charm con unidades')[1];
     await p.goto(BASE + '/' + archivoDe(charm), { waitUntil: 'networkidle' });
-    await p.check('.pq input[value="2"]');
     const tabs = await p.$$eval('.vit-tab', x => x.map(t => t.textContent));
     ok(tabs[0] === 'Relacionados' && grupos.every(g => tabs.includes(g)) && tabs.includes('Iniciales') && tabs.includes('Brazaletes'),
       `pestañas: ${tabs.join(' · ')}`);
@@ -615,7 +626,6 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       return { id, f, misma: p.url() === antes };
     };
     await p.goto(BASE + '/' + archivoDe('hulk'), { waitUntil: 'networkidle' });
-    await p.check('.pq input[value="2"]');
     let r = await tocarVit('.vit .vit-it');
     ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible && r.f.pag === 'producto-' + encodeURIComponent(r.id) + '.html',
       `en la ficha de Hulk, tocar «${r.f.n}» en el carrusel abre su ficha con foto y «Ver la página completa» (${r.f.pag})`);
@@ -625,14 +635,60 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(r.misma && r.f.abierta && r.f.foto && r.f.pagVisible, `en kits, el carrusel del kit abre la ficha de «${r.f.n}»`);
     const k = await p.evaluate(() => ({ primero: document.querySelector('.kit').id,
       piezas: document.querySelector('.kit .kit-paso:last-child').dataset.kitPiezas,
-      bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#rp-lista .rp-it').length,
+      bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#tst-rail .tst').length - 3, lista: !!document.getElementById('rp-lista'),
       formulario: !!document.getElementById('rp-form'), videos: document.querySelectorAll('.ugc-v').length }));
     ok(k.primero === 'kit-luz-y-suenos' && k.piezas === 'pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida',
       `el Kit Luz y Sueños sale primero, con sus 5 piezas (${k.piezas})`);
-    ok(k.bloques === 4 && k.resenas === 1 && !k.formulario && k.videos === 3,
-      `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda (sin formulario) y 3 videos de clientas`);
+    ok(k.bloques === 4 && k.resenas === 1 && !k.lista && !k.formulario && k.videos === 3,
+      `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda en el carrusel (sin lista aparte ni formulario) y 3 videos de clientas`);
     ok(!errs.length, 'consola limpia' + lista(errs));
     await ctx11.close();
+  }
+
+  // ── 12 · Contraste WCAG AA de los textos (pedido del propietario, 2026-09-28) ──
+  // Se mide lo que se VE: color contra el fondo real, con el carrito abierto
+  // (fondo oscuro: ahí un gris oscuro desaparece, y ya pasó). Quedan fuera el
+  // texto sobre foto (no se puede medir), lo invisible (avisos rotativos en
+  // espera) y los botones desactivados, que WCAG exime.
+  console.log('12 · Contraste de los textos (WCAG AA)');
+  {
+    const ctx12 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await rutasFalsas(ctx12);
+    await ctx12.addInitScript(() => localStorage.setItem('zephora.carrito.v1', JSON.stringify(
+      { v: 1, base: { id: 'pulsera-avengers', talla: '18' }, charms: ['mickey-mouse', 'stitch'], pago: 'contraentrega', cuando: Date.now() })));
+    const p = await ctx12.newPage();
+    for (const ruta of ['/index.html', '/' + archivoDe('mickey-mouse'), '/kits.html', '/checkout.html']) {
+      await p.goto(BASE + ruta, { waitUntil: 'networkidle' });
+      await p.waitForTimeout(400);
+      await p.evaluate(() => { const d = document.getElementById('dock-open'); if (d) d.click(); });
+      await p.waitForTimeout(400);
+      const fallas = await p.evaluate(() => {
+        const rgb = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const v = m[1].split(',').map(parseFloat); return { r: v[0], g: v[1], b: v[2], a: v[3] === undefined ? 1 : v[3] }; };
+        const lum = c => { const f = x => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+        const mezcla = (a, f) => ({ r: a.r * a.a + f.r * (1 - a.a), g: a.g * a.a + f.g * (1 - a.a), b: a.b * a.a + f.b * (1 - a.a), a: 1 });
+        const fondo = el => { const capas = []; for (let e = el; e; e = e.parentElement) { const cs = getComputedStyle(e);
+            if (cs.backgroundImage !== 'none') return null; const c = rgb(cs.backgroundColor); if (c && c.a > 0) { capas.push(c); if (c.a >= 1) break; } }
+          let f = { r: 255, g: 255, b: 255, a: 1 }; for (let i = capas.length - 1; i >= 0; i--) f = mezcla(capas[i], f); return f; };
+        const opac = el => { let o = 1; for (let e = el; e; e = e.parentElement) o *= parseFloat(getComputedStyle(e).opacity); return o; };
+        const out = [], vistos = new Set();
+        const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+        while ((n = w.nextNode())) {
+          const el = n.parentElement; if (!el || vistos.has(el) || n.textContent.trim().length < 2) continue; vistos.add(el);
+          const cs = getComputedStyle(el), rc = el.getBoundingClientRect();
+          if (!rc.width || !rc.height || cs.visibility === 'hidden' || opac(el) < 0.05) continue;
+          if (el.closest('[hidden],script,style,.hbanner,.susc,.lb,[aria-disabled="true"],[disabled]')) continue;
+          const bg = fondo(el); if (!bg) continue;
+          let c = rgb(cs.color); c.a *= opac(el); c = mezcla(c, bg);
+          const L1 = lum(c), L2 = lum(bg), r = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
+          const px = parseFloat(cs.fontSize), grande = px >= 24 || (px >= 18.66 && parseInt(cs.fontWeight, 10) >= 700);
+          if (r < (grande ? 3 : 4.5)) out.push((el.className || el.tagName) + ' ' + r.toFixed(1) + ':1 «' + n.textContent.trim().slice(0, 25) + '»');
+        }
+        return out;
+      });
+      ok(!fallas.length, `${ruta}: ningún texto bajo 4,5:1 (con el carrito abierto)` + lista(fallas));
+    }
+    await p.evaluate(() => localStorage.removeItem('zephora.carrito.v1'));
+    await ctx12.close();
   }
 
   await b.close();

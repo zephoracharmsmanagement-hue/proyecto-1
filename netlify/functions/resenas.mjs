@@ -161,12 +161,17 @@ export default async (req) => {
       const s = almacen();
       const r = s && await s.get(id, { type: 'json' });
       if (!r) return pagina('No encontrada', 'Esa reseña ya no existe.');
+      /* «Rechazar» también sirve para quitar una que ya estaba publicada: el
+         propietario lo usa así (2026-10-02), y «No se publicará» confundía. */
+      const estaba = r.estado;
       r.estado = accion === 'aprobar' ? 'aprobada' : 'rechazada';
       r.moderada = new Date().toISOString();
       await s.setJSON(id, r);
       console.log(JSON.stringify({ evento: 'resena_' + r.estado, producto: r.producto }));
-      return pagina(accion === 'aprobar' ? 'Reseña publicada' : 'Reseña rechazada',
-        accion === 'aprobar' ? 'Ya se ve en todas las páginas de producto (puede tardar un minuto por la caché).' : 'No se publicará.');
+      return pagina(accion === 'aprobar' ? 'Reseña publicada' : (estaba === 'aprobada' ? 'Reseña quitada' : 'Reseña rechazada'),
+        accion === 'aprobar' ? 'Ya se ve en todas las páginas de producto (puede tardar un minuto por la caché).'
+          : (estaba === 'aprobada' ? 'Ya no se ve en la página (puede tardar un minuto por la caché). Si fue un error, el enlace «Publicar» del mismo correo la vuelve a mostrar.'
+            : 'No se publicará.'));
     }
 
     const lista = await aprobadas();

@@ -93,7 +93,9 @@ function leerCliente(c) {
 
   if (cliente.nombre.length < 2) throw new PedidoInvalido('Falta el nombre');
   if (cliente.apellido.length < 2) throw new PedidoInvalido('Falta el apellido');
-  if (cliente.documento.length < 5) throw new PedidoInvalido('Falta el documento');
+  /* El documento dejó de pedirse (decisión del propietario, 2026-10-02: las
+     transportadoras ya no lo exigen y era un campo más donde se caía la
+     compra). Si llega —un enlace viejo, el bot— se guarda; si no, nada. */
   if (!/^3\d{9}$/.test(cliente.celular)) {
     throw new PedidoInvalido('El celular debe tener 10 dígitos y empezar por 3');
   }

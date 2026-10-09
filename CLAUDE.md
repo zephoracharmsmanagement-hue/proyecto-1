@@ -288,12 +288,15 @@ de ocho guiones listos para grabar. El BRIEF dice *cómo elegir la pieza*; ese
 documento dice *qué se graba con ella*. Tres cosas de ahí que cambian decisiones
 y que no estaban escritas en ningún sitio:
 
-- **El tercer dije cuesta $36.560, no $76.000 — menos de la mitad.**
-  `escalaCharms` (15% con tres) y `descuentoBrazalete` (30% a partir de tres) se
-  disparan juntos: sobre Corazón Liso con dijes de $76.000, pulsera + 2 dijes
-  son **$197.840** y + 3 son **$234.400**. Es el argumento de venta más fuerte
-  que la tienda ya tiene programado y **no aparece en ningún guion, historia ni
-  anuncio**.
+- **El tercer dije cuesta $8.000.** Desde el 2026-10-04 la promo es «paga 3,
+  lleva 1 gratis · paga 5, lleva 2 gratis» (`PROMO={tramos:[[4,1],[7,2]]}` en
+  tienda.js → `reglas.promo`): brazalete y charms cuentan igual; con 4 piezas
+  sale gratis la de menor valor, con 7 las dos de menor valor, y no pasa de 2.
+  Sobre Corazón Liso ($78.000) con dijes de $86.000: pulsera + 2 dijes
+  $250.000, + 3 $258.000 (el brazalete sale gratis). (Salen de `calcular()`.)
+  Antes fueron «lleva 4, paga 3» cíclica (2026-10-02) y la escalera
+  `escalaCharms` 8/15/25% con el 30% del brazalete; cualquier guion, anuncio o
+  copia que los nombre promete algo que el checkout no cobra.
 
   > **Corregido el 2026-09-07.** Este párrafo decía $32.600 / $205.200 /
   > $237.800 y afirmaba estar «verificado corriendo `calcular()`». No lo estaba:

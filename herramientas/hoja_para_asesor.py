@@ -224,33 +224,21 @@ def main():
 
     # ── Promociones, con las cifras sacadas de las reglas reales ──
     A(Paragraph('Promociones', H1))
+    # Desde el 2026-10-04: «paga 3, lleva 1 gratis · paga 5, lleva 2 gratis»,
+    # brazalete y charms contando igual, lo gratis es lo de menor valor, y no
+    # pasa de 2.
+    (p1, g1), (p2, g2) = reglas['promo']['tramos'][0], reglas['promo']['tramos'][-1]
     A(Paragraph(
-        'Se aplican solas mientras arma la pulsera en el sitio. No hay códigos '
-        'ni letra pequeña. <b>Los dos descuentos se suman</b>, y ese es el dato '
-        'que más cierra pedidos.', P))
-
-    escala = [[Paragraph('<b>Charms</b>', P), Paragraph('<b>Descuento</b>', P),
-               Paragraph('<b>Sobre qué aplica</b>', P)]]
-    for n, desc in enumerate(reglas['escalaCharms']):
-        if desc == 0:
-            continue
-        etiqueta = f'{n} o más' if n == len(reglas['escalaCharms']) - 1 else str(n)
-        extra = ' — «paga 3 y llévate el cuarto gratis»' if desc >= 0.25 else ''
-        escala.append([Paragraph(etiqueta, P),
-                       Paragraph(f'<b>{round(desc * 100)}%</b>{extra}', P),
-                       Paragraph('El total de charms, no solo el último', P)])
-    A(Table(escala, colWidths=[25 * mm, 60 * mm, 80 * mm], style=TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), SUAVE),
-        ('LINEBELOW', (0, 0), (-1, -1), 0.4, colors.HexColor('#E3D7DB')),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4)])))
-    A(Spacer(1, 6))
+        f'Es <b>una sola</b> y se aplica sola en el carrito del sitio, sin códigos '
+        f'ni letra pequeña: <b>paga {p1 - g1} y llévate {g1} gratis; paga {p2 - g2} y '
+        f'llévate {g2} gratis</b>. Charms y brazaletes cuentan igual como piezas: con '
+        f'{p1} piezas la de <b>menor valor</b> sale gratis, y con {p2} las {g2} de menor '
+        f'valor. Con más piezas siguen siendo {g2}.', P))
     A(Paragraph(
-        f'<b>Y el brazalete baja un {round(reglas["descuentoBrazalete"] * 100)}%</b> '
-        f'llevando {reglas["minCharmsParaDescuento"]} charms o más. A quien duda '
-        'entre dos y tres piezas, contarle que con la tercera sube el descuento '
-        '<i>y</i> además se activa el del brazalete suele cerrar el pedido.', P))
+        'Ya no hay descuento por porcentaje ni descuento aparte del brazalete. El '
+        f'dato que más cierra pedidos: a quien lleva {p1 - 1} piezas, contarle que con '
+        f'una más la de menor valor le sale gratis; y a quien lleva {p2 - 1}, que con '
+        f'una más le salen {g2}.', P))
 
     # ── Pagos y envíos ──
     A(Paragraph('Pagos y envíos', H1))

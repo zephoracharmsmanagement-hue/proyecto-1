@@ -70,16 +70,20 @@ const U = BASE + '/index.html';
     `\n  total: ${destacados + revelados}\n  rótulo actual del botón: "${rotulo.trim()}"`);
 
   // ---- 4. Categorías ----
-  /* La primera tarjeta que todavía filtra. No se clava el nombre: una
-     categoría que gana página propia pierde su data-cat —Marvel el
-     2026-09-19— y esta prueba se quedaba esperando un elemento que ya no
-     existe. */
-  const cat = await p.getAttribute('.cat[data-cat]', 'data-cat');
-  await p.click(`.cat[data-cat="${cat}"]`);
+  /* Las tarjetas grandes de «Compra por categoría» se quitaron de la portada
+     el 2026-10-02 (pedido del propietario); las categorías siguen en el menú
+     de la cabecera, con el mismo data-cat y el mismo manejador. Se prueba la
+     primera que todavía filtra: no se clava el nombre, porque una categoría
+     que gana página propia pierde su data-cat —Marvel el 2026-09-19—. El clic
+     va por evaluate porque el menú vive plegado en el celular. */
+  const sinTarjetas = (await p.locator('#categorias, .cats').count()) === 0;
+  const cat = await p.getAttribute('#cat-menu [data-cat]', 'data-cat');
+  await p.evaluate(c => document.querySelector(`#cat-menu [data-cat="${c}"]`).click(), cat);
   await p.waitForTimeout(400);
   const catOn = await p.locator(`#filters .fbtn[data-f="${cat}"].is-on`).count();
   const cuentaCat = await p.locator('#count').textContent();
-  out.push(`\nTarjeta de categoría "${cat}"\n  filtro aplicado: ${catOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaCat}"`);
+  out.push(`\nCategoría "${cat}" desde el menú de la cabecera\n  filtro aplicado: ${catOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaCat}"`
+    + `\n  sin las tarjetas de «Compra por categoría» en la portada: ${sinTarjetas ? 'sí ✓' : 'NO ✗'}`);
 
   // ---- 5. Eventos del pixel en clic a WhatsApp ----
   await p.evaluate(() => { window.__ev = []; window.fbq = (a, b, c) => window.__ev.push([a, b, c]); });
@@ -141,7 +145,7 @@ const U = BASE + '/index.html';
   out.push('\nVenta cruzada y envío gratis en la barra fija'
     + `\n  oculto antes de elegir brazalete: ${xsAntes === false ? 'sí ✓' : 'NO ✗ (sale vacío)'}`
     + `\n  aparece al fijar el brazalete: ${xsBase ? 'sí ✓' : 'NO ✗'}`
-    + `\n  y nombra el 30% del brazalete: ${/30\s*%/.test(xsTxt) ? 'sí ✓' : 'NO ✗'} — "${xsTxt}"`
+    + `\n  y dice cuántas piezas faltan para la GRATIS: ${/Suma 3 piezas más.*GRATIS/.test(xsTxt) ? 'sí ✓' : 'NO ✗'} — "${xsTxt}"`
     + `\n  la barra dice cuánto falta para envío gratis: `
     + `${/para envío gratis|envío gratis/.test(dockBase) ? 'sí ✓' : 'NO ✗'} — "${dockBase}"`
     + `\n  se retira con ${puestos} charms puestos: `
@@ -186,26 +190,204 @@ const U = BASE + '/index.html';
   // Desde el 2026-09-26 la tarjeta de la portada lleva a la página de la
   // pieza, y la ficha es la galería ampliada de esa página: se abre tocando
   // su foto.
+  /* Con reintento: el servidor local a veces sirve la página a medias y el
+     clic cae antes de que tienda.js esté listo (ya pasó: «0 láminas» una vez
+     de cada varias corridas, sin nada roto en la página). */
   const galeriaDe = async id => {
-    await p.goto(BASE + '/producto-' + encodeURIComponent(id) + '.html', { waitUntil: 'networkidle' });
-    await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
-    await p.waitForFunction(() => !document.getElementById('ficha').hidden, null, { timeout: 5000 }).catch(() => {});
+    for (let intento = 0; intento < 3; intento++) {
+      await p.goto(BASE + '/producto-' + encodeURIComponent(id) + '.html', { waitUntil: 'networkidle' });
+      await p.waitForSelector('.pc--pp .pc-img', { timeout: 5000 }).catch(() => {});
+      await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
+      const ok = await p.waitForFunction(() => !document.getElementById('ficha').hidden
+        && document.querySelector('#fx-ph img, #fx-ph .nofoto-m'), null, { timeout: 5000 }).then(() => true).catch(() => false);
+      if (ok) break;
+    }
     await p.waitForTimeout(200);
   };
+  /* Los videos de cada joya (2026-10-01): la lista VIDEOS de tienda.js tiene
+     que ser exactamente la de herramientas/videos_joyas.json —de ahí salen los
+     archivos subidos—, y cada portada assets/vid-<id>.webp tiene que existir:
+     sin ella la lámina del video queda negra hasta que llega el primer cuadro. */
+  const conVideo = await p.evaluate(async () => {
+    const src = await fetch('tienda.js').then(r => r.text());
+    const m = src.match(/const VIDEOS = new Set\(\(([\s\S]*?)\)\.split/);
+    return m ? m[1].replace(/'\s*\+\s*'/g, '').replace(/'/g, '').trim().split(/\s+/) : null;
+  });
+  {
+    const json = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'herramientas', 'videos_joyas.json'), 'utf8'));
+    const ids = Object.keys(json).filter(k => !k.startsWith('_')).sort();
+    const igual = conVideo && JSON.stringify([...conVideo].sort()) === JSON.stringify(ids);
+    const sinPortada = [];
+    for (const id of conVideo || []) {
+      const r = await p.evaluate(u => fetch(u, { method: 'HEAD' }).then(r => r.status).catch(() => 0),
+        BASE + '/assets/vid-' + id + '.webp');
+      if (r !== 200) sinPortada.push(id);
+    }
+    out.push(`  VIDEOS de tienda.js = videos_joyas.json: ${igual ? 'sí ✓ (' + ids.length + ' joyas)' : 'NO ✗'}`
+      + `\n  cada video tiene su portada: ${sinPortada.length === 0 ? 'sí ✓' : 'NO ✗ — ' + sinPortada.join(', ')}`);
+  }
+  const tieneVideo = id => !!(conVideo && conVideo.includes(id));
+
   const conVarias = declaradas ? Object.keys(declaradas)[0] : null;
   if (conVarias) {
     await galeriaDe(conVarias);
     const n = await p.locator('#fx-gal figure').count();
     const minis = await p.locator('#fx-mini button').count();
-    out.push(`  «${conVarias}» abre con ${n} fotos y ${minis} miniaturas: `
-      + `${n === declaradas[conVarias].length + 1 && minis === n ? 'sí ✓' : 'NO ✗'}`);
+    const esperado = declaradas[conVarias].length + 1 + (tieneVideo(conVarias) ? 1 : 0);
+    out.push(`  «${conVarias}» abre con ${n} láminas y ${minis} miniaturas: `
+      + `${n === esperado && minis === n ? 'sí ✓' : 'NO ✗'}`);
   }
+
+  /* Una pieza con video y sin fotos extra: foto + video, el video segundo, y
+     «▶ Video» en su página la abre ya en él. El video en sí no se reproduce
+     aquí (el servidor local no tiene /media); eso se mira en la vista previa. */
+  const soloVideo = (conVideo || []).find(i => !(declaradas && i in declaradas) && !/^letra-|^pulsera-/.test(i));
+  if (soloVideo) {
+    await galeriaDe(soloVideo);
+    const g = await p.evaluate(id => {
+      const figs = [...document.querySelectorAll('#fx-gal figure')];
+      const v = document.querySelector('#fx-gal video');
+      return { n: figs.length, segundo: figs[1] && figs[1].classList.contains('fx-vid'),
+        src: v && v.querySelector('source').getAttribute('src'), poster: v && v.getAttribute('poster'),
+        miniVideo: !!document.querySelector('#fx-mini [data-video]') };
+    }, soloVideo);
+    out.push(`  «${soloVideo}» abre con foto y video, el video segundo: `
+      + `${g.n === 2 && g.segundo && g.miniVideo && g.src === 'media/joya-' + soloVideo + '-v3.mp4' && /vid-/.test(g.poster || '') ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(g)}`);
+    await p.evaluate(() => document.getElementById('fx-x').click());
+    const pausado = await p.evaluate(() => { const v = document.querySelector('#fx-ph video'); return !v || v.paused; });
+    out.push(`  al cerrar la ficha el video queda en pausa: ${pausado ? 'sí ✓' : 'NO ✗'}`);
+
+    /* La misma galería en la propia página (2026-10-01): se desliza ahí, sin
+       abrir nada; la miniatura con ▶ lleva al video, y una foto abre la ficha
+       en esa misma lámina. Todo en 4:5. */
+    const pg = await p.evaluate(async () => {
+      const ph = document.querySelector('.pc--pp .pc-img');
+      const gal = ph.querySelector('.fx-gal'), mini = document.querySelector('.pc--pp .pp-mini');
+      if (!gal || !mini) return 'sin galería en la página';
+      const r = ph.getBoundingClientRect();
+      const vertical = Math.abs(r.height / r.width - 1.25) < 0.02;
+      const sello = !!ph.querySelector('.pc-mark');
+      /* El desliz es animado: se espera a que la tira llegue, hasta 3 s. */
+      const llegar = async i => { for (let t = 0; t < 30; t++) {
+        if (Math.abs(gal.scrollLeft - i * gal.clientWidth) < 2) return true;
+        await new Promise(res => setTimeout(res, 100)); } return false; };
+      mini.querySelector('[data-video]').click();
+      const enVideo = await llegar(1);
+      mini.querySelector('[data-i="0"]').click();
+      await llegar(0);
+      gal.querySelector('figure img').click();
+      await new Promise(res => setTimeout(res, 300));
+      return { vertical, sello, enVideo, ficha: !document.getElementById('ficha').hidden };
+    });
+    out.push(`  en su página la galería se desliza ahí mismo (4:5, con sello, ▶ lleva al video, la foto abre la ficha): `
+      + `${pg && pg.vertical && pg.sello && pg.enVideo && pg.ficha ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(pg)}`);
+    await p.evaluate(() => document.getElementById('fx-x').click());
+  }
+
+  /* Fotos de 880 px para las galerías: cada nombre de FOTOS_HD tiene su
+     archivo en assets/hd/. Un nombre sin archivo deja la lámina en blanco. */
+  {
+    const hd = await p.evaluate(async () => {
+      const src = await fetch('tienda.js').then(r => r.text());
+      const m = src.match(/const FOTOS_HD = new Set\(\(([\s\S]*?)\)\.split/);
+      return m ? m[1].replace(/'\s*\+\s*'/g, '').replace(/'/g, '').trim().split(/\s+/) : null;
+    });
+    const faltan = [];
+    for (const f of hd || []) {
+      const r = await p.evaluate(u => fetch(u, { method: 'HEAD' }).then(r => r.status).catch(() => 0), BASE + '/assets/hd/' + f + '.webp');
+      if (r !== 200) faltan.push(f);
+    }
+    out.push(`  fotos de 880 px declaradas y presentes: ${hd && hd.length && !faltan.length ? 'sí ✓ (' + hd.length + ')' : 'NO ✗ ' + faltan.join(', ')}`);
+  }
+  /* Deslizar con el dedo empezando SOBRE la galería (2026-10-02). La galería
+     tenía `touch-action:pan-x`: el celular solo aceptaba ahí el desliz de lado,
+     y como en la página de la pieza ocupa media pantalla, la página «no bajaba»
+     (lo reportó el propietario). Lo mismo en la ficha. Se prueba con toques de
+     verdad (CDP), no con scrollTo, que no pasa por touch-action. */
+  if (soloVideo) {
+    const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const t = await ctx.newPage(); const cdp = await ctx.newCDPSession(t);
+    const dedo = async (x, y, dx, dy) => {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+      for (let i = 1; i <= 12; i++) {
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx * i / 12, y: y + dy * i / 12 }] });
+        await new Promise(r => setTimeout(r, 16));
+      }
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await t.waitForTimeout(900);
+    };
+    await t.goto(BASE + '/producto-' + encodeURIComponent(soloVideo) + '.html', { waitUntil: 'networkidle' });
+    await t.waitForSelector('.pp-gal .fx-gal', { timeout: 5000 }).catch(() => {});
+    const c = await t.evaluate(() => { const r = document.querySelector('.pp-gal .fx-gal').getBoundingClientRect();
+      return { x: r.left + r.width / 2, y: r.top + r.height / 2 + 60 }; });
+    let y0 = await t.evaluate(() => scrollY);
+    await dedo(c.x, c.y, 0, -250);
+    const pagina = (await t.evaluate(() => scrollY)) - y0;
+    await t.evaluate(() => scrollTo(0, 0)); await t.waitForTimeout(300);
+    await dedo(c.x + 120, c.y, -240, 0);
+    const lado = await t.evaluate(() => { const g = document.querySelector('.pp-gal .fx-gal'); return Math.round(g.scrollLeft / g.clientWidth); });
+    await t.evaluate(() => { document.querySelector('.pp-gal .fx-gal').scrollTo({ left: 0, behavior: 'instant' });
+      document.querySelector('.pp-gal figure img').click(); });
+    await t.waitForTimeout(600);
+    const f = await t.evaluate(() => { const r = document.getElementById('fx-ph').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    const s0 = await t.evaluate(() => document.querySelector('#ficha .fx-box').scrollTop);
+    await dedo(f.x, f.y, 0, -250);
+    const ficha = (await t.evaluate(() => document.querySelector('#ficha .fx-box').scrollTop)) - s0;
+    out.push(`  con el dedo sobre la galería la página baja (${pagina} px), la ficha baja (${ficha} px) y de lado cambia de lámina: `
+      + `${pagina > 100 && ficha > 100 && lado === 1 ? 'sí ✓' : 'NO ✗'}`);
+    await ctx.close();
+
+    /* Con la galería en 4:5, el nombre y el precio quedan al pie de la
+       primera pantalla, justo donde flota el botón de regalo (sale a quien
+       cerró la ventana de suscripción). No puede tapar el precio, y vuelve al
+       bajar. */
+    const ctx2 = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await ctx2.addInitScript(() => { localStorage.setItem('zephora.susc.cerrado', String(Date.now())); });
+    const q = await ctx2.newPage();
+    await q.goto(BASE + '/producto-' + encodeURIComponent(soloVideo) + '.html', { waitUntil: 'networkidle' });
+    const tapa = await q.evaluate(async () => {
+      await new Promise(r => setTimeout(r, 400));
+      const f = document.querySelector('.susc-fab'), pr = document.querySelector('.pc--pp .pc-price');
+      if (!f) return 'sin botón';
+      const ve = () => !f.hidden && getComputedStyle(f).visibility !== 'hidden' && getComputedStyle(f).display !== 'none';
+      const a = f.getBoundingClientRect(), c = pr.getBoundingClientRect();
+      const cruza = !(a.right < c.left || c.right < a.left || a.bottom < c.top || c.bottom < a.top);
+      const tapa = ve() && cruza && c.top < innerHeight;
+      scrollTo(0, 1600); await new Promise(r => setTimeout(r, 500));
+      return { tapa, vuelve: ve() };
+    });
+    out.push(`  el botón de regalo no tapa el precio en la primera pantalla y vuelve al bajar: `
+      + `${tapa !== 'sin botón' && !tapa.tapa && tapa.vuelve ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(tapa)}`);
+    await ctx2.close();
+
+    /* Abrir «Escribir una reseña» en el celular no puede ensanchar la página
+       (reporte del propietario, 2026-10-02): la fila de dos columnas del
+       formulario no encogía por debajo de lo que miden los campos de archivo
+       («Seleccionar archivos · ningún archivo seleccionado») y la página
+       pasaba de 390 a 763 px; el celular la achicaba y los campos se salían.
+       isMobile: así es como el teléfono la achica, no solo desborda. */
+    const ctx3 = await b.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    const w = await ctx3.newPage();
+    await w.goto(BASE + '/producto-' + encodeURIComponent(soloVideo) + '.html', { waitUntil: 'networkidle' });
+    const ancho = await w.evaluate(async () => {
+      const s = document.querySelector('.rp-escribir summary');
+      if (!s) return 'sin formulario';
+      s.click(); await new Promise(r => setTimeout(r, 400));
+      const f = document.querySelector('.rp-form'), r = f.getBoundingClientRect();
+      return { pagina: Math.max(document.documentElement.scrollWidth, innerWidth), derecha: Math.round(r.right),
+        campos: [...f.querySelectorAll('input:not([type=radio]),textarea,button')].every(e => e.getBoundingClientRect().right <= 391) };
+    });
+    out.push(`  abrir «Escribir una reseña» en el celular no ensancha la página y los campos caben: `
+      + `${ancho.pagina <= 390 && ancho.derecha <= 390 && ancho.campos ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(ancho)}`);
+    await ctx3.close();
+  }
+
   await p.goto(U, { waitUntil: 'networkidle' });
-  const sinExtra = await p.evaluate(decl => {
+  const sinExtra = await p.evaluate(([decl, vids]) => {
     const c = [...document.querySelectorAll('#charms .pc[data-id]')]
-      .map(e => e.dataset.id).find(i => !(i in decl) && i !== 'letras');
+      .map(e => e.dataset.id).find(i => !(i in decl) && !vids.includes(i) && i !== 'letras');
     return c || null;
-  }, declaradas || {});
+  }, [declaradas || {}, conVideo || []]);
   if (sinExtra) {
     await galeriaDe(sinExtra);
     const galería = await p.locator('#fx-gal').count();
@@ -258,6 +440,101 @@ const U = BASE + '/index.html';
     await p.waitForTimeout(120);
     const des = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     out.push(`  scroll horizontal a ${w}px: ${des <= 0 ? 'no ✓' : des + 'px ✗'}`);
+  }
+
+  /* Las políticas dicen lo mismo que cobra la tienda (2026-10-02: la de envíos
+     seguía en $15.000 / $25.000 / gratis desde $180.000 cuando la tienda ya
+     cobraba gratis sin mínimo / $20.000). Las cifras salen de catalogo.json, que
+     es lo que usa el checkout, así que un cambio de tarifa que no pase por las
+     páginas legales se ve aquí. */
+  {
+    const R = require(require('path').join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
+    const pesos = n => '$' + Number(n).toLocaleString('es-CO').replace(/,/g, '.');
+    const textoDe = async u => { await p.goto(BASE + '/' + u, { waitUntil: 'domcontentloaded' });
+      return p.evaluate(() => document.querySelector('main, body').textContent.replace(/\s+/g, ' ')); };
+    const env = await textoDe('envios-y-devoluciones.html'), faq = await textoDe('preguntas-frecuentes.html');
+    const gratisSinMinimo = R.envioGratisDesde <= 0 && R.envioGratisSoloAnticipado;
+    const malas = [];
+    for (const [nombre, t] of [['envíos', env], ['preguntas', faq]]) {
+      if (!t.includes(pesos(R.envio.contraentrega))) malas.push(`${nombre}: falta la contraentrega ${pesos(R.envio.contraentrega)}`);
+      if (gratisSinMinimo && !/gratis[^.]*sin monto m[ií]nimo/i.test(t)) malas.push(`${nombre}: no dice «gratis sin monto mínimo»`);
+      for (const viejo of ['$25.000', '$180.000']) if (t.includes(viejo) && !Object.values(R.envio).map(pesos).includes(viejo)) malas.push(`${nombre}: aún dice ${viejo}`);
+    }
+    out.push(`  las políticas dicen las tarifas de envío que cobra la tienda: ${malas.length ? 'NO ✗ ' + malas.join(' · ') : 'sí ✓'}`);
+    /* Y se leen con margen: un `padding` abreviado en .doc dejaba el texto
+       pegado al borde del celular (visto el 2026-10-02). */
+    await p.setViewportSize({ width: 390, height: 844 });
+    await p.goto(BASE + '/envios-y-devoluciones.html', { waitUntil: 'domcontentloaded' });
+    const margen = await p.evaluate(() => Math.round(document.querySelector('.doc h1').getBoundingClientRect().left));
+    out.push(`  las páginas legales tienen margen a los lados en el celular (${margen} px): ${margen >= 12 ? 'sí ✓' : 'NO ✗'}`);
+  }
+
+  // ---- Portada del 2026-10-02: lo más vendido primero y reseñas en carrusel ----
+  /* Ventas y reseñas simuladas: la prueba no puede depender de lo que se haya
+     vendido hoy. Un brazalete y un charm del catálogo completo «vendieron», y
+     tienen que abrir sus carruseles; las reseñas con foto se suman al de
+     reseñas, todas con la misma forma, y las de solo texto no. */
+  {
+    const q = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+    q.on('pageerror', e => errores.push('portada: ' + e.message));
+    const brz = 'pulsera-trebol-verde', ch = 'iron-man';
+    await q.route(/\/\.netlify\/functions\/mas-vendidos/, r => r.fulfill({ json: { ventasRegistradas: 5, vendidas: [{ id: ch, unidades: 5 }, { id: brz, unidades: 3 }], disponibles: {} } }));
+    await q.route(/\/\.netlify\/functions\/resenas/, r => r.fulfill({ json: { total: 3, promedio: 4.7, resenas: [
+      { estrellas: 5, texto: 'Con foto', nombre: 'Ana', ciudad: 'Cali', verificada: false, fotos: ['/resenas?medio=x%2Fy%2Ff1.jpg'], video: null },
+      { estrellas: 4, texto: 'Solo texto', nombre: 'Bea', ciudad: '', verificada: false, fotos: [], video: null },
+      { estrellas: 5, texto: '<img src=x onerror=alert(1)>', nombre: 'Eva', ciudad: '', verificada: false, fotos: ['/resenas?medio=a%2Fb%2Ff1.jpg'], video: null }] } }));
+    await q.route(/\/resenas\?medio=/, r => r.fulfill({ status: 404, body: '' }));
+    await q.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
+    await q.waitForTimeout(500);
+    const r = await q.evaluate(([brz, ch]) => {
+      const nivel = document.querySelector(`#brazaletes .pc[data-id="${brz}"]`).closest('.rail');
+      return {
+        brz: nivel.querySelector('.pc').dataset.id,
+        top: document.querySelector('#rail-top .pc').dataset.id,
+        /* El primero en el orden y también a la vista: al insertar por delante,
+           Chrome corría el carrusel para seguir mostrando el que ya se veía. */
+        aLaVista: [...document.querySelectorAll('#rail-top .pc')].find(c => c.getBoundingClientRect().right > 0).dataset.id,
+        unaVez: document.querySelectorAll(`.pc[data-id="${ch}"]`).length,
+        tarjetas: document.querySelectorAll('#tst-rail .tst').length,
+        /* Todas las de la tienda (2026-10-02): con foto primero; la de solo
+           texto, al final y con el recuadro de comillas en vez de foto. */
+        formas: [...document.querySelectorAll('#tst-rail .tst')].map(t => t.querySelector('img') ? 'f' : (t.querySelector('.tst-ph--txt') ? 't' : '?')).join(''),
+        soloTextoAlFinal: [...document.querySelectorAll('#tst-rail .tst')].pop().textContent.includes('Solo texto'),
+        wa: document.querySelectorAll('.wa-float').length,
+        contacto: (document.querySelector('#menu-panel .menu-contacto') || {}).textContent || '',
+        nivelesVisibles: [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length,
+        verMas: (document.getElementById('b-mas') || {}).textContent || '',
+        topForma: getComputedStyle(document.getElementById('rail-top')).display + ' ' + (document.getElementById('rail-top').scrollWidth <= document.getElementById('rail-top').clientWidth + 1 ? 'sin-deslizar' : 'desliza'),
+        inyectado: !!document.querySelector('#tst-rail img[src="x"]'),
+        puntos: document.querySelectorAll('#tst-pts i').length,
+        prom: document.getElementById('tst-prom').hidden ? '' : document.getElementById('tst-prom').textContent,
+        ancho: document.documentElement.scrollWidth,
+      };
+    }, [brz, ch]);
+    out.push('\nPortada: lo más vendido primero y reseñas en carrusel'
+      + `\n  el brazalete más vendido abre su nivel: ${r.brz === brz ? 'sí ✓' : 'NO ✗ (' + r.brz + ')'}`
+      + `\n  el charm más vendido abre «Los charms favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
+      + `\n  y es el que se ve primero, sin que el carrusel se corra: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
+      + `\n  y sigue apareciendo una sola vez: ${r.unaVez === 1 ? 'sí ✓' : 'NO ✗ (' + r.unaVez + ')'}`
+      + `\n  carrusel con todas las reseñas: 3 fijas + 3 = ${r.tarjetas}, foto primero y la de texto al final con su recuadro: ${r.tarjetas === 6 && r.formas === 'ffffft' && r.soloTextoAlFinal ? 'sí ✓' : 'NO ✗ (' + r.formas + ')'}`
+      + `\n  el texto de una reseña no se pinta como HTML: ${r.inyectado ? 'NO ✗' : 'sí ✓'}`
+      + `\n  un punto por tarjeta y el promedio real arriba: ${r.puntos === 6 && /4,7 de 5 · 3 reseñas/.test(r.prom) ? 'sí ✓' : 'NO ✗ (' + r.puntos + ', ' + r.prom + ')'}`
+      + `\n  la portada no se ensancha (${r.ancho}px): ${r.ancho <= 390 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  sin botón flotante de WhatsApp: ${r.wa === 0 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  el menú ☰ trae Contacto con el WhatsApp y el correo: ${/301 899 0672/.test(r.contacto) && /zephoracharms@gmail\.com/.test(r.contacto) ? 'sí ✓' : 'NO ✗ (' + r.contacto.trim() + ')'}`
+      + `\n  brazaletes: solo el primer nivel a la vista y «${r.verMas}»: ${r.nivelesVisibles === 1 && /Ver más brazaletes · \d+ modelos/.test(r.verMas) ? 'sí ✓' : 'NO ✗ (' + r.nivelesVisibles + ' niveles)'}`
+      + `\n  «Los charms favoritos» en cuadrícula, sin deslizar: ${r.topForma === 'grid sin-deslizar' ? 'sí ✓' : 'NO ✗ (' + r.topForma + ')'}`);
+    const niveles = () => q.evaluate(() => [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length);
+    const total = await q.evaluate(() => document.querySelectorAll('#brazaletes .tier').length);
+    await q.evaluate(() => document.querySelector('#b-filters [data-cf="corazon"]').click());
+    const conFiltro = await niveles();
+    await q.evaluate(() => document.querySelector('#b-filters [data-cf="todos"]').click());
+    const sinFiltro = await niveles();
+    await q.click('#b-mas');
+    const abiertos = await niveles();
+    out.push(`  un subfiltro muestra todos los niveles que lo cumplen (${conFiltro}) y «Todos» vuelve a uno (${sinFiltro}): ${conFiltro > 1 && sinFiltro === 1 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  «Ver más brazaletes» despliega los ${total} niveles (${abiertos}): ${abiertos === total ? 'sí ✓' : 'NO ✗'}`);
+    await q.close();
   }
 
   out.push(`\nErrores JS: ${errores.length ? errores.join(' | ') : 'ninguno ✓'}`);

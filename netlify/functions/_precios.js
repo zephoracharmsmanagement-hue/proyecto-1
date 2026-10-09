@@ -19,7 +19,24 @@ const ESP = new Set(pulseras);
    sin él, un carrito con 10.000 charms genera un cobro absurdo. */
 const MAX_CHARMS = 60;
 
-const escala = n => (n <= 0 ? 0 : reglas.escalaCharms[Math.min(n, reglas.escalaCharms.length - 1)]);
+/* «Paga 3, lleva 1 gratis · paga 5, lleva 2 gratis» (pedido del
+   propietario, 2026-10-04). Brazalete y charms cuentan igual como piezas: con
+   4 sale gratis la más barata y con 7 las dos más baratas; de ahí no pasa
+   (8 o más siguen siendo 2). `reglas.promo.tramos` = [[piezas, gratis], …].
+
+   El orden de las piezas importa solo para decir CUÁL sale gratis cuando hay
+   empate de precio —el total es el mismo—: se ordenan por precio y, a igual
+   precio, los charms antes que el brazalete, así lo gratis suele ser un charm
+   y el brazalete se ve con su precio. La página hace exactamente lo mismo
+   (gratisDe en tienda.js y en checkout.html) y pruebas/precios.js lo compara. */
+const cuantasGratis = n => reglas.promo.tramos.reduce((g, [p, k]) => (n >= p ? k : g), 0);
+
+function piezasGratis(pedido) {
+  const piezas = pedido.charms.map(id => ({ id, precio: precios[id] }));
+  if (pedido.base) piezas.push({ id: pedido.base.id, precio: precios[pedido.base.id] });
+  const orden = piezas.map((x, i) => [x, i]).sort((a, b) => a[0].precio - b[0].precio || a[1] - b[1]);
+  return orden.slice(0, cuantasGratis(piezas.length)).map(([x]) => x);
+}
 
 class PedidoInvalido extends Error {}
 
@@ -125,24 +142,20 @@ class SinInventario extends Error {}
 /* El mismo cálculo que hace la página, con los mismos redondeos y en el mismo
    orden. Si esto y render() en index.html se separan, pruebas/precios.js falla. */
 function calcular(pedido) {
-  const nC = pedido.charms.length;
   const brutoC = pedido.charms.reduce((s, id) => s + precios[id], 0);
-  const descC = brutoC * escala(nC);
-
   const brutoB = pedido.base ? precios[pedido.base.id] : 0;
-  const descB = (pedido.base && nC >= reglas.minCharmsParaDescuento)
-    ? brutoB * reglas.descuentoBrazalete
-    : 0;
+  const gratis = piezasGratis(pedido);
+  const desc = gratis.reduce((s, x) => s + x.precio, 0);
 
   /* El umbral de envío gratis mide mercancía, no total: si contara el envío,
      el propio envío ayudaría a alcanzarlo. Y el beneficio es solo del prepago:
      la contraentrega le cuesta a la tienda la comisión de recaudo y el riesgo
      de devolución, así que ahí el envío se cobra siempre. */
-  const subtotal = brutoC - descC + brutoB - descB;
+  const subtotal = brutoC + brutoB - desc;
   const alcanza = subtotal >= reglas.envioGratisDesde;
-  const gratis = alcanza
+  const envioGratis = alcanza
     && (!reglas.envioGratisSoloAnticipado || pedido.pago === 'anticipado');
-  const envio = (subtotal <= 0 || gratis) ? 0 : reglas.envio[pedido.pago];
+  const envio = (subtotal <= 0 || envioGratis) ? 0 : reglas.envio[pedido.pago];
 
   /* Wompi cobra en centavos y en enteros. Se redondea una sola vez, al final:
      redondear cada línea deja el total descuadrado frente al que vio la
@@ -152,18 +165,25 @@ function calcular(pedido) {
   return {
     brutoCharms: brutoC,
     brutoBrazalete: brutoB,
-    descuento: Math.round(descC + descB),
+    descuento: Math.round(desc),
+    /* Las piezas que salieron gratis, para que el correo y la hoja digan
+       cuál fue y no solo cuánto. */
+    gratis: gratis.map(x => x.id),
     subtotal: Math.round(subtotal),
     envio,
-    envioGratis: gratis,
+    envioGratis,
     total,
     centavos: total * 100,
   };
 }
 
-/* Renglones legibles para el correo, el WhatsApp y el resumen del pedido. */
+/* Renglones legibles para el correo, el WhatsApp y el resumen del pedido.
+   `gratis` cuenta cuántas unidades de esa línea salieron gratis por la promo;
+   `precio` sigue siendo el de lista, para que el correo las muestre tachadas. */
 function detallar(pedido) {
   const lineas = [];
+  const libres = {};
+  piezasGratis(pedido).forEach(x => { libres[x.id] = (libres[x.id] || 0) + 1; });
   if (pedido.base) {
     lineas.push({
       id: pedido.base.id,
@@ -171,12 +191,13 @@ function detallar(pedido) {
       talla: pedido.base.talla,
       unidades: 1,
       precio: precios[pedido.base.id],
+      gratis: libres[pedido.base.id] || 0,
     });
   }
   const cuenta = {};
   pedido.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
   Object.entries(cuenta).forEach(([id, n]) => {
-    lineas.push({ id, nombre: nombres[id], talla: null, unidades: n, precio: precios[id] * n });
+    lineas.push({ id, nombre: nombres[id], talla: null, unidades: n, precio: precios[id] * n, gratis: libres[id] || 0 });
   });
   return lineas;
 }
@@ -187,5 +208,5 @@ const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
    stock.json por su cuenta: siendo ESM, cargar JSON le obligaría a atributos de
    importación o a createRequire, y las dos formas se comportan distinto según
    si Netlify empaqueta o no. Pasando por aquí, hay un solo sitio que lo lee. */
-module.exports = { leerPedido, comprobarInventario, calcular, detallar, cop,
+module.exports = { leerPedido, comprobarInventario, calcular, detallar, piezasGratis, cop,
   PedidoInvalido, SinInventario, reglas, nombres, fotos, grupos, inventario: INV };

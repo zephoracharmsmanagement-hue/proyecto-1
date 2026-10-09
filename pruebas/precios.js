@@ -131,8 +131,16 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
         envio: document.getElementById('v-ship').textContent.trim(),
         piezas: document.querySelectorAll('#sheet-body .srow').length,
         talla,
-        /* El aviso del siguiente tramo de descuento: null si no se muestra. */
+        /* El aviso de la promo: null si no se muestra. */
         descNota: dn.hidden ? null : dn.textContent.trim(),
+        /* La barra de la promo: casillas llenas, o null si no se pinta. */
+        dto: document.getElementById('hoja-dto').hidden ? null
+          : document.querySelectorAll('#hoja-dto li.is-on').length,
+        /* Las líneas que salen GRATIS: lo tachado en cada una. */
+        tachado: [...document.querySelectorAll('#sheet-body .srow--gratis .srow-p s')]
+          .map(s => +s.textContent.replace(/\D/g, '')),
+        gratisDice: [...document.querySelectorAll('#sheet-body .srow--gratis .srow-p b')]
+          .every(b => b.textContent.trim() === 'GRATIS'),
       };
     }, { base, charms, pago });
 
@@ -144,34 +152,44 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     const igual = esperado === enPantalla.total;
     if (!igual) fallas++;
 
-    /* El aviso del siguiente tramo de descuento anuncia una cifra de ahorro, y
-       una cifra que no cuadre es peor que no ponerla: se descubre en la
-       pantalla de pago, con la clienta ya decidida. Se comprueba contra las
-       mismas reglas que usa el servidor, no contra lo que diga la página. */
+    /* La promo en la hoja: lo que sale tachado con «GRATIS» tiene que
+       sumar exactamente lo que el servidor descuenta —si no, la clienta ve una
+       pieza gratis que no le cobran gratis, o al revés—; la barra llena una
+       casilla por pieza de la vuelta en curso, y el aviso dice cuántas faltan
+       para la próxima. Todo contra las reglas del servidor, no contra la página. */
     {
       const R = require(path.join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
-      const esc = n => (n <= 0 ? 0 : R.escalaCharms[Math.min(n, R.escalaCharms.length - 1)]);
-      const nC = charms.length;
-      const brutoC = servidor.brutoCharms;
-      const brutoB = servidor.brutoBrazalete;
-      const sube = esc(nC + 1) > esc(nC) || (base && nC + 1 >= 3 && nC < 3);
-      const dAhora = brutoC * esc(nC) + (base && nC >= 3 ? brutoB * R.descuentoBrazalete : 0);
-      const dLuego = brutoC * esc(nC + 1) + (base && nC + 1 >= 3 ? brutoB * R.descuentoBrazalete : 0);
-      const extra = Math.round(dLuego - dAhora);
-      const debe = nC >= 1 && sube && extra > 0;
-
-      if (debe && !enPantalla.descNota) {
+      const T = R.promo.tramos;
+      const piezas = charms.length + (base ? 1 : 0);
+      /* El tramo de la barra: 1…4 hasta la primera gratis, después 5…7; desde
+         7, el último lleno (máximo). */
+      const sig = T.find(t => t[0] > piezas), hechos = T.filter(t => t[0] <= piezas);
+      const ult = hechos[hechos.length - 1], prev = hechos[hechos.length - 2];
+      const max = !sig, completo = max || (ult && ult[0] === piezas);
+      const fin = max ? ult[0] : (completo ? piezas : sig[0]);
+      const ini = completo ? (prev ? prev[0] : 0) : (ult ? ult[0] : 0);
+      const llenas = piezas ? Math.min(piezas, fin) - ini : null;
+      const tachado = enPantalla.tachado.reduce((a, b) => a + b, 0);
+      if (tachado !== servidor.descuento) {
         fallas++;
-        console.log(`  ✗ ${nC} charms: falta el aviso del siguiente descuento (${cop(extra)})`);
-      } else if (!debe && enPantalla.descNota) {
+        console.log(`  ✗ ${piezas} piezas: lo tachado como GRATIS suma ${cop(tachado)} y el servidor descuenta ${cop(servidor.descuento)}`);
+      }
+      if (!enPantalla.gratisDice) {
         fallas++;
-        console.log(`  ✗ ${nC} charms: el aviso sale cuando no hay tramo siguiente`);
-        console.log(`      «${enPantalla.descNota}»`);
-      } else if (debe && !enPantalla.descNota.includes(cop(extra))) {
+        console.log(`  ✗ ${piezas} piezas: una línea gratis no dice «GRATIS»`);
+      }
+      if (enPantalla.dto !== llenas) {
         fallas++;
-        console.log(`  ✗ ${nC} charms: el aviso promete un ahorro que no cuadra`);
-        console.log(`      página: «${enPantalla.descNota}»`);
-        console.log(`      reglas: ${cop(extra)} menos en lo que ya lleva`);
+        console.log(`  ✗ ${piezas} piezas: la barra de la promo llena ${enPantalla.dto} casillas (deberían ser ${llenas})`);
+      }
+      const nG = servidor.gratis.length;
+      const espera = !piezas ? null
+        : max ? new RegExp(`tienes ${nG} piezas GRATIS, lo máximo`)
+        : completo ? new RegExp(`Felicidades, tienes ${nG} pieza`)
+        : new RegExp(`Agrega ${fin - piezas} pieza`);
+      if (espera && !(enPantalla.descNota && espera.test(enPantalla.descNota))) {
+        fallas++;
+        console.log(`  ✗ ${piezas} piezas: el aviso de la promo no dice lo que toca («${enPantalla.descNota}», se esperaba ${espera})`);
       }
     }
 
@@ -223,32 +241,39 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       cop(fc.envio));
   }
 
-  /* La escalera de la portada es HTML escrito a mano: los porcentajes no salen
-     de ESC, se copiaron a mano al maquetarla. Si alguien mueve la escala y no
-     toca la sección, la página anuncia un descuento que la caja no aplica —y
-     bajo la Ley 1480 gana lo anunciado, así que se cobraría de menos o se
-     incumpliría lo prometido. Esto compara las dos cosas. */
-  console.log('\nLa escalera de la portada dice lo que se cobra');
+  /* La promo de la portada es HTML escrito a mano. Si alguien cambia PROMO y
+     no toca el recuadro, la página anuncia lo que la caja no aplica —y bajo la
+     Ley 1480 gana lo anunciado—. Esto compara las dos cosas, y que la regla
+     sea la que se anuncia: lo gratis es lo de menor valor, y es cíclica. */
+  console.log('\nLa promo de la portada dice lo que se cobra');
   {
     const R = require(path.join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
-    const tramos = await p.$$eval('#esc .esc-t', ns => ns.map(n => ({
-      n: +n.dataset.n,
-      texto: (n.querySelector('.esc-p').textContent + ' ' +
-              n.querySelector('.esc-x').textContent).replace(/\s+/g, ' ').trim(),
-    })));
-    ok(tramos.length === R.escalaCharms.length - 1,
-      'hay un tramo por cada escalón de la regla', tramos.length + ' tramos');
-    for (const t of tramos) {
-      const pct = Math.round(R.escalaCharms[Math.min(t.n, R.escalaCharms.length - 1)] * 100);
-      ok(pct === 0 ? /precio normal/i.test(t.texto) : t.texto.includes(pct + '%'),
-        `el tramo de ${t.n} anuncia el ${pct}% que de verdad se cobra`, t.texto);
-    }
-    /* «Lleva 4, paga 3» es una promesa en unidades, no en porcentaje: solo es
-       cierta si el último tramo descuenta exactamente uno de cada cuatro. */
-    const top = tramos[tramos.length - 1];
-    const m = top.texto.match(/lleva (\d+), paga (\d+)/i);
-    ok(!m || Math.abs((1 - m[2] / m[1]) - R.escalaCharms[R.escalaCharms.length - 1]) < 1e-9,
-      'y si promete «lleva N, paga M», la escala lo cumple', m ? m[0] : 'no lo promete');
+    const CAT = require(path.join(__dirname, '..', 'assets', 'catalogo.json'));
+    const [p1, g1] = R.promo.tramos[0], [p2, g2] = R.promo.tramos[R.promo.tramos.length - 1];
+    const caja = (await p.textContent('#promo .promo-caja')).replace(/\s+/g, ' ');
+    ok(new RegExp(`Paga ${p1 - g1} y llévate ${g1} gratis`, 'i').test(caja) && new RegExp(`con ${p1} piezas`).test(caja) && new RegExp(`con ${p2} piezas te salen ${g2} gratis`).test(caja),
+      `el recuadro anuncia «paga ${p1 - g1}, lleva ${g1} gratis» con ${p1} piezas y ${g2} gratis con ${p2}`, caja.slice(0, 60));
+    ok(/menor valor/i.test(caja) && /GRATIS/.test(caja), 'y que la de menor valor sale gratis');
+    ok(!(await p.$('#esc')), 'la cuadrícula de tramos viejos ya no está');
+    const banner = (await p.textContent('.ann')).replace(/\s+/g, ' ');
+    ok(new RegExp(`PAGA ${p1 - g1} Y LLÉVATE ${g1} GRATIS`).test(banner) && new RegExp(`Paga ${p2 - g2} y llévate ${g2}`).test(banner),
+      'el banner de arriba dice la misma promo', banner.trim());
+
+    const ch = Object.keys(CAT.precios).filter(id => !CAT.pulseras.includes(id));
+    const barato = ch.reduce((a, b) => (CAT.precios[a] <= CAT.precios[b] ? a : b));
+    const caro = ch.reduce((a, b) => (CAT.precios[a] >= CAT.precios[b] ? a : b));
+    const c4 = calcular(leerPedido({ charms: [caro, caro, caro, barato], pago: 'anticipado' }));
+    ok(c4.descuento === CAT.precios[barato] && c4.gratis[0] === barato,
+      'con 4 piezas (paga 3) sale gratis la de menor valor', `${barato} ${cop(CAT.precios[barato])}`);
+    const c3 = calcular(leerPedido({ charms: [caro, caro, barato], pago: 'anticipado' }));
+    ok(c3.descuento === 0, 'con 3 piezas no hay descuento');
+    const b = CAT.pulseras.reduce((a, x) => (CAT.precios[a] <= CAT.precios[x] ? a : x));
+    const cb = calcular(leerPedido({ base: { id: b, talla: null }, charms: [caro, caro, caro], pago: 'anticipado' }));
+    ok(cb.descuento === Math.min(CAT.precios[b], CAT.precios[caro]),
+      'el brazalete cuenta como pieza: brazalete + 3 charms ya son 4', cop(cb.descuento));
+    const n = k => calcular(leerPedido({ charms: Array(k).fill(caro), pago: 'anticipado' })).gratis.length;
+    ok(n(3) === 0 && n(4) === 1 && n(6) === 1 && n(7) === 2 && n(8) === 2 && n(12) === 2,
+      'paga 3 lleva 1, paga 5 lleva 2, y ahí para: 3 → 0, 4 → 1, 6 → 1, 7 → 2, 8 → 2, 12 → 2', [3, 4, 6, 7, 8, 12].map(n).join(' · '));
   }
 
   /* Que el servidor rechace lo que no debería aceptar. Cada uno de estos es un

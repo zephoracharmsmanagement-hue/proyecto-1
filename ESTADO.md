@@ -186,6 +186,149 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   `/.netlify/functions/addi-webhook`, regreso `/gracias.html`; las claves
 >   van a `material-sin-publicar/claves-addi.txt`, nunca al chat.
 >
+> **2026-09-28 · PR #8 (`claude/tipografia-contraste`), fusionado con
+> confirmación del propietario («Deploy»):**
+> - **Tipografía y contraste**: se mantienen Cormorant Garamond + Jost; grises
+>   de marca que pasan WCAG AA (`--gris:#5E5463`, `--gris-suave:#6E6473`,
+>   `--pagar:#9E4E68`), texto a 400, mínimo 12 px, precios y botones a 600.
+>   Las zonas oscuras (hoja del carrito, pie) conservan grises claros.
+>   Prueba nueva: `pruebas/paginas.js` §12 mide el contraste de todo texto
+>   visible (con la hoja abierta) en portada, ficha, kits y checkout.
+> - **Addi**, con el texto del propietario: «¿Monto alto? Divide tu compra en
+>   3 cuotas sin interés pagando con Addi» (lleva a WhatsApp; la integración
+>   sigue en pausa).
+> - **Videos** de bloques y de clientas: la portada va también de fondo y
+>   cada video empieza a bajar 600 px antes de entrar en pantalla; nada se
+>   descarga al cargar la página.
+> - Se retira la etiqueta «Ver detalle» de las tarjetas.
+> - **Barra del descuento por cantidad** (1 · 2 −8% · 3 −15% · 4+ −25%, de
+>   las reglas): en el checkout, pegada bajo la barra del resumen y visible
+>   con él cerrado, con «Ya ahorras $X» y lo que desbloquea el siguiente
+>   charm; y en la hoja del carrito, en una tarjeta «Descuento por
+>   cantidad». Verde al llegar al máximo. Pruebas: `checkout.js` 2ba y los
+>   carritos al azar de `precios.js`.
+> - Hoja del carrito despejada: notas (empaque, Addi, medios de pago) en
+>   lista con íconos. Arreglado `.tot-row[hidden]`: con solo el brazalete
+>   salía «Descuento promo − $0».
+> - **Fotos**: las 40 de Flow están a 1024 px en `material-sin-publicar/
+>   fotos-mejoradas`, pero la página las sirve a 440 px. Propuesto
+>   publicarlas a 880 px (srcset); las ~140 restantes solo existen a 440 px
+>   y necesitan pasar por Flow. Espera respuesta del propietario.
+>
+> **2026-10-02 · PR #11 (`claude/videos-joyas`), fusionado con confirmación
+> del propietario («Deploy»):**
+> - **Videos de cada joya**: 130 clips del celular (zip de Drive en
+>   `material-sin-publicar/videos-joyas/originales`), identificados a ojo contra
+>   el catálogo en `herramientas/videos_joyas.json` → 117 joyas (90 charms y
+>   brazaletes, 25 iniciales). Frente y reverso unidos con fundido: Escudo,
+>   Olaf, Lilo & Stitch, Hulk, Caballo. `herramientas/videos_joyas.py`:
+>   estabiliza (vidstab, temblor medio 0,85 % → 0,31 %), endereza los 13
+>   grabados con el celular de lado («giro»), recorta 4:5 a 720 × 900, sin
+>   audio. Archivos en Blobs `media/joya-<id>-v3.mp4` (v1/v2 quedan allí);
+>   portadas `assets/vid-<id>.webp`. **Revisar siempre que la joya quede
+>   derecha, no solo el tamaño del archivo** (el propietario lo pidió
+>   explícito y 13 salieron acostados en v2).
+> - **Galería en la página de la pieza**: foto, video y vistas extra se
+>   deslizan ahí mismo, 4:5, con miniaturas (▶ en la del video); el video corre
+>   solo a la vista y se baja al primer toque. La ficha usa la misma
+>   `armarGaleria()`, también en 4:5.
+> - **Fotos de 880 px** (`assets/hd/`, `herramientas/fotos_hd.py`) de las 41 de
+>   Flow, solo en las galerías (`FOTOS_HD`); la rejilla sigue a 440. Lilo &
+>   Stitch incluida (permiso de Pandora). Nueva: Atrapasueños Azul.
+>   Descartada: Blancanieves de Flow (piedra inventada en el moño).
+> - **Pendiente del propietario**: si el Ángel Guardián real lleva la cruz con
+>   piedras de su foto de Flow; qué pieza es IMG_1453 (separador plateado con
+>   palabras grabadas, no está en el catálogo); fotos de Flow de Avengers y
+>   Psicología (no venían en el zip); 18 piezas sin video.
+>
+> **2026-10-02 · PR #12 (`claude/galeria-deslizar`), fusionado con
+> confirmación del propietario («Deploy»):**
+> - **La página no bajaba al deslizar sobre la galería** (reporte del
+>   propietario): `.fx-gal{touch-action:pan-x}` descarta el desliz vertical que
+>   empieza sobre ella; ahora `pan-x pan-y`. Afectaba también a la ficha.
+>   Para probar gestos táctiles usar `Input.dispatchTouchEvent` por CDP:
+>   `synthesizeScrollGesture` no movía ni la portada (falso negativo).
+> - El botón de regalo se aparta mientras se ve la línea del precio en la
+>   página de la pieza (con la galería 4:5 lo tapaba); recién cerrada la
+>   ventana de suscripción sigue visible.
+> - Revisión de las 135 páginas (390 y 1280 px): sin más hallazgos.
+>
+> **2026-10-02 · PR #13 (`claude/resena-formulario`), fusionado con
+> confirmación del propietario («Deploy»):**
+> - Formulario de reseña en el celular: la fila Fotos/Video (grid) no encogía
+>   por debajo del texto de los campos de archivo y la página pasaba de 390 a
+>   763 px. Columnas `minmax(0,1fr)` y, bajo 520 px, una sola columna.
+> - Quitar una reseña publicada: enlace «Rechazar» de su correo de moderación
+>   (ahora dice «Reseña quitada»), o `node herramientas/resenas.mjs`
+>   (`ocultar <id>` / `publicar <id>`; ocultar no borra).
+> - **HALLAZGO SIN CORREGIR — almacenes de producción**: `_pedidos.mjs`,
+>   `_inventario.mjs`, `_suscriptores.mjs` y `resenas.mjs` eligen el almacén
+>   real solo si `process.env.CONTEXT === 'production'`, y en ejecución no lo
+>   es: la tienda real guarda en `pedidos-pruebas` (45), `suscriptores-pruebas`
+>   (9), `resenas-pruebas` (14) e `inventario-pruebas`, compartidos con las
+>   vistas previas. Corregirlo pide migrar esos datos; espera decisión del
+>   propietario (se le ofreció el 2026-10-02). Cualquier herramienta que lea
+>   esos almacenes debe usar hoy los «-pruebas».
+>
+> **2026-10-02 · PR #15 (`claude/promo-lleva4-paga3`, incluye el PR #14
+> `claude/checkout-una-pagina`), fusionado con confirmación del propietario
+> («Deploy»):**
+> - **Checkout de una página** (PR #14): sin cédula, sin pasos, sin volver a
+>   preguntar la forma de pago del carrito (una línea con «Cambiar»), sin
+>   pregunta de envío, sin «He leído y acepto» (línea «Al confirmar aceptas…»
+>   con los tres enlaces), sin «Te puede interesar»; dedicatoria e
+>   indicaciones plegadas tras una casilla. `documento` es opcional en
+>   crear-pago y la hoja de despacho no imprime un «CC» vacío.
+> - **Políticas al día** (envíos gratis sin mínimo pagando en línea,
+>   contraentrega $20.000, Wompi, Resend, n8n; FAQ) y margen de las páginas
+>   legales en el celular. `pruebas/regresion.js` amarra las tarifas de las
+>   políticas a `catalogo.json`.
+> - **Promo única «Lleva 4, paga 3»**: brazalete y charms cuentan igual; por
+>   cada 4 piezas sale gratis la de menor valor, cíclica (8 → 2, 12 → 3).
+>   Fuente: `PROMO` en tienda.js → `reglas.promo` (extraer_catalogo.py) →
+>   `_precios.js` (`piezasGratis`, `calcular().gratis`, `detallar().gratis`) y
+>   checkout.html; mismo desempate en los tres (a igual precio, charms antes
+>   que el brazalete). **Ya no existen `escalaCharms`, `descuentoBrazalete` ni
+>   `minCharmsParaDescuento`.** Banner fijo «ARMA TU SET… ¡LLEVA 4 Y EL 4° ES
+>   GRATIS!», un solo recuadro en portada y fichas (sin cuadrícula ni selector
+>   de paquetes), pieza gratis tachada con GRATIS en carrito, checkout y
+>   correo, barra de 4 casillas. Kits, colecciones, FAQ, términos, hoja del
+>   asesor, skill de Meta Ads y prompt del bot reescritos.
+> - **Portada**: sin «Compra por categoría» (siguen en el menú ☰), reseñas en
+>   carrusel con todas las de la tienda (con foto primero, las de texto con
+>   recuadro de comillas), brazaletes y charms abren con lo más vendido
+>   (`mas-vendidos`), brazaletes con solo el primer nivel y «Ver más», charms
+>   favoritos en cuadrícula. **Sin botón flotante de WhatsApp**: el contacto
+>   está en ☰ › Contacto (WhatsApp y correo).
+> - **Fichas**: una sola sección de reseñas, «Lo que dicen nuestras clientas»,
+>   con el formulario debajo (se quitó «Todas las reseñas de la tienda» de
+>   fichas, kits y Más vendidos); «Completa tu set» a la vista en todas.
+> - **Probado y descartado por el propietario**: carrito y pago en una sola
+>   página completa de paleta clara (d076e5b, revertido en 54d5d77). No
+>   volver a proponerlo igual.
+> - **Pendiente**: el video del banner principal (lo graba el propietario);
+>   revisar anuncios activos que mencionen el 30 % del brazalete o la escalera.
+>
+> **2026-10-04 · PR #19 (`claude/promo-3x2`, incluye el PR #18
+> `claude/carrito-claro-addi`), fusionado con confirmación del propietario
+> («Deploy»):**
+> - **Promo «paga 3, lleva 1 gratis · paga 5, lleva 2 gratis»**, con tope:
+>   con 4 piezas sale gratis la de menor valor, con 7 las dos de menor valor,
+>   y con 8 o más siguen siendo 2 («dejemos la promoción hasta ahí»).
+>   `PROMO={tramos:[[4,1],[7,2]]}` en tienda.js → `reglas.promo` →
+>   `_precios.js` y checkout.html. Reemplaza «lleva 4, paga 3» cíclica. (Hubo
+>   una versión intermedia «lleva 3, paga 2» que no llegó a producción: el
+>   propietario la corrigió antes del deploy.)
+> - **Carrito («Tu selección») en paleta clara**: bloque al final de
+>   tienda.css que pisa las reglas oscuras; contraste WCAG AA en verde.
+> - **Addi entre las formas de pago del checkout**: tercera opción; con Addi
+>   aparece la cédula (obligatoria) y «Continuar por WhatsApp» abre el chat con
+>   el pedido y todos los datos (piezas, talla, gratis, total, nombre, cédula,
+>   celular, correo, dirección, barrio, ciudad, indicaciones). No crea pedido
+>   ni aparta inventario: la venta se registra al aprobarse (registrar-venta).
+> - **Descartado por el propietario el 2026-10-02**: carrito y pago en una
+>   sola página completa (revertido). El carrito sigue siendo la hoja.
+>
 > **Espera datos del propietario:** credenciales de Addi (el botón sigue a
 > WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
