@@ -5,6 +5,60 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🔒 Inventario y página — 2026-10-09 (rama `claude/inventario-ajustes`, SIN desplegar)
+
+Reclamado por la sesión del 2026-10-09. Tres commits listos en la rama, a
+propósito sin fusionar: el propietario pidió **juntarlos con el próximo
+despliegue importante, no desplegar solo por esto**. No toca `stock.json` ni
+su `generado` (eso reinicia el contador de ventas).
+
+### Hecho en vivo (sin despliegue)
+
+- **Bloqueo temporal de Mariposas Tricolor: `MAN-261009-71D1B995`.** Registrado
+  con registrar-venta, pago «regalo», total 0, nota «BLOQUEO TEMPORAL: faltante
+  en estante, se está buscando. Si aparece, anular esta referencia».
+  disponibilidad pasó de 1 a 0; sin Purchase a Meta. Ojo: como todo «regalo»,
+  **sí quedó una fila en la hoja** — es justo lo que arregla el punto 3.
+  - Si la pieza **aparece**: `{"anular":"MAN-261009-71D1B995"}` a registrar-venta.
+  - Si fue una **venta por WhatsApp sin registrar**: registrar esa venta y
+    después anular este bloqueo.
+
+### En la rama, para el próximo despliegue
+
+1. **`fb188b7` · `ajustar-inventario.mjs` (nuevo).** Ajustes que no son ventas:
+   motivo `faltante | dañada | error de conteo | bloqueo temporal` (acepta la
+   etiqueta tal cual), referencia `AJ-…`, misma clave `VENTA_MANUAL_KEY` y
+   cabecera que registrar-venta → lista para un formulario de n8n. Descuenta en
+   el mismo CAS; **no** manda Purchase, **no** escribe en la hoja, **no** cuenta
+   en vendidas/mas-vendidos (estado `ajuste`). Revertir: `{"anular":"AJ-…"}`,
+   idempotente. **Solo quita unidades**; si aparecen más de las contadas, eso es
+   corregir `stock.json` (proceso aparte). Batería `pruebas/ajustar-inventario.js`.
+   Tras desplegar, los próximos bloqueos van por aquí y no por «regalo».
+2. **`4a52923` · etiqueta con la disponibilidad real.** `tienda.js` ya no saca
+   «Última unidad»/«Agotado» de `stock.json` (conteo del 22-sep): tarjetas,
+   ficha, vitrina, kits y página de producto leen `disponibilidad` en todas las
+   páginas. Sin dato real, **ninguna etiqueta** (decisión del propietario: mejor
+   nada que una equivocada); el botón sí cae al conteo mientras tanto (seguro:
+   real ≤ conteo). Clase nueva `body.con-disponibilidad`. Prueba 10b en
+   `paginas.js` (contra `main` falla 6 veces).
+3. **`8f6c8ee` · selector de la inicial de regalo** en el checkout para
+   cualquiera con 2+ charms, texto «Si estás suscrita con este correo, elige tu
+   inicial de regalo». El aviso del resumen que *afirma* el regalo sigue atado a
+   `localStorage`. `crear-pago` decide por el correo, sin cambios.
+
+Pruebas en la rama: paginas 145/0, checkout 151/0, ajustar-inventario 29/0,
+registrar-venta, stock, disponibilidad, inventario, mas-vendidos, suscripcion y
+regresion en verde.
+
+### Al desplegar, verificar en vivo
+
+- Elefantito Rosa y Mariposas Tricolor dicen «Agotado» (portada, colección
+  Símbolos y su página).
+- En ventana privada con 2 charms, el selector de la letra aparece en los datos
+  de entrega.
+- Posible choque: la rama `resenas-base-datos` tiene cambios sin fusionar en
+  `tienda.js`; si se fusiona antes, revisar el merge.
+
 ## Reseñas del Excel del propietario — cargadas el 2026-10-06
 
 El propietario pasó su base de reseñas (`Pictureseviews zephora`: Excel
