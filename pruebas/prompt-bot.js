@@ -519,6 +519,33 @@ function main() {
       'avisa que la foto del abecedario no es la inicial pedida', `${genericas} letras con foto general`);
   }
 
+  console.log('\n14 · La clienta que escribe por un pedido que ya hizo');
+
+  /* El correo de compra y la página de gracias abren WhatsApp con «Escribo
+     por mi pedido ZC-…». El bot le contestaba con el saludo de «¿qué joya
+     estás buscando?» a quien acababa de pagar (2026-10-09). El mensaje y los
+     estados se leen de las funciones que los producen, no se copian aquí. */
+  const correo = fs.readFileSync(path.join(RAIZ, 'netlify', 'functions', '_correo.js'), 'utf8');
+  const apertura = (correo.match(/'(Hola, Zephora Charms\. Escribo por mi pedido) '/) || [])[1];
+  comprobar(apertura && promptPlano.includes(plano(apertura)),
+    'reconoce el mensaje con que llegan del correo de compra', apertura || 'no se encontró en _correo.js');
+  comprobar(/estado_pedido/.test(prompt), 'conoce la herramienta estado_pedido');
+
+  const fuenteEstado = fs.readFileSync(path.join(RAIZ, 'netlify', 'functions', 'estado-pedido.mjs'), 'utf8');
+  const cuerpoSimplificar = (fuenteEstado.match(/function simplificar[\s\S]*?\n}/) || [''])[0];
+  const estados = [...new Set([...cuerpoSimplificar.matchAll(/return '([a-z]+)'/g)].map(m => m[1]))];
+  const seccion = promptPlano.slice(promptPlano.indexOf('si escribe por un pedido que ya hizo:'));
+  const sinCubrir = estados.filter(e => !new RegExp('^- ' + e + '\\b', 'm').test(seccion));
+  comprobar(estados.length >= 4 && sinCubrir.length === 0,
+    'dice qué responder en cada estado que devuelve estado-pedido', sinCubrir.join(', ') || estados.join(', '));
+
+  /* «aprobado» incluye contraentrega (crear-pago lo deja «confirmado» sin
+     cobrar nada): el mensaje no puede decir que ya se recibió el pago. */
+  comprobar(!/tu pago ya esta confirmado/i.test(promptPlano),
+    'no le dice «tu pago ya está confirmado» a una contraentrega');
+  comprobar(/nunca:\s*-\s*prometas un dia de despacho/i.test(seccion),
+    'no promete un día de despacho');
+
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
     : '\nPrompt del bot en verde ✓');
