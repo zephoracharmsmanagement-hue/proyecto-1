@@ -1532,6 +1532,8 @@ p,li,dd,.pp-acc-in{line-height:1.55}
 .tot-addi[hidden]{display:none}
 .tot-addi b{color:var(--ink,#2A1F2E)}
 .tot-addi .addi-logo{height:15px;margin-left:2px}
+/* Aclaración de una pieza que la foto sola no explica (NOTAS_PIEZA en gen_productos.py). */
+.pp-nota{color:var(--plum,#5C3D63)}
 .pp-cuotas{margin:8px 0 0;font-size:13.5px;color:#4a3d4e}
 .pp-cuotas b{color:var(--ink,#2A1F2E)}
 .pp-cuotas .addi-logo{height:16px;margin-left:2px}
