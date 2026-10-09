@@ -36,7 +36,7 @@ if [ ! -d "$AQUI/node_modules" ]; then
 fi
 
 ROJAS=""
-for BATERIA in regresion stock dudas precios inventario disponibilidad prompt-bot pedidos rescate correo-tienda hoja reponer meta enlace reanudar armar-carrito checkout envio-estado registrar-venta suscripcion resenas media mas-vendidos pixel paginas catalogo-pdf; do
+for BATERIA in regresion stock dudas precios inventario disponibilidad prompt-bot pedidos rescate correo-tienda hoja reponer meta enlace reanudar armar-carrito checkout addi envio-estado registrar-venta suscripcion resenas media mas-vendidos pixel paginas catalogo-pdf; do
   echo "──────── $BATERIA ────────"
   # Los scripts imprimen "✗ FALLA" en vez de salir con código de error, así que
   # se revisa la salida. Se guarda para no correr cada batería dos veces.

@@ -25,23 +25,51 @@ todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
 `2021753038744595` ("cuenta publicitaria 1 ZC", dentro del portafolio
 "Zephora Charms"), existe pero no tiene campañas.
 
-- **"Nueva campaña de Ventas"** (`120247398773240534`) — ACTIVA, $15.000
-  COP/día. Optimiza por `InitiateCheckout`, **no por `Purchase`**: es la
-  limitación de fondo, no un descuido de configuración. 4 anuncios, de los
-  cuales **Copia 4 (`120247400350270534`) y Copia 5 (`120247400376370534`)
-  están PAUSADOS** desde esta sesión: costaban $6.388 y $9.424 por checkout
-  contra $663 de Copia 2 y $1.724 de Copia 3.
+**Estado al 2026-10-06: una sola campaña activa.** Se consolidó el 2026-10-03
+(antes corrían ESCALA, PRUEBA y RMK en paralelo). La razón es de **volumen**:
+con ~35 checkouts por semana ni un conjunto único llega a los 50 que Meta pide.
+**No** es porque separar haya doblado el costo: la primera versión de esta nota
+lo decía y era un error de medición, porque el sitio dejó de contar doble el
+`InitiateCheckout` el 27 de septiembre y se comparaban conteos distintos. La
+tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*.
 
-  Lección del diagnóstico, para no repetirla: **Copia 4 tenía el mejor CTR de
-  la cuenta (15,43%) y era de los peores en conversión.** Juzgar creativos por
-  CTR habría escalado justo el que peor rendía. La métrica que manda es costo
+- **`VENTAS · ESCALA · IC`** (`120247398773240534`, antes "Nueva campaña de
+  Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
+  (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
+  `Purchase`**: es la limitación de fondo, no un descuido. 7 anuncios activos
+  desde el 2026-10-03: Spider-Man · 5 textos en uno, novio superhéroes
+  (evergreen), Colección Avengers, Video Inicial y mascota, y tres traídos de la
+  prueba con su misma publicación (Regalo · Dedicatoria, Pareja · Luciérnaga,
+  Empieza con uno · Atrapasueños).
+
+  **Primera lectura: 2026-10-10**, con 7 días completos. Con el conteo nuevo,
+  la meta es bajar de ~$4.600 a ~$3.500 o menos por checkout (el costo
+  comparable de la primera mitad de septiembre). Del 3 al 6 de octubre: 18
+  checkouts, $4.333 cada uno.
+
+  **Spider-Man · 5 textos en uno es el anuncio que cuesta.** Del 3 al 6 de
+  octubre gastó $30.486 (39% del gasto de la campaña) y trajo 3 checkouts,
+  **$10.162**, contra $2.258–4.053 de los otros cuatro anuncios con datos, que
+  corren a la vez y con el mismo conteo. Sus 60+ likes no cambian eso, y se
+  conservan al pausarlo, porque viven en la publicación, no en el anuncio. **Una
+  corrección:** no se debe comparar contra su historial de 30 días ($2.436),
+  porque mezcla conteo doble y simple. Tampoco «novio superhéroes» es el doble
+  del promedio, como se escribió el 3 de octubre: sus $5.062 están dentro de lo
+  que cuesta la campaña (~$4.600–5.500), y Meta ya casi no le da gasto.
+
+  Lección que sigue vigente: **Copia 4 tenía el mejor CTR de la cuenta
+  (15,43%) y era de los peores en conversión.** La métrica que manda es costo
   por resultado.
 
-- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) — creada,
-  ACTIVA, $10.000 COP/día, **$0 gastados y 0 impresiones**. Sí optimiza por
-  `Purchase`. No entrega por dos razones: un error de segmentación por lugar
-  (#1870194, tipo de ubicación descontinuado por Meta) y, más de fondo, que
-  **el público tiene ~55 personas**. *(2026-09-25: ya está pausada.)*
+- **`VENTAS · PRUEBA ÁNGULOS · IC`** (`120248295381620534`) y **`VENTAS · RMK ·
+  IC`** (`120248295381840534`) — **PAUSADAS el 2026-10-03** por la
+  consolidación. Sus anuncios buenos ya viven en ESCALA.
+- **"Retargeting · Recuperación de checkout"** (`120247672148980534`) —
+  **PAUSADA desde el 2026-09-10.** Corrió del 06 al 10 de septiembre: $17.487
+  gastados, 0 pedidos, 127 personas alcanzadas, CPM 4,8 veces el de la cuenta.
+  El sitio todavía no tiene tráfico para sostener un retargeting. Detalle en
+  [`automatizaciones/meta-ads/RETARGETING.md`](automatizaciones/meta-ads/RETARGETING.md).
+  No reactivar hasta que el público de 180 días pase de varios miles.
 
 ### Públicos
 
@@ -148,9 +176,14 @@ Por orden de impacto sobre el dinero:
    Colombia no encuentre su inicial. Después, **83 referencias en 1-2
    unidades** ($2,64M para habilitar ~$11,7M de utilidad), priorizando
    charms (88% de margen) sobre pulseras (71%).
-2. **Pausar "Retargeting · Recuperación de checkout"** hasta tener público.
-   Con ~55 personas no entrega; el presupuesto rinde más en la campaña
-   principal.
+2. **Averiguar por qué el píxel nuevo vio solo 3 `Purchase` de servidor en 28
+   días** (todos el 29 de septiembre, en la misma hora; del 29 de septiembre al
+   6 de octubre, 5 del navegador y 1 de servidor). Comparar contra las ventas
+   reales del mismo periodo: si hubo más, faltan registros en `registrar-venta`
+   o el webhook de Wompi no los reportó. Es la mitad del problema de medición
+   que no depende de la cuenta. **Ojo:** una de esas ventas fue contraentrega y
+   se canceló, y Meta la sigue contando, porque el `Purchase` sale al confirmar
+   el pedido y no al recibirlo.
 3. **Probar el `Purchase` de servidor** con `META_TEST_EVENT_CODE` y
    confirmar en Events Manager que aparece **una sola vez** por compra (no
    dos) en el píxel nuevo. **Quitar la variable de prueba al terminar.**
@@ -158,10 +191,15 @@ Por orden de impacto sobre el dinero:
    recomendaciones de reposición salen de "subir todo a 4 unidades", que es
    una regla pareja, no rotación real. Con unas semanas de movimientos se
    vuelve reposición informada.
-5. **Cuando el portafolio cumpla antigüedad**: compartir `1029982529813994`
-   con la cuenta `1583713932705268` (o reclamar la cuenta hacia el
-   portafolio), migrar la optimización de `InitiateCheckout` a `Purchase`, y
-   sacar el segundo `fbq('init', …)` de los tres HTML.
+5. **Reintentar el reclamo de la cuenta** `1583713932705268` hacia el
+   portafolio (Business Settings → Cuentas publicitarias → Reclamar). En agosto
+   lo frenaba la antigüedad del portafolio; al 2026-10-03 ya tenía ~7 semanas
+   y se intentó, y **el 2026-10-06 todavía no se había podido reclamar**: sigue
+   abierta la vía de soporte de Meta. Si entra: asignarle el píxel `1029982529813994` y cambiar el píxel del
+   conjunto en un solo movimiento. Si sigue bloqueado: mudar la campaña única a
+   `2021753038744595` (ya en el portafolio, con medio de pago), reutilizando
+   las mismas publicaciones. En cualquier caso, después sacar el segundo
+   `fbq('init', …)` de los tres HTML.
    *Matiz (2026-09-25):* migrar a `Purchase` solo si el volumen alcanza. Meta
    necesita del orden de 50 eventos semanales por conjunto; con el volumen de
    ventas actual un conjunto optimizado por compra se queda en aprendizaje
@@ -179,6 +217,16 @@ payload/estructura exacto para aprobación antes de ejecutar. Lecturas,
 diagnósticos y consultas de datos van directo. Esto sigue vigente aunque el
 conector de Ads MCP termine con permisos de escritura completos — el
 permiso técnico no cambia el acuerdo.
+
+**Para trabajar sobre la pauta, la sesión va en modo «Aceptar ediciones», no
+en Auto.** En Auto, un revisor automático decide cada acción sin preguntar: el
+2026-10-03 bloqueó la mitad de las escrituras, aprobó otras idénticas y hasta
+bloqueó una lectura. Ni la aprobación en el chat ni una regla escrita por
+Claude lo levantan. En «Aceptar ediciones», cada acción le llega al propietario
+como solicitud de aprobación, que es este mismo acuerdo hecho mecanismo. Desde
+la app del celular, `/permissions` solo muestra el selector de modo; ahí está.
+Las trampas del conector (COP sin centavos, editar una campaña la pausa) están
+en la skill § *Trampas del conector de Meta Ads*.
 
 ## Conversión — recuperar carritos con permiso y cerrar por WhatsApp
 

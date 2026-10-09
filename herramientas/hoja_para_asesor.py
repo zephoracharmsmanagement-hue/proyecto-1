@@ -258,11 +258,11 @@ def main():
         'tarjeta no pasan por la tienda en ningún momento.', P))
     A(Paragraph(
         '<b>Addi: hasta 3 cuotas sin interés.</b> Esa es la frase que la '
-        'clienta lee en la página, dila igual. Pero <b>Addi NO está en la '
-        'pasarela de pago</b> —Wompi no lo soporta— y en el checkout no hay '
-        'ningún botón de Addi: se coordina a mano por WhatsApp, y el equipo le '
-        'pasa el enlace para aprobar el cupo. Nunca la mandes a buscarlo en la '
-        'pantalla de pago, y nunca digas que no lo manejamos.', P))
+        'clienta lee en la página, dila igual. Desde el 2026-10-07 <b>Addi está '
+        'en la pantalla de pago</b> como una opción más, «Pagar con Addi»: la '
+        'clienta pone su cédula, va a Addi y aprueba su cupo en minutos; el '
+        'pedido entra solo cuando Addi lo aprueba. Para compras de $50.000 a '
+        '$3.000.000. Nunca digas que no lo manejamos.', P))
 
     A(Paragraph('Envíos', H2))
     gratis = reglas['envioGratisDesde'] == 0

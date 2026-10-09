@@ -24,6 +24,7 @@ const { brazalete } = require('./_pieza');
 const { cop } = require(path.join(__dirname, '..', 'netlify', 'functions', '_precios.js'));
 const BRZ = brazalete();
 const RAIZ = path.join(__dirname, '..');
+const CAT = require(path.join(RAIZ, 'assets', 'catalogo.json'));
 
 /* Entorno de mentira, con secretos de mentira, para que la función crea que
    está configurada. La firma se comprueba recalculándola con este mismo valor. */
@@ -472,17 +473,38 @@ async function llenarDatos(p, d) {
   }
 
   // ——— 3b · Addi, entre los pagos principales ———
-  out.push('\n3b · Addi: tercera opción, termina por WhatsApp');
+  out.push('\n3b · Addi: tercera opción, va a Addi con la cédula');
   {
     /* Pedido del propietario (2026-10-04): Addi a la vista entre las formas de
-       pago, no en un enlace chico. No pasa por Wompi ni por crear-pago: pide la
-       cédula (Addi la exige), y abre WhatsApp con el pedido y los datos. */
+       pago. Desde 2026-10-07 va integrado: crear-pago le pide la solicitud a
+       Addi y la clienta sigue a la URL que devuelve Addi. Aquí la red de Addi es
+       de mentira: token, solicitud (301 con Location) y la config de topes. */
+    const fetchAntes = globalThis.fetch;
+    const aAddi = [];
+    let addiCaido = false;
+    Object.assign(process.env, { ADDI_CLIENT_ID: 'id-prueba', ADDI_CLIENT_SECRET: 'secreto-prueba' });
+    globalThis.fetch = async (url, op) => {
+      url = String(url);
+      if (url.includes('channels-public-api.addi.com')) {
+        return new Response(JSON.stringify({ minAmount: 50000, maxAmount: 3000000, isActiveAlly: true }), { status: 200 });
+      }
+      if (url.includes('auth.addi.com')) return new Response(JSON.stringify({ access_token: 'jwt' }), { status: 200 });
+      if (url.includes('api.addi.com/v1/online-applications')) {
+        aAddi.push(JSON.parse(op.body));
+        return addiCaido ? new Response('{}', { status: 500 })
+          : new Response(null, { status: 301, headers: { location: 'https://checkout.addi.com/prueba/xyz' } });
+      }
+      return fetchAntes(url, op);
+    };
+
     const p = await b.newPage({ viewport: { width: 390, height: 844 } });
     p.on('pageerror', e => errores.push(e.message));
     const cap = [];
     await interceptar(p, cap);
-    let wa = null;
+    let wa = null, haciaAddi = null;
     await p.route(/wa\.me|api\.whatsapp\.com/, r => { wa = r.request().url(); r.fulfill({ status: 200, body: 'wa' }); });
+    await p.route(/checkout\.addi\.com/, r => { haciaAddi = r.request().url(); r.fulfill({ status: 200, body: 'addi' }); });
+    await p.route(/widgets\.addi\.com/, r => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
     await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse', 'stitch', 'iron-man'], empaque: false, pago: 'anticipado' });
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(400);
@@ -496,17 +518,55 @@ async function llenarDatos(p, d) {
     await p.waitForTimeout(200);
     const r = await p.evaluate(() => ({ b: document.getElementById('confirmar').textContent, n: document.getElementById('nota-pago').textContent,
       c: !document.getElementById('campo-cedula').hidden, l: document.getElementById('pago-elegido-tx').textContent }));
-    ok(/Continuar por WhatsApp/.test(r.b) && /WhatsApp/.test(r.n) && /Addi/.test(r.l), 'el botón y la nota dicen que se termina por WhatsApp', r.b);
+    ok(/Continuar con Addi/.test(r.b) && /Addi/.test(r.n) && /cédula/.test(r.n) && /Addi/.test(r.l),
+      'el botón y la nota dicen que se sigue en Addi con la cédula', r.b);
     ok(r.c, 'y aparece la cédula');
     await p.click('#confirmar'); await p.waitForTimeout(300);
-    ok(!wa && await p.evaluate(() => document.querySelector('[data-c="cedula"]').classList.contains('mal')), 'sin cédula no sigue: la marca en rojo');
+    ok(!cap.length && await p.evaluate(() => document.querySelector('[data-c="cedula"]').classList.contains('mal')),
+      'sin cédula no sigue: la marca en rojo');
+
+    /* Addi caído: no se queda en un error sin salida. */
+    addiCaido = true;
     await p.fill('#cedula', '1069306205');
-    await p.click('#confirmar'); await p.waitForTimeout(800);
-    const texto = wa ? decodeURIComponent((wa.split('text=')[1] || '').replace(/\+/g, ' ')) : '';
-    ok(/Addi/.test(texto) && /1069306205/.test(texto) && /GRATIS/.test(texto) && /talla/.test(texto) && /Total: \$/.test(texto),
-      'abre WhatsApp con el pedido: Addi, cédula, talla, la gratis y el total', texto.split('\n')[0]);
-    ok(!cap.length, 'y no crea pedido en la tienda ni pasa por Wompi');
+    await p.click('#confirmar'); await p.waitForTimeout(900);
+    const caido = await p.evaluate(() => ({ e: document.getElementById('aviso-error-tx').textContent,
+      a: !!document.querySelector('#aviso-error a[href*="wa.me"]') }));
+    ok(!haciaAddi && /Addi no está disponible/.test(caido.e) && caido.a,
+      'si Addi no responde, lo dice y ofrece terminar por WhatsApp', caido.e.slice(0, 60));
+
+    addiCaido = false;
+    await p.click('#confirmar'); await p.waitForTimeout(900);
+    const ultimo = cap[cap.length - 1] || {};
+    ok(ultimo.pedido && ultimo.pedido.pago === 'addi' && ultimo.pedido.cliente.documento === '1069306205',
+      'crear-pago recibe pago addi y la cédula');
+    ok(ultimo.codigo === 200 && ultimo.respuesta.modo === 'addi', 'y responde modo addi');
+    const sol = aAddi[aAddi.length - 1] || {};
+    ok(sol.orderId === ultimo.respuesta.referencia && sol.client && sol.client.idNumber === '1069306205',
+      'la solicitud a Addi lleva la referencia y la cédula');
+    ok(haciaAddi === 'https://checkout.addi.com/prueba/xyz', 'la clienta sigue a la URL que devolvió Addi', haciaAddi || 'no navegó');
+    ok(!wa, 'sin pasar por WhatsApp');
     await p.close();
+
+    /* Fuera de los topes de Addi la opción se deshabilita con su aviso. */
+    const q = await b.newPage({ viewport: { width: 390, height: 844 } });
+    q.on('pageerror', e => errores.push(e.message));
+    const barato = Object.keys(CAT.precios).filter(i => !CAT.pulseras.includes(i)).sort((x, y) => CAT.precios[x] - CAT.precios[y])[0];
+    await ponerCarrito(q, { base: null, charms: [barato], empaque: false, pago: 'addi' });
+    await q.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await q.waitForTimeout(400);
+    const t = await q.evaluate(() => ({ d: document.querySelector('#ops-pago input[value="addi"]').disabled,
+      tope: document.getElementById('addi-tope').textContent, vis: !document.getElementById('addi-tope').hidden,
+      sel: document.querySelector('#ops-pago input[name="pago"]:checked').value, total: document.getElementById('p-addi').textContent }));
+    if (CAT.precios[barato] + (CAT.reglas.envio.anticipado || 0) < 50000) {
+      ok(t.d && t.vis && /desde \$50\.000/.test(t.tope), 'con menos de $50.000 Addi queda deshabilitado y dice desde cuánto aplica', t.tope);
+      ok(t.sel === 'anticipado', 'y si venía elegido, pasa a «Pagar ahora»');
+    } else {
+      ok(!t.d, `la pieza más barata ya supera el mínimo de Addi (${t.total}): la opción sigue habilitada`);
+    }
+    await q.close();
+
+    globalThis.fetch = fetchAntes;
+    delete process.env.ADDI_CLIENT_ID; delete process.env.ADDI_CLIENT_SECRET;
   }
 
   // ——— 4 · contraentrega ———

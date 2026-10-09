@@ -479,10 +479,11 @@ const U = BASE + '/index.html';
     q.on('pageerror', e => errores.push('portada: ' + e.message));
     const brz = 'pulsera-trebol-verde', ch = 'iron-man';
     await q.route(/\/\.netlify\/functions\/mas-vendidos/, r => r.fulfill({ json: { ventasRegistradas: 5, vendidas: [{ id: ch, unidades: 5 }, { id: brz, unidades: 3 }], disponibles: {} } }));
-    await q.route(/\/\.netlify\/functions\/resenas/, r => r.fulfill({ json: { total: 3, promedio: 4.7, resenas: [
+    await q.route(/\/\.netlify\/functions\/resenas/, r => r.fulfill({ json: { total: 4, promedio: 4.8, resenas: [
       { estrellas: 5, texto: 'Con foto', nombre: 'Ana', ciudad: 'Cali', verificada: false, fotos: ['/resenas?medio=x%2Fy%2Ff1.jpg'], video: null },
       { estrellas: 4, texto: 'Solo texto', nombre: 'Bea', ciudad: '', verificada: false, fotos: [], video: null },
-      { estrellas: 5, texto: '<img src=x onerror=alert(1)>', nombre: 'Eva', ciudad: '', verificada: false, fotos: ['/resenas?medio=a%2Fb%2Ff1.jpg'], video: null }] } }));
+      { estrellas: 5, texto: '<img src=x onerror=alert(1)>', nombre: 'Eva', ciudad: '', verificada: false, fotos: ['/resenas?medio=a%2Fb%2Ff1.jpg'], video: null },
+      { estrellas: 5, texto: '', nombre: 'Flor', ciudad: '', verificada: false, fotos: ['/resenas?medio=c%2Fd%2Ff1.jpg'], video: null }] } }));
     await q.route(/\/resenas\?medio=/, r => r.fulfill({ status: 404, body: '' }));
     await q.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
     await q.waitForTimeout(500);
@@ -496,10 +497,11 @@ const U = BASE + '/index.html';
         aLaVista: [...document.querySelectorAll('#rail-top .pc')].find(c => c.getBoundingClientRect().right > 0).dataset.id,
         unaVez: document.querySelectorAll(`.pc[data-id="${ch}"]`).length,
         tarjetas: document.querySelectorAll('#tst-rail .tst').length,
-        /* Todas las de la tienda (2026-10-02): con foto primero; la de solo
-           texto, al final y con el recuadro de comillas en vez de foto. */
+        /* Todas las de la tienda, en el orden en que las manda el servidor
+           (2026-10-06: él decide cuáles van primero); la de solo texto con el
+           recuadro de comillas en vez de foto, la de solo foto sin cita. */
         formas: [...document.querySelectorAll('#tst-rail .tst')].map(t => t.querySelector('img') ? 'f' : (t.querySelector('.tst-ph--txt') ? 't' : '?')).join(''),
-        soloTextoAlFinal: [...document.querySelectorAll('#tst-rail .tst')].pop().textContent.includes('Solo texto'),
+        soloFotoSinCita: ![...document.querySelectorAll('#tst-rail .tst')].pop().querySelector('blockquote'),
         wa: document.querySelectorAll('.wa-float').length,
         contacto: (document.querySelector('#menu-panel .menu-contacto') || {}).textContent || '',
         nivelesVisibles: [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length,
@@ -516,9 +518,9 @@ const U = BASE + '/index.html';
       + `\n  el charm más vendido abre «Los charms favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
       + `\n  y es el que se ve primero, sin que el carrusel se corra: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
       + `\n  y sigue apareciendo una sola vez: ${r.unaVez === 1 ? 'sí ✓' : 'NO ✗ (' + r.unaVez + ')'}`
-      + `\n  carrusel con todas las reseñas: 3 fijas + 3 = ${r.tarjetas}, foto primero y la de texto al final con su recuadro: ${r.tarjetas === 6 && r.formas === 'ffffft' && r.soloTextoAlFinal ? 'sí ✓' : 'NO ✗ (' + r.formas + ')'}`
+      + `\n  carrusel con todas las reseñas: 3 fijas + 4 = ${r.tarjetas}, en el orden del servidor, texto con recuadro y foto sin cita: ${r.tarjetas === 7 && r.formas === 'fffftff' && r.soloFotoSinCita ? 'sí ✓' : 'NO ✗ (' + r.formas + ')'}`
       + `\n  el texto de una reseña no se pinta como HTML: ${r.inyectado ? 'NO ✗' : 'sí ✓'}`
-      + `\n  un punto por tarjeta y el promedio real arriba: ${r.puntos === 6 && /4,7 de 5 · 3 reseñas/.test(r.prom) ? 'sí ✓' : 'NO ✗ (' + r.puntos + ', ' + r.prom + ')'}`
+      + `\n  un punto por tarjeta y arriba el total que se ve (4 + las 3 fijas): ${r.puntos === 7 && /4,9 de 5 · 7 reseñas/.test(r.prom) ? 'sí ✓' : 'NO ✗ (' + r.puntos + ', ' + r.prom + ')'}`
       + `\n  la portada no se ensancha (${r.ancho}px): ${r.ancho <= 390 ? 'sí ✓' : 'NO ✗'}`
       + `\n  sin botón flotante de WhatsApp: ${r.wa === 0 ? 'sí ✓' : 'NO ✗'}`
       + `\n  el menú ☰ trae Contacto con el WhatsApp y el correo: ${/301 899 0672/.test(r.contacto) && /zephoracharms@gmail\.com/.test(r.contacto) ? 'sí ✓' : 'NO ✗ (' + r.contacto.trim() + ')'}`

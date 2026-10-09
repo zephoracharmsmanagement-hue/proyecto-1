@@ -61,29 +61,43 @@ Verificar lo vigente antes de afirmarlo (`ads_get_ad_accounts`,
 
 - La cuenta con las campañas (`1583713932705268`) **no tiene portafolio
   comercial**. De ahí salen las tres limitaciones siguientes. Reclamarla hacia
-  el portafolio «Zephora Charms» es manual, en Business Settings.
+  el portafolio «Zephora Charms» es manual, en Business Settings. En agosto Meta
+  lo bloqueaba por antigüedad del portafolio; al 2026-10-03 ya tenía ~7 semanas
+  y se reintentó, y **el 2026-10-06 todavía no se había podido reclamar**
+  (sigue abierta la vía de soporte de Meta). **Plan B si sigue bloqueado:** la cuenta
+  `2021753038744595` ya está dentro del portafolio, activa, en COP y con medio
+  de pago. No hace falta crear otra cuenta ni otro píxel.
 - **Dos píxeles.** El viejo (`2130673404542988`) es el único que la cuenta puede
   usar para optimizar y para públicos, y no recibe compras de servidor. El nuevo
-  (`1029982529813994`) sí recibe el `Purchase` del webhook de Wompi, pero la
-  cuenta no lo tiene compartido.
+  (`1029982529813994`) sí recibe el `Purchase` del webhook de Wompi y de
+  `registrar-venta.mjs` (contraentrega y WhatsApp), pero la cuenta no lo tiene
+  compartido. Los dos reciben **los mismos eventos de navegador** desde el 13
+  de agosto, así que mudarse al nuevo no arranca de cero.
+- **Para diagnosticar la CAPI, mirar el píxel nuevo.** El viejo marca
+  `server_last_fired_time` en época cero por diseño: nunca podrá tener CAPI. Un
+  análisis externo (oct 2026) concluyó «la CAPI nunca ha funcionado» por mirar el
+  viejo. La pregunta real es otra: el nuevo registró solo **3 `Purchase` de
+  servidor en 28 días, todos en la misma hora del 29 de septiembre** (y del 29 de
+  septiembre al 6 de octubre, 5 del navegador y 1 de servidor, con una
+  contraentrega cancelada de por medio). Antes de
+  culpar a la cuenta, comparar contra las ventas reales del periodo: si hubo
+  más, faltan registros en `registrar-venta` o el webhook no los reportó.
 - **Sin catálogo** (la cuenta sin portafolio no puede tenerlo): nada de anuncios
   de catálogo ni dinámicos hasta el reclamo.
 - **El público similar está inactivo** (semilla muy chica).
 - **El checkout no guarda los UTMs en el pedido.** El origen de una venta web no
   queda registrado solo; se anota a mano.
-- **`InitiateCheckout` se cuenta doble en la compra web.** Se dispara al tocar
-  «Comprar» (`tienda.js`, `comprar()`) y otra vez al cargar `checkout.html`, y de
-  nuevo con cada recarga. Los dos no comparten `eventID`, así que Meta no los
-  deduplica. Consecuencias: el número de checkouts está inflado (el costo por
-  checkout real es más alto que el que muestra Meta) y la campaña optimiza sobre
-  una señal ruidosa. Los clics de compra a WhatsApp que cuentan como checkout sí
-  son intencionales (ahí se cierra la venta); el botón flotante y el banner ya
-  van como `Contact`. Corregirlo es un cambio en la tienda: al hacerlo, el
-  volumen de checkouts en Meta va a caer, y eso no es menos venta sino mejor
-  conteo. Ojo con el momento: con ~69 eventos semanales hoy, quitar el
-  duplicado puede dejar la campaña cerca de 35, por debajo de lo que necesita
-  para salir de aprendizaje. Se hace a propósito, avisando, y nunca junto con
-  otro cambio.
+- **`InitiateCheckout` ya no se cuenta doble (corregido el 24 de septiembre,
+  visible en la cuenta desde el 27).** Antes se disparaba al tocar «Comprar»
+  (`tienda.js`) y otra vez al cargar `checkout.html`, sin `eventID` común, y Meta
+  no los deduplicaba. El commit `464366f` dejó **un solo evento, el de
+  `checkout.html`** (`tienda.js` ya no lo manda). Consecuencias, todas ya
+  medidas: los checkouts reportados cayeron a más o menos la mitad (de ~70 a
+  ~35 por semana con el mismo gasto), el costo por checkout reportado casi se
+  duplicó sin que nada empeorara, y **cualquier comparación que cruce el 27 de
+  septiembre es inválida sin corregirla**. Los clics de compra a WhatsApp que
+  cuentan como checkout siguen siendo intencionales; el botón flotante y el
+  banner van como `Contact`.
 - **Buena parte de la venta se cierra por WhatsApp**, fuera de lo que el píxel
   puede ver.
 
@@ -104,6 +118,22 @@ problema es de medición, no de la campaña**, y las reglas de abajo que usan
 Este paso existe porque el árbol genérico, aplicado a esta cuenta, falla: con
 un CTR de enlace alto y «sin compras», manda a arreglar la oferta o la landing,
 cuando las ventas sí están ocurriendo y lo que falla es el píxel.
+
+**Dos cosas que desvían el paso 0:**
+
+- **La contraentrega se cuenta al confirmar, no al recibir.** El `Purchase` de
+  una venta contraentrega sale cuando se confirma el pedido, así que **una
+  cancelación posterior sigue contada en Meta como compra**. Pasó en la semana
+  del 29 de septiembre al 6 de octubre: de 5 compras del navegador y 1 de
+  servidor, una contraentrega se canceló. Al contrastar con las ventas reales,
+  descontar las canceladas y las devueltas.
+- **Antes de comparar dos periodos, revisar si el sitio cambió cómo mide.**
+  `git log origin/main -S"InitiateCheckout" --since=<fecha>` y mirar los
+  commits que tocan el píxel (`tienda.js`, `checkout.html`, `index.html`). El
+  24 de septiembre un cambio de medición se leyó durante dos semanas como si
+  fuera un cambio de rendimiento de la pauta, y de ahí salió una conclusión
+  equivocada que llegó a quedar escrita aquí. **Una caída o una subida
+  repentina en un solo día, sin tocar la campaña, casi siempre es de medición.**
 
 ### Dos ROAS, y cuándo usar cada uno
 
@@ -145,24 +175,78 @@ cuando las ventas sí están ocurriendo y lo que falla es el píxel.
 
 ## Estructura
 
-Es una cuenta con poco historial de compras medidas, así que va el esquema de
-cuenta nueva del curso:
+### Con el volumen de hoy: una campaña, un conjunto
+
+**La cantidad de campañas la decide el volumen de eventos, no el método.** Meta
+necesita del orden de 50 eventos de optimización por semana **en un mismo
+conjunto** para salir de aprendizaje. Desde que el sitio dejó de contar doble
+el `InitiateCheckout` (ver arriba), la cuenta produce **~35 checkouts por
+semana con una sola campaña** y ~77 con tres campañas y el doble de gasto. Ni
+siquiera un conjunto único llega a 50: queda en aprendizaje limitado, y partir
+el volumen en dos o tres conjuntos lo empeora.
+
+**Ojo: el argumento de la estructura es de volumen, no de resultados medidos.**
+La primera versión de esta sección decía que separar en tres campañas había
+doblado el costo por checkout. **Era falso**: comparaba periodos con
+mediciones distintas. Lo que sí muestran los datos, con el conteo corregido:
+
+| Periodo | Estructura | Gasto/día | Checkouts/sem. (reportados) | Costo/checkout reportado | Costo comparable* |
+|---|---|---|---|---|---|
+| 5 ago – 15 sep | 1 campaña | $10.000–19.000 | 38–85 | $1.275–2.028 | ≈ $2.500–4.000 |
+| 16–22 sep | 1 campaña | $28.800 | 72 | $2.802 | ≈ $5.600 |
+| 27 sep – 2 oct | 3 campañas | ~$52.000 | ~77 | $4.736 | $4.736 |
+| 3–5 oct | 1 campaña | ~$23.000 | ~35 | $4.649 | $4.649 |
+
+\* Antes del 27 de septiembre el sitio contaba cada checkout dos veces, así que
+los números reportados de esas filas son **aproximadamente el doble de
+checkouts** y la mitad de costo. «Comparable» multiplica por dos el costo de las
+filas anteriores. No es exacto, pero el salto en la cuenta del 26 al 27 de
+septiembre (17 → 6 checkouts en un día, sin tocar ninguna campaña) lo delata.
+
+Qué se puede afirmar y qué no:
+
+1. **El costo comparable subió al pasar de ≤ $19.000 a ≥ $23.000 diarios** (de
+   ≈ $2.500–4.000 a ≈ $4.600–5.600) y no ha vuelto a bajar. La subida empezó
+   con **una sola campaña** a $28.800, antes de separar nada, y coincide con el
+   fin de Amor y Amistad (19 de septiembre).
+2. **El número de campañas no explica el costo.** Con tres campañas y $52.000
+   salió a $4.736; con una y $23.000, a $4.649. Culpar a la estructura, ni para
+   bien ni para mal, no se sostiene con estos datos.
+3. **Tampoco se puede decir que más gasto no compre checkouts**: a $52.000 al
+   día hubo ~77 por semana contra ~35 a $23.000. Lo que sí es cierto es que
+   cada checkout adicional cuesta más de lo que costaba a $13.000–19.000.
+4. **La consolidación del 3 de octubre no se puede evaluar todavía**: 3 días
+   completos, 15 checkouts. La primera lectura con sentido es el 10 de octubre,
+   y para medir bien hay que comparar siempre contra el conteo nuevo.
+
+Estructura vigente:
+
+- **Una campaña de ventas (`VENTAS · ESCALA · IC`) con un solo conjunto
+  amplio** y presupuesto de campaña. Los ángulos nuevos se prueban **como
+  anuncios dentro de ese conjunto**, no en una campaña aparte: Meta reparte cada
+  creativo a la gente que le responde, y el conjunto no pierde volumen.
+- **Techo de 6 a 8 anuncios activos.** Con menos de 5 falta diversidad (Meta
+  agrupa los parecidos); con más de 8, cada uno recibe migajas y no se puede
+  leer. Un anuncio nuevo entra cuando otro sale.
+- Hombres y mujeres: Marvel y la pulsera clásica en tallas 20-21 venden también
+  a hombres.
+
+**Cuándo sí separar.** Solo si se cumplen las dos: la cuenta pasa de unos
+**150 checkouts por semana**, y cada conjunto separado va a recibir al menos
+50. Ahí sí aplica el esquema de cuenta en crecimiento del curso:
 
 | Campaña | Etapa | Público | Parte del presupuesto |
 |---|---|---|---|
-| `VENTAS · PRES · IC` | Presentación | Frío, excluyendo compradores | La mayor (~70% hoy) |
-| `VENTAS · EVAL-CONV · IC` | Evaluación + conversión | Públicos personalizados 90 días | El resto (~30%) |
+| `VENTAS · PRES · IC` | Presentación | Frío, excluyendo compradores | ~70% |
+| `VENTAS · EVAL-CONV · IC` | Evaluación + conversión | Públicos personalizados 90 días | ~30% |
 | `VENTAS · ASC` | Ascensión | Compradores | Cuando la lista de clientes alcance para entregar |
 
-- **Prueba con presupuesto por conjunto (ABO)**, para que cada conjunto reciba
-  lo mismo y se puedan comparar. **Presupuesto de campaña (CBO) solo para
-  escalar** lo que ya ganó. Nunca mezclar en una misma CBO públicos en prueba
-  con públicos validados.
-- Conjuntos de presentación: el curso usa tres (abierta, intereses, similar).
-  Aquí van dos mientras el similar esté inactivo: **abierta** (público
-  Advantage+) e **intereses** (público original: charms, joyería, pulseras,
-  regalos, Pandora como interés). Hombres y mujeres: Marvel y la pulsera clásica
-  en tallas 20-21 venden también a hombres.
+Con prueba en presupuesto por conjunto (ABO) y escala en presupuesto de campaña
+(CBO), sin mezclar en una misma CBO conjuntos en prueba con validados.
+
+**Antes de subir presupuesto**, comparar checkouts por semana de las dos
+semanas anteriores. Si el gasto subió y los checkouts no, devolver el
+presupuesto al nivel anterior en vez de seguir subiendo.
 - **Evento de optimización: InitiateCheckout, no Purchase.** No es solo por el
   píxel: con el volumen de ventas actual, un conjunto optimizado por compra no
   llega a 50 eventos semanales ni con la medición perfecta, y se queda en
@@ -193,6 +277,46 @@ cuenta nueva del curso:
 - Pausar no es gratis: al reactivar, el conjunto vuelve a aprender y los
   primeros días salen más caros. Antes de proponer una pausa, estimar las ventas
   que se dejan de hacer con la conversión real (no la del píxel).
+
+### Mover un anuncio sin perder la prueba social
+
+Los likes, comentarios y compartidos viven en la **publicación**, no en el
+anuncio. Para pasar un anuncio a otro conjunto o campaña:
+
+- **Por API**: crear el anuncio nuevo con el **mismo `creative_id`**
+  (`ads_create_ad` con `{"creative_id": "…"}`). Apunta a la misma publicación de
+  Facebook e Instagram y la prueba social sigue sumando.
+- **En Ads Manager**: *Duplicar* → *Conjunto de anuncios existente*, y confirmar
+  que diga **«Usar publicación existente»** con el mismo ID. **No editar texto
+  ni imagen**: cualquier cambio crea una publicación nueva que arranca en cero.
+- **Verificar siempre después**: leer el anuncio nuevo y comparar su
+  `creative_id` con el original. El 2026-10-03 un duplicado hecho a mano «se
+  hizo» pero nunca se creó, y solo se supo al leer la cuenta.
+- Pausar la campaña vieja no borra las publicaciones: no hay que tocarlas.
+- **Pausar un anuncio tampoco pierde los likes.** Siguen en la publicación y se
+  recuperan reactivando el anuncio o creando otro con el mismo `creative_id`.
+  Por eso **la prueba social no justifica seguir gastando en un anuncio que no
+  convierte**: un anuncio con 60 likes y 3 checkouts por $30.000 sigue siendo un
+  mal comprador. Mucha reacción es atención, no ventas, y en esta cuenta eso ya
+  pasó con Copia 4. Pausar sale barato, porque la prueba social se conserva.
+
+### Trampas del conector de Meta Ads
+
+- **El COP no tiene centavos.** `daily_budget: 5000` son $5.000, aunque la
+  documentación del conector diga «unidad menor (centavos)». El 2026-09-06 un
+  «son centavos» dejó un presupuesto en $500.000/día. Después de tocar un
+  presupuesto, releerlo de la API antes de activar nada.
+- **Editar una campaña la pausa.** `ads_update_entity` sobre una campaña activa
+  devuelve `status_forced_to_paused: true`. Toda edición de campaña son dos
+  llamadas (`ads_update_entity` y `ads_activate_entity`) más una lectura que
+  confirme `effective_status: ACTIVE`. Pasó el 2026-09-10 al subir el
+  presupuesto: la campaña quedó apagada por el cambio que quería escalarla.
+- **En modo Auto, las escrituras se bloquean al azar.** El revisor automático
+  de la sesión bloqueó la mitad de las acciones del 2026-10-03, aprobó otras
+  idénticas, e incluso bloqueó una lectura. La aprobación en el chat no lo
+  levanta y no deja reintentar lo bloqueado. **Para trabajar sobre la pauta, la
+  sesión va en modo «Aceptar ediciones»**: cada acción le llega al propietario
+  para aprobarla en el teléfono, que es justo el acuerdo de la regla 1.
 
 ## Públicos
 
@@ -226,6 +350,20 @@ de 2. Ya no existen la escalera 8/15/25% ni el −30% del brazalete: un anuncio
 que los prometa promete algo que el checkout no cobra. Texto del banner del
 sitio: «🎁 ARMA TU SET: Mezcla charms y brazaletes. ¡PAGA 3 Y LLÉVATE 1 GRATIS!
 · Paga 5 y llévate 2 ✨».
+
+Las promos vigentes completas (2026-10-06, confirmadas por el propietario):
+
+| Promoción | Cómo funciona |
+|---|---|
+| Paga 3, lleva 1 gratis | Con 4 piezas, la más barata sale gratis. El brazalete cuenta como pieza. |
+| Paga 5, lleva 2 gratis | Con 7 piezas, las 2 más baratas salen gratis. Es el máximo: con 8 o más siguen siendo 2. |
+| Regalo de suscripción | Una letra (su inicial) gratis. Solo en la primera compra de 2 charms o más, con el mismo correo con el que se suscribió y confirmó. |
+| Envío gratis | Pagando en línea. Con contraentrega el envío cuesta **$20.000**. |
+
+El regalo de suscripción tiene condiciones, así que un anuncio no debe
+prometerlo a quien no se haya suscrito. Y como la contraentrega cobra envío y el
+pago en línea no, «envío gratis» en un anuncio solo es cierto para el pago en
+línea: decirlo así, sin dejar que se lea como válido para todos los pedidos.
 
 - Presentación: ninguna oferta explícita. La idea de armar la pulsera y el
   «desde» del brazalete.

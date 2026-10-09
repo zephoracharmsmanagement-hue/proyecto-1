@@ -5,6 +5,57 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Reseñas del Excel del propietario — cargadas el 2026-10-06
+
+El propietario pasó su base de reseñas (`Pictureseviews zephora`: Excel
+*Clientas_y_fotos_Zephora_Sin_Fechas.xlsx* + zip de fotos + hojas de
+contacto numeradas) y confirmó que **son clientas reales y cada foto es de la
+clienta de su reseña**. Se cargaron **163 de 167** al almacén que lee la página
+(`resenas-pruebas`, ver el OJO de `herramientas/resenas.mjs`), ya aprobadas,
+con `herramientas/importar-resenas.mjs`. Sin despliegue: la página ya pintaba
+lo que hubiera en el almacén. En vivo: **4,9 de 5 · 179 reseñas**.
+
+- **Omitidas 4** que ya estaban publicadas desde el formulario (Excel #2, #5,
+  #6 y #13 = «Andrea V»): la misma clienta no sale dos veces.
+- **Nombre como «Nombre I.»**, igual que las fijas de la portada; sin
+  «Compra verificada» (no hay pedido web detrás): dicen «Reseña en la página».
+- **Sin fecha real** (el Excel no la trae): `fecha` va detrás de la más
+  vieja publicada y la página no la muestra. El orden lo manda `orden`
+  (abajo).
+- Ids `tienda/impNNN-xxxxxx` (NNN = ID del Excel): volver a correr no duplica
+  y respeta las que alguien haya ocultado. Hasta 3 fotos por reseña (la
+  clienta del Excel #53 trae 5). Fotos sin EXIF, ≤1280 px.
+- Numeración de fotos ↔ archivos del zip: 1–88 = IMG_1571–1658, 89 =
+  IMG_1658(1), 90–99 = IMG_1659–1668 (no hay IMG_1669), 100–111 =
+  IMG_1670–1681, 112–153 = los de nombre UUID en orden alfabético. Faltaba la
+  hoja de contacto 1–20; se comprobó a ojo con una propia.
+- **Deshacer todo el lote:** `node herramientas/importar-resenas.mjs <lote> --ocultar`.
+  Una sola: `node herramientas/resenas.mjs ocultar tienda/impNNN-…`.
+- El lote (`lote.json` + fotos) tiene nombres de clientas: **no va a git**.
+  Copia en `Pictures\reviews zephora\lote-importado-2026-10-06`.
+
+**Lo que se cuenta es lo que se ve (propietario, 2026-10-06).** «Si decimos
+179 reseñas tenemos que mostrarlas todas; si tenemos menos, bajamos el
+número.» Desde entonces la función no tiene tope de 30, y una reseña de solo
+estrellas (sin texto ni foto: no hay tarjeta) no cuenta ni para el total ni
+para el promedio: las 4 del Excel así (#4, #21, #29, #37) siguen aprobadas
+pero no se ven ni se cuentan. Las 3 tarjetas fijas de la portada sí entran
+en el número (tienda.js, `contarFijas`). Resultado: **178 reseñas, 178
+tarjetas**. Con más de 12 tarjetas los puntos pasan a «4 / 178».
+
+**Orden, también del propietario:** primero las de mejor foto con joyas que
+hoy están en la tienda; las de piezas que ya no se venden se publican, pero
+no entre las primeras. Va en el campo `orden` de cada reseña, por grupos de
+mil: 0 foto clara de pieza actual (41) · 1000 foto aceptable (50) · 2000
+solo texto (40) · 3000 foto floja (13) · 4000 pieza que ya no está (22:
+collares, letras deslizables de cuero o strass, bus, taza, moto, copas,
+bicicleta, carro, maleta, brazalete dorado…) · 5000 solo foto, sin texto
+(9). Dentro de cada grupo, el texto más completo primero. La clasificación
+de las 153 fotos fue a ojo contra `producto-*.html`; la primera foto de cada
+reseña es la mejor de las suyas. Las nuevas del formulario no traen `orden`
+y entran solas: con foto en 999,5 (tras las claras), sin foto en 1999,5.
+Mover una: `node herramientas/resenas.mjs orden <id> <n>`.
+
 ## 🔒 Reclamado — contenido orgánico, retomado el 2026-09-20
 
 Regla 4 de `CLAUDE.md`. El propietario pidió un plan de escalamiento integral
@@ -74,7 +125,8 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   abreviado pisa el lateral de `.wrap`; CSS `fill` gana al atributo del SVG.
 >
 > **Pendiente (espera datos del propietario):** credenciales de Addi (hoy
-> sigue por WhatsApp); fotos y textos de reseñas; hora de corte de Bogotá si
+> sigue por WhatsApp); ~~fotos y textos de reseñas~~ (cargadas el 2026-10-06, ver
+> § *Reseñas del Excel*); hora de corte de Bogotá si
 > se quiere «pide hoy, llega mañana»; fotos de Ñ y Q. El prompt del bot de
 > WhatsApp aún dice «Bogotá 1-2 días» (lo lleva la sesión del bot). **No
 > fusionar** `claude/zephora-charms-automation-rzbthc` (rama del bot: toca
@@ -329,8 +381,53 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > - **Descartado por el propietario el 2026-10-02**: carrito y pago en una
 >   sola página completa (revertido). El carrito sigue siendo la hoja.
 >
-> **Espera datos del propietario:** credenciales de Addi (el botón sigue a
-> WhatsApp); hora de corte y mensajería para 24 h en Bogotá (no se publica
+> **2026-10-08 · PR #22 (`claude/addi-integracion`), fusionado con
+> confirmación del propietario («deploy»):**
+> - **Addi integrado** (integración custom `zephoracharms-ecommerce` del portal
+>   de aliados): «Pagar con Addi» ya no va a WhatsApp. `crear-pago` pide la
+>   cédula, revisa los topes ($50.000 – $3.000.000), aparta 2 h 15 min y crea
+>   la solicitud en Addi antes de los correos (si Addi no responde: libera y
+>   ofrece WhatsApp). `addi-callback` (Basic Auth con las credenciales de
+>   notificación, responde el mismo cuerpo) cierra el pedido con `_cierre.mjs`,
+>   el mismo cierre que ahora usa `wompi-webhook`. `gracias.html?modo=addi`
+>   consulta `estado-pedido`.
+> - **Addi a la vista**: cuota «hasta 3 de $X sin interés» bajo el precio de
+>   las fichas y bajo el total del carrito (sin interés solo hasta $600.000,
+>   plan Addi Pago), recuadro bajo la promo en la portada, widget oficial de
+>   Addi en las 135 fichas (no se ve hasta que Addi active la cuenta). La
+>   píldora del hero se quitó a pedido del propietario.
+> - **Correos**: con Addi dicen «ADDI — esperando que Addi apruebe» y «aprobado
+>   por Addi» (no «Wompi»).
+> - **Variables en Netlify** (secretas): `ADDI_CLIENT_ID`, `ADDI_CLIENT_SECRET`,
+>   `ADDI_NOTIF_USUARIO`, `ADDI_NOTIF_CLAVE`; y `ADDI_ALLY_SLUG`. Claves en
+>   `material-sin-publicar/claves-addi.txt` (nunca al repo).
+> - **Ojo con las pruebas en la vista previa**: comparten `inventario-pruebas`
+>   con producción. La prueba del propietario (ZC-261008-D3C41A3A) apartó las
+>   2 Mickey y el Stitch; se liberó a mano y quedó `prueba-cancelada`.
+>
+> **2026-10-09 · PR #23 (`claude/fotos-hd`), fusionado con confirmación del
+> propietario («deploy»):**
+> - **Fotos de producto nítidas y con el mismo encuadre**: las 134 pasan de
+>   440 px con la joya a tamaños distintos a cuadradas, fondo blanco, centradas
+>   y con el lado largo de la joya al 90 % (pedido del propietario).
+>   `assets/hd/<foto>.webp` 1200 px (galerías, compartir, fotos del bot) y
+>   `assets/<foto>.webp` 600 px (rejilla, carrito). `?v=20261009` en todas.
+> - **Fuentes**: 41 de Flow (1024 px, sin IA) y 93 ampliadas ×2 con Recraft
+>   Crisp Upscale de Kie, que no redibuja (Topaz de Kie fallaba con «internal
+>   error»; los fallos no cobran). Costo total 70 créditos ≈ USD 0,35; clave de
+>   Kie en `C:\Users\Martin\anuncios-zephora\.env`. Revisadas una por una,
+>   sellos S925 con zoom. Material y registro en `material-sin-publicar/fotos-hd/`.
+>   Herramientas: `herramientas/fotos_hd.py` (arma assets/ y assets/hd/) y
+>   `herramientas/fotos_kie.py` (solo para fotos NUEVAS de 440 px).
+> - **Camaleón Verde**: la foto muestra la misma pieza en sus dos tonos; ahora
+>   lo dice sobre la foto (`ANOTACIONES` en fotos_hd.py) y en la descripción
+>   (`NOTAS_PIEZA` en gen_productos.py): cambia de color con la temperatura.
+> - **Pendiente de fotos nuevas** (vienen así desde el original): Letra K
+>   cortada en el borde; Ñ y Q usan la foto «LOVE».
+>
+> **Espera datos del propietario:** que Addi active la cuenta (su config
+> pública dice `isActiveAlly: false`; el propietario lo gestiona en el portal
+> o con soporte_aliados@addi.com); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
 > si se quieren videos largos en reseñas. Paleta: se mantiene la original.
 
