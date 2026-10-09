@@ -405,6 +405,26 @@ mirar. No es una tarea con final escrito — es un ciclo.
 >   con producción. La prueba del propietario (ZC-261008-D3C41A3A) apartó las
 >   2 Mickey y el Stitch; se liberó a mano y quedó `prueba-cancelada`.
 >
+> **2026-10-09 · PR #23 (`claude/fotos-hd`), fusionado con confirmación del
+> propietario («deploy»):**
+> - **Fotos de producto nítidas y con el mismo encuadre**: las 134 pasan de
+>   440 px con la joya a tamaños distintos a cuadradas, fondo blanco, centradas
+>   y con el lado largo de la joya al 90 % (pedido del propietario).
+>   `assets/hd/<foto>.webp` 1200 px (galerías, compartir, fotos del bot) y
+>   `assets/<foto>.webp` 600 px (rejilla, carrito). `?v=20261009` en todas.
+> - **Fuentes**: 41 de Flow (1024 px, sin IA) y 93 ampliadas ×2 con Recraft
+>   Crisp Upscale de Kie, que no redibuja (Topaz de Kie fallaba con «internal
+>   error»; los fallos no cobran). Costo total 70 créditos ≈ USD 0,35; clave de
+>   Kie en `C:\Users\Martin\anuncios-zephora\.env`. Revisadas una por una,
+>   sellos S925 con zoom. Material y registro en `material-sin-publicar/fotos-hd/`.
+>   Herramientas: `herramientas/fotos_hd.py` (arma assets/ y assets/hd/) y
+>   `herramientas/fotos_kie.py` (solo para fotos NUEVAS de 440 px).
+> - **Camaleón Verde**: la foto muestra la misma pieza en sus dos tonos; ahora
+>   lo dice sobre la foto (`ANOTACIONES` en fotos_hd.py) y en la descripción
+>   (`NOTAS_PIEZA` en gen_productos.py): cambia de color con la temperatura.
+> - **Pendiente de fotos nuevas** (vienen así desde el original): Letra K
+>   cortada en el borde; Ñ y Q usan la foto «LOVE».
+>
 > **Espera datos del propietario:** que Addi active la cuenta (su config
 > pública dice `isActiveAlly: false`; el propietario lo gestiona en el portal
 > o con soporte_aliados@addi.com); hora de corte y mensajería para 24 h en Bogotá (no se publica
