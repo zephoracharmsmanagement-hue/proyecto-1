@@ -38,6 +38,7 @@ o si el precio que muestra la tarjeta no es el de catalogo.json.
 """
 import html as H
 import json
+import os
 import re
 import sys
 import urllib.parse
@@ -105,6 +106,16 @@ def tarjeta_principal(html, pid, cat):
     # En su propia página, el nombre no se enlaza a sí mismo.
     t = re.sub(r'<h1 class="pc-name"><a href="[^"]*">(.*?)</a></h1>', r'<h1 class="pc-name">\1</h1>', t, count=1)
     t = t.replace(' loading="lazy"', ' fetchpriority="high"', 1)
+    # La cuota de Addi bajo el precio (pedido del propietario, 2026-10-08). Mismos
+    # topes que el carrito (pintarCuotasAddi en tienda.js): de $50.000 a $600.000
+    # es «sin interés»; la cuota se redondea hacia arriba al peso.
+    precio = cat['precios'][pid]
+    if 50000 <= precio <= 600000:
+        cuota = cop(-(-precio // 3))
+        t = t.replace('</div></div></article>',
+                      '</div>\n<p class="pp-cuotas">o hasta 3 cuotas de <b>%s</b> sin interés con '
+                      '<img class="addi-logo" src="assets/pagos/addi.webp?v=20260913" alt="Addi" width="183" '
+                      'height="70" decoding="async"></p></div></article>' % cuota, 1)
     return t
 
 
@@ -122,7 +133,7 @@ def tarjeta_inicial(html, pid, cat):
     # la del grupo. `?v=` con la fecha en que entraron, por la caché de una
     # semana de las .webp (netlify.toml).
     if cat['fotos'][pid] != img.split('/')[-1].split('?')[0]:
-        img = 'assets/%s?v=20260925' % cat['fotos'][pid]
+        img = 'assets/%s?v=20261009' % cat['fotos'][pid]
     sello = re.search(r'<span class="pc-mark[^"]*">[^<]*</span>', letras).group(0)
     n = H.escape(cat['nombres'][pid])
     return ('<article class="pc" data-id="%s" data-g="Letras">\n'
@@ -281,6 +292,7 @@ PAGINA = '''<!DOCTYPE html>
 </div>
 
 {chrome}
+{addi_script}
 </body>
 </html>
 '''
@@ -322,7 +334,19 @@ PAGOS = ('        <p class="pp-pagos" aria-label="Medios de pago">' + ''.join(
                  ('daviplata', 'Daviplata'), ('bancolombia', 'Bancolombia'), ('addi', 'Addi')]) + '</p>\n')
 
 WA = 'https://wa.me/573018990672?text='
-WA_ADDI = WA + 'Hola%2C%20Zephora%20Charms.%20Quiero%20pagar%20mi%20pedido%20a%20cuotas%20con%20Addi.'
+# Widget de Addi (manual de Addi, «Instalación del Addi Widget»): calcula solo
+# la cuota mínima para el precio de la pieza. Desde 2026-10-07 Addi se paga en
+# el checkout (integración propia), así que el «pregúntanos por WhatsApp» que
+# iba aquí sobra. El script se carga una vez por página, al final (ADDI_SCRIPT).
+#
+# Solo en el dominio de la tienda y en las vistas previas de Netlify: el CDN de
+# Addi rechaza otros orígenes (CORS) y su widget llena la consola de errores
+# («reading 'isProxied'»). Pasó en las pruebas de GitHub, que sirven el sitio
+# desde localhost: la consola limpia es una de las cosas que vigilan.
+ADDI_SLUG = 'zephoracharms-ecommerce'
+ADDI_SCRIPT = ('<script>/(^|\\.)zephoracharms\\.com$|\\.netlify\\.app$/.test(location.hostname)'
+               '&&document.head.appendChild(Object.assign(document.createElement("script"),'
+               '{src:"https://s3.amazonaws.com/widgets.addi.com/bundle.min.js",defer:true}))</script>')
 
 
 # La promo («paga 3, lleva 1 gratis · paga 5, lleva 2», 2026-10-04) en un solo recuadro, junto al precio (pedido del
@@ -337,7 +361,7 @@ PROMO_CAJA = (
     '      </div>')
 
 
-def bloque_compra(pid, tipo, nombre, hay, primeras):
+def bloque_compra(pid, tipo, nombre, hay, primeras, precio):
     """Recuadro de la promo, botones, vitrina, medios de pago y suscripción.
     Todo el bloque se esconde si la pieza está agotada (lo decide tienda.js con
     la disponibilidad real, y aquí con el conteo de stock.json para quien no
@@ -364,14 +388,14 @@ def bloque_compra(pid, tipo, nombre, hay, primeras):
     oculto = '' if hay else ' hidden'
     return ('      <div class="pp-compra" id="pp-compra"%s>\n%s\n%s\n'
             '        <div class="pp-pago">\n%s'
-            '        <p class="pp-addi">También a cuotas con Addi · <a data-wa="pagos" href="%s">pregúntanos por WhatsApp</a></p>\n'
+            '        <div class="pp-addi"><addi-widget price="%d" ally-slug="%s"></addi-widget></div>\n'
             '        </div>\n'
             '        <p class="pp-susc"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
             'stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">%s</svg><span><a href="#" data-susc>Suscríbete y '
             'llévate de regalo el charm de tu inicial</a> en tu primera compra de 2 charms o más.</span></p>\n'
             '      </div>\n'
             '      <p class="pp-agotado" id="pp-agotado"%s>Esta pieza está agotada. <a data-wa="encargo" id="pp-encargo" href="%s">Pídela por encargo por WhatsApp</a> y te avisamos cuando vuelva.</p>'
-            % (oculto, selector, botones, PAGOS, WA_ADDI, ICONO['regalo'], '' if not hay else ' hidden',
+            % (oculto, selector, botones, PAGOS, precio, ADDI_SLUG, ICONO['regalo'], '' if not hay else ' hidden',
                WA + urllib.parse.quote('Hola, Zephora Charms. Vi en la página que «%s» está agotado. '
                                         '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?' % nombre)))
 
@@ -405,7 +429,16 @@ def beneficios(tipo, cat):
                      for k, t in items)
 
 
-def acordeones(tipo, meta, grupo, cat):
+# Lo que la foto sola no explica (pedido del propietario, 2026-10-09: la foto del
+# Camaleón muestra dos camaleones y se puede leer como dos piezas). Solo hechos
+# que dio el propietario; sin inventar de qué color llega.
+NOTAS_PIEZA = {
+    'camaleon-verde': 'Cambia de color con la temperatura. En la foto ves <b>la misma pieza en sus dos '
+                      'tonos</b>: recibes un solo charm.',
+}
+
+
+def acordeones(tipo, meta, grupo, cat, pid=None):
     """Descripción · Materiales · Envíos · Contraentrega · Cuidados. Los textos
     salen de lo que el sitio ya publica en preguntas-frecuentes.html; no se
     inventa ni se amplía una promesa aquí. La ficha técnica (#pp-specs) y la
@@ -430,8 +463,9 @@ def acordeones(tipo, meta, grupo, cat):
                 '<li><b>Guardado ideal:</b> guárdala en su caja, en un lugar seco, cuando no la uses.</li>'
                 '<li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul>')
     secciones = [
-        ('Descripción', '<p>%s.</p><p id="pp-desc"></p>' % (
-            H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo)), True),
+        ('Descripción', '<p>%s.</p>%s<p id="pp-desc"></p>' % (
+            H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo),
+            '<p class="pp-nota">%s</p>' % NOTAS_PIEZA[pid] if pid in NOTAS_PIEZA else ''), True),
         ('Materiales', '<dl class="fx-specs" id="pp-specs"></dl>', False),
         ('Envíos gratis', '<p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los '
                           'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
@@ -571,7 +605,9 @@ def generar(pid, html, cat, stock, b, exigidos):
     sello = re.search(r'<span class="pc-mark[^"]*">([^<]*)</span>', tarjeta).group(1)
     meta = re.search(r'<p class="pc-meta">([^<]*)</p>', tarjeta).group(1)
     foto = re.search(r'<img src="([^"]+)"', tarjeta).group(1)
-    imagen = SITIO + foto
+    # Para compartir (WhatsApp, Facebook) va la de 1200 px de assets/hd/ si existe.
+    hd = re.sub(r'^assets/', 'assets/hd/', foto)
+    imagen = SITIO + (hd if os.path.exists(os.path.join(RAIZ, hd.split('?')[0])) else foto)
     canon = SITIO + href_de(pid)
     hay = (unidades(stock.get(pid)) or 0) > 0
 
@@ -603,13 +639,14 @@ def generar(pid, html, cat, stock, b, exigidos):
                                     list(dict.fromkeys(
                                         c for c in (rel + cat['destacados'] + list(cat['precios']))
                                         if c != pid and c in cat['precios'] and c not in cat['pulseras']
-                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16]),
-        beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat),
+                                        and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16],
+                                    precio),
+        beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat, pid),
         bloque_letras=tira_letras(pid, cat) if tipo == 'inicial' else '', rel_eyebrow=H.escape(rel_eyebrow),
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
         resenas=resenas_con_formulario(b['resenas'], H.escape(nombre)), historia=b['historia'],
-        bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'],
+        bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'], addi_script=ADDI_SCRIPT,
         bloques_media=bloques_media(pid, tipo, hay, cat),
         pagos=b['pagos'], footer=b['footer'], chrome=b['chrome'],
     )

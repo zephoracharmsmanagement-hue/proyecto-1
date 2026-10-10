@@ -167,7 +167,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
     p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE)) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
     await p.goto(BASE + '/' + encodeURIComponent(archivoDe(id)), { waitUntil: 'networkidle' });
-    await p.waitForFunction(() => document.body.classList.contains('con-stock'), null, { timeout: 5000 }).catch(() => {});
+    /* La disponibilidad de la página sale del dato real, no del conteo: hay
+       que esperar a que llegue ese, o la primera página en frío la lee vacía. */
+    await p.waitForFunction(() => document.body.classList.contains('con-disponibilidad'), null, { timeout: 5000 }).catch(() => {});
     await p.waitForTimeout(250);
 
     const vc = ev.filter(e => e[1] === 'ViewContent');
@@ -234,7 +236,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
           lista: !!document.getElementById('rp-lista') || !!document.getElementById('resenas-pieza'),
           form: !!document.querySelector('#reseñas #rp-form'), vend: document.getElementById('pp-vendidas').textContent };
       });
-      ok(/4,5 · 2 reseñas/.test(r.top) && r.items === 2 && r.href === '#reseñas', `estrellas con el promedio y conteo reales («${r.top.trim()}»), que llevan al carrusel`);
+      /* 2 del servidor + las 3 fijas del carrusel, que también se ven (2026-10-06). */
+      ok(/4,8 · 5 reseñas/.test(r.top) && r.items === 2 && r.href === '#reseñas', `estrellas con el promedio y conteo reales («${r.top.trim()}»), que llevan al carrusel`);
       ok(r.orden === 'foto,texto', `las dos reseñas en el carrusel, la de foto primero (${r.orden})`);
       ok(!r.lista && r.form, 'una sola sección de reseñas, con el formulario debajo del carrusel');
       ok(r.txt.includes('<b>Hermoso</b>') && !r.html.includes('<b>Hermoso</b>'), 'el texto de una reseña se escapa, no se inyecta');
@@ -595,7 +598,7 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     const r = await p.evaluate(() => ({ ver: !document.getElementById('campo-regalo').hidden,
       letras: [...document.querySelectorAll('#regalo-inicial option')].map(o => o.value).filter(Boolean) }));
     ok(r.ver && JSON.stringify(r.letras) === JSON.stringify(conUnidades),
-      `suscrita con 2 charms: aparece «Elige la inicial de tu regalo», solo con las ${r.letras.length} letras que tienen unidades`);
+      `suscrita con 2 charms: aparece el selector de la inicial, solo con las ${r.letras.length} letras que tienen unidades`);
     // El campo vive en el paso de datos (oculto hasta llegar ahí): se elige por valor.
     await p.evaluate(l => { document.getElementById('regalo-inicial').value = l; }, conUnidades[0]);
     ok(!errs.length, 'consola limpia' + lista(errs));  // que la letra viaja lo prueba checkout.js § 4b
@@ -603,9 +606,89 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ({ ctx10, p, errs } = await abrir(dos.slice(0, 1), true));
     ok(await p.evaluate(() => document.getElementById('campo-regalo').hidden), 'con 1 charm no se ofrece');
     await ctx10.close();
+    /* Sin la marca de suscripción en ESTE navegador: es el caso de la clienta
+       que confirmó desde el correo en otro navegador, o compra en ventana
+       privada. Antes no veía el selector aunque el servidor sí le daba el
+       regalo (2026-10-09). Ahora lo ve, con texto condicional — pero el aviso
+       del resumen, que AFIRMA que el regalo va incluido, no puede salirle: a
+       quien no está suscrita le prometería algo que no recibe. */
     ({ ctx10, p, errs } = await abrir(dos, false));
-    ok(await p.evaluate(() => document.getElementById('campo-regalo').hidden), 'sin suscripción en este navegador, no aparece');
+    const s = await p.evaluate(() => ({
+      ver: !document.getElementById('campo-regalo').hidden,
+      etiqueta: document.querySelector('label[for="regalo-inicial"]').textContent,
+      promete: /Incluye el charm de tu inicial/.test(document.getElementById('res-totales').textContent),
+    }));
+    ok(s.ver, 'sin suscripción en este navegador, con 2 charms: el selector igual aparece');
+    ok(/Si estás suscrita con este correo/.test(s.etiqueta), 'con texto condicional — ' + s.etiqueta.trim());
+    ok(!s.promete, 'y el resumen NO afirma que el regalo va incluido');
     await ctx10.close();
+  }
+
+  // ── 10b · Etiqueta y vitrina con la disponibilidad real (2026-10-09) ──
+  console.log('10b · Etiqueta y vitrina con la disponibilidad real, no con el conteo');
+  {
+    /* El bug real. stock.json es el conteo físico y no descuenta lo vendido
+       después; la disponibilidad real sí. El resto de esta batería simula la
+       real IGUAL al conteo, así que no lo ejercita: aquí va más baja.
+         Elefantito Rosa:    conteo 1, real 0 → decía «Última unidad».
+         Mariposas Tricolor: conteo 3, real 0 → no decía nada y dejaba agregar. */
+    const enCero = ['elefantito-rosa', 'mariposas-tricolor-colgantes'].filter(i => stock[i]);
+    const realBaja = async (ctx, retraso) => {
+      await rutasFalsas(ctx);
+      /* Registrada después: en Playwright la última ruta registrada manda. */
+      await ctx.route('**/.netlify/functions/disponibilidad', async r => {
+        if (retraso) await new Promise(fin => setTimeout(fin, retraso));
+        await r.fulfill({ json: {
+          fuente: 'conteo-menos-apartado',
+          piezas: Object.entries(stock).filter(([, v]) => !v.tallas)
+            .map(([i, v]) => ({ id: i, disponible: enCero.includes(i) ? 0 : v.stock })),
+          brazaletes: Object.entries(stock).filter(([, v]) => v.tallas).map(([i, v]) => ({ id: i, tallas: v.tallas })) } });
+      });
+    };
+    const etiquetaDe = (p, id) => p.evaluate(i => {
+      const c = document.querySelector('.pc[data-id="' + i + '"]');
+      const e = c && c.querySelector('.pc-stock'), b = c && c.querySelector('.pc-add');
+      return { hay: !!c, txt: e ? e.textContent.trim() : '', bloqueado: !!b && b.getAttribute('aria-disabled') === 'true' };
+    }, id);
+
+    // Portada, con la real retrasada 2 s: primero llega el conteo, después la real.
+    const ctxA = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await realBaja(ctxA, 2000);
+    const pA = await ctxA.newPage();
+    const errsA = []; pA.on('pageerror', e => errsA.push(e.message));
+    await pA.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+    await pA.waitForFunction(() => document.body.classList.contains('con-stock'), null, { timeout: 5000 }).catch(() => {});
+    const antes = { real: await pA.evaluate(() => document.body.classList.contains('con-disponibilidad')),
+      elef: await etiquetaDe(pA, 'elefantito-rosa') };
+    ok(antes.elef.hay && !antes.real, 'el conteo llegó y la disponibilidad real todavía no (la ventana que hay que probar)');
+    ok(antes.elef.txt === '', 'mientras no llega la real, el Elefantito no lleva etiqueta'
+      + (antes.elef.txt ? ` — decía «${antes.elef.txt}», sacada del conteo viejo` : ''));
+    await pA.waitForFunction(() => document.body.classList.contains('con-disponibilidad'), null, { timeout: 8000 }).catch(() => {});
+    for (const id of enCero) {
+      const e = await etiquetaDe(pA, id);
+      ok(e.hay && e.txt === 'Agotado', `con la real, ${id} dice «Agotado» (conteo ${stock[id].stock}) — «${e.txt}»`);
+      ok(e.bloqueado, `y su botón ya no deja agregarla`);
+    }
+    ok(!errsA.length, 'consola limpia' + lista(errsA));
+    await ctxA.close();
+
+    // Vitrina de una pieza de Símbolos: esconde las agotadas según la real.
+    const ctxB = await b.newContext({ viewport: { width: 390, height: 844 } });
+    await realBaja(ctxB, 0);
+    const pB = await ctxB.newPage();
+    await pB.goto(BASE + '/producto-angel-guardian.html', { waitUntil: 'networkidle' });
+    await pB.waitForFunction(() => document.body.classList.contains('con-disponibilidad'), null, { timeout: 5000 }).catch(() => {});
+    await pB.evaluate(() => { const t = document.querySelector('.vit-tab[data-vit-tab="Símbolos"]'); if (t) t.click(); });
+    await pB.waitForTimeout(250);
+    const activa = await pB.evaluate(() => (document.querySelector('.vit-tab.is-on') || {}).textContent || '');
+    const vit = await pB.evaluate(() => [...document.querySelectorAll('.vit-it[data-vid]')].map(i => i.dataset.vid));
+    /* Dos controles: que de verdad se está mirando Símbolos —si el clic no
+       cambiara de pestaña se vería «Relacionados», donde quizá ni estén— y que
+       la pestaña no venga vacía. Sin ellos, «no aparecen» pasaría sola. */
+    ok(activa.trim() === 'Símbolos', `la vitrina está en la pestaña Símbolos — «${activa.trim()}»`);
+    ok(vit.length >= 3, `y esa pestaña sí tiene piezas (${vit.length})`);
+    ok(enCero.every(id => !vit.includes(id)), 'y no ofrece ninguna de las dos agotadas según la real');
+    await ctxB.close();
   }
 
   // ── 11 · Vitrina → ficha, y kits.html como una ficha al bajar (2026-09-27) ──

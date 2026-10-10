@@ -112,7 +112,8 @@ function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, de
         <td style="padding:14px 0 0;border-top:2px solid #2A1F2E;text-align:right;font:400 25px/1.1 Georgia,serif;color:#2A1F2E">${esc(cop(total))}</td>
       </tr>
       <tr><td colspan="2" style="padding:6px 0 0;font:400 13px/1.5 Arial,sans-serif;color:#6d6070">
-        ${pago === 'contraentrega' ? 'Pago contraentrega — pagas al recibir' : 'Pagado por adelantado'}
+        ${pago === 'contraentrega' ? 'Pago contraentrega — pagas al recibir'
+          : pago === 'addi' ? 'Con Addi — a cuotas, sujeto a la aprobación de Addi' : 'Pagado por adelantado'}
       </td></tr>
     </table>
   </td></tr>
@@ -168,7 +169,8 @@ function texto({ titulo, entrada, referencia, lineas, envio, envioGratis, descue
     ...l,
     ...(descuento > 0 ? [`Promo, piezas gratis: − ${cop(descuento)}`] : []),
     `Envío: ${envioGratis ? 'Gratis' : cop(envio)}`,
-    `Total: ${cop(total)} (${pago === 'contraentrega' ? 'contraentrega' : 'pagado por adelantado'})`, '',
+    `Total: ${cop(total)} (${pago === 'contraentrega' ? 'contraentrega'
+      : pago === 'addi' ? 'con Addi, a cuotas' : 'pagado por adelantado'})`, '',
     'Enviamos a:',
     `${cliente.nombre} ${cliente.apellido}`,
     `${cliente.direccion}${cliente.adicional ? ', ' + cliente.adicional : ''}`,
@@ -219,6 +221,8 @@ async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente, rega
     titulo: contra ? 'Pedido confirmado' : 'Recibimos tu pedido',
     entrada: (contra
       ? 'Lo estamos preparando. Pagas en efectivo cuando el mensajero te lo entregue.'
+      : pago === 'addi'
+      ? 'Estamos esperando que Addi apruebe tu compra. En cuanto quede aprobada te escribimos otra vez.'
       : 'Estamos confirmando tu pago. En cuanto quede aprobado te escribimos otra vez.') + conRegalo,
     referencia, lineas,
     envio: cuentas.envio, envioGratis: cuentas.envioGratis, descuento: cuentas.descuento || 0, total: cuentas.total,
@@ -389,6 +393,9 @@ function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado, r
     <p style="margin:6px 0 0;font:400 24px/1.2 Georgia,serif;color:#2A1F2E">${esc(referencia)}</p>
     <p style="margin:4px 0 18px;font:400 13px/1.5 Arial,sans-serif;color:#6d6070">
       ${contra ? 'CONTRAENTREGA — cobrar al entregar'
+        : pago === 'addi'
+        ? (pagado ? 'ADDI — aprobado por Addi, ya se puede despachar'
+          : 'ADDI — <b>esperando que Addi apruebe</b>, no despachar aún')
         : (pagado ? 'Pagado en línea — confirmado por Wompi'
           : 'Pago en línea — <b>sin confirmar todavía</b>, no despachar aún')}
       · ${esc(cop(cuentas.total))}</p>
@@ -423,6 +430,9 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regal
   return [
     pagado ? `PAGO CONFIRMADO — YA SE PUEDE DESPACHAR · ${referencia}` : `PEDIDO NUEVO · ${referencia}`,
     `${pago === 'contraentrega' ? 'CONTRAENTREGA — cobrar al entregar'
+      : pago === 'addi'
+      ? (pagado ? 'ADDI — aprobado por Addi, ya se puede despachar'
+        : 'ADDI — ESPERANDO que Addi apruebe, no despachar aun')
       : (pagado ? 'Pagado en linea — confirmado por Wompi'
         : 'Pago en linea — SIN CONFIRMAR todavia, no despachar aun')} · ${cop(cuentas.total)}`,
     '',
@@ -460,7 +470,8 @@ async function avisoTienda({ referencia, lineas, cuentas, pago, cliente, regalo 
   const r = await enviar({
     para,
     asunto: `Pedido ${referencia} · ${cop(cuentas.total)} · `
-      + `${pago === 'contraentrega' ? 'CONTRAENTREGA' : 'en línea'}${avisos ? ' · ' + avisos : ''}`,
+      + `${pago === 'contraentrega' ? 'CONTRAENTREGA' : pago === 'addi' ? 'ADDI (esperando aprobación)' : 'en línea'}`
+      + `${avisos ? ' · ' + avisos : ''}`,
     html: plantillaTienda(datos), txt: textoTienda(datos),
     responder: cliente.correo,
   });
@@ -487,7 +498,7 @@ async function pagoTienda({ referencia, total, pedido }) {
     return enviar({
       para,
       asunto: `PAGADO · ${referencia} · ${cop(total || 0)} — despachar`,
-      html: `<p style="font:400 15px/1.6 Arial,sans-serif">Wompi confirmó el pago de `
+      html: `<p style="font:400 15px/1.6 Arial,sans-serif">La pasarela (Wompi o Addi) confirmó el pago de `
         + `<b>${esc(referencia)}</b> por <b>${esc(cop(total || 0))}</b>.</p>`
         + `<p style="font:400 15px/1.6 Arial,sans-serif">No se pudo leer el registro del pedido, `
         + `así que el detalle está en el correo «Pedido nuevo» con esta misma referencia.</p>`,

@@ -8,8 +8,18 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   const p = await b.newPage({ viewport: { width: 390, height: 844 } });
   const errs = [];
   p.on('pageerror', e => errs.push(e.message));
+  /* disponibilidad.mjs no existe en el servidor local. Desde 2026-10-10 la
+     ficha solo dice disponibilidad («Disponible en talla…») con el dato real,
+     así que se responde con datos de prueba: el conteo de stock.json, como en
+     paginas.js. */
+  const stock = require('../assets/stock.json').items;
+  await p.route('**/.netlify/functions/disponibilidad', r => r.fulfill({ json: {
+    fuente: 'conteo-menos-apartado',
+    piezas: Object.entries(stock).filter(([, v]) => !v.tallas).map(([i, v]) => ({ id: i, disponible: v.stock })),
+    brazaletes: Object.entries(stock).filter(([, v]) => v.tallas).map(([i, v]) => ({ id: i, tallas: v.tallas })) } }));
   await p.goto(U, { waitUntil: 'networkidle' });
   await p.waitForFunction(() => document.body.classList.contains('con-stock'), null, { timeout: 5000 });
+  await p.waitForFunction(() => document.body.classList.contains('con-disponibilidad'), null, { timeout: 5000 }).catch(() => {});
 
   // ---- 1 · calculadora, con las reglas del negocio ----
   console.log('1 · Calculadora de talla');

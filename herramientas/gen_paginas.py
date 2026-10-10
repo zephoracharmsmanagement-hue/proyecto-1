@@ -454,7 +454,8 @@ FAQS = [
      '<p>En la pantalla de pago puedes pagar con <b>Nequi, Bancolombia, PSE, Daviplata</b> y '
      '<b>tarjetas de crédito y débito</b> (hasta 36 cuotas), a través de <b>Wompi '
      '(Bancolombia)</b>. Con <b>Addi</b> puedes dividir tu compra en hasta 3 cuotas sin interés: '
-     'lo coordinamos por WhatsApp. También puedes pagar <b>contraentrega</b> en las ciudades '
+     'lo eliges en la pantalla de pago y apruebas tu cupo en minutos con tu cédula. '
+     'También puedes pagar <b>contraentrega</b> en las ciudades '
      'donde la transportadora lo permite.</p>'),
     ('¿Cómo compro?',
      '<p>Eliges tus piezas aquí en la página —el precio se calcula solo, con la promoción y el '

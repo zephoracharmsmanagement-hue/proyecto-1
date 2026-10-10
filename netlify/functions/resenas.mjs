@@ -1,11 +1,22 @@
 /* Reseñas con moderación (automatizaciones/tienda/ENCARGO-FICHA.md y
  * ENCARGO-FICHA-2 § 3).
  *
- *   GET  (sin parámetros)        → TODAS las aprobadas de la tienda, las más
- *                                  recientes primero, con promedio y conteo
- *                                  reales. `?producto=` se acepta y se ignora:
+ *   GET  (sin parámetros)        → TODAS las aprobadas que se pueden mostrar
+ *                                  (con texto o foto), en el orden de `orden`,
+ *                                  con promedio y conteo de esas mismas.
+ *                                  `?producto=` se acepta y se ignora:
  *                                  decisión del propietario (2026-09-26), cada
  *                                  ficha muestra las de toda la tienda.
+ *
+ * Lo que se cuenta es lo que se ve (propietario, 2026-10-06): si la página
+ * dice «179 reseñas» tienen que estar las 179 en el carrusel, así que no hay
+ * tope y una reseña de solo estrellas —sin texto ni foto, no hay tarjeta que
+ * pintar— no entra ni en el total ni en el promedio. Y primero las de mejor
+ * foto con joyas que hoy están en la tienda; las de piezas que ya no se venden
+ * van, pero atrás. Ese juicio es a ojo y vive en `orden` (lo pone
+ * herramientas/resenas.mjs); las nuevas del formulario, sin `orden`, entran
+ * con foto justo detrás de las de foto clara y sin foto al frente de las de
+ * solo texto, las más recientes primero.
  *   POST {producto, estrellas, texto, nombre, ciudad, resena?, web,
  *         fotos?: [dataURL ×≤3], video?: dataURL}
  *                                → queda PENDIENTE y la tienda recibe un
@@ -136,6 +147,10 @@ async function servirMedio(req, clave, f) {
   });
 }
 
+const seMuestra = r => Boolean(String(r.texto || '').trim() || (r.fotos || []).length || r.video);
+const puesto = r => Number.isFinite(r.orden) ? r.orden
+  : ((r.fotos || []).length || r.video) ? (String(r.texto || '').trim() ? 999.5 : 4999.5) : 1999.5;
+
 async function aprobadas() {
   const s = almacen();
   if (!s) return null;
@@ -174,13 +189,14 @@ export default async (req) => {
             : 'No se publicará.'));
     }
 
-    const lista = await aprobadas();
-    if (!lista) return json(503, { error: 'El almacén no respondió' });
+    const todas = await aprobadas();
+    if (!todas) return json(503, { error: 'El almacén no respondió' });
+    const lista = todas.filter(seMuestra).sort((a, b) => puesto(a) - puesto(b) || (a.fecha < b.fecha ? 1 : -1));
     const total = lista.length;
     const promedio = total ? lista.reduce((n, r) => n + r.estrellas, 0) / total : 0;
     return json(200, {
       total, promedio: Math.round(promedio * 10) / 10,
-      resenas: lista.slice(0, 30).map(r => ({ estrellas: r.estrellas, texto: r.texto, nombre: r.nombre,
+      resenas: lista.map(r => ({ estrellas: r.estrellas, texto: r.texto, nombre: r.nombre,
         ciudad: r.ciudad, fecha: r.fecha.slice(0, 10), verificada: Boolean(r.verificada),
         fotos: (r.fotos || []).map(k => urlMedio(k)), video: r.video ? urlMedio(r.video) : null })),
     }, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=60' });

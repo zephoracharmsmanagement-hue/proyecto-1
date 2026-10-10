@@ -46,13 +46,30 @@ const LETRAS=DATA.charms.filter(c=>/^letra-/.test(c.id)).map(c=>c.id.slice(6));
    actualizarlo sin tocar el código. Si no carga, STOCK queda null y la página
    funciona como antes: todo agregable, sin etiquetas ni talla obligatoria. */
 let STOCK=null;
+/* Disponibilidad real: el conteo de stock.json menos lo vendido y lo apartado,
+   leída de disponibilidad.mjs. Es la misma que valida el servidor al cobrar.
+   stock.json solo es el conteo físico: no descuenta nada vendido después, así
+   que la etiqueta decía «Última unidad» de piezas ya agotadas, la vitrina las
+   seguía ofreciendo y el checkout las rechazaba con la clienta decidida. */
+let DISP=null;
 const inv = id => STOCK ? STOCK[id] : null;
-const unidades = id => { const s=inv(id); return s&&typeof s.stock==='number' ? s.stock : null; };
-const tallasDe = id => { const s=inv(id); return s&&s.tallas ? s.tallas : null; };
+/* Solo cuenta como dato real si trae números. Si Netlify Blobs falla, la
+   función responde igual pero con disponible/tallas en null: tomar esa pieza
+   como «real» haría caer la etiqueta al conteo viejo sin que se note. */
+const real = id => { const r=DISP?DISP[id]:null;
+  return r&&(typeof r.disponible==='number'||(r.tallas&&typeof r.tallas==='object'))?r:null; };
+/* Cada lectura prefiere la disponibilidad real y cae al conteo solo mientras
+   aquella no llega. La caída es segura para bloquear: lo real nunca supera al
+   conteo (es ese conteo menos lo vendido), así que lo que el conteo da por
+   agotado lo está de verdad. */
+const unidades = id => { const r=real(id); if(r&&typeof r.disponible==='number') return r.disponible;
+  const s=inv(id); return s&&typeof s.stock==='number' ? s.stock : null; };
+const tallasDe = id => { const r=real(id); if(r&&r.tallas) return r.tallas;
+  const s=inv(id); return s&&s.tallas ? s.tallas : null; };
 const tallasLibres = id => { const t=tallasDe(id); return t ? Object.keys(t).filter(k=>t[k]>0) : null; };
 /* Sin inventario nada está agotado: ante la duda, no bloqueamos la venta. */
 const agotado = id => {
-  if(!STOCK) return false;
+  if(!STOCK&&!DISP) return false;
   const t=tallasLibres(id); if(t) return t.length===0;
   const u=unidades(id); return u!==null && u<=0;
 };
@@ -222,21 +239,39 @@ const VIDEOS = new Set((
 const vidSrc=id=>'media/joya-'+id+'-v3.mp4';
 const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261003';
 
-/* Fotos de Flow con versión de 880 px (assets/hd/, herramientas/fotos_hd.py).
-   La rejilla sigue con la de 440 —es lo que baja cada tarjeta—; las galerías
-   de la página y de la ficha, que la enseñan a todo el ancho, usan esta. Por
-   nombre de archivo de la foto, no por id: así está en catalogo.json. */
+/* Versión nítida de cada foto de producto (1200 px, assets/hd/, herramientas/
+   fotos_hd.py, 2026-10-09). La rejilla usa la de 600 px —es lo que baja cada
+   tarjeta—; las galerías de la página y de la ficha, que la enseñan a todo el
+   ancho, usan esta. Por nombre de archivo de la foto, no por id: así está en
+   catalogo.json. Antes eran solo las 41 de Flow, a 880 px. */
 const FOTOS_HD = new Set((
-  'atrapasuenos-corazon-multicolor avion-globo-y-pasaporte bola-azul-con-flor-rosa bola-roja-remolino '
-  +'bola-rosa-con-flores camaleon-verde carrusel-rosado casa-de-los-globos clip-forever-multicolor '
-  +'corazon-de-filigrana corazon-mama-e-hija dalmata elefantito-rosa esfera-azul-con-cristales gato-cheshire '
-  +'libelula-morada lilo-y-stitch manos-orando-con-cruz mariposas-tricolor-colgantes mascara-spider-man-roja '
-  +'mickey-mouse mike-wazowski minnie-mouse olaf-de-frozen osito-con-rosa-y-corazon osito-graduacion '
-  +'osito-pave-con-corazon pulpo-azul-cristal pulsera-clasica-cierre-barril pulsera-copo-de-nieve '
-  +'pulsera-corazon-pave pulsera-corazon-pave-pequeno pulsera-corona-con-cristales pulsera-corona-pave '
-  +'pulsera-mickey-mouse-pave pulsera-trebol-verde stitch-azul sulley torre-eiffel-y-camara wall-e atrapasuenos-azul'
+  'acuario angel angel-guardian ariel aries atrapasuenos-azul atrapasuenos-corazon-multicolor '
+  +'avion-globo-y-pasaporte blancanieves bola-azul-con-flor-rosa bola-roja-remolino bola-rosa-con-flores '
+  +'buzz-lightyear caballo-herradura cadena-seguridad-hamsa-y-ojo cadena-seguridad-love-forever '
+  +'cadena-seguridad-luna-y-sol camaleon-verde cancer capitan-america capricornio carrusel-rosado '
+  +'casa-de-los-globos casco-iron-man cenicienta charm-fisioterapia charm-medicina charm-odontologia '
+  +'charm-psicologia charms-de-letras-pave clip-forever-multicolor clip-infinito-con-corazon '
+  +'clip-mariposas-de-colores clip-orquideas-moradas conejita-con-corazon-rosa corazon-arbol-de-la-vida '
+  +'corazon-de-filigrana corazon-mama-e-hija dalmata deadpool elefantito-rosa escorpio '
+  +'escudo-capitan-america esfera-azul-con-cristales esfera-telarana-spider-man flor-azul-con-cristales '
+  +'gatito-con-corazon-azul gato-cheshire geminis groot-bebe guantelete-del-infinito huella-con-huesito '
+  +'hulk iron-man jack-y-sally jasmine leo letra-a letra-b letra-c letra-d letra-e letra-f letra-g '
+  +'letra-h letra-i letra-j letra-k letra-l letra-m letra-n letra-o letra-p letra-r letra-s letra-t '
+  +'letra-u letra-v letra-w letra-x letra-y letra-z libelula-morada libra lilo-y-stitch '
+  +'luciernaga-you-are-my-light manos-orando-con-cruz mariposas-tricolor-colgantes '
+  +'mascara-spider-man-roja mascara-un-gran-poder mickey-mouse mike-wazowski minnie-mouse '
+  +'mjolnir-martillo-de-thor olaf-de-frozen osito-con-rosa-y-corazon osito-graduacion '
+  +'osito-pave-con-corazon piscis princesa-bella pulpo-azul-cristal pulsera-avengers '
+  +'pulsera-candado-rosa-con-cadena pulsera-clasica-cierre-barril pulsera-copo-de-nieve '
+  +'pulsera-corazon-con-diamante pulsera-corazon-liso pulsera-corazon-luminoso pulsera-corazon-pave '
+  +'pulsera-corazon-pave-pequeno pulsera-corazon-rosado-con-cadena pulsera-corona-con-cristales '
+  +'pulsera-corona-pave pulsera-mano-de-hamsa pulsera-mickey-mouse-pave pulsera-mono-rosa-con-cadena '
+  +'pulsera-rosa-clasica pulsera-sol-con-cadena-seguridad pulsera-trebol-verde sagitario '
+  +'sol-y-luna-con-cristales spider-man spider-man-pave stitch stitch-azul sulley tauro '
+  +'torre-eiffel-y-camara tortuga-marina-cristal trebol-verde-giratorio virgen-maria virgo wall-e '
+  +'wolverine'
 ).split(' '));
-const hdDe=src=>{ const m=/assets\/([^/?]+)\.webp/.exec(src||''); return m&&FOTOS_HD.has(m[1])?'assets/hd/'+m[1]+'.webp?v=20261001':src; };
+const hdDe=src=>{ const m=/assets\/([^/?]+)\.webp/.exec(src||''); return m&&FOTOS_HD.has(m[1])?'assets/hd/'+m[1]+'.webp?v=20261009':src; };
 
 let base=null, sel=[];
 /* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
@@ -258,7 +293,7 @@ let CAT=null, vitConStock=false;
    Más vendidos). Las fotos se sirven con una semana de caché y conservan el
    nombre al cambiar: al reemplazar fotos hay que subir esta fecha, igual que
    el ?v= de las tarjetas de index.html. */
-const VFOTO='?v=20261002';
+const VFOTO='?v=20261009';
 function pestanasDe(v){
   const sin=v.dataset.vitSin||'', tabs=[];
   const rel=(v.dataset.vit||'').split(',').filter(id=>id&&id!==sin&&(CH[id]||PU[id]));
@@ -304,7 +339,7 @@ function tallasVit(caja,id){
 function estadoVit(){
   document.querySelectorAll('.kit-tallas[data-para]').forEach(c=>tallasVit(c,c.dataset.para));
   if(!CAT) return;
-  if(STOCK&&!vitConStock){ vitConStock=true; VIT.forEach(v=>dibujarVit(v)); return; }
+  if((STOCK||DISP)&&!vitConStock){ vitConStock=true; VIT.forEach(v=>dibujarVit(v)); return; }
   document.querySelectorAll('.vit-it').forEach(it=>{
     const id=it.dataset.vid, b=it.querySelector('.vit-add');
     if(PU[id]){
@@ -472,7 +507,7 @@ document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); 
 /* Desde el 2026-09-25 cada inicial tiene su foto (assets/letra-x.webp), salvo
    las que no llegaron (hoy Ñ y Q): esas caen a la foto del grupo con onerror,
    sin una lista escrita aquí que se desincronice de assets/. */
-const fotoLetra=id=>'assets/'+encodeURIComponent(id)+'.webp?v=20260925';
+const fotoLetra=id=>'assets/'+encodeURIComponent(id)+'.webp?v=20261009';
 const fotoGrupoLetras=()=>{ const el=document.querySelector('.pc[data-id="letras"] img');
   return el?(el.dataset.grupo||el.getAttribute('src')):''; };
 /* La foto de una pieza. Primero la de su tarjeta, si está en la página (es la
@@ -563,7 +598,11 @@ function waEncargo(nombre){
    quedan 1 o 2: no se inventa urgencia donde no la hay. */
 function etiquetaStock(p,id){
   let vieja=p.querySelector('.pc-stock'); if(vieja) vieja.remove();
-  if(!STOCK) return;
+  /* Solo con la disponibilidad real de esta pieza. Mientras no llega —o si
+     vino sin números— no se dice nada: mejor ninguna etiqueta que una
+     «Última unidad» sobre algo agotado. El botón sí puede caer al conteo,
+     porque para bloquear el conteo nunca se equivoca hacia el lado malo. */
+  if(!real(id)) return;
   /* Justo encima del pie: queda pegada al precio y al botón, que es la
      información con la que se decide la compra. */
   const pie=p.querySelector('.pc-foot'); if(!pie) return;
@@ -589,7 +628,7 @@ function etiquetaStock(p,id){
    en un enlace a WhatsApp, igual que ya hace `waEncargo` con el resto del
    catálogo. No toca páginas sin `.kit-paso`: el selector devuelve vacío. */
 function marcarKits(){
-  if(!STOCK) return;
+  if(!STOCK&&!DISP) return;
   document.querySelectorAll('.kit-paso[data-piezas]').forEach(a=>{
     if(a.dataset.marcado) return;
     const ids=a.dataset.piezas.split(',');
@@ -823,7 +862,10 @@ function familiaDe(id){ const s=STOCK?STOCK[id]:null; return s&&s.familia?FAMILI
    la página de producto: el material se escribe en UN solo sitio, porque dos
    copias ya dejaron una vez afirmaciones de 925 en brazaletes. */
 function estadoDe(id){
-  if(!STOCK) return {t:'',k:''};
+  /* Es el texto de disponibilidad de la ficha y de la página de producto: la
+     misma regla que la etiqueta de las tarjetas, solo con dato real. Ocultar
+     el botón de compra no depende de esto sino de agotado(). */
+  if(!real(id)) return {t:'',k:''};
   if(agotado(id)) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
   if(PU[id]) return {t:'Disponible en talla '+(tallasLibres(id)||[]).join(', ')+' cm',k:'ok'};
   const u=unidades(id);
@@ -848,28 +890,18 @@ function specsDe(id){
   return filas.join('');
 }
 /* En una página de producto, su bloque de disponibilidad y ficha técnica.
-   Se repinta al llegar el inventario (la familia de la pieza sale de ahí). */
-/* Disponibilidad real de esta pieza (conteo menos lo vendido y apartado),
-   leída de disponibilidad.mjs una vez. null mientras no llegue o si falla:
-   entonces manda el conteo de stock.json, como en el resto del sitio. */
-let dispReal=null;
-function estadoPagina(id){
-  if(!dispReal) return estadoDe(id);
-  if(PU[id]){
-    const t=Object.keys(dispReal.tallas||{}).filter(k=>dispReal.tallas[k]>0);
-    return t.length?{t:'Disponible en talla '+t.join(', ')+' cm',k:'ok'}:{t:'Agotado — puedes pedirlo por encargo',k:'out'};
-  }
-  const u=dispReal.disponible;
-  if(u<=0) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
-  return u<=2?{t:u===1?'Queda 1 unidad':'Quedan '+u+' unidades',k:'few'}:{t:'Disponible',k:'ok'};
-}
+   Se repinta al llegar el inventario (la familia de la pieza sale de ahí).
+   Antes había aquí un estadoPagina() propio, con su propia copia de la
+   disponibilidad real solo para esta pieza: era un segundo camino al mismo
+   dato, y por eso la página decía «Agotado» mientras la tarjeta de la misma
+   joya decía «Última unidad». Ahora todo pasa por estadoDe() y agotado(). */
 function pintarPagina(){
   const id=document.body.dataset.producto, specs=$('#pp-specs'), est=$('#pp-est');
   if(!id||!specs||!est) return;
   specs.innerHTML=specsDe(id);
   const fam=familiaDe(id), desc=$('#pp-desc');
   if(desc) desc.textContent=fam?fam.n+' — '+fam.d:'';
-  const e2=estadoPagina(id), fuera=e2.k==='out';
+  const e2=estadoDe(id), fuera=agotado(id);
   const compra=$('#pp-compra'), sin=$('#pp-agotado'), enc=$('#pp-encargo');
   if(compra) compra.hidden=fuera;
   if(sin) sin.hidden=!fuera;
@@ -917,24 +949,40 @@ const mediosResena=r=>{
    cualquier página que traiga la lista —desde el 2026-09-27 también
    kits.html—, no solo en las fichas. */
 if($('#rp-lista')||$('#pp-estrellas')||$('#tst-rail')) fetch('.netlify/functions/resenas').then(r=>r.ok?r.json():null)
-  .then(d=>{ pintarResenas(d); sumarAlCarrusel(d); }).catch(()=>{});
+  .then(d=>{ contarFijas(d); pintarResenas(d); sumarAlCarrusel(d); }).catch(()=>{});
+/* Lo que se cuenta es lo que se ve (propietario, 2026-10-06): las tarjetas
+   fijas del carrusel también son reseñas de clientas, así que entran en el
+   total y en el promedio; si no, la página mostraría más de las que dice. */
+function contarFijas(d){
+  const fijas=[...document.querySelectorAll('#tst-rail > .tst')];
+  if(!d||!fijas.length) return;
+  const suma=fijas.reduce((n,t)=>{ const e=t.querySelector('.estrellas'); return n+(parseInt(e&&e.getAttribute('aria-label'),10)||5); },0);
+  d.promedio=Math.round((d.promedio*d.total+suma)/(d.total+fijas.length)*10)/10;
+  d.total+=fijas.length;
+}
 
 /* Carrusel de reseñas de la portada (#tst-rail, pedido del propietario,
    2026-10-02). Detrás de las tres fijas van las reseñas aprobadas que traen
    foto, con la primera foto arriba: todas las tarjetas iguales. Las que son
    solo texto siguen en la lista de cada ficha; aquí, sin foto, la tarjeta
    quedaría coja al lado de las demás. Los puntos de abajo dicen en cuál va. */
+/* Con todas las reseñas a la vista son más de cien tarjetas: un punto por
+   tarjeta llenaría filas enteras, así que pasado un puñado van «12 / 178». */
+const MAX_PUNTOS=12;
 function puntosCarrusel(){
   const rail=$('#tst-rail'), pts=$('#tst-pts'); if(!rail||!pts) return;
   const n=rail.children.length;
-  pts.innerHTML=n>1?'<i></i>'.repeat(n):'';
+  pts.classList.toggle('tst-pts--n',n>MAX_PUNTOS);
+  pts.innerHTML=n>1&&n<=MAX_PUNTOS?'<i></i>'.repeat(n):'';
   marcarPunto();
 }
 function marcarPunto(){
-  const rail=$('#tst-rail'), pts=$('#tst-pts'); if(!rail||!pts||!pts.children.length) return;
+  const rail=$('#tst-rail'), pts=$('#tst-pts'); if(!rail||!pts||!rail.children.length) return;
+  const n=rail.children.length;
   const ancho=rail.firstElementChild.getBoundingClientRect().width+12;
   const fin=rail.scrollLeft>=rail.scrollWidth-rail.clientWidth-4;
-  const i=fin?pts.children.length-1:Math.round(rail.scrollLeft/ancho);
+  const i=fin?n-1:Math.min(n-1,Math.round(rail.scrollLeft/ancho));
+  if(n>MAX_PUNTOS){ pts.textContent=(i+1)+' / '+n; return; }
   [...pts.children].forEach((p,k)=>p.classList.toggle('is-on',k===i));
 }
 function sumarAlCarrusel(d){
@@ -944,20 +992,20 @@ function sumarAlCarrusel(d){
   if(prom){ prom.innerHTML=estrellasHTML(d.promedio)+'<span>'+d.promedio.toFixed(1).replace('.',',')+' de 5 · '
     +d.total+(d.total===1?' reseña':' reseñas')+' en la página</span>'; prom.hidden=false; }
   /* Todas las reseñas de la tienda (pedido del propietario, 2026-10-02: en la
-     ficha esta sección reemplazó a la lista «Todas las reseñas de la tienda»).
-     Primero las que traen foto; las de solo texto llevan en el lugar de la
-     foto un recuadro con comillas del mismo tamaño, para que todas las
-     tarjetas sigan siendo iguales. */
+     ficha esta sección reemplazó a la lista «Todas las reseñas de la tienda»),
+     en el orden en que llegan: el servidor ya pone primero las de mejor foto
+     con joyas de la tienda actual (2026-10-06). Las de solo texto llevan en
+     el lugar de la foto un recuadro con comillas del mismo tamaño, para que
+     todas las tarjetas sigan siendo iguales; las de solo foto, sin cita. */
   const conFoto=r=>(r.fotos||[]).some(propia);
-  const todas=d.resenas.filter(r=>r.texto);
-  todas.filter(conFoto).concat(todas.filter(r=>!conFoto(r))).forEach(r=>{
+  d.resenas.filter(r=>r.texto||conFoto(r)).forEach(r=>{
     const f=document.createElement('figure'); f.className='tst'+(conFoto(r)?'':' tst--txt');
     f.innerHTML=(conFoto(r)
       ? '<button type="button" class="rp-foto tst-ph" aria-label="Ampliar foto"><img src="'+r.fotos.filter(propia)[0]
         +'" alt="Foto de '+escHTML(r.nombre)+'" loading="lazy" decoding="async"></button>'
       : '<div class="tst-ph tst-ph--txt" aria-hidden="true"><span>“</span></div>')
       +'<div class="tst-tx"><div class="estrellas" aria-label="'+(+r.estrellas||5)+' de 5 estrellas">'+estrellasHTML(r.estrellas)+'</div>'
-      +'<blockquote>'+escHTML(r.texto)+'</blockquote><figcaption><span class="rev-name">'+escHTML(r.nombre)+'</span>'
+      +(r.texto?'<blockquote>'+escHTML(r.texto)+'</blockquote>':'')+'<figcaption><span class="rev-name">'+escHTML(r.nombre)+'</span>'
       +'<span class="rev-city">'+(r.ciudad?escHTML(r.ciudad)+' · ':'')+(r.verificada?'Compra verificada':'Reseña en la página')+'</span></figcaption></div>';
     rail.appendChild(f);
   });
@@ -969,11 +1017,6 @@ function sumarAlCarrusel(d){
 if($('#tst-rail')){ puntosCarrusel(); $('#tst-rail').addEventListener('scroll',marcarPunto,{passive:true}); }
 
 if(PP&&(CH[PP]||PU[PP])){
-  fetch('.netlify/functions/disponibilidad',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
-    if(!d||d.fuente!=='conteo-menos-apartado') return;
-    dispReal=(d.piezas||[]).concat(d.brazaletes||[]).find(x=>x.id===PP)||null;
-    if(dispReal){ pintarPagina(); render(); }
-  }).catch(()=>{});
   /* «N personas compraron esta pieza este mes»: de pedidos reales, y solo con
      N ≥ 3 (lo filtra el servidor). Sin dato, no se dice nada. */
   fetch('.netlify/functions/vendidas').then(r=>r.ok?r.json():null).then(d=>{
@@ -1193,6 +1236,7 @@ function render(){
   $('#l-save').textContent=nGratis>1?nGratis+' piezas gratis':'Pieza gratis';
   $('#v-save').textContent='− '+cop(ahorro);
   $('#v-tot').textContent=cop(total);
+  pintarCuotasAddi(total);
 
   const ship=$('#v-ship'), nota=$('#ship-note'), barra=$('#ship-bar');
   /* La barra de progreso solo tiene sentido mientras haya un umbral que
@@ -1622,6 +1666,37 @@ function comprar(){
    se retiró: los enlaces de asesoría del resto de la página siguen ahí. */
 $('#send').onclick=comprar;
 $('#dock-send').onclick=comprar;
+
+/* La cuota de Addi bajo el total del carrito. Topes de la config pública de
+   Addi para la tienda: compras de $50.000 a $3.000.000, y «sin interés» (plan
+   Addi Pago) hasta $600.000; por encima es financiación, así que ahí no se
+   promete «sin interés». La cuota es el total entre 3, redondeada hacia arriba
+   al peso: nunca menos de lo que va a pagar. */
+const ADDI_LOGO='<img class="addi-logo" src="assets/pagos/addi.webp?v=20260913" alt="Addi" width="183" height="70" decoding="async">';
+function pintarCuotasAddi(total){
+  const el=$('#tot-addi'); if(!el) return;
+  if(total>=50000&&total<=600000){
+    el.innerHTML='o hasta 3 cuotas de <b>'+cop(Math.ceil(total/3))+'</b> sin interés con '+ADDI_LOGO;
+    el.hidden=false;
+  }else if(total>600000&&total<=3000000){
+    el.innerHTML='o págalo a cuotas con '+ADDI_LOGO;
+    el.hidden=false;
+  }else el.hidden=true;
+}
+
+/* «Pagar con Addi» desde el carrito o la portada: al checkout con Addi ya
+   elegido (desde 2026-10-07 Addi se paga ahí, integrado; antes era un enlace a
+   WhatsApp). La forma de pago se guarda solo para el checkout: aquí `pago` sigue
+   siendo la del carrito, que es la que decide el envío que se muestra. */
+document.addEventListener('click',e=>{
+  const a=e.target.closest&&e.target.closest('[data-addi-checkout]');
+  if(!a) return;
+  e.preventDefault();
+  if(!base&&!sel.length){ comprar(); return; }
+  const antes=pago;
+  tocado=true; pago='addi'; guardar(); pago=antes;
+  location.href='checkout.html';
+});
 /* El atajo del aviso de envío: aplica el pago anticipado sin que la clienta
    tenga que buscar el botón. Delegado porque el aviso se repinta en cada render. */
 document.getElementById('ship-note').addEventListener('click',e=>{
@@ -2235,14 +2310,9 @@ if(kitSug.length && full){
   requestAnimationFrame(()=>full.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 
-/* El inventario llega después de pintar: la página ya es usable sin él, y si
-   falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
-fetch('assets/stock.json',{cache:'no-cache'})
-  .then(r=>r.ok?r.json():null)
-  .then(d=>{
-    if(!d||!d.items) return;
-    STOCK=d.items;
-    document.body.classList.add('con-stock');
+/* Lo mismo para las dos fuentes de inventario, llegue la que llegue primero:
+   depurar el carrito y repintar todo lo que muestra disponibilidad. */
+function alLlegarInventario(){
     /* Lo que ya estuviera elegido se depura contra el inventario real: se cae
        lo agotado y se recorta lo que pida más unidades de las que hay.
        El recorte importa desde que el carrito puede llegar en un enlace —nadie
@@ -2263,8 +2333,41 @@ fetch('assets/stock.json',{cache:'no-cache'})
     marcarKits();
     pintarPagina();
     if(fichaId) abrirFicha(fichaId);
+}
+
+/* El inventario llega después de pintar: la página ya es usable sin él, y si
+   falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
+fetch('assets/stock.json',{cache:'no-cache'})
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d||!d.items) return;
+    STOCK=d.items;
+    document.body.classList.add('con-stock');
+    alLlegarInventario();
     const n=document.getElementById('stock-fecha');
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
+  })
+  .catch(()=>{});
+
+/* Disponibilidad real, en todas las páginas. Antes se pedía solo en la página
+   de un producto y solo para esa pieza, así que en la portada, la vitrina y
+   los kits mandaba el conteo viejo. */
+fetch('.netlify/functions/disponibilidad',{cache:'no-cache'})
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d||d.fuente!=='conteo-menos-apartado') return;
+    const m={};
+    (d.piezas||[]).concat(d.brazaletes||[]).forEach(x=>{ if(x&&x.id) m[x.id]=x; });
+    DISP=m;
+    /* La vitrina se dibuja una sola vez con inventario; con el dato real hay
+       que volver a dibujarla, porque esconde las piezas agotadas. */
+    vitConStock=false;
+    alLlegarInventario();
+    /* Señal de que ya manda el dato real, como `con-stock` lo es del conteo.
+       Las pruebas esperan por esta y no por aquella: desde que las etiquetas
+       solo salen con dato real, esperar `con-stock` pasaba por suerte de
+       tiempos, y en frío la primera página daba disponibilidad vacía. */
+    document.body.classList.add('con-disponibilidad');
   })
   .catch(()=>{});
 

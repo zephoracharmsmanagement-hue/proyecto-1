@@ -55,6 +55,7 @@ import { disponibles } from './_inventario.mjs';
  * —que es justo la clase de paso olvidable que deja al bot mandando la imagen
  * vieja—.
  *
+ * Sale de assets/hd/ (1200 px, todas las fotos de producto desde 2026-10-09).
  * 800 px es de sobra para el chat y deja el archivo en decenas de KB, no en
  * cientos.
  */
@@ -64,7 +65,7 @@ function fotoDe(id, origen) {
   const archivo = fotos && fotos[id];
   if (!archivo) return null;
   return `${origen}/.netlify/images`
-    + `?url=${encodeURIComponent('/assets/' + archivo)}&fm=jpg&w=800`;
+    + `?url=${encodeURIComponent('/assets/hd/' + archivo)}&fm=jpg&w=800`;
 }
 
 const CABECERAS = {
@@ -97,9 +98,14 @@ export default async (req) => {
 
   /* Un brazalete se cuenta por talla y un charm por pieza: la clave que lleva
      el inventario apartado es `id|talla` para los primeros. */
+  /* Las cinco tallas de cada brazalete, no solo las del conteo: un sobrante
+     (ajustar-inventario, motivo «sobrante») puede sumar una talla que el conteo
+     no tenía —pasó con la Pulsera Rosa Clásica talla 19 en el conteo del
+     10-oct—. Abajo solo se listan si están en el conteo o tienen unidades. */
+  const TALLAS = ['17', '18', '19', '20', '21'];
   const skus = [];
   Object.entries(items).forEach(([id, it]) => {
-    if (it.tallas) Object.keys(it.tallas).forEach(t => skus.push(`${id}|${t}`));
+    if (it.tallas) new Set([...Object.keys(it.tallas), ...TALLAS]).forEach(t => skus.push(`${id}|${t}`));
     else skus.push(id);
   });
 
@@ -134,10 +140,11 @@ export default async (req) => {
 
     if (it.tallas) {
       const tallas = {};
-      Object.keys(it.tallas).forEach(t => {
+      new Set([...Object.keys(it.tallas), ...TALLAS]).forEach(t => {
         /* Sin Blobs no se inventa un número: se omite el campo y el prompt
-           tiene instrucciones de pedir confirmación cuando falta. */
-        if (libres) tallas[t] = libres[`${id}|${t}`];
+           tiene instrucciones de pedir confirmación cuando falta. Una talla que
+           no está en el conteo solo aparece si un sobrante le dio unidades. */
+        if (libres && (t in it.tallas || libres[`${id}|${t}`] > 0)) tallas[t] = libres[`${id}|${t}`];
       });
       const hay = libres
         ? Object.values(tallas).reduce((n, v) => n + v, 0)

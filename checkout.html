@@ -176,6 +176,9 @@ button{font-family:inherit}
 .op{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:3px;
   padding:15px 14px;cursor:pointer;background:var(--white);transition:.16s;text-align:left;width:100%}
 .op input{margin:2px 0 0;width:19px;height:19px;accent-color:var(--pagar);flex:0 0 auto;cursor:pointer}
+.op--off{opacity:.6;cursor:not-allowed}.op--off input{cursor:not-allowed}
+.op-tope{display:block;margin-top:6px;color:#5C3D63;font-weight:600}
+#addi-atajo.sin-addi{display:none}
 .op-tx{min-width:0;flex:1}
 .op-t{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
 .op-t b{font-weight:400;font-size:15.5px}
@@ -468,13 +471,19 @@ button{font-family:inherit}
             </div>
 
             <!-- Regalo de suscriptora: el charm de su inicial (decisión del
-                 propietario, 2026-09-27). Solo se muestra si este navegador
-                 confirmó la suscripción y el pedido lleva 2 charms o más;
-                 quien decide si hay regalo es crear-pago, con el correo. -->
+                 propietario, 2026-09-27). Se muestra a quien lleve 2 charms o
+                 más, esté o no suscrita: antes solo salía si ESTE navegador
+                 había confirmado la suscripción, y una clienta real que
+                 confirmó desde el correo en otro navegador no lo vio, aunque
+                 el servidor sí le daba el regalo (pedido del propietario,
+                 2026-10-09). Por eso el texto es condicional. Quien decide de
+                 verdad sigue siendo crear-pago, con el correo: a una clienta no
+                 suscrita le ignora la letra, y como no la aparta del
+                 inventario, elegirla nunca bloquea su compra. -->
             <div class="campo" data-c="regalo" id="campo-regalo" hidden>
-              <label for="regalo-inicial">🎁 Elige la inicial de tu regalo</label>
+              <label for="regalo-inicial">🎁 Si estás suscrita con este correo, elige tu inicial de regalo</label>
               <select id="regalo-inicial" name="regalo-inicial"><option value="">Elige una letra</option></select>
-              <span class="pista">Por estar suscrita, tu primera compra de 2 charms o más lleva de regalo el charm de tu inicial. Solo aparecen las letras con unidades; si no eliges, te escribimos para preguntarte.</span>
+              <span class="pista">Si te suscribiste con este correo, tu primera compra de 2 charms o más lleva de regalo el charm de tu inicial. Solo aparecen las letras con unidades; si no eliges, te escribimos para preguntarte.</span>
             </div>
 
             <!-- Autorización aparte, sin marcar y opcional.
@@ -518,16 +527,17 @@ button{font-family:inherit}
               </span>
             </label>
             <!-- Addi entre los pagos principales (pedido del propietario,
-                 2026-10-04: mucha gente compra así y estaba escondido en un
-                 enlace). Wompi no lo soporta, así que no pasa por la pasarela:
-                 lleva a WhatsApp con el pedido armado y allá se manda el
-                 enlace de Addi. No crea pedido ni aparta inventario: la venta
-                 se registra al aprobarse, como cualquier venta por chat. -->
+                 2026-10-04). Desde 2026-10-07 va integrado: crear-pago le pide
+                 a Addi la solicitud y la clienta aprueba su cupo en la página
+                 de Addi; el resultado llega a addi-callback. Fuera de los topes
+                 de Addi la opción se deshabilita con su aviso, como pide el
+                 manual de Addi (no se esconde). -->
             <label class="op op--addi">
               <input type="radio" name="pago" value="addi">
               <span class="op-tx">
                 <span class="op-t"><b>Pagar con Addi</b><span class="precio" id="p-addi">—</span></span>
-                <span class="op-d">Hasta 3 cuotas sin interés. Te llevamos a WhatsApp para terminar tu pedido: allá te enviamos el enlace de Addi para aprobar tu cupo. Envío gratis.</span>
+                <span class="op-d">Hasta 3 cuotas sin interés. Te llevamos a Addi y apruebas tu cupo en minutos, solo con tu cédula. Envío gratis.</span>
+                <span class="op-d op-tope" id="addi-tope" hidden></span>
               </span>
             </label>
           </div>
@@ -577,6 +587,10 @@ button{font-family:inherit}
 const $=s=>document.querySelector(s);
 const WA='573018990672';
 const LLAVE='zephora.carrito.v1';
+/* Topes de Addi para esta tienda (channels-public-api.addi.com/allies/
+   zephoracharms-ecommerce/config, 2026-10-07). crear-pago los vuelve a
+   consultar en vivo; aquí solo sirven para deshabilitar la opción a tiempo. */
+const ADDI_TOPES={min:50000,max:3000000};
 let STOCK=null;
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 /* El tercer argumento es el identificador con el que Meta deduplica. Cuando el
@@ -765,10 +779,15 @@ function pintarResumen(){
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
   h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
-  /* Regalo de suscriptora. Solo si ESTE navegador confirmó la suscripción
-     (lo marca la página de confirmación): preguntarle al servidor por un
-     correo revelaría quién está suscrita. Quien decide de verdad es
-     crear-pago, con el correo del pedido; esto solo empuja el segundo charm. */
+  /* Regalo de suscriptora. Dos cosas distintas con reglas distintas:
+     - Este AVISO del resumen afirma «incluye tu regalo». Solo sale si ESTE
+       navegador confirmó la suscripción: decírselo a cualquiera prometería un
+       regalo a quien no lo tiene. Y no se le pregunta al servidor por el
+       correo, porque eso revelaría quién está suscrita.
+     - El SELECTOR de la letra, en cambio, sale a cualquiera con 2 charms o más
+       (ver pintarRegalo abajo), con texto condicional. No revela nada —sale
+       igual a todas— y no depende de en qué navegador se confirmó.
+     Quien decide de verdad es crear-pago, con el correo del pedido. */
   let suscrita=false; try{ suscrita=!!localStorage.getItem('zephora.suscrita'); }catch(e){}
   if(suscrita){
     const n=c.charms.length;
@@ -776,7 +795,7 @@ function pintarResumen(){
     else if(n===1) h+='<p class="susc-ck">🎁 Agrega 1 charm más y te llevas de regalo el charm de tu inicial, por estar suscrita.</p>';
   }
   $('#res-totales').innerHTML=h;
-  pintarRegalo(suscrita&&c.charms.length>=2);
+  pintarRegalo(c.charms.length>=2);
   pintarDescuento(c,t);
 
   /* Cuánto falta para el envío gratis.
@@ -829,6 +848,26 @@ function pintarResumen(){
     $('#p-'+f).textContent=cop(tt.total);
   });
 
+  /* Topes de Addi para la tienda (su config pública, 2026-10-07). Fuera de
+     ellos la opción queda deshabilitada y dice por qué: así quien está cerca
+     del mínimo sabe que con una pieza más puede pagar a cuotas. El servidor
+     vuelve a comprobarlo con la config de Addi en vivo. */
+  const ta=calcular(Object.assign({},c,{pago:'addi'})).total;
+  const fuera=ta<ADDI_TOPES.min||ta>ADDI_TOPES.max;
+  const ra=document.querySelector('#ops-pago input[value="addi"]');
+  ra.disabled=fuera;
+  ra.closest('.op').classList.toggle('op--off',fuera);
+  $('#addi-tope').hidden=!fuera;
+  $('#addi-tope').textContent=ta<ADDI_TOPES.min
+    ? 'Addi aplica para compras desde '+cop(ADDI_TOPES.min)+'. Te faltan '+cop(ADDI_TOPES.min-ta)+'.'
+    : 'Addi aplica para compras de hasta '+cop(ADDI_TOPES.max)+'.';
+  $('#addi-atajo').classList.toggle('sin-addi',fuera);
+  if(fuera&&carrito.pago==='addi'){
+    carrito.pago='anticipado';
+    document.querySelector('#ops-pago input[value="anticipado"]').checked=true;
+    guardarCarrito();
+  }
+
   /* Si el carrito alcanza el umbral, la contraentrega dice por qué su envío no
      es gratis. Es la misma advertencia que da el carrito: se repite aquí porque
      este es el momento en que se elige, y una sorpresa de $25.000 en el último
@@ -853,24 +892,24 @@ function pintarPagoElegido(t){
   $('#pago-elegido-tx').innerHTML=contra
     ? '<b>Pago contraentrega</b><span>Pagas en efectivo al recibir · envío '+cop(t.envio)+'</span>'
     : addi
-    ? '<b>Pagar con Addi</b><span>Hasta 3 cuotas sin interés · terminas por WhatsApp'
+    ? '<b>Pagar con Addi</b><span>Hasta 3 cuotas sin interés · apruebas tu cupo en minutos'
       +(t.gratis?' · envío gratis':'')+'</span>'
     : '<b>Pagar ahora con Wompi</b><span>Nequi, Bancolombia, PSE, Daviplata, tarjetas'
       +(t.gratis?' · envío gratis':'')+'</span>';
   if(!enviando) $('#confirmar').textContent=contra
     ? 'Confirmar pedido · '+cop(t.total)
     : addi
-    ? 'Continuar por WhatsApp · '+cop(t.total)
+    ? 'Continuar con Addi · '+cop(t.total)
     : 'Pagar '+cop(t.total);
   $('#nota-pago').textContent=contra
     ? 'Pagas en efectivo al mensajero. Confirmamos disponibilidad por WhatsApp antes de despachar.'
     : addi
-    ? 'Al continuar te llevamos a WhatsApp con tu pedido armado. Allá te enviamos el enlace de Addi para aprobar tu cupo.'
+    ? 'Al continuar te llevamos a Addi: con tu cédula y tu celular apruebas el cupo en minutos. Las cuotas las pagas directamente a Addi.'
     : 'Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.';
   /* La cédula solo con Addi; el atajo de abajo sobra cuando ya está elegido. */
   $('#campo-cedula').hidden=!addi;
   if(!addi) marcar('cedula',false);
-  $('#addi-atajo').hidden=addi;
+  $('#addi-atajo').hidden=addi||$('#addi-atajo').classList.contains('sin-addi');
 }
 
 /* Barra de la promo: una casilla por pieza del tramo en curso (1…4, después
@@ -1090,19 +1129,11 @@ async function confirmar(){
   track('AddPaymentInfo',{value:calcular(carrito).total,
     num_items:carrito.charms.length+(carrito.base?1:0)});
 
-  /* Addi: no hay cobro aquí. Se abre WhatsApp con el pedido y los datos, y
-     la venta la registra la tienda al aprobarse el cupo. Se mide como el
-     resto de salidas a WhatsApp de la tienda (Contact, con su etiqueta). */
-  if(carrito.pago==='addi'){
-    track('Contact',{content_name:'WhatsApp · addi-checkout',value:calcular(carrito).total});
-    location.href=waPedido();
-    return;
-  }
-
   enviando=true;
   const btn=$('#confirmar');
   btn.disabled=true;
-  btn.textContent=carrito.pago==='contraentrega'?'Registrando pedido…':'Conectando con Wompi…';
+  btn.textContent=carrito.pago==='contraentrega'?'Registrando pedido…'
+    :carrito.pago==='addi'?'Conectando con Addi…':'Conectando con Wompi…';
   error(null);
 
   const cuerpo={
@@ -1110,6 +1141,8 @@ async function confirmar(){
     pago:carrito.pago, cliente:datos(),
     fbp:cookie('_fbp'), fbc:cookie('_fbc')
   };
+  /* Addi la necesita para aprobar el cupo; con los otros pagos no se pide. */
+  if(carrito.pago==='addi'){ cuerpo.cliente.tipodoc='CC'; cuerpo.cliente.documento=val('cedula').replace(/\D/g,''); }
 
   try{
     const r=await fetch('/.netlify/functions/crear-pago',{
@@ -1158,6 +1191,15 @@ async function confirmar(){
         content_name:'Contraentrega'},d.referencia);
       try{ localStorage.removeItem(LLAVE); }catch(_){}
       location.href='gracias.html?ref='+encodeURIComponent(d.referencia)+'&modo=contraentrega';
+      return;
+    }
+
+    /* Addi: el servidor ya creó la solicitud y devuelve la URL de Addi. Allá
+       la clienta aprueba su cupo; Addi la devuelve a gracias.html y avisa el
+       resultado a addi-callback. */
+    if(d.modo==='addi'){
+      if(!/^https:\/\//.test(d.url||'')) throw new Error('Addi no devolvió el enlace de pago');
+      location.href=d.url;
       return;
     }
 
