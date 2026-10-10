@@ -56,6 +56,36 @@ una fila en la hoja (es un espejo; no se le quitan filas).
   con 2+ charms: «Si estás suscrita con este correo, elige tu inicial de
   regalo». `crear-pago` decide por el correo, sin cambios.
 
+### Paso 4 · después del despliegue, con la regla nueva
+
+Sobrantes (motivo «sobrante», nota «conteo 10-oct»), verificados en
+disponibilidad el 2026-10-10:
+
+| Pieza | Referencia | Disponible |
+|---|---|---|
+| Letra N | AJ-261010-FD6EB8E8 | 3 → 4 |
+| Tortuga Marina Cristal | AJ-261010-3951C3E1 | 0 → 1 |
+| Casa de los Globos | AJ-261010-6DEADAEA | 2 → 3 |
+| Pulsera Clásica Cierre Barril talla 21 | AJ-261010-38697FE6 | 3 → 4 |
+| Pulsera Clásica Cierre Barril talla 20 | AJ-261010-02903CC1 | 2 → 3 |
+| Pulsera Corazón Pavé Pequeño talla 20 | AJ-261010-3D5BE187 | 1 → 2 |
+| Pulsera Rosa Clásica talla 19 | AJ-261010-9D129EAD | 0 → 1 |
+| Pulsera Copo de Nieve talla 18 | AJ-261010-43624209 | 2 → 3 |
+| Pulsera Corazón Pavé talla 18 | AJ-261010-E502C455 | 1 → 2 |
+| Pulsera Corona Pavé talla 17 | AJ-261010-37069137 | 2 → 3 |
+
+La Pulsera Rosa Clásica no tenía ninguna talla en el conteo: la talla 19 pasó
+a existir por el sobrante (disponibilidad la lista desde el PR #24).
+
+Reclasificados como **faltante** sin anularlos (las unidades siguen
+descontadas; dejan de ser «regalo» en el registro): los 8 MAN-261010-… del
+paso 1 y MAN-261009-71D1B995 (Mariposas Tricolor, no apareció).
+
+Verificado en vivo tras el despliegue: Elefantito Rosa y Mariposas Tricolor
+dicen «Agotado» (ficha y tarjeta); Clip Forever «Queda 1 unidad»; el selector
+de la letra aparece en ventana privada con 2 charms; armar-carrito da los
+mismos totales que `_precios.js` con 3, 4 y 7 piezas (promo intacta).
+
 ### Cómo se usa la regla de ajuste
 
 POST a `/.netlify/functions/ajustar-inventario` con la cabecera
