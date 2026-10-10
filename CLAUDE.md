@@ -42,11 +42,22 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   tres traídos de la prueba con su misma publicación (Regalo · Dedicatoria,
   Pareja · Luciérnaga, Empieza con uno · Atrapasueños).
 
-  **Primera lectura: 2026-10-10**, con 7 días completos y 6 anuncios; hasta ahí
-  no se toca nada más. Con el conteo nuevo,
-  la meta es bajar de ~$4.600 a ~$3.500 o menos por checkout (el costo
-  comparable de la primera mitad de septiembre). Del 3 al 6 de octubre: 18
-  checkouts, $4.333 cada uno.
+  **Primera lectura, 2026-10-10 (7 días completos, 3–9 oct): $168.404
+  gastados, 52 checkouts, $3.238 cada uno.** La meta era ~$3.500 o menos y se
+  cumplió, contra $5.485 de ESCALA en la semana anterior (27 sep–2 oct) y 36
+  checkouts por semana. **Con una salvedad:** el 6 de octubre hubo 17
+  checkouts, un tercio de la semana; sin ese día salen ~41 por semana a
+  $3.992. Desde que se pausó Spider-Man (7–9 oct): 20 checkouts, $3.499.
+  La mediana diaria es de 5 checkouts. No se sabe cuánto se debe a la
+  consolidación, a pausar Spider-Man o a la promo del 4 de octubre: los tres
+  cambios fueron seguidos.
+
+  **Dos anuncios llevan toda la campaña.** Del 8 al 10 de octubre, el Video ·
+  Inicial y mascota se llevó el 59% del gasto ($4.478 por checkout) y
+  Colección Avengers el 37% ($2.853); los otros cuatro, juntos, el 4%. En los 8
+  días: Avengers $2.293 (30 checkouts), Video $3.846 (13).
+  Regalo, Luciérnaga, Atrapasueños y novio superhéroes casi no entregan. Por
+  eso la diversidad real es de dos anuncios, aunque haya seis activos.
 
   **Spider-Man · 5 textos en uno (`120248222251280534`) se pausó el
   2026-10-06 porque era el anuncio que costaba.** Del 3 al 6 de
