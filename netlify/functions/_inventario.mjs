@@ -158,7 +158,7 @@ function itemsDe(pedido) {
 /* Contra qué versión de stock.json está contando lo vendido. Ver `rebasar()`. */
 const BASE = (INV && INV.generado) || '';
 
-const vacio = () => ({ v: 1, base: BASE, vendido: {}, reservas: {}, anuladas: {} });
+const vacio = () => ({ v: 1, base: BASE, vendido: {}, reservas: {}, anuladas: {}, sumas: {} });
 
 /* Cuando se repone inventario, `vendido` tiene que volver a cero.
  *
@@ -183,6 +183,9 @@ function rebasar(estado) {
      reinicia con un conteo nuevo, esa marca deja de significar nada — arrastrarla
      no protege nada y solo acumula referencias viejas para siempre. */
   estado.anuladas = {};
+  /* Los sobrantes sumados (ajustar-inventario, motivo «sobrante») también: el
+     conteo nuevo ya trae esas unidades contadas. */
+  estado.sumas = {};
   return true;
 }
 
@@ -194,15 +197,25 @@ function limpiar(estado, ahora) {
   });
 }
 
-/* Libre = lo que existe, menos lo vendido, menos lo que otros tienen apartado.
-   `salvo` excluye una reserva concreta: al reintentar un CAS con la misma
-   referencia, la reserva anterior no debe contarse contra sí misma. */
+/* Unidades de más encontradas en el estante desde el último conteo (ajustes
+   «sobrante»). Una entrada por referencia, para poder revertir una sola sin
+   tocar las demás y sin riesgo de sumar dos veces. */
+function sumado(estado, s) {
+  let n = 0;
+  Object.values(estado.sumas || {}).forEach(a => { n += (a.items && a.items[s]) || 0; });
+  return n;
+}
+
+/* Libre = lo que existe (conteo + sobrantes), menos lo vendido, menos lo que
+   otros tienen apartado. `salvo` excluye una reserva concreta: al reintentar un
+   CAS con la misma referencia, la reserva anterior no debe contarse contra sí
+   misma. */
 function libre(estado, s, salvo) {
   let tomado = estado.vendido[s] || 0;
   Object.entries(estado.reservas).forEach(([ref, r]) => {
     if (ref !== salvo) tomado += r.items[s] || 0;
   });
-  return existencias(s) - tomado;
+  return existencias(s) + sumado(estado, s) - tomado;
 }
 
 function describir(s, hay, piden) {
@@ -240,6 +253,7 @@ async function transaccion(mutar, etiqueta) {
     estado.vendido = estado.vendido || {};
     estado.reservas = estado.reservas || {};
     estado.anuladas = estado.anuladas || {};
+    estado.sumas = estado.sumas || {};
     limpiar(estado, Date.now());
     if (rebasar(estado)) {
       console.log(JSON.stringify({
@@ -369,6 +383,40 @@ async function anular(referencia, items) {
   }, 'anular');
 }
 
+/* Suma unidades que el conteo no tenía: aparecieron de más en el estante.
+ *
+ * No toca stock.json ni su `generado` (eso reiniciaría el contador de ventas).
+ * Queda como una entrada propia en `estado.sumas`, con su referencia: así se
+ * revierte sola (`quitarSuma`) y repetir la misma referencia no suma dos veces.
+ * En el próximo conteo (`rebasar`) se borra, porque ese conteo ya las incluye. */
+async function sumar(referencia, items) {
+  return transaccion(estado => {
+    if (estado.sumas[referencia]) return { ok: true, modo: 'ya-sumada' };
+    estado.sumas[referencia] = { items, cuando: Date.now() };
+    const restante = {};
+    Object.keys(items).forEach(s => {
+      const n = libre(estado, s);
+      restante[s] = Number.isFinite(n) ? n : null;
+    });
+    return { ok: true, modo: 'sumada', items, restante };
+  }, 'sumar');
+}
+
+/* Deshace un `sumar()`. Idempotente: sin la entrada, no hay nada que quitar. */
+async function quitarSuma(referencia) {
+  return transaccion(estado => {
+    const a = estado.sumas[referencia];
+    if (!a) return { ok: true, modo: 'ya-anulada' };
+    delete estado.sumas[referencia];
+    const restante = {};
+    Object.keys(a.items || {}).forEach(s => {
+      const n = libre(estado, s);
+      restante[s] = Number.isFinite(n) ? n : null;
+    });
+    return { ok: true, modo: 'anulada', items: a.items, restante };
+  }, 'quitarSuma');
+}
+
 /* El pago no llegó, se declinó o se anuló: las unidades vuelven al mostrador
    sin esperar a que caduque la reserva. */
 async function liberar(referencia) {
@@ -403,6 +451,7 @@ export async function disponibles(skus) {
   }
   estado.vendido = estado.vendido || {};
   estado.reservas = estado.reservas || {};
+  estado.sumas = estado.sumas || {};
   /* Se limpia en memoria y no se escribe: una consulta no debe modificar nada,
      y las caducadas ya no cuentan contra lo libre aunque sigan en el blob. */
   limpiar(estado, Date.now());
@@ -412,7 +461,7 @@ export async function disponibles(skus) {
   return salida;
 }
 
-export { reservar, confirmar, liberar, anular };
+export { reservar, confirmar, liberar, anular, sumar, quitarSuma };
 /* `itemsDe` y `describir` los usa además `armar-carrito.mjs`, que necesita
    comprobar disponibilidad sin reservar nada y contarlo con las mismas palabras
    con las que se lo contaría el checkout: si el bot de WhatsApp dice «quedan 2»

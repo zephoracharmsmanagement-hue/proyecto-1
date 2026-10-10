@@ -46,13 +46,30 @@ const LETRAS=DATA.charms.filter(c=>/^letra-/.test(c.id)).map(c=>c.id.slice(6));
    actualizarlo sin tocar el código. Si no carga, STOCK queda null y la página
    funciona como antes: todo agregable, sin etiquetas ni talla obligatoria. */
 let STOCK=null;
+/* Disponibilidad real: el conteo de stock.json menos lo vendido y lo apartado,
+   leída de disponibilidad.mjs. Es la misma que valida el servidor al cobrar.
+   stock.json solo es el conteo físico: no descuenta nada vendido después, así
+   que la etiqueta decía «Última unidad» de piezas ya agotadas, la vitrina las
+   seguía ofreciendo y el checkout las rechazaba con la clienta decidida. */
+let DISP=null;
 const inv = id => STOCK ? STOCK[id] : null;
-const unidades = id => { const s=inv(id); return s&&typeof s.stock==='number' ? s.stock : null; };
-const tallasDe = id => { const s=inv(id); return s&&s.tallas ? s.tallas : null; };
+/* Solo cuenta como dato real si trae números. Si Netlify Blobs falla, la
+   función responde igual pero con disponible/tallas en null: tomar esa pieza
+   como «real» haría caer la etiqueta al conteo viejo sin que se note. */
+const real = id => { const r=DISP?DISP[id]:null;
+  return r&&(typeof r.disponible==='number'||(r.tallas&&typeof r.tallas==='object'))?r:null; };
+/* Cada lectura prefiere la disponibilidad real y cae al conteo solo mientras
+   aquella no llega. La caída es segura para bloquear: lo real nunca supera al
+   conteo (es ese conteo menos lo vendido), así que lo que el conteo da por
+   agotado lo está de verdad. */
+const unidades = id => { const r=real(id); if(r&&typeof r.disponible==='number') return r.disponible;
+  const s=inv(id); return s&&typeof s.stock==='number' ? s.stock : null; };
+const tallasDe = id => { const r=real(id); if(r&&r.tallas) return r.tallas;
+  const s=inv(id); return s&&s.tallas ? s.tallas : null; };
 const tallasLibres = id => { const t=tallasDe(id); return t ? Object.keys(t).filter(k=>t[k]>0) : null; };
 /* Sin inventario nada está agotado: ante la duda, no bloqueamos la venta. */
 const agotado = id => {
-  if(!STOCK) return false;
+  if(!STOCK&&!DISP) return false;
   const t=tallasLibres(id); if(t) return t.length===0;
   const u=unidades(id); return u!==null && u<=0;
 };
@@ -322,7 +339,7 @@ function tallasVit(caja,id){
 function estadoVit(){
   document.querySelectorAll('.kit-tallas[data-para]').forEach(c=>tallasVit(c,c.dataset.para));
   if(!CAT) return;
-  if(STOCK&&!vitConStock){ vitConStock=true; VIT.forEach(v=>dibujarVit(v)); return; }
+  if((STOCK||DISP)&&!vitConStock){ vitConStock=true; VIT.forEach(v=>dibujarVit(v)); return; }
   document.querySelectorAll('.vit-it').forEach(it=>{
     const id=it.dataset.vid, b=it.querySelector('.vit-add');
     if(PU[id]){
@@ -581,7 +598,11 @@ function waEncargo(nombre){
    quedan 1 o 2: no se inventa urgencia donde no la hay. */
 function etiquetaStock(p,id){
   let vieja=p.querySelector('.pc-stock'); if(vieja) vieja.remove();
-  if(!STOCK) return;
+  /* Solo con la disponibilidad real de esta pieza. Mientras no llega —o si
+     vino sin números— no se dice nada: mejor ninguna etiqueta que una
+     «Última unidad» sobre algo agotado. El botón sí puede caer al conteo,
+     porque para bloquear el conteo nunca se equivoca hacia el lado malo. */
+  if(!real(id)) return;
   /* Justo encima del pie: queda pegada al precio y al botón, que es la
      información con la que se decide la compra. */
   const pie=p.querySelector('.pc-foot'); if(!pie) return;
@@ -607,7 +628,7 @@ function etiquetaStock(p,id){
    en un enlace a WhatsApp, igual que ya hace `waEncargo` con el resto del
    catálogo. No toca páginas sin `.kit-paso`: el selector devuelve vacío. */
 function marcarKits(){
-  if(!STOCK) return;
+  if(!STOCK&&!DISP) return;
   document.querySelectorAll('.kit-paso[data-piezas]').forEach(a=>{
     if(a.dataset.marcado) return;
     const ids=a.dataset.piezas.split(',');
@@ -841,7 +862,10 @@ function familiaDe(id){ const s=STOCK?STOCK[id]:null; return s&&s.familia?FAMILI
    la página de producto: el material se escribe en UN solo sitio, porque dos
    copias ya dejaron una vez afirmaciones de 925 en brazaletes. */
 function estadoDe(id){
-  if(!STOCK) return {t:'',k:''};
+  /* Es el texto de disponibilidad de la ficha y de la página de producto: la
+     misma regla que la etiqueta de las tarjetas, solo con dato real. Ocultar
+     el botón de compra no depende de esto sino de agotado(). */
+  if(!real(id)) return {t:'',k:''};
   if(agotado(id)) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
   if(PU[id]) return {t:'Disponible en talla '+(tallasLibres(id)||[]).join(', ')+' cm',k:'ok'};
   const u=unidades(id);
@@ -866,28 +890,18 @@ function specsDe(id){
   return filas.join('');
 }
 /* En una página de producto, su bloque de disponibilidad y ficha técnica.
-   Se repinta al llegar el inventario (la familia de la pieza sale de ahí). */
-/* Disponibilidad real de esta pieza (conteo menos lo vendido y apartado),
-   leída de disponibilidad.mjs una vez. null mientras no llegue o si falla:
-   entonces manda el conteo de stock.json, como en el resto del sitio. */
-let dispReal=null;
-function estadoPagina(id){
-  if(!dispReal) return estadoDe(id);
-  if(PU[id]){
-    const t=Object.keys(dispReal.tallas||{}).filter(k=>dispReal.tallas[k]>0);
-    return t.length?{t:'Disponible en talla '+t.join(', ')+' cm',k:'ok'}:{t:'Agotado — puedes pedirlo por encargo',k:'out'};
-  }
-  const u=dispReal.disponible;
-  if(u<=0) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
-  return u<=2?{t:u===1?'Queda 1 unidad':'Quedan '+u+' unidades',k:'few'}:{t:'Disponible',k:'ok'};
-}
+   Se repinta al llegar el inventario (la familia de la pieza sale de ahí).
+   Antes había aquí un estadoPagina() propio, con su propia copia de la
+   disponibilidad real solo para esta pieza: era un segundo camino al mismo
+   dato, y por eso la página decía «Agotado» mientras la tarjeta de la misma
+   joya decía «Última unidad». Ahora todo pasa por estadoDe() y agotado(). */
 function pintarPagina(){
   const id=document.body.dataset.producto, specs=$('#pp-specs'), est=$('#pp-est');
   if(!id||!specs||!est) return;
   specs.innerHTML=specsDe(id);
   const fam=familiaDe(id), desc=$('#pp-desc');
   if(desc) desc.textContent=fam?fam.n+' — '+fam.d:'';
-  const e2=estadoPagina(id), fuera=e2.k==='out';
+  const e2=estadoDe(id), fuera=agotado(id);
   const compra=$('#pp-compra'), sin=$('#pp-agotado'), enc=$('#pp-encargo');
   if(compra) compra.hidden=fuera;
   if(sin) sin.hidden=!fuera;
@@ -1003,11 +1017,6 @@ function sumarAlCarrusel(d){
 if($('#tst-rail')){ puntosCarrusel(); $('#tst-rail').addEventListener('scroll',marcarPunto,{passive:true}); }
 
 if(PP&&(CH[PP]||PU[PP])){
-  fetch('.netlify/functions/disponibilidad',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
-    if(!d||d.fuente!=='conteo-menos-apartado') return;
-    dispReal=(d.piezas||[]).concat(d.brazaletes||[]).find(x=>x.id===PP)||null;
-    if(dispReal){ pintarPagina(); render(); }
-  }).catch(()=>{});
   /* «N personas compraron esta pieza este mes»: de pedidos reales, y solo con
      N ≥ 3 (lo filtra el servidor). Sin dato, no se dice nada. */
   fetch('.netlify/functions/vendidas').then(r=>r.ok?r.json():null).then(d=>{
@@ -2301,14 +2310,9 @@ if(kitSug.length && full){
   requestAnimationFrame(()=>full.scrollIntoView({behavior:'smooth',block:'start'}));
 }
 
-/* El inventario llega después de pintar: la página ya es usable sin él, y si
-   falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
-fetch('assets/stock.json',{cache:'no-cache'})
-  .then(r=>r.ok?r.json():null)
-  .then(d=>{
-    if(!d||!d.items) return;
-    STOCK=d.items;
-    document.body.classList.add('con-stock');
+/* Lo mismo para las dos fuentes de inventario, llegue la que llegue primero:
+   depurar el carrito y repintar todo lo que muestra disponibilidad. */
+function alLlegarInventario(){
     /* Lo que ya estuviera elegido se depura contra el inventario real: se cae
        lo agotado y se recorta lo que pida más unidades de las que hay.
        El recorte importa desde que el carrito puede llegar en un enlace —nadie
@@ -2329,8 +2333,41 @@ fetch('assets/stock.json',{cache:'no-cache'})
     marcarKits();
     pintarPagina();
     if(fichaId) abrirFicha(fichaId);
+}
+
+/* El inventario llega después de pintar: la página ya es usable sin él, y si
+   falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
+fetch('assets/stock.json',{cache:'no-cache'})
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d||!d.items) return;
+    STOCK=d.items;
+    document.body.classList.add('con-stock');
+    alLlegarInventario();
     const n=document.getElementById('stock-fecha');
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
+  })
+  .catch(()=>{});
+
+/* Disponibilidad real, en todas las páginas. Antes se pedía solo en la página
+   de un producto y solo para esa pieza, así que en la portada, la vitrina y
+   los kits mandaba el conteo viejo. */
+fetch('.netlify/functions/disponibilidad',{cache:'no-cache'})
+  .then(r=>r.ok?r.json():null)
+  .then(d=>{
+    if(!d||d.fuente!=='conteo-menos-apartado') return;
+    const m={};
+    (d.piezas||[]).concat(d.brazaletes||[]).forEach(x=>{ if(x&&x.id) m[x.id]=x; });
+    DISP=m;
+    /* La vitrina se dibuja una sola vez con inventario; con el dato real hay
+       que volver a dibujarla, porque esconde las piezas agotadas. */
+    vitConStock=false;
+    alLlegarInventario();
+    /* Señal de que ya manda el dato real, como `con-stock` lo es del conteo.
+       Las pruebas esperan por esta y no por aquella: desde que las etiquetas
+       solo salen con dato real, esperar `con-stock` pasaba por suerte de
+       tiempos, y en frío la primera página daba disponibilidad vacía. */
+    document.body.classList.add('con-disponibilidad');
   })
   .catch(()=>{});
 

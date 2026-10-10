@@ -5,6 +5,72 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Conteo físico del 10-oct y ajustes de inventario — desplegado el 2026-10-10 (PR #24)
+
+Nota del propietario `Documents/nota larga terminal/comando1.docx`. PR #24
+(`claude/conteo-10-oct`) fusionado con su «deploy»: trae los tres commits de
+`claude/inventario-ajustes` (sesión del 2026-10-09) más lo que faltaba de A.
+No toca `stock.json` ni su `generado` (eso reinicia el contador de ventas).
+
+**Resultado del conteo:** faltan 5 piezas — Mariposas Tricolor, Pulpo Azul
+Cristal, Clip Forever Multicolor y 2 Pulsera Avengers (tallas 19 y 18) — y 4
+brazaletes que estaban en otra talla o modelo (Corazón Pavé Pequeño 19 y 18,
+Corazón Liso 18, Corona Pavé 18); sobran 3 charms y 7 brazaletes; el resto
+cuadra con el sistema. La nota decía 7 faltantes (con Deadpool y una Avengers
+talla 20), pero esas dos ya cuadraban: el «sistema 4 / 8» salía del conteo del
+22-sep y después hubo dos ventas reales, ZC-260922-0932DC08 (Deadpool) y
+ZC-260923-8070C0A1 (Avengers talla 20). El propietario aprobó no bloquearlas.
+
+### Paso 1 · bloqueos (antes de desplegar, con registrar-venta «regalo»)
+
+| Pieza | Referencia | Disponible |
+|---|---|---|
+| Pulpo Azul Cristal | MAN-261010-8FE00F03 | 5 → 4 |
+| Clip Forever Multicolor | MAN-261010-D2E684EA | 2 → 1 |
+| Pulsera Avengers talla 19 | MAN-261010-ADB09107 | 8 → 7 |
+| Pulsera Avengers talla 18 | MAN-261010-98BDCD3E | 8 → 7 |
+| Pulsera Corazón Pavé Pequeño talla 19 | MAN-261010-7FBB86E9 | 2 → 1 |
+| Pulsera Corazón Pavé Pequeño talla 18 | MAN-261010-C8FE2353 | 1 → 0 |
+| Pulsera Corazón Liso talla 18 | MAN-261010-E7F0960D | 2 → 1 |
+| Pulsera Corona Pavé talla 18 | MAN-261010-329CDAE0 | 2 → 1 |
+| Mariposas Tricolor (2026-10-09) | MAN-261009-71D1B995 | 1 → 0 |
+
+Nota en cada uno: «AJUSTE conteo 10-oct: faltante». Como todo «regalo», dejaron
+una fila en la hoja (es un espejo; no se le quitan filas).
+
+### Lo desplegado
+
+- **A · `ajustar-inventario.mjs`** — ajustes que NO son ventas. Motivos:
+  `faltante | sobrante | dañada | error de conteo | bloqueo temporal` (acepta la
+  etiqueta tal cual). Quita unidades (mismo CAS que las ventas) o, con
+  «sobrante», las **suma** como una entrada propia en el inventario
+  (`estado.sumas` en `_inventario.mjs`), también por talla. El próximo conteo
+  (cuando cambie `generado`) borra esas sumas: el conteo nuevo ya las incluye.
+  No manda Purchase, no escribe en la hoja, no cuenta en vendidas/más vendidos
+  (estado `ajuste`). `disponibilidad.mjs` lista una talla que el conteo no tiene
+  si un sobrante le dio unidades.
+- **B · etiqueta con la disponibilidad real** (`tienda.js`): tarjetas, ficha,
+  vitrina, kits y página de producto leen `disponibilidad`; sin dato real,
+  ninguna etiqueta. `dudas.js` simula disponibilidad en local.
+- **C · selector de la inicial de regalo** (`checkout.html`) para cualquiera
+  con 2+ charms: «Si estás suscrita con este correo, elige tu inicial de
+  regalo». `crear-pago` decide por el correo, sin cambios.
+
+### Cómo se usa la regla de ajuste
+
+POST a `/.netlify/functions/ajustar-inventario` con la cabecera
+`x-zephora-automation-key` = `VENTA_MANUAL_KEY` (la misma de registrar-venta,
+en `material-sin-publicar/claves-para-n8n.txt`; nunca en el chat):
+
+- Quitar: `{"motivo":"faltante","charms":["deadpool"],"nota":"…"}` ·
+  brazalete: `{"motivo":"dañada","charms":[],"base":{"id":"pulsera-avengers","talla":"19"}}`
+- Sumar: `{"motivo":"sobrante","charms":["letra-n"],"nota":"conteo 10-oct"}`
+- Revertir: `{"anular":"AJ-…"}` (idempotente; también un MAN- reclasificado).
+- Reclasificar un «regalo» de total 0: `{"reclasificar":"MAN-…","motivo":"faltante"}`
+  — no mueve unidades; deja de contar como venta.
+- Una unidad por pieza nombrada (repetir el id = más unidades). Responde
+  `{referencia:"AJ-…", motivo, signo, restante}`. Listo para un formulario de n8n.
+
 ## Reseñas del Excel del propietario — cargadas el 2026-10-06
 
 El propietario pasó su base de reseñas (`Pictureseviews zephora`: Excel

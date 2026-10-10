@@ -471,13 +471,19 @@ button{font-family:inherit}
             </div>
 
             <!-- Regalo de suscriptora: el charm de su inicial (decisión del
-                 propietario, 2026-09-27). Solo se muestra si este navegador
-                 confirmó la suscripción y el pedido lleva 2 charms o más;
-                 quien decide si hay regalo es crear-pago, con el correo. -->
+                 propietario, 2026-09-27). Se muestra a quien lleve 2 charms o
+                 más, esté o no suscrita: antes solo salía si ESTE navegador
+                 había confirmado la suscripción, y una clienta real que
+                 confirmó desde el correo en otro navegador no lo vio, aunque
+                 el servidor sí le daba el regalo (pedido del propietario,
+                 2026-10-09). Por eso el texto es condicional. Quien decide de
+                 verdad sigue siendo crear-pago, con el correo: a una clienta no
+                 suscrita le ignora la letra, y como no la aparta del
+                 inventario, elegirla nunca bloquea su compra. -->
             <div class="campo" data-c="regalo" id="campo-regalo" hidden>
-              <label for="regalo-inicial">🎁 Elige la inicial de tu regalo</label>
+              <label for="regalo-inicial">🎁 Si estás suscrita con este correo, elige tu inicial de regalo</label>
               <select id="regalo-inicial" name="regalo-inicial"><option value="">Elige una letra</option></select>
-              <span class="pista">Por estar suscrita, tu primera compra de 2 charms o más lleva de regalo el charm de tu inicial. Solo aparecen las letras con unidades; si no eliges, te escribimos para preguntarte.</span>
+              <span class="pista">Si te suscribiste con este correo, tu primera compra de 2 charms o más lleva de regalo el charm de tu inicial. Solo aparecen las letras con unidades; si no eliges, te escribimos para preguntarte.</span>
             </div>
 
             <!-- Autorización aparte, sin marcar y opcional.
@@ -773,10 +779,15 @@ function pintarResumen(){
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
   h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
-  /* Regalo de suscriptora. Solo si ESTE navegador confirmó la suscripción
-     (lo marca la página de confirmación): preguntarle al servidor por un
-     correo revelaría quién está suscrita. Quien decide de verdad es
-     crear-pago, con el correo del pedido; esto solo empuja el segundo charm. */
+  /* Regalo de suscriptora. Dos cosas distintas con reglas distintas:
+     - Este AVISO del resumen afirma «incluye tu regalo». Solo sale si ESTE
+       navegador confirmó la suscripción: decírselo a cualquiera prometería un
+       regalo a quien no lo tiene. Y no se le pregunta al servidor por el
+       correo, porque eso revelaría quién está suscrita.
+     - El SELECTOR de la letra, en cambio, sale a cualquiera con 2 charms o más
+       (ver pintarRegalo abajo), con texto condicional. No revela nada —sale
+       igual a todas— y no depende de en qué navegador se confirmó.
+     Quien decide de verdad es crear-pago, con el correo del pedido. */
   let suscrita=false; try{ suscrita=!!localStorage.getItem('zephora.suscrita'); }catch(e){}
   if(suscrita){
     const n=c.charms.length;
@@ -784,7 +795,7 @@ function pintarResumen(){
     else if(n===1) h+='<p class="susc-ck">🎁 Agrega 1 charm más y te llevas de regalo el charm de tu inicial, por estar suscrita.</p>';
   }
   $('#res-totales').innerHTML=h;
-  pintarRegalo(suscrita&&c.charms.length>=2);
+  pintarRegalo(c.charms.length>=2);
   pintarDescuento(c,t);
 
   /* Cuánto falta para el envío gratis.
