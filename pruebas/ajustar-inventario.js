@@ -193,6 +193,79 @@ async function main() {
     comprobar(nada.r.status === 404, 'un AJ- que no existe → 404');
   }
 
+  console.log('\n7 · Sobrante: suma unidades sin tocar stock.json');
+  {
+    salidas.length = 0;
+    const antes = await libres(charm);
+    const { r, d } = await pedir({ motivo: 'Sobrante', charms: [charm], nota: 'conteo 10-oct' });
+    comprobar(r.status === 200 && d.motivo === 'sobrante' && d.signo === 1 && /^AJ-/.test(d.referencia),
+      '«Sobrante» → 200, motivo sobrante, signo +1', JSON.stringify({ m: d.motivo, s: d.signo }));
+    comprobar(await libres(charm) === antes + 1, `suma 1 al contador de la tienda (${antes} → ${await libres(charm)})`);
+    comprobar(d.restante && d.restante[charm] === antes + 1, 'devuelve lo que queda, del propio CAS');
+    comprobar(!salidas.some(s => /facebook|graph\./.test(s.url)) && !salidas.some(s => s.url === HOJA),
+      'ni Meta ni la hoja');
+    const reg = await ped.leer(d.referencia);
+    comprobar(reg && reg.estado === 'ajuste' && reg.signo === 1, 'queda como ajuste con signo +1');
+    const ventas = await contar();
+    comprobar(!(charm in ventas) || ventas[charm] === undefined, 'no aparece en «vendidas»');
+
+    const rv = await pedir({ anular: d.referencia });
+    comprobar(rv.r.status === 200 && await libres(charm) === antes, 'revertir quita la unidad sumada');
+    const rv2 = await pedir({ anular: d.referencia });
+    comprobar(rv2.d.modo === 'ya-anulada' && await libres(charm) === antes, 'revertir dos veces no quita dos veces');
+
+    /* Por talla, y una talla que el conteo no tiene: pasa a existir. */
+    const tallasConteo = Object.keys(stock[braz].tallas);
+    const nueva = ['17', '18', '19', '20', '21'].find(t => !tallasConteo.includes(t));
+    const antesT = await libres(`${braz}|${talla}`);
+    const t1 = await pedir({ motivo: 'sobrante', base: { id: braz, talla } });
+    comprobar(t1.r.status === 200 && await libres(`${braz}|${talla}`) === antesT + 1, `brazalete talla ${talla}: +1`);
+    if (nueva) {
+      const t2 = await pedir({ motivo: 'sobrante', base: { id: braz, talla: nueva } });
+      comprobar(t2.r.status === 200 && await libres(`${braz}|${nueva}`) === 1,
+        `talla ${nueva}, que el conteo no tenía: queda con 1`);
+      const disp = await import('../netlify/functions/disponibilidad.mjs');
+      const resp = await disp.default(new Request('https://tienda.test/.netlify/functions/disponibilidad'));
+      const b = (JSON.parse(await resp.text()).brazaletes || []).find(x => x.id === braz);
+      comprobar(b && b.tallas && b.tallas[nueva] === 1, `disponibilidad la lista: ${braz} talla ${nueva} = 1`, JSON.stringify(b && b.tallas));
+      const otraVacia = ['17', '18', '19', '20', '21'].find(t => !tallasConteo.includes(t) && t !== nueva);
+      if (otraVacia) comprobar(!(otraVacia in b.tallas), `y no lista tallas sin conteo ni sobrante (${otraVacia})`);
+    } else ok(`${braz} ya tiene las cinco tallas en el conteo: no se prueba la talla nueva`);
+    const sinTalla = await pedir({ motivo: 'sobrante', base: { id: braz } });
+    comprobar(sinTalla.r.status === 400, 'sobrante de brazalete sin talla → 400');
+  }
+
+  console.log('\n8 · Reclasificar un «regalo» como ajuste');
+  {
+    /* Un bloqueo hecho como regalo, como los del conteo del 10-oct: el
+       inventario ya lo descontó; aquí solo cambia de categoría. */
+    const pieza = Object.keys(stock).find(i => i !== charm && i !== otro && stock[i].tipo === 'charm' && stock[i].stock >= 3
+      && !/^letra-/.test(i));
+    for (let i = 0; i < 3; i++) {
+      await ped.guardar(`MAN-REGALO-${i}`, { estado: 'venta-manual', pago: 'regalo', total: 0,
+        lineas: [{ id: pieza, unidades: 1 }], nota: 'AJUSTE conteo 10-oct: faltante' });
+    }
+    await ped.guardar('MAN-COBRADA-0', { estado: 'venta-manual', pago: 'nequi', total: 82000, lineas: [{ id: pieza, unidades: 1 }] });
+    const antes = await libres(pieza);
+    const { r, d } = await pedir({ reclasificar: 'MAN-REGALO-0', motivo: 'faltante', nota: 'conteo 10-oct' });
+    comprobar(r.status === 200 && d.modo === 'reclasificado' && d.motivo === 'faltante', 'regalo → ajuste faltante', JSON.stringify(d));
+    const reg = await ped.leer('MAN-REGALO-0');
+    comprobar(reg.estado === 'ajuste' && reg.reclasificadoDe === 'venta-manual' && reg.pago === 'regalo' && reg.reclasificadoEn,
+      'el registro dice de dónde viene y cuándo, sin borrar lo que tenía');
+    comprobar(await libres(pieza) === antes, 'las unidades no se mueven (siguen descontadas)');
+    const otra = await pedir({ reclasificar: 'MAN-REGALO-0', motivo: 'faltante' });
+    comprobar(otra.r.status === 200 && otra.d.modo === 'ya-reclasificado', 'reclasificar dos veces → ya-reclasificado');
+    const cobrada = await pedir({ reclasificar: 'MAN-COBRADA-0', motivo: 'faltante' });
+    comprobar(cobrada.r.status === 409 && (await ped.leer('MAN-COBRADA-0')).estado === 'venta-manual',
+      'una venta cobrada no se reclasifica (409) y queda igual');
+    const sumando = await pedir({ reclasificar: 'MAN-REGALO-1', motivo: 'sobrante' });
+    comprobar(sumando.r.status === 400, 'reclasificar como «sobrante» → 400 (un regalo quitó unidades)');
+    const noHay = await pedir({ reclasificar: 'MAN-260101-00000000', motivo: 'faltante' });
+    comprobar(noHay.r.status === 404, 'un MAN- que no existe → 404');
+    const ventaMan = await pedir({ anular: 'MAN-COBRADA-0' });
+    comprobar(ventaMan.r.status === 400, 'una venta manual no se revierte aquí: va a registrar-venta');
+  }
+
   console.log(fallos ? `\n${fallos} comprobaciones en rojo.` : '\nTodo en verde.');
 }
 

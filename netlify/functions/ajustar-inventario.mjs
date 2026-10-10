@@ -1,5 +1,6 @@
 /* Ajustes de inventario que NO son ventas: un faltante en el estante, una pieza
- * dañada, un error de conteo, o un bloqueo temporal mientras se busca algo.
+ * dañada, un error de conteo, un bloqueo temporal mientras se busca algo, o un
+ * sobrante (aparecieron más unidades de las contadas).
  *
  * ── Por qué existe ──
  *
@@ -24,12 +25,22 @@
  *   - NO toca stock.json. Cambiarlo, o su campo `generado`, reinicia el
  *     contador de ventas.
  *
- * ── Solo quita unidades ──
+ * ── Quita o suma ──
  *
- * El mecanismo aparta unidades de lo disponible; no puede crear unidades que el
- * conteo no tiene. «Error de conteo» sirve cuando el sistema cree que hay MÁS
- * de las que hay. Si aparecen más piezas de las contadas, eso es corregir el
- * conteo base (stock.json), un proceso aparte.
+ * faltante, dañada, error de conteo y bloqueo temporal QUITAN unidades (aparta
+ * y confirma, igual que una venta). «sobrante» las SUMA: queda como una entrada
+ * propia en el inventario (`sumar` en _inventario.mjs), sin tocar stock.json —
+ * cambiarlo reinicia el contador de ventas—. En el próximo conteo esa entrada
+ * se borra sola, porque el conteo nuevo ya trae esas unidades. Pedido del
+ * propietario tras el conteo del 10-oct.
+ *
+ * ── Reclasificar un «regalo» ──
+ *
+ * Antes de que existiera esto, los faltantes se registraban en registrar-venta
+ * como «regalo» con total 0 (MAN-…). Reclasificar convierte ese registro en un
+ * ajuste SIN mover unidades —siguen descontadas—: deja de ser una venta en el
+ * registro de pedidos (estado 'ajuste'). La fila que dejó en la hoja de
+ * inventario no se borra: la hoja es un espejo y no se le quitan filas.
  *
  * ── Contrato (pensado para el formulario de n8n) ──
  *
@@ -38,20 +49,26 @@
  * secreto nuevo.
  *
  *   Ajustar: { motivo, charms:[ids], base:{id,talla}, nota }
- *            motivo: faltante | dañada | error de conteo | bloqueo temporal
+ *            motivo: faltante | sobrante | dañada | error de conteo | bloqueo temporal
  *            (acepta mayúsculas, tildes y espacios: sirve tal cual la etiqueta
  *            de un desplegable). base es opcional; un brazalete pide talla.
- *            → 200 { referencia:"AJ-…", motivo, restante:{id:unidades} }
+ *            Una unidad por pieza nombrada (repetir el id = más unidades).
+ *            → 200 { referencia:"AJ-…", motivo, signo:-1|+1, restante:{id:unidades} }
  *            → 409 si no hay unidades que quitar (el conteo ya dice 0).
- *   Revertir: { anular:"AJ-…" }  → devuelve las unidades. Idempotente.
+ *   Revertir: { anular:"AJ-…" } — o un MAN- ya reclasificado — deshace el
+ *            ajuste: devuelve lo quitado o quita lo sumado. Idempotente.
+ *   Reclasificar: { reclasificar:"MAN-…", motivo, nota } — solo un «regalo» de
+ *            total 0; motivo de los que quitan. No mueve unidades. Idempotente.
  */
 import crypto from 'node:crypto';
 import { leerPedido, detallar, PedidoInvalido, SinInventario, inventario as INV }
   from './_precios.js';
-import { reservar, confirmar, anular } from './_inventario.mjs';
+import { reservar, confirmar, anular, sumar, quitarSuma, _interno as INV_INTERNO } from './_inventario.mjs';
 import { guardar, leer, marcar } from './_pedidos.mjs';
 
-const MOTIVOS = ['faltante', 'danada', 'error-de-conteo', 'bloqueo-temporal'];
+const MOTIVOS = ['faltante', 'sobrante', 'danada', 'error-de-conteo', 'bloqueo-temporal'];
+/* Los que suman unidades; el resto las quita. */
+const SUMAN = new Set(['sobrante']);
 const CABECERAS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const responder = (codigo, cuerpo) =>
   new Response(JSON.stringify(cuerpo), { status: codigo, headers: CABECERAS });
@@ -85,13 +102,16 @@ const texto = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
 const sku = (id, talla) => (talla ? `${id}|${talla}` : id);
 
 async function revertir(ref) {
-  if (!/^AJ-/.test(ref)) {
-    return responder(400, { error: 'Aquí solo se revierten ajustes (AJ-…). Las ventas manuales se anulan en registrar-venta.' });
+  if (!/^(AJ|MAN)-/.test(ref)) {
+    return responder(400, { error: 'Aquí solo se revierten ajustes (AJ-…, o un MAN-… reclasificado como ajuste).' });
   }
   const registro = await leer(ref);
   /* 'ajuste-revertido' también pasa: revertir dos veces debe dar 200 con
      modo 'ya-anulada', no un 404 que haga creer que el ajuste no existió. */
   const esAjuste = registro && (registro.estado === 'ajuste' || registro.estado === 'ajuste-revertido');
+  if (/^MAN-/.test(ref) && !(esAjuste && registro.reclasificadoDe)) {
+    return responder(400, { error: 'Ese MAN- es una venta manual, no un ajuste: se anula en registrar-venta.' });
+  }
   if (!esAjuste || !Array.isArray(registro.lineas) || !registro.lineas.length) {
     return responder(404, { error: 'No hay un ajuste registrado con esa referencia' });
   }
@@ -100,7 +120,8 @@ async function revertir(ref) {
     const s = sku(l.id, l.talla);
     items[s] = (items[s] || 0) + (l.unidades || 1);
   });
-  const r = await anular(ref, items);
+  /* Un sobrante se deshace quitando su suma; el resto, devolviendo lo quitado. */
+  const r = SUMAN.has(registro.motivo) ? await quitarSuma(ref) : await anular(ref, items);
   if (!r || (r.modo !== 'anulada' && r.modo !== 'ya-anulada')) {
     return responder(503, { error: 'El inventario no respondió; no se revirtió nada', modo: r && r.modo });
   }
@@ -130,8 +151,10 @@ export default async (req) => {
 
   const motivo = normalizarMotivo(cuerpo.motivo);
   if (!MOTIVOS.includes(motivo)) {
-    return responder(400, { error: 'motivo debe ser uno de: faltante, dañada, error de conteo, bloqueo temporal' });
+    return responder(400, { error: 'motivo debe ser uno de: faltante, sobrante, dañada, error de conteo, bloqueo temporal' });
   }
+
+  if (cuerpo.reclasificar) return reclasificar(String(cuerpo.reclasificar), motivo, texto(cuerpo.nota, 500));
 
   let pedido;
   try {
@@ -148,6 +171,22 @@ export default async (req) => {
   }
 
   const ref = referencia();
+
+  if (SUMAN.has(motivo)) {
+    const items = INV_INTERNO.itemsDe(pedido);
+    const r = await sumar(ref, items);
+    if (!r || r.modo !== 'sumada') {
+      console.error(JSON.stringify({ evento: 'ajuste_sin_inventario', referencia: ref, modo: r && r.modo }));
+      return responder(503, { error: 'El inventario no respondió; no se registró el ajuste. Intenta de nuevo.', modo: r && r.modo });
+    }
+    const lineasS = detallar(pedido);
+    const regS = await guardar(ref, { estado: 'ajuste', motivo, signo: 1, lineas: lineasS, nota: texto(cuerpo.nota, 500) });
+    if (!regS.ok) console.error(JSON.stringify({ evento: 'ajuste_sin_registro', referencia: ref, motivo: regS.motivo }));
+    console.log(JSON.stringify({ evento: 'ajuste_inventario', referencia: ref, motivo, signo: 1,
+      lineas: lineasS.map(l => ({ id: l.id, talla: l.talla, unidades: l.unidades })) }));
+    return responder(200, { referencia: ref, motivo, signo: 1, restante: r.restante || {} });
+  }
+
   let reserva;
   try {
     reserva = await reservar(ref, pedido);
@@ -170,7 +209,7 @@ export default async (req) => {
   const cierre = await confirmar(ref);
 
   const lineas = detallar(pedido);
-  const registro = await guardar(ref, { estado: 'ajuste', motivo, lineas, nota: texto(cuerpo.nota, 500) });
+  const registro = await guardar(ref, { estado: 'ajuste', motivo, signo: -1, lineas, nota: texto(cuerpo.nota, 500) });
   if (!registro.ok) {
     /* El descuento ya está hecho; sin registro no se podría revertir por
        referencia. Se avisa en el log para corregirlo a mano. */
@@ -181,5 +220,29 @@ export default async (req) => {
     evento: 'ajuste_inventario', referencia: ref, motivo,
     lineas: lineas.map(l => ({ id: l.id, talla: l.talla, unidades: l.unidades })),
   }));
-  return responder(200, { referencia: ref, motivo, restante: cierre.restante || {} });
+  return responder(200, { referencia: ref, motivo, signo: -1, restante: cierre.restante || {} });
 };
+
+/* Un «regalo» de registrar-venta que en realidad era un faltante (o un bloqueo)
+   pasa a ser un ajuste. Las unidades no se mueven: ya están descontadas. */
+async function reclasificar(ref, motivo, nota) {
+  if (!/^MAN-/.test(ref)) return responder(400, { error: 'Solo se reclasifican registros de registrar-venta (MAN-…)' });
+  if (SUMAN.has(motivo)) {
+    return responder(400, { error: 'Un regalo quitó unidades: se reclasifica con un motivo que quita (faltante, dañada, error de conteo, bloqueo temporal)' });
+  }
+  const registro = await leer(ref);
+  if (!registro) return responder(404, { error: 'No hay un registro con esa referencia' });
+  if (registro.estado === 'ajuste' && registro.reclasificadoDe) {
+    return responder(200, { referencia: ref, modo: 'ya-reclasificado', motivo: registro.motivo });
+  }
+  if (registro.estado !== 'venta-manual' || registro.pago !== 'regalo' || Number(registro.total) !== 0) {
+    return responder(409, { error: 'Solo se reclasifica un «regalo» de total 0 que siga vigente (no una venta cobrada ni una anulada)', estado: registro.estado, pago: registro.pago });
+  }
+  const r = await marcar(ref, {
+    estado: 'ajuste', motivo, signo: -1, reclasificadoDe: 'venta-manual',
+    reclasificadoEn: new Date().toISOString(), notaAjuste: nota || null,
+  });
+  if (!r || !r.ok) return responder(503, { error: 'El registro de pedidos no respondió; no se reclasificó nada' });
+  console.log(JSON.stringify({ evento: 'ajuste_reclasificado', referencia: ref, motivo }));
+  return responder(200, { referencia: ref, modo: 'reclasificado', motivo });
+}
