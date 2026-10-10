@@ -15,7 +15,7 @@ No toca `stock.json` ni su `generado` (eso reinicia el contador de ventas).
 **Resultado del conteo:** faltan 5 piezas — Mariposas Tricolor, Pulpo Azul
 Cristal, Clip Forever Multicolor y 2 Pulsera Avengers (tallas 19 y 18) — y 4
 brazaletes que estaban en otra talla o modelo (Corazón Pavé Pequeño 19 y 18,
-Corazón Liso 18, Corona Pavé 18); sobran 3 charms y 7 brazaletes; el resto
+Corazón Liso 18, Corona Pavé 18); sobran 2 charms y 7 brazaletes; el resto
 cuadra con el sistema. La nota decía 7 faltantes (con Deadpool y una Avengers
 talla 20), pero esas dos ya cuadraban: el «sistema 4 / 8» salía del conteo del
 22-sep y después hubo dos ventas reales, ZC-260922-0932DC08 (Deadpool) y
@@ -65,7 +65,7 @@ disponibilidad el 2026-10-10:
 |---|---|---|
 | Letra N | AJ-261010-FD6EB8E8 | 3 → 4 |
 | Tortuga Marina Cristal | AJ-261010-3951C3E1 | 0 → 1 |
-| Casa de los Globos | AJ-261010-6DEADAEA | 2 → 3 |
+| ~~Casa de los Globos~~ | AJ-261010-6DEADAEA · **revertido** | 2 → 3 → 2 |
 | Pulsera Clásica Cierre Barril talla 21 | AJ-261010-38697FE6 | 3 → 4 |
 | Pulsera Clásica Cierre Barril talla 20 | AJ-261010-02903CC1 | 2 → 3 |
 | Pulsera Corazón Pavé Pequeño talla 20 | AJ-261010-3D5BE187 | 1 → 2 |
@@ -86,6 +86,24 @@ dicen «Agotado» (ficha y tarjeta); Clip Forever «Queda 1 unidad»; el selecto
 de la letra aparece en ventana privada con 2 charms; armar-carrito da los
 mismos totales que `_precios.js` con 3, 4 y 7 piezas (promo intacta).
 
+**Corrección · Casa de los Globos** (aviso del propietario después del paso 4). El sobrante +1 fue un
+error: en el estante hay 2, y disponibilidad ya daba 2 porque el pedido
+contraentrega ZC-261003-A3DDA53F (Rionegro, $115.000) se canceló el 3-oct y su
+unidad volvió al inventario. El +1 se calculó contra el conteo esperado de
+la nota y no contra disponibilidad. Revertido con
+`{"anular":"AJ-261010-6DEADAEA"}` → disponibilidad 2, verificado en vivo.
+Quedan 9 sobrantes.
+
+**Ese pedido sí mandó `Purchase` a Meta** (es la contraentrega cancelada de
+CLAUDE.md § Pendiente 2). En el píxel 1029982529813994, el 3-oct entre las
+20:00 y las 21:00 UTC (el pedido se creó a las 20:54) hay 1 Purchase de
+servidor (crear-pago, al registrar el pedido) y 1 del navegador (checkout.html
+de ese día), con la misma referencia como event_id: Meta los cuenta como **una
+compra de $115.000 que no se cobró**. No se puede corregir: la API de
+Conversiones no tiene forma de borrar ni restar un evento ya recibido, ni un
+evento de «cancelación» que lo descuente. Queda anotado: al comparar ventas
+reales contra lo que Meta reporta para ese periodo, hay que descontarla a mano.
+
 ### Cómo se usa la regla de ajuste
 
 POST a `/.netlify/functions/ajustar-inventario` con la cabecera
@@ -100,6 +118,15 @@ en `material-sin-publicar/claves-para-n8n.txt`; nunca en el chat):
   — no mueve unidades; deja de contar como venta.
 - Una unidad por pieza nombrada (repetir el id = más unidades). Responde
   `{referencia:"AJ-…", motivo, signo, restante}`. Listo para un formulario de n8n.
+
+**Regla antes de cada ajuste:** comparar el número real del estante con lo
+que dice `disponibilidad` **en ese momento** (`/.netlify/functions/disponibilidad`),
+nunca con un conteo esperado escrito en un mensaje o una nota: ese número
+puede venir de `stock.json` o de un día anterior y no ver ventas nuevas ni
+pedidos cancelados que devolvieron la unidad. Ajuste = estante − disponibilidad
+(negativo → faltante; positivo → sobrante). Si da 0, no se ajusta. Casos del
+10-oct: Deadpool y Avengers talla 20 (ventas posteriores) y Casa de los Globos
+(pedido cancelado).
 
 ## Reseñas del Excel del propietario — cargadas el 2026-10-06
 
