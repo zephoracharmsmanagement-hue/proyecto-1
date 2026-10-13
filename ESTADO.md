@@ -5,6 +5,31 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Correo de posventa («¿cómo te fue?» + reseña) — en rama, SIN DESPLEGAR · 2026-10-13
+
+Rama `claude/zephora-charms-automation-rzbthc`. Toca `netlify/functions/`
+(función nueva, no cambia las existentes), `gen_paginas.py` y la política de
+privacidad: **no fusionar otra cosa encima sin mirar esto**.
+
+- **`posventa.mjs`**, programada a diario 10:00 Colombia. A **10 días** del pago
+  (`pagadoEn`, o `creado` en contraentrega y venta manual) y hasta 30 días,
+  manda **un solo correo** por pedido —uno por persona si tiene varios— con
+  gracias, «¿cómo te fue?» y un enlace firmado por pieza (`enlaceResena`, el
+  que pone «Compra verificada»). Marca `posventa` en el pedido; nunca repite.
+- Fuera: `cancelado`, `anulada`, sin pagar, regalos, sin correo, piezas que ya
+  no están en el catálogo, y los correos de `POSVENTA_NO_ESCRIBIR` (variable
+  de Netlify, separados por coma: quien responda pidiendo que no le escriban).
+- **A todos los compradores, no solo a quien marcó la casilla** (opción B del
+  propietario). La base es la finalidad nueva de la política de privacidad
+  (13-oct, vía `gen_paginas.py`). Por eso el correo **no vende ni ofrece nada**;
+  `pruebas/posventa.js` § 5 y § 6 lo vigilan.
+- **Sin incentivo** (decisión del propietario, 27-sep y 13-oct).
+- Sin aviso de entrega: el flujo de Skydropx (`ze4dI8GW96yfKGyd`) sigue
+  inactivo y no hace falta; un pedido que no llegó se cancela.
+- **Al desplegar:** el primer día salen los pedidos pagados hace 10–30 días.
+  Después, corregir el prompt del bot: hoy dice que el enlace de reseña llega
+  por WhatsApp al entregar, y ese aviso nunca se encendió.
+
 ## Pauta de Meta en la hoja de inventario — 2026-10-12
 
 - Pestaña nueva **«Meta diario»** (sheetId 977001): una fila por fecha con gasto

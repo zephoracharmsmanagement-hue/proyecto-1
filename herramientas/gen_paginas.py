@@ -12,6 +12,12 @@ WA_LEGAL = ('https://wa.me/573018990672?text=Hola%2C%20Zephora%20Charms.%20Vengo
             '%20p%C3%A1gina%20web%20y%20tengo%20una%20consulta%20sobre%20sus%20pol%C3%ADticas'
             '%20de%20compra.')
 ACTUALIZADO = '2 de octubre de 2026'
+# Las páginas que cambiaron después, cada una con su fecha: una fecha general
+# nueva diría que se actualizaron los términos o las cookies sin que cambiaran.
+ACTUALIZADO_POR_PAGINA = {
+    # Finalidad nueva: el correo de después de la compra (netlify/functions/posventa.mjs).
+    'politica-de-privacidad.html': '13 de octubre de 2026',
+}
 
 PAGS = [
     ('politica-de-privacidad.html', 'Política de privacidad'),
@@ -135,6 +141,9 @@ PRIVACIDAD = '''  <div class="note">
     <li>Gestionar tu pedido: confirmarlo, prepararlo, despacharlo y hacerle seguimiento.</li>
     <li>Coordinar la entrega con la transportadora y, si aplica, el pago contraentrega.</li>
     <li>Atender solicitudes de cambio, garantía o retracto.</li>
+    <li>Escribirte por correo una sola vez, unos días después de tu compra, para saber cómo te
+      fue con tus piezas e invitarte a dejar tu opinión. No incluye ofertas, y si prefieres no
+      recibirlo basta con responder ese correo.</li>
     <li>Medir el rendimiento de nuestra publicidad y mostrar anuncios a personas con intereses
       similares, mediante el píxel de Meta.</li>
     <li>Enviarte información sobre promociones, <b>únicamente si nos das tu autorización expresa</b>.</li>
@@ -598,7 +607,7 @@ for archivo, titulo in PAGS:
         cuerpo, extra = bloque_faq(), jsonld_faq()
     html = SHELL.format(
         titulo=titulo, desc=desc, archivo=archivo, eyebrow=eyebrow,
-        actualizado=ACTUALIZADO, wa_legal=WA_LEGAL, extra_head=extra,
+        actualizado=ACTUALIZADO_POR_PAGINA.get(archivo, ACTUALIZADO), wa_legal=WA_LEGAL, extra_head=extra,
         cuerpo=cuerpo.format(wa_legal=WA_LEGAL) if '{wa_legal}' in cuerpo else cuerpo)
     (RAIZ / archivo).write_text(html, encoding='utf-8')
     print(f'{archivo}  ({len(html):,} bytes)')
