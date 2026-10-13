@@ -3,7 +3,8 @@
  * temporales, separados de las ventas.
  *
  * Lo que hay que demostrar: descuenta en el MISMO contador que la tienda, pero
- * no es una venta en ninguna parte — ni Purchase a Meta, ni fila en la hoja, ni
+ * no es una venta en ninguna parte — ni Purchase a Meta, ni una VENTA en la
+ * hoja (sí una fila tipo «ajuste», con signo y motivo, desde 2026-10-12), ni
  * en las cuentas de «más vendidos» / «N personas compraron». Y se revierte.
  *
  * Todo con almacenes en memoria: las vistas previas comparten el inventario
@@ -79,6 +80,9 @@ async function main() {
     return { r, d: JSON.parse(await r.text()) };
   };
   const libres = async s => (await inv.disponibles([s]))[s];
+  /* Las filas que llegaron a la hoja desde el último `salidas.length = 0`. */
+  const filasHoja = () => salidas.filter(s => s.url === HOJA)
+    .flatMap(s => { const c = JSON.parse(s.cuerpo); return c.movimientos.map(m => Object.assign({ _tipo: c.tipo }, m)); });
 
   console.log(`\n1 · Clave (pieza de prueba: ${charm})`);
   {
@@ -132,7 +136,17 @@ async function main() {
 
     comprobar(!salidas.some(s => /facebook|graph\./.test(s.url)), 'no manda Purchase a Meta',
       salidas.map(s => s.url).join(' ') || 'ninguna salida');
-    comprobar(!salidas.some(s => s.url === HOJA), 'no escribe en la hoja de inventario');
+    /* A la hoja sí, pero como ajuste: ni venta ni cobro. */
+    const fh = filasHoja();
+    const fc = fh.find(f => f.id === charm), fb = fh.find(f => f.id === braz);
+    comprobar(fh.length === 2 && fh.every(f => f._tipo === 'ajuste' && f.tipo === 'ajuste'),
+      'avisa a la hoja: 2 filas, tipo «ajuste» (no venta)', fh.map(f => f.tipo).join(','));
+    comprobar(fc && fc.unidades === -1 && fb && fb.unidades === -1 && fb.talla === talla,
+      'unidades en negativo: salen del inventario', JSON.stringify(fh.map(f => [f.id, f.talla, f.unidades])));
+    comprobar(fc && fc.quedan === d.restante[charm] && fb.quedan === d.restante[`${braz}|${talla}`],
+      '«quedan» es el del propio CAS', `${fc && fc.quedan} / ${fb && fb.quedan}`);
+    comprobar(fh.every(f => f.motivo === 'bloqueo temporal' && f.cobrado === null && f.cliente === '' && f.referencia === d.referencia),
+      'con el motivo legible, sin cobrado ni clienta, con la referencia AJ-');
   }
 
   console.log('\n4 · No aparece en las cuentas de ventas');
@@ -175,16 +189,24 @@ async function main() {
   {
     const antes = await libres(charm);
     const antesB = await libres(`${braz}|${talla}`);
+    salidas.length = 0;
     const { r } = await pedir({ anular: refAjuste });
+    const rh = filasHoja();
+    comprobar(rh.length === 2 && rh.every(f => f.tipo === 'ajuste' && f.unidades === 1
+      && f.referencia === `${refAjuste}/reversion` && f.motivo === 'reversión: bloqueo temporal' && f.estado === 'revertido'),
+      'la reversión deja su propia fila «AJ-…/reversion», con +1 (no pisa la del ajuste)',
+      JSON.stringify(rh.map(f => [f.referencia, f.unidades, f.motivo])));
     comprobar(r.status === 200 && await libres(charm) === antes + 1, 'revertir devuelve la unidad', `${antes} → ${await libres(charm)}`);
     comprobar(await libres(`${braz}|${talla}`) === antesB + 1, 'también la del brazalete');
     const reg = await ped.leer(refAjuste);
     comprobar(reg && reg.estado === 'ajuste-revertido' && reg.revertidoEn, 'queda marcado como revertido, con fecha');
 
     const fecha = reg.revertidoEn;
+    salidas.length = 0;
     const otra = await pedir({ anular: refAjuste });
     comprobar(otra.r.status === 200 && otra.d.modo === 'ya-anulada' && await libres(charm) === antes + 1,
       'revertir dos veces no devuelve dos veces', otra.d.modo);
+    comprobar(!filasHoja().length, 'ni manda otra fila a la hoja');
     comprobar((await ped.leer(refAjuste)).revertidoEn === fecha, 'y no mueve la fecha de la primera reversión');
 
     const venta = await pedir({ anular: 'MAN-260101-AAAAAAAA' });
@@ -202,15 +224,21 @@ async function main() {
       '«Sobrante» → 200, motivo sobrante, signo +1', JSON.stringify({ m: d.motivo, s: d.signo }));
     comprobar(await libres(charm) === antes + 1, `suma 1 al contador de la tienda (${antes} → ${await libres(charm)})`);
     comprobar(d.restante && d.restante[charm] === antes + 1, 'devuelve lo que queda, del propio CAS');
-    comprobar(!salidas.some(s => /facebook|graph\./.test(s.url)) && !salidas.some(s => s.url === HOJA),
-      'ni Meta ni la hoja');
+    comprobar(!salidas.some(s => /facebook|graph\./.test(s.url)), 'no manda nada a Meta');
+    const sh = filasHoja();
+    comprobar(sh.length === 1 && sh[0].tipo === 'ajuste' && sh[0].unidades === 1 && sh[0].motivo === 'sobrante'
+      && sh[0].quedan === d.restante[charm], 'a la hoja: ajuste «sobrante» con +1 y el quedan del CAS', JSON.stringify(sh));
     const reg = await ped.leer(d.referencia);
     comprobar(reg && reg.estado === 'ajuste' && reg.signo === 1, 'queda como ajuste con signo +1');
     const ventas = await contar();
     comprobar(!(charm in ventas) || ventas[charm] === undefined, 'no aparece en «vendidas»');
 
+    salidas.length = 0;
     const rv = await pedir({ anular: d.referencia });
     comprobar(rv.r.status === 200 && await libres(charm) === antes, 'revertir quita la unidad sumada');
+    const srh = filasHoja();
+    comprobar(srh.length === 1 && srh[0].unidades === -1 && srh[0].referencia === `${d.referencia}/reversion`,
+      'y a la hoja va su reversión con −1', JSON.stringify(srh.map(f => [f.referencia, f.unidades])));
     const rv2 = await pedir({ anular: d.referencia });
     comprobar(rv2.d.modo === 'ya-anulada' && await libres(charm) === antes, 'revertir dos veces no quita dos veces');
 

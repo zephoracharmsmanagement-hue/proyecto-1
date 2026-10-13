@@ -5,6 +5,38 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🔒 Hoja de inventario: campos completos — 2026-10-12 (rama `claude/hoja-campos`, SIN desplegar)
+
+Pedido del propietario: **juntarlo con el próximo despliegue, no desplegar
+solo por esto.** Commit `655399b`. El flujo de n8n `K1J4pHYfvd6QuAq8` ya está
+publicado y lee estas columnas; hasta desplegar, llegan vacías.
+
+- Cada movimiento lleva ahora `tipo` (venta | ajuste | cancelacion),
+  `cliente`, `canal` (web | whatsapp | web→whatsapp), `total` (del pedido, con
+  envío, repetido por fila), `estado` y `motivo`.
+- **`cobrado` = lo cobrado de verdad**: la pieza gratis de la promo va en $0 y
+  la suma da el subtotal. En ventas manuales se reparte el total del chat.
+- **web→whatsapp**: el enlace del bot trae `via=wa`; el checkout lo recuerda en
+  la pestaña y lo manda; crear-pago lo guarda en el registro (`canal`).
+- **Ajustes** (ajustar-inventario) avisan: unidades con signo, `quedan` del CAS,
+  motivo legible. Revertir → fila propia `AJ-…/reversion`.
+- **Cancelaciones** avisan: `registrar-venta {anular}` y
+  `herramientas/anular-venta.mjs`. Fila propia `…/cancelacion`, unidades +,
+  cobrado en negativo, `quedan` con la unidad devuelta.
+- ⚠ Por qué la referencia propia: n8n escribe en «Movimientos» con
+  *appendOrUpdate* emparejando **referencia + id + talla**. Con la misma
+  referencia, la cancelación sobrescribiría la fila de la venta.
+- `anular-venta.mjs` ahora busca la referencia en `pedidos` y
+  `pedidos-pruebas` (las funciones publicadas escriben en «-pruebas») y, para
+  avisar a la hoja, necesita `HOJA_WEBHOOK` y `HOJA_TOKEN` en `.env` local
+  (hoy no están). Sin ellas cancela igual y lo dice.
+- No se reenvía nada viejo: «Existencias» ya tiene el conteo del 10-oct.
+- Sin cubrir a propósito: reclasificar un «regalo» viejo no avisa (no mueve
+  unidades); su fila de venta sigue en la hoja.
+
+Pruebas: las 28 baterías en verde; `hoja.js` §5–6 (crear-pago real con promo,
+_cierre, prorrateo, cancelación), `registrar-venta.js` §7, ajustes.
+
 ## Conteo físico del 10-oct y ajustes de inventario — desplegado el 2026-10-10 (PR #24)
 
 Nota del propietario `Documents/nota larga terminal/comando1.docx`. PR #24

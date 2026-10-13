@@ -184,5 +184,140 @@ const LINEAS = [
       'y devuelve su referencia como si nada', cuerpo.referencia);
   }
 
+  console.log('\n5 · Los campos nuevos: tipo, cliente, canal, total, estado (2026-10-12)');
+  {
+    /* Un pedido real por crear-pago, contraentrega y desde el enlace del bot
+       (`via: 'wa'`), con 4 charms: la promo deja gratis el más barato. Lo que
+       se vigila es que la hoja reciba lo que de verdad se cobró. */
+    inventario._interno.usarAlmacen(almacenFalso());
+    const ped = await cargar('_pedidos.mjs');
+    const reg = {};
+    ped._interno.usarAlmacen({
+      async get(k) { return reg[k] ? JSON.parse(JSON.stringify(reg[k])) : null; },
+      async setJSON(k, v) { reg[k] = JSON.parse(JSON.stringify(v)); return { modified: true }; },
+      async delete(k) { delete reg[k]; },
+      async list() { return { blobs: Object.keys(reg).map(key => ({ key })) }; },
+    });
+    const P = await cargar('_precios.js').then(m => m.default || m);
+    const stock = require(path.join(RAIZ, 'assets', 'stock.json')).items;
+    const lista = require(path.join(RAIZ, 'assets', 'catalogo.json')).precios;
+    /* Cuatro charms con unidades y de precio distinto, para que se sepa cuál
+       es «el gratis» sin depender del desempate. */
+    const vistos = new Set();
+    const cuatro = Object.keys(stock)
+      .filter(i => stock[i].tipo === 'charm' && stock[i].stock >= 1 && !/^letra-/.test(i) && i in lista)
+      .filter(i => { if (vistos.has(lista[i])) return false; vistos.add(lista[i]); return true; })
+      .slice(0, 4);
+    const enviados = [];
+    const guardado = process.env.HOJA_WEBHOOK;
+    process.env.HOJA_WEBHOOK = 'https://n8n.ejemplo/webhook/hoja';
+    const crearPago = await cargar('crear-pago.mjs');
+    const fetchReal = globalThis.fetch;
+    globalThis.fetch = async (u, op) => {
+      if (String(u).includes('n8n.ejemplo')) { enviados.push(JSON.parse(op.body)); return { ok: true, status: 200 }; }
+      return { ok: true, status: 200, json: async () => ({}), text: async () => '{}' };
+    };
+    const pedir = via => crearPago.default({
+      method: 'POST', headers: new Headers(),
+      text: async () => JSON.stringify({
+        charms: cuatro, pago: 'contraentrega', via,
+        cliente: { nombre: 'Marialejandra', apellido: 'Quintanilla', celular: '3012345678', correo: 'm@ejemplo.com',
+          depto: 'Antioquia', ciudad: 'Rionegro', direccion: 'Calle 16f #99 - 72' },
+      }),
+    });
+    const r = await pedir('wa');
+    const d = JSON.parse(await r.text());
+    const c = P.calcular(P.leerPedido({ charms: cuatro, pago: 'contraentrega' }));
+    const v = enviados[0] || { movimientos: [] };
+    const m = v.movimientos;
+    comprobar(r.status === 200 && m.length === 4, `pedido de 4 charms → 4 filas (${cuatro.join(', ')})`,
+      `HTTP ${r.status}, ${m.length} filas`);
+    comprobar(v.tipo === 'venta' && m.every(f => f.tipo === 'venta'), 'tipo «venta»');
+    comprobar(m.every(f => f.cliente === 'Marialejandra Quintanilla'), 'cliente con nombre y apellido', m[0] && m[0].cliente);
+    comprobar(m.every(f => f.canal === 'web→whatsapp'), 'desde el enlace del bot: canal «web→whatsapp»', m[0] && m[0].canal);
+    comprobar(m.every(f => f.estado === 'contraentrega pendiente'), 'estado «contraentrega pendiente»');
+    comprobar(m.every(f => f.total === c.total) && c.total === d.total,
+      `total del pedido, con envío, repetido en cada fila (${c.total})`);
+    const suma = m.reduce((s, f) => s + f.cobrado, 0);
+    comprobar(c.descuento > 0 && suma === c.subtotal,
+      `la suma de «cobrado» es lo cobrado sin envío (${suma} = ${c.subtotal}), no la tarifa (${c.subtotal + c.descuento})`);
+    const gratis = P.piezasGratis(P.leerPedido({ charms: cuatro, pago: 'contraentrega' }))[0];
+    const fg = gratis && m.find(f => f.id === gratis.id);
+    comprobar(fg && fg.cobrado === 0, `la pieza gratis de la promo va en $0 (${gratis && gratis.id})`, fg && String(fg.cobrado));
+    comprobar(reg[d.referencia] && reg[d.referencia].canal === 'web→whatsapp',
+      'el canal queda en el registro, para el pago en línea que se anota después');
+
+    enviados.length = 0;
+    inventario._interno.usarAlmacen(almacenFalso());
+    await (await pedir('')).text();
+    comprobar(enviados[0] && enviados[0].movimientos.every(f => f.canal === 'web'), 'sin `via`: canal «web»');
+
+    /* Pago en línea: la hoja se entera al aprobarse, desde _cierre.mjs, que
+       ya no tiene la petición del navegador: el canal sale del registro. */
+    enviados.length = 0;
+    inventario._interno.usarAlmacen(almacenFalso());
+    const { cerrarPago } = await cargar('_cierre.mjs');
+    const pa = P.leerPedido({ charms: cuatro, pago: 'anticipado' });
+    const ca = P.calcular(pa);
+    const refA = 'ZC-261012-CIERRE01';
+    await inventario.reservar(refA, pa);
+    await ped.guardar(refA, { estado: 'esperando-pago', pago: 'anticipado', lineas: P.detallar(pa), cuentas: ca,
+      cliente: { nombre: 'Laura', apellido: 'Gómez', ciudad: 'Medellín', depto: 'Antioquia' }, canal: 'web→whatsapp' });
+    await cerrarPago({ referencia: refA, aprobado: true, estado: 'APPROVED', total: ca.total, medio: 'wompi' });
+    const w = (enviados.find(e => e.referencia === refA) || { movimientos: [] }).movimientos;
+    comprobar(w.length === 4 && w.every(f => f.tipo === 'venta' && f.estado === 'pagado' && f.canal === 'web→whatsapp'
+      && f.cliente === 'Laura Gómez' && f.total === ca.total),
+      'pago en línea aprobado: estado «pagado», canal y cliente del registro, total del pedido',
+      JSON.stringify(w.slice(0, 1).map(f => [f.estado, f.canal, f.cliente, f.total])));
+    comprobar(w.reduce((s, f) => s + f.cobrado, 0) === ca.subtotal, `y también aquí la suma de «cobrado» es lo cobrado (${ca.subtotal})`);
+    enviados.length = 0;
+    const refB = 'ZC-261012-CIERRE02';
+    inventario._interno.usarAlmacen(almacenFalso());
+    await inventario.reservar(refB, pa);
+    await ped.guardar(refB, { estado: 'esperando-pago', pago: 'anticipado', lineas: P.detallar(pa), cuentas: ca,
+      cliente: { nombre: 'Laura', apellido: 'Gómez' } });
+    await cerrarPago({ referencia: refB, aprobado: true, estado: 'APPROVED', total: ca.total, medio: 'wompi' });
+    const w2 = (enviados.find(e => e.referencia === refB) || { movimientos: [] }).movimientos;
+    comprobar(w2.length && w2.every(f => f.canal === 'web'), 'un pedido de antes, sin canal guardado, va como «web»');
+
+    globalThis.fetch = fetchReal;
+    if (guardado === undefined) delete process.env.HOJA_WEBHOOK;
+    else process.env.HOJA_WEBHOOK = guardado;
+  }
+
+  console.log('\n6 · Venta manual: lo cobrado repartido, y una cancelación');
+  {
+    const lineas = [
+      { id: 'pulsera-corazon-con-diamante', nombre: 'Brazalete Corazón con Diamante', talla: '17', unidades: 1, precio: 78000, gratis: 0 },
+      { id: 'angel-guardian', nombre: 'Ángel Guardián', talla: null, unidades: 1, precio: 86000, gratis: 0 },
+    ];
+    /* Precio de chat distinto de la lista: 150.000 por 164.000 de tarifa. */
+    const v = hoja._interno.movimientos({ referencia: 'MAN-X', lineas, total: 150000, prorratear: true,
+      cliente: { nombre: 'Valeria Bedoya' }, canal: 'whatsapp', estado: 'pagado' });
+    comprobar(v.reduce((s, f) => s + f.cobrado, 0) === 150000, 'prorrateado: las líneas suman exactamente lo cobrado',
+      v.map(f => f.cobrado).join(' + '));
+    comprobar(v[0].cliente === 'Valeria Bedoya' && v[0].canal === 'whatsapp', 'cliente y canal «whatsapp»');
+
+    const enviados = [];
+    const guardado = process.env.HOJA_WEBHOOK;
+    process.env.HOJA_WEBHOOK = 'https://n8n.ejemplo/webhook/hoja';
+    const fetchReal = globalThis.fetch;
+    globalThis.fetch = async (u, op) => { enviados.push(JSON.parse(op.body)); return { ok: true, status: 200 }; };
+    await hoja.anotarCancelacion({ referencia: 'ZC-261009-RIONEGRO', pago: 'contraentrega', cuando: 'x',
+      lineas, restante: { 'pulsera-corazon-con-diamante|17': 1, 'angel-guardian': 2 }, total: 164000,
+      cliente: { nombre: 'Ana', apellido: 'Ruiz' }, canal: 'web' });
+    globalThis.fetch = fetchReal;
+    if (guardado === undefined) delete process.env.HOJA_WEBHOOK;
+    else process.env.HOJA_WEBHOOK = guardado;
+    const cm = (enviados[0] || {}).movimientos || [];
+    comprobar(enviados[0] && enviados[0].tipo === 'cancelacion' && cm.every(f => f.tipo === 'cancelacion' && f.estado === 'cancelado'),
+      'tipo «cancelacion», estado «cancelado»');
+    comprobar(cm.length === 2 && cm.every(f => f.referencia === 'ZC-261009-RIONEGRO/cancelacion'),
+      'referencia propia: n8n empareja por referencia+id+talla, y con la de la venta la pisaría');
+    comprobar(cm.every(f => f.unidades > 0) && cm[0].quedan === 1 && cm[1].quedan === 2,
+      'unidades que vuelven (+) y «quedan» ya con la unidad devuelta');
+    comprobar(cm.reduce((s, f) => s + f.cobrado, 0) === -164000, 'cobrado en negativo: sumada con su venta, queda en cero');
+  }
+
   console.log(fallos ? `\nHoja de inventario: ${fallos} en rojo` : '\nHoja de inventario en verde ✓');
 })();

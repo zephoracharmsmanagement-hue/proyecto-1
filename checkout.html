@@ -647,6 +647,13 @@ function leerCarrito(){
  * Manda sobre lo guardado: quien llega por un enlace quiere ver eso. Y lo que
  * se cobra lo sigue recalculando el servidor — esto solo decide qué se pinta.
  */
+/* El enlace que arma el bot de WhatsApp lleva `via=wa`. Se recuerda en la
+   sesión —no solo en la URL— porque la clienta puede ir a la tienda y volver
+   antes de pagar, y viaja con el pedido para que la hoja de inventario lo
+   anote como «web→whatsapp». No cambia nada de lo que ve ni de lo que paga. */
+try{ if(new URLSearchParams(location.search).get('via')==='wa') sessionStorage.setItem('zephora.via','wa'); }catch(_){}
+function viaWa(){ try{ return sessionStorage.getItem('zephora.via')==='wa'; }catch(_){ return false; } }
+
 function carritoDeUrl(){
   var q;
   try{ q=new URLSearchParams(location.search); }catch(_){ return null; }
@@ -1139,7 +1146,8 @@ async function confirmar(){
   const cuerpo={
     base:carrito.base, charms:carrito.charms,
     pago:carrito.pago, cliente:datos(),
-    fbp:cookie('_fbp'), fbc:cookie('_fbc')
+    fbp:cookie('_fbp'), fbc:cookie('_fbc'),
+    via:viaWa()?'wa':''
   };
   /* Addi la necesita para aprobar el cupo; con los otros pagos no se pide. */
   if(carrito.pago==='addi'){ cuerpo.cliente.tipodoc='CC'; cuerpo.cliente.documento=val('cedula').replace(/\D/g,''); }

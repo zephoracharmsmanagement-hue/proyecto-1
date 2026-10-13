@@ -1,4 +1,4 @@
-/* La hoja de inventario: un aviso por cada venta cobrada.
+/* La hoja de inventario: un aviso por cada venta, ajuste o cancelación.
  *
  * ── Qué problema resuelve ──
  *
@@ -46,45 +46,89 @@
 
 const TIMEOUT_MS = 4000;
 
+/* Lo que de verdad se cobró por una línea. `l.precio` es la tarifa de lista
+   por las unidades; la promo «paga N, lleva 1» deja `l.gratis` unidades de esa
+   línea en $0 (detallar() en _precios.js). Restarlas aquí hace que la suma de
+   `cobrado` de un pedido sea su subtotal real: antes la pieza gratis salía en
+   la hoja a precio de lista (las Mariposas de ZC-261009-CCA4B571). */
+function cobradoDe(l) {
+  const n = l.unidades || 1;
+  return Math.round(l.precio - (l.gratis || 0) * (l.precio / n));
+}
+
+/* En una venta manual el precio lo puso el chat, no la lista: se reparte el
+   total cobrado entre las líneas en proporción a su tarifa, y el redondeo cae
+   en la última, para que sumen exactamente lo cobrado. */
+function prorrateo(lineas, total) {
+  const bruto = lineas.reduce((s, l) => s + (l.precio || 0), 0);
+  if (!bruto || typeof total !== 'number') return lineas.map(cobradoDe);
+  let resto = total;
+  return lineas.map((l, i) => {
+    if (i === lineas.length - 1) return resto;
+    const c = Math.round(total * (l.precio || 0) / bruto);
+    resto -= c;
+    return c;
+  });
+}
+
+const nombreDe = c => (!c ? '' : typeof c === 'string' ? c
+  : [c.nombre, c.apellido].filter(Boolean).join(' ')).trim();
+
 /* Una fila por pieza, no por pedido: es lo que hace la hoja legible. Un pedido
    de tres charms son tres movimientos, cada uno con su pieza, su talla y lo que
    queda de ella. Agrupar por pedido obligaría a leer una celda con una lista
-   dentro, que en una hoja de cálculo no se puede filtrar ni sumar. */
-function movimientos({ referencia, pago, cuando, ciudad, lineas, restante }) {
+   dentro, que en una hoja de cálculo no se puede filtrar ni sumar.
+
+   `tipo` decide los signos:
+     venta        unidades vendidas (+), cobrado de la línea
+     ajuste       unidades con signo: − lo que sale (faltante, dañada…),
+                  + lo que entra (sobrante); sin cobrado
+     cancelacion  unidades que vuelven (+), cobrado en negativo: sumada la
+                  columna, una venta cancelada queda en cero
+   `total` es el del pedido —lo cobrado, con envío— repetido en cada fila. */
+function movimientos({ referencia, pago, cuando, ciudad, lineas, restante,
+  tipo = 'venta', cliente, canal, total, estado, motivo, signo, prorratear }) {
   const resto = restante || {};
-  return (lineas || []).map(l => {
+  const ls = lineas || [];
+  const cobros = prorratear ? prorrateo(ls, total) : ls.map(cobradoDe);
+  return ls.map((l, i) => {
     const sku = l.talla ? `${l.id}|${l.talla}` : l.id;
     const quedan = Object.prototype.hasOwnProperty.call(resto, sku) ? resto[sku] : null;
+    const n = l.unidades || 1;
     return {
       referencia,
       cuando,
       pieza: l.nombre,
       id: l.id,
       talla: l.talla || '',
-      unidades: l.unidades,
-      /* El precio de la línea ya viene con las unidades multiplicadas y el
-         descuento aplicado: es lo que se cobró por esa pieza, no su tarifa. */
-      cobrado: l.precio,
+      unidades: tipo === 'ajuste' ? (signo < 0 ? -n : n) : n,
+      cobrado: tipo === 'ajuste' ? null : tipo === 'cancelacion' ? -cobros[i] : cobros[i],
       quedan,
-      pago,
-      ciudad,
+      pago: pago || '',
+      ciudad: ciudad || '',
+      tipo,
+      cliente: nombreDe(cliente),
+      canal: canal || '',
+      total: typeof total === 'number' ? total : null,
+      estado: estado || '',
+      motivo: motivo || '',
     };
   });
 }
 
-async function anotarVenta(venta) {
+async function enviarHoja(datos) {
   const url = String(process.env.HOJA_WEBHOOK || '').trim();
   if (!url) return { enviado: false, motivo: 'sin HOJA_WEBHOOK' };
 
-  const filas = movimientos(venta);
+  const filas = movimientos(datos);
   if (!filas.length) return { enviado: false, motivo: 'sin líneas' };
 
   const cuerpo = {
-    tipo: 'venta',
-    referencia: venta.referencia,
-    cuando: venta.cuando,
-    pago: venta.pago,
-    total: venta.total,
+    tipo: datos.tipo || 'venta',
+    referencia: datos.referencia,
+    cuando: datos.cuando,
+    pago: datos.pago,
+    total: datos.total,
     movimientos: filas,
   };
 
@@ -101,24 +145,38 @@ async function anotarVenta(venta) {
     });
     if (!r.ok) {
       console.error(JSON.stringify({
-        evento: 'hoja_inventario', referencia: venta.referencia,
+        evento: 'hoja_inventario', tipo: cuerpo.tipo, referencia: datos.referencia,
         enviado: false, estado: r.status, filas: filas.length,
       }));
       return { enviado: false, motivo: `HTTP ${r.status}` };
     }
     console.log(JSON.stringify({
-      evento: 'hoja_inventario', referencia: venta.referencia,
+      evento: 'hoja_inventario', tipo: cuerpo.tipo, referencia: datos.referencia,
       enviado: true, filas: filas.length,
     }));
     return { enviado: true, filas: filas.length };
   } catch (e) {
     console.error(JSON.stringify({
-      evento: 'hoja_inventario', referencia: venta.referencia,
+      evento: 'hoja_inventario', tipo: cuerpo.tipo, referencia: datos.referencia,
       enviado: false, motivo: e.message, filas: filas.length,
     }));
     return { enviado: false, motivo: e.message };
   }
 }
 
-export { anotarVenta };
-export const _interno = { movimientos };
+/* Una venta cobrada (o una contraentrega en firme). */
+const anotarVenta = venta => enviarHoja(Object.assign({}, venta, { tipo: 'venta' }));
+
+/* Un ajuste de inventario que no es venta (ajustar-inventario.mjs). */
+const anotarAjuste = ajuste => enviarHoja(Object.assign({}, ajuste, { tipo: 'ajuste' }));
+
+/* Una venta deshecha. `quedan` ya con la unidad devuelta (el restante de
+   anular()). La referencia lleva «/cancelacion»: el flujo de n8n empareja las
+   filas por referencia + id + talla, y con la referencia de la venta tal cual
+   la cancelación SOBRESCRIBIRÍA la fila de la venta en vez de sumarse. */
+const anotarCancelacion = c => enviarHoja(Object.assign({}, c, {
+  tipo: 'cancelacion', referencia: `${c.referencia}/cancelacion`, estado: c.estado || 'cancelado',
+}));
+
+export { anotarVenta, anotarAjuste, anotarCancelacion };
+export const _interno = { movimientos, cobradoDe, prorrateo };
