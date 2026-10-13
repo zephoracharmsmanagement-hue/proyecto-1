@@ -546,6 +546,18 @@ function main() {
   comprobar(/nunca:\s*-\s*prometas un dia de despacho/i.test(seccion),
     'no promete un día de despacho');
 
+  console.log('\n15 · El correo de posventa');
+
+  /* El prompt decía que el enlace para reseñar llegaba por WhatsApp al
+     entregarse el pedido; ese aviso nunca se encendió. Lo que existe desde el
+     2026-10-13 es el correo de posventa, y los días salen de su código. */
+  const posventa = fs.readFileSync(path.join(RAIZ, 'netlify', 'functions', 'posventa.mjs'), 'utf8');
+  const dias = (posventa.match(/const DIAS_DESPUES = (\d+);/) || [])[1];
+  comprobar(dias && promptPlano.includes(`a los ${dias} dias de su compra`),
+    'dice cuándo llega el correo de reseña, con los días de posventa.mjs', dias ? `${dias} días` : 'no se encontró DIAS_DESPUES');
+  comprobar(!/aviso automatico que llega solo por whatsapp cuando se entrega/.test(promptPlano),
+    'ya no promete un aviso por WhatsApp al entregar, que no existe');
+
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
     : '\nPrompt del bot en verde ✓');

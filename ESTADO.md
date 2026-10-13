@@ -5,11 +5,11 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## Correo de posventa («¿cómo te fue?» + reseña) — en rama, SIN DESPLEGAR · 2026-10-13
+## Correo de posventa («¿cómo te fue?» + reseña) — DESPLEGADO el 2026-10-13
 
-Rama `claude/zephora-charms-automation-rzbthc`. Toca `netlify/functions/`
-(función nueva, no cambia las existentes), `gen_paginas.py` y la política de
-privacidad: **no fusionar otra cosa encima sin mirar esto**.
+En `main` (`69e3821`), despliegue `6acda9fa5ac9f5c76e3d000e`: 31 funciones,
+`posventa` programada `0 15 * * *`, escaneo de secretos limpio. Bot de WhatsApp
+al día con esto en la versión `4742ffd8`.
 
 - **`posventa.mjs`**, programada a diario 10:00 Colombia. A **12 días** del pago
   (`pagadoEn`, o `creado` en contraentrega y venta manual) y hasta 30 días,
@@ -26,9 +26,10 @@ privacidad: **no fusionar otra cosa encima sin mirar esto**.
 - **Sin incentivo** (decisión del propietario, 27-sep y 13-oct).
 - Sin aviso de entrega: el flujo de Skydropx (`ze4dI8GW96yfKGyd`) sigue
   inactivo y no hace falta; un pedido que no llegó se cancela.
-- **Al desplegar:** el primer día salen los pedidos pagados hace 12–30 días.
-  Después, corregir el prompt del bot: hoy dice que el enlace de reseña llega
-  por WhatsApp al entregar, y ese aviso nunca se encendió.
+- **Primer envío:** 13-oct a las 10:00 Colombia, a los pedidos pagados hace
+  12–30 días. Revisar el log de la función (`posventa_enviado`).
+- El prompt del bot ya dice que el enlace llega por correo a los 12 días (antes
+  prometía un aviso por WhatsApp al entregar que nunca existió).
 
 ## Pauta de Meta en la hoja de inventario — 2026-10-12
 
