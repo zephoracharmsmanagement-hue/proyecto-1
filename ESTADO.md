@@ -11,7 +11,7 @@ Rama `claude/zephora-charms-automation-rzbthc`. Toca `netlify/functions/`
 (función nueva, no cambia las existentes), `gen_paginas.py` y la política de
 privacidad: **no fusionar otra cosa encima sin mirar esto**.
 
-- **`posventa.mjs`**, programada a diario 10:00 Colombia. A **10 días** del pago
+- **`posventa.mjs`**, programada a diario 10:00 Colombia. A **12 días** del pago
   (`pagadoEn`, o `creado` en contraentrega y venta manual) y hasta 30 días,
   manda **un solo correo** por pedido —uno por persona si tiene varios— con
   gracias, «¿cómo te fue?» y un enlace firmado por pieza (`enlaceResena`, el
@@ -26,7 +26,7 @@ privacidad: **no fusionar otra cosa encima sin mirar esto**.
 - **Sin incentivo** (decisión del propietario, 27-sep y 13-oct).
 - Sin aviso de entrega: el flujo de Skydropx (`ze4dI8GW96yfKGyd`) sigue
   inactivo y no hace falta; un pedido que no llegó se cancela.
-- **Al desplegar:** el primer día salen los pedidos pagados hace 10–30 días.
+- **Al desplegar:** el primer día salen los pedidos pagados hace 12–30 días.
   Después, corregir el prompt del bot: hoy dice que el enlace de reseña llega
   por WhatsApp al entregar, y ese aviso nunca se encendió.
 

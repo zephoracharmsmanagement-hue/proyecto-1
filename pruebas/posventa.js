@@ -31,8 +31,8 @@ const haceDias = d => new Date(AHORA - d * 864e5).toISOString();
 const pedido = (extra = {}) => Object.assign({
   referencia: 'ZC-261008-AAAA0001',
   estado: 'pagado',
-  creado: haceDias(12),
-  pagadoEn: haceDias(12),
+  creado: haceDias(14),
+  pagadoEn: haceDias(14),
   lineas: [{ id: ID1, nombre: CAT.nombres[ID1], unidades: 1 }],
   cliente: { nombre: 'María José', apellido: 'Gómez', celular: '3012345678', correo: 'Maria@Ejemplo.com' },
 }, extra);
@@ -43,17 +43,17 @@ async function main() {
   const sel = (ps, fuera) => elegibles(ps, AHORA, fuera).map(p => p.referencia);
 
   console.log('1 · Cuándo');
-  comprobar(sel([pedido()]).length === 1, `un pedido pagado hace 12 días entra`);
+  comprobar(sel([pedido()]).length === 1, `un pedido pagado hace 14 días entra`);
   comprobar(sel([pedido({ pagadoEn: haceDias(DIAS_DESPUES - 1) })]).length === 0,
     `antes de ${DIAS_DESPUES} días no: puede que aún no le haya llegado`);
   comprobar(sel([pedido({ pagadoEn: haceDias(DIAS_DESPUES) })]).length === 1,
     `a los ${DIAS_DESPUES} días justos sí`);
   comprobar(sel([pedido({ pagadoEn: haceDias(DIAS_MAX + 1), creado: haceDias(DIAS_MAX + 1) })]).length === 0,
     `después de ${DIAS_MAX} días no: el día que se publique no le escribe a los pedidos de agosto`);
-  comprobar(sel([pedido({ creado: haceDias(40), pagadoEn: haceDias(12) })]).length === 1,
+  comprobar(sel([pedido({ creado: haceDias(40), pagadoEn: haceDias(14) })]).length === 1,
     'cuenta desde el pago, no desde que se creó el pedido');
   {
-    const p = pedido({ estado: 'confirmado', creado: haceDias(11) });
+    const p = pedido({ estado: 'confirmado', creado: haceDias(DIAS_DESPUES + 1) });
     delete p.pagadoEn;
     comprobar(sel([p]).length === 1, 'contraentrega (sin fecha de pago) cuenta desde que se confirmó');
   }

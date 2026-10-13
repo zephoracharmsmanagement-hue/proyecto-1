@@ -6,8 +6,10 @@
  * DIAS_DESPUES días después del pago. No hay fecha de entrega —el aviso de
  * Skydropx nunca se encendió— y no hace falta: se despacha en 2 o 3 días
  * hábiles y el envío tarda de 1 día en Bogotá a 6 hábiles en el resto del país
- * (envios-y-devoluciones.html). A los 10 días casi todas la tienen y ya la
- * usaron unos días. Un pedido que no llegó se cancela en esos días (anular-venta
+ * (envios-y-devoluciones.html). En el peor caso —3 días hábiles de despacho y 6
+ * de viaje— son unos 12 días calendario, así que a los 12 días ya la tienen
+ * casi todas. Empezó en 10 y el propietario lo subió a 12 el mismo día para no
+ * escribirle a nadie antes de que le llegue. Un pedido que no llegó se cancela en esos días (anular-venta
  * lo deja en «cancelado», registrar-venta en «anulada») y sale solo de la lista.
  * Decisión del propietario, 2026-10-13.
  *
@@ -47,7 +49,7 @@ import { enlaceResena } from './resenas.mjs';
    y a media mañana, cuando un correo personal se lee. */
 export const config = { schedule: '0 15 * * *' };
 
-const DIAS_DESPUES = 10;
+const DIAS_DESPUES = 12;
 const DIAS_MAX = 30;
 
 /* Compras en firme. Las ventas manuales («venta-manual») cuentan salvo los
