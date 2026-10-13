@@ -5,11 +5,14 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## 🔒 Hoja de inventario: campos completos — 2026-10-12 (rama `claude/hoja-campos`, SIN desplegar)
+## Hoja de inventario: campos completos — DESPLEGADO el 2026-10-12 (PR #26, `e0ee2e8`)
 
-Pedido del propietario: **juntarlo con el próximo despliegue, no desplegar
-solo por esto.** Commit `655399b`. El flujo de n8n `K1J4pHYfvd6QuAq8` ya está
-publicado y lee estas columnas; hasta desplegar, llegan vacías.
+Verificado en vivo tras el despliegue: sobrante +1 de Ángel Guardián
+(`AJ-261013-F81C6CEF`) y su reversión → en «Movimientos» dos filas nuevas,
+`AJ-261013-F81C6CEF` (+1, quedan 2, motivo sobrante) y `…/reversion` (−1,
+quedan 1, estado revertido); disponibilidad 1 → 2 → 1; «Existencias» quedó en 1.
+`HOJA_WEBHOOK` y `HOJA_TOKEN` ya están en el `.env` local (para
+`anular-venta.mjs`). Casa de los Globos: 2 en vivo y en la hoja.
 
 - Cada movimiento lleva ahora `tipo` (venta | ajuste | cancelacion),
   `cliente`, `canal` (web | whatsapp | web→whatsapp), `total` (del pedido, con
@@ -29,7 +32,7 @@ publicado y lee estas columnas; hasta desplegar, llegan vacías.
 - `anular-venta.mjs` ahora busca la referencia en `pedidos` y
   `pedidos-pruebas` (las funciones publicadas escriben en «-pruebas») y, para
   avisar a la hoja, necesita `HOJA_WEBHOOK` y `HOJA_TOKEN` en `.env` local
-  (hoy no están). Sin ellas cancela igual y lo dice.
+  (copiadas el 2026-10-12). Sin ellas cancela igual y lo dice.
 - No se reenvía nada viejo: «Existencias» ya tiene el conteo del 10-oct.
 - Sin cubrir a propósito: reclasificar un «regalo» viejo no avisa (no mueve
   unidades); su fila de venta sigue en la hoja.
@@ -105,7 +108,8 @@ en `material-sin-publicar/claves-para-n8n.txt`; nunca en el chat):
 
 ## Reseñas del Excel del propietario — cargadas el 2026-10-06
 
-El propietario pasó su base de reseñas (`Pictureseviews zephora`: Excel
+El propietario pasó su base de reseñas (`Pictures
+eviews zephora`: Excel
 *Clientas_y_fotos_Zephora_Sin_Fechas.xlsx* + zip de fotos + hojas de
 contacto numeradas) y confirmó que **son clientas reales y cada foto es de la
 clienta de su reseña**. Se cargaron **163 de 167** al almacén que lee la página
