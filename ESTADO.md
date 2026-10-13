@@ -5,6 +5,23 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Pauta de Meta en la hoja de inventario — 2026-10-12
+
+- Pestaña nueva **«Meta diario»** (sheetId 977001): una fila por fecha con gasto
+  (COP), checkouts (`omni_initiated_checkout`), impresiones, clics al enlace
+  (`link_click`) y, por fórmula, CTR, costo por clic y costo por checkout.
+  Cargada a mano del 01-sep al 12-oct (el 12 quedó incompleto).
+- **«Pauta» B12:C133** (inversión y checkouts) ya no se llenan a mano: leen de
+  «Meta diario» con `SUMIFS` por fecha. Con eso salen solos costo por pedido,
+  ROAS y utilidad. Las fórmulas de ventas (D:J) no se tocaron.
+- Flujo n8n **«Zephora · Pauta diaria»** `7t1cDPKlqDZYjRta`: cada día 6:00
+  (America/Bogota) pide a Graph API v25.0 los 3 últimos días cerrados y hace
+  *appendOrUpdate* en «Meta diario» por la columna Fecha (días sin entrega → 0).
+  **Inactivo hasta crear la credencial «Meta Ads lectura (Zephora)»**
+  (Facebook Graph API, token de usuario del sistema con `ads_read`). Solo lee.
+- Al activar, las 3 primeras fechas se reescriben con lo que diga Graph: si
+  difieren de la carga del conector es por la atribución, no un error.
+
 ## Hoja de inventario: campos completos — DESPLEGADO el 2026-10-12 (PR #26, `e0ee2e8`)
 
 Verificado en vivo tras el despliegue: sobrante +1 de Ángel Guardián
