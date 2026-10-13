@@ -33,7 +33,7 @@ import crypto from 'node:crypto';
 import { leerPedido, detallar, PedidoInvalido, SinInventario, inventario as INV }
   from './_precios.js';
 import { reservar, confirmar, anular } from './_inventario.mjs';
-import { anotarVenta } from './_hoja.mjs';
+import { anotarVenta, anotarCancelacion } from './_hoja.mjs';
 import { guardar, leer, marcar } from './_pedidos.mjs';
 import { purchase } from './_meta.js';
 
@@ -80,6 +80,14 @@ async function anularVenta(ref) {
     return responder(503, { error: 'El inventario no respondió; no se anuló nada', modo: r && r.modo });
   }
   await marcar(ref, { estado: 'anulada', anuladaEn: new Date().toISOString() });
+  /* A la hoja, solo la primera vez: repetir la anulación no devuelve nada. */
+  if (r.modo === 'anulada') {
+    await anotarCancelacion({
+      referencia: ref, pago: registro.pago, cuando: new Date().toISOString(), ciudad: '',
+      lineas: registro.lineas, restante: r.restante, total: registro.total,
+      prorratear: true, cliente: registro.cliente, canal: 'whatsapp',
+    });
+  }
   console.log(JSON.stringify({ evento: 'venta_manual_anulada', referencia: ref, modo: r.modo }));
   return responder(200, { referencia: ref, modo: r.modo, restante: r.restante || {} });
 }
@@ -152,7 +160,12 @@ export default async (req) => {
     console.error(JSON.stringify({ evento: 'venta_manual_sin_registro', referencia: ref, motivo: registro.motivo }));
   }
 
-  await anotarVenta({ referencia: ref, pago, cuando, ciudad: '', total, lineas, restante: cierre.restante });
+  /* `prorratear`: aquí el precio lo puso el chat, no la lista; la hoja reparte
+     lo cobrado entre las piezas para que su suma sea `total`. */
+  await anotarVenta({
+    referencia: ref, pago, cuando, ciudad: '', total, lineas, restante: cierre.restante,
+    prorratear: true, cliente, canal: 'whatsapp', estado: pago === 'regalo' ? 'regalo' : 'pagado',
+  });
 
   /* Un regalo no es una compra: contarlo le enseñaría a Meta que regalar
      convierte. Las demás salen como venta de chat, sin señales de navegador. */

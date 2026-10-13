@@ -44,6 +44,14 @@
  * Van en `.env`, igual que el resto de tokens de este repo. **Nunca en un
  * commit ni pegados en un chat.**
  *
+ * ── La hoja de inventario ──
+ *
+ * Al aplicar, avisa a la hoja como `tipo: "cancelacion"`, con `quedan` ya con
+ * la unidad devuelta. Antes no lo hacía: cuando se canceló el pedido de
+ * Rionegro, la hoja nunca se enteró. Para eso necesita en `.env` las mismas
+ * HOJA_WEBHOOK y HOJA_TOKEN que tiene Netlify; si faltan, lo dice al final y
+ * la cancelación sigue valiendo (la hoja es un espejo, no un mando).
+ *
  * ── Sin --aplicar no se toca nada ──
  *
  * Mismo criterio que `reponer.mjs`: esto decide qué puede vender la tienda, así
@@ -91,11 +99,14 @@ function credenciales() {
   return { token, siteID };
 }
 
-/* Los nombres de los dos almacenes reales, tal como los usa la tienda en
-   producción — `_inventario.mjs` y `_pedidos.mjs` los llaman distinto según
-   `process.env.CONTEXT`, una variable que solo existe dentro de una función de
-   Netlify. Aquí no hay contexto que detectar: este script solo tiene sentido
-   contra el almacén real, nunca contra el de pruebas. */
+/* `_inventario.mjs` y `_pedidos.mjs` eligen el almacén según
+   `process.env.CONTEXT`: 'pedidos'/'inventario' si vale 'production', y si no
+   'pedidos-pruebas'/'inventario-pruebas'. En la práctica las funciones del
+   sitio publicado escriben en los «-pruebas» (comprobado el 2026-10-03 al
+   cancelar ZC-261003-A3DDA53F: el pedido no estaba en 'pedidos'). Así que se
+   busca la referencia en los dos y se usa el inventario de la misma pareja:
+   nunca se cruza un pedido de un almacén con el inventario del otro. */
+const PAREJAS = [['pedidos', 'inventario'], ['pedidos-pruebas', 'inventario-pruebas']];
 function almacen(nombre, cred) {
   return getStore({ name: nombre, siteID: cred.siteID, token: cred.token, consistency: 'strong' });
 }
@@ -117,11 +128,14 @@ async function main() {
   }
 
   const cred = credenciales();
-  const pedidos = almacen('pedidos', cred);
-
-  const registro = await pedidos.get(referencia, { type: 'json' });
+  let pedidos = null, registro = null, nombreInventario = null;
+  for (const [p, i] of PAREJAS) {
+    const almacenP = almacen(p, cred);
+    const r = await almacenP.get(referencia, { type: 'json' });
+    if (r) { pedidos = almacenP; registro = r; nombreInventario = i; console.log(`(almacén: ${p})`); break; }
+  }
   if (!registro) {
-    console.error(`No se encontró el pedido ${referencia} en el almacén de pedidos.`);
+    console.error(`No se encontró el pedido ${referencia} en ningún almacén de pedidos.`);
     console.error('Revisa que la referencia esté completa y bien escrita.');
     process.exit(1);
   }
@@ -162,7 +176,7 @@ async function main() {
      imitar para que el CAS sea real". Aquí no se imita nada — es el store real,
      con siteID y token de sobra para no depender del contexto de una función. */
   const { _interno, anular } = await import('../netlify/functions/_inventario.mjs');
-  _interno.usarAlmacen(almacen('inventario', cred));
+  _interno.usarAlmacen(almacen(nombreInventario, cred));
 
   const resultado = await anular(referencia, items);
   console.log(`\nanular() → ${resultado.modo}`);
@@ -178,11 +192,31 @@ async function main() {
     process.exit(1);
   }
 
+  const yaEstaba = registro.estado === 'cancelado';
+  const cuando = new Date().toISOString();
   await pedidos.setJSON(referencia, Object.assign({}, registro, {
     estado: 'cancelado',
-    canceladoEn: new Date().toISOString(),
+    canceladoEn: yaEstaba && registro.canceladoEn ? registro.canceladoEn : cuando,
   }));
   console.log(`Pedido ${referencia} marcado como cancelado en el registro.`);
+
+  /* A la hoja. Solo si las unidades volvieron ahora: si ya estaba anulada, su
+     fila de cancelación ya salió (o se puede repetir: n8n la deduplica). */
+  if (resultado.modo === 'anulada' || !yaEstaba) {
+    const { anotarCancelacion } = await import('../netlify/functions/_hoja.mjs');
+    const c = registro.cliente || {};
+    const hoja = await anotarCancelacion({
+      referencia, pago: registro.pago, cuando,
+      ciudad: c.ciudad ? `${c.ciudad}, ${c.depto || ''}`.replace(/, $/, '') : '',
+      lineas: registro.lineas, restante: resultado.restante,
+      total: registro.cuentas ? registro.cuentas.total : registro.total,
+      prorratear: /^MAN-/.test(referencia),
+      cliente: registro.cliente, canal: registro.canal || (/^MAN-/.test(referencia) ? 'whatsapp' : 'web'),
+    });
+    console.log(hoja.enviado
+      ? `Hoja de inventario avisada (${hoja.filas} fila(s), referencia ${referencia}/cancelacion).`
+      : `⚠ La hoja de inventario NO se enteró: ${hoja.motivo}. Revisa HOJA_WEBHOOK y HOJA_TOKEN en .env.`);
+  }
 }
 
 main().catch(e => {

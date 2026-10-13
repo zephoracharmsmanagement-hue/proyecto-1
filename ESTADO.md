@@ -5,9 +5,128 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Pauta de Meta en la hoja de inventario — 2026-10-12
+
+- Pestaña nueva **«Meta diario»** (sheetId 977001): una fila por fecha con gasto
+  (COP), checkouts (`omni_initiated_checkout`), impresiones, clics al enlace
+  (`link_click`) y, por fórmula, CTR, costo por clic y costo por checkout.
+  Cargada a mano del 01-sep al 12-oct (el 12 quedó incompleto).
+- **«Pauta» B12:C133** (inversión y checkouts) ya no se llenan a mano: leen de
+  «Meta diario» con `SUMIFS` por fecha. Con eso salen solos costo por pedido,
+  ROAS y utilidad. Las fórmulas de ventas (D:J) no se tocaron.
+- Flujo n8n **«Zephora · Pauta diaria»** `7t1cDPKlqDZYjRta`: cada día 6:00
+  (America/Bogota) pide a Graph API v25.0 los 3 últimos días cerrados y hace
+  *appendOrUpdate* en «Meta diario» por la columna Fecha (días sin entrega → 0).
+  **Inactivo hasta crear la credencial «Meta Ads lectura (Zephora)»**
+  (Facebook Graph API, token de usuario del sistema con `ads_read`). Solo lee.
+- Al activar, las 3 primeras fechas se reescriben con lo que diga Graph: si
+  difieren de la carga del conector es por la atribución, no un error.
+
+## Hoja de inventario: campos completos — DESPLEGADO el 2026-10-12 (PR #26, `e0ee2e8`)
+
+Verificado en vivo tras el despliegue: sobrante +1 de Ángel Guardián
+(`AJ-261013-F81C6CEF`) y su reversión → en «Movimientos» dos filas nuevas,
+`AJ-261013-F81C6CEF` (+1, quedan 2, motivo sobrante) y `…/reversion` (−1,
+quedan 1, estado revertido); disponibilidad 1 → 2 → 1; «Existencias» quedó en 1.
+`HOJA_WEBHOOK` y `HOJA_TOKEN` ya están en el `.env` local (para
+`anular-venta.mjs`). Casa de los Globos: 2 en vivo y en la hoja.
+
+- Cada movimiento lleva ahora `tipo` (venta | ajuste | cancelacion),
+  `cliente`, `canal` (web | whatsapp | web→whatsapp), `total` (del pedido, con
+  envío, repetido por fila), `estado` y `motivo`.
+- **`cobrado` = lo cobrado de verdad**: la pieza gratis de la promo va en $0 y
+  la suma da el subtotal. En ventas manuales se reparte el total del chat.
+- **web→whatsapp**: el enlace del bot trae `via=wa`; el checkout lo recuerda en
+  la pestaña y lo manda; crear-pago lo guarda en el registro (`canal`).
+- **Ajustes** (ajustar-inventario) avisan: unidades con signo, `quedan` del CAS,
+  motivo legible. Revertir → fila propia `AJ-…/reversion`.
+- **Cancelaciones** avisan: `registrar-venta {anular}` y
+  `herramientas/anular-venta.mjs`. Fila propia `…/cancelacion`, unidades +,
+  cobrado en negativo, `quedan` con la unidad devuelta.
+- ⚠ Por qué la referencia propia: n8n escribe en «Movimientos» con
+  *appendOrUpdate* emparejando **referencia + id + talla**. Con la misma
+  referencia, la cancelación sobrescribiría la fila de la venta.
+- `anular-venta.mjs` ahora busca la referencia en `pedidos` y
+  `pedidos-pruebas` (las funciones publicadas escriben en «-pruebas») y, para
+  avisar a la hoja, necesita `HOJA_WEBHOOK` y `HOJA_TOKEN` en `.env` local
+  (copiadas el 2026-10-12). Sin ellas cancela igual y lo dice.
+- No se reenvía nada viejo: «Existencias» ya tiene el conteo del 10-oct.
+- Sin cubrir a propósito: reclasificar un «regalo» viejo no avisa (no mueve
+  unidades); su fila de venta sigue en la hoja.
+
+Pruebas: las 28 baterías en verde; `hoja.js` §5–6 (crear-pago real con promo,
+_cierre, prorrateo, cancelación), `registrar-venta.js` §7, ajustes.
+
+## Conteo físico del 10-oct y ajustes de inventario — desplegado el 2026-10-10 (PR #24)
+
+Nota del propietario `Documents/nota larga terminal/comando1.docx`. PR #24
+(`claude/conteo-10-oct`) fusionado con su «deploy»: trae los tres commits de
+`claude/inventario-ajustes` (sesión del 2026-10-09) más lo que faltaba de A.
+No toca `stock.json` ni su `generado` (eso reinicia el contador de ventas).
+
+**Resultado del conteo:** faltan 5 piezas — Mariposas Tricolor, Pulpo Azul
+Cristal, Clip Forever Multicolor y 2 Pulsera Avengers (tallas 19 y 18) — y 4
+brazaletes que estaban en otra talla o modelo (Corazón Pavé Pequeño 19 y 18,
+Corazón Liso 18, Corona Pavé 18); sobran 3 charms y 7 brazaletes; el resto
+cuadra con el sistema. La nota decía 7 faltantes (con Deadpool y una Avengers
+talla 20), pero esas dos ya cuadraban: el «sistema 4 / 8» salía del conteo del
+22-sep y después hubo dos ventas reales, ZC-260922-0932DC08 (Deadpool) y
+ZC-260923-8070C0A1 (Avengers talla 20). El propietario aprobó no bloquearlas.
+
+### Paso 1 · bloqueos (antes de desplegar, con registrar-venta «regalo»)
+
+| Pieza | Referencia | Disponible |
+|---|---|---|
+| Pulpo Azul Cristal | MAN-261010-8FE00F03 | 5 → 4 |
+| Clip Forever Multicolor | MAN-261010-D2E684EA | 2 → 1 |
+| Pulsera Avengers talla 19 | MAN-261010-ADB09107 | 8 → 7 |
+| Pulsera Avengers talla 18 | MAN-261010-98BDCD3E | 8 → 7 |
+| Pulsera Corazón Pavé Pequeño talla 19 | MAN-261010-7FBB86E9 | 2 → 1 |
+| Pulsera Corazón Pavé Pequeño talla 18 | MAN-261010-C8FE2353 | 1 → 0 |
+| Pulsera Corazón Liso talla 18 | MAN-261010-E7F0960D | 2 → 1 |
+| Pulsera Corona Pavé talla 18 | MAN-261010-329CDAE0 | 2 → 1 |
+| Mariposas Tricolor (2026-10-09) | MAN-261009-71D1B995 | 1 → 0 |
+
+Nota en cada uno: «AJUSTE conteo 10-oct: faltante». Como todo «regalo», dejaron
+una fila en la hoja (es un espejo; no se le quitan filas).
+
+### Lo desplegado
+
+- **A · `ajustar-inventario.mjs`** — ajustes que NO son ventas. Motivos:
+  `faltante | sobrante | dañada | error de conteo | bloqueo temporal` (acepta la
+  etiqueta tal cual). Quita unidades (mismo CAS que las ventas) o, con
+  «sobrante», las **suma** como una entrada propia en el inventario
+  (`estado.sumas` en `_inventario.mjs`), también por talla. El próximo conteo
+  (cuando cambie `generado`) borra esas sumas: el conteo nuevo ya las incluye.
+  No manda Purchase, no escribe en la hoja, no cuenta en vendidas/más vendidos
+  (estado `ajuste`). `disponibilidad.mjs` lista una talla que el conteo no tiene
+  si un sobrante le dio unidades.
+- **B · etiqueta con la disponibilidad real** (`tienda.js`): tarjetas, ficha,
+  vitrina, kits y página de producto leen `disponibilidad`; sin dato real,
+  ninguna etiqueta. `dudas.js` simula disponibilidad en local.
+- **C · selector de la inicial de regalo** (`checkout.html`) para cualquiera
+  con 2+ charms: «Si estás suscrita con este correo, elige tu inicial de
+  regalo». `crear-pago` decide por el correo, sin cambios.
+
+### Cómo se usa la regla de ajuste
+
+POST a `/.netlify/functions/ajustar-inventario` con la cabecera
+`x-zephora-automation-key` = `VENTA_MANUAL_KEY` (la misma de registrar-venta,
+en `material-sin-publicar/claves-para-n8n.txt`; nunca en el chat):
+
+- Quitar: `{"motivo":"faltante","charms":["deadpool"],"nota":"…"}` ·
+  brazalete: `{"motivo":"dañada","charms":[],"base":{"id":"pulsera-avengers","talla":"19"}}`
+- Sumar: `{"motivo":"sobrante","charms":["letra-n"],"nota":"conteo 10-oct"}`
+- Revertir: `{"anular":"AJ-…"}` (idempotente; también un MAN- reclasificado).
+- Reclasificar un «regalo» de total 0: `{"reclasificar":"MAN-…","motivo":"faltante"}`
+  — no mueve unidades; deja de contar como venta.
+- Una unidad por pieza nombrada (repetir el id = más unidades). Responde
+  `{referencia:"AJ-…", motivo, signo, restante}`. Listo para un formulario de n8n.
+
 ## Reseñas del Excel del propietario — cargadas el 2026-10-06
 
-El propietario pasó su base de reseñas (`Pictureseviews zephora`: Excel
+El propietario pasó su base de reseñas (`Pictures
+eviews zephora`: Excel
 *Clientas_y_fotos_Zephora_Sin_Fechas.xlsx* + zip de fotos + hojas de
 contacto numeradas) y confirmó que **son clientas reales y cada foto es de la
 clienta de su reseña**. Se cargaron **163 de 167** al almacén que lee la página

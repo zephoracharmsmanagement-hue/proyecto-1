@@ -146,6 +146,43 @@ async function main() {
     comprobar(web.r.status === 400, 'no anula pedidos del checkout (ZC-)');
   }
 
+  console.log('\n7 · La hoja: venta y anulación (2026-10-12)');
+  {
+    /* Hasta aquí sin webhook, para que las secciones de Meta cuenten solo a
+       Meta. Ahora con uno centinela. */
+    const HOJA = 'https://hoja.centinela.invalid/webhook';
+    process.env.HOJA_WEBHOOK = HOJA;
+    const aHoja = () => salidas.filter(s => s.url === HOJA).map(s => s.cuerpo);
+    salidas.length = 0;
+    const { d } = await pedir({ base: { id: braz, talla }, charms: [charm], pago: 'nequi', total: 150000,
+      nombre: 'Valeria Bedoya', telefono: '3216048009' });
+    const v = aHoja()[0] || { movimientos: [] };
+    const m = v.movimientos;
+    comprobar(v.tipo === 'venta' && m.length === 2 && m.every(f => f.tipo === 'venta' && f.canal === 'whatsapp'
+      && f.cliente === 'Valeria Bedoya' && f.estado === 'pagado' && f.total === 150000),
+      'venta: tipo, canal «whatsapp», cliente, estado «pagado» y el total en cada fila',
+      JSON.stringify(m.map(f => [f.tipo, f.canal, f.cliente, f.estado, f.total])));
+    comprobar(m.reduce((s, f) => s + f.cobrado, 0) === 150000, 'y las líneas suman lo cobrado en el chat, no la tarifa',
+      m.map(f => f.cobrado).join(' + '));
+
+    salidas.length = 0;
+    const antes = await libres(charm);
+    await pedir({ anular: d.referencia });
+    const c = aHoja()[0] || { movimientos: [] };
+    comprobar(c.tipo === 'cancelacion' && c.movimientos.length === 2
+      && c.movimientos.every(f => f.tipo === 'cancelacion' && f.estado === 'cancelado' && f.referencia === `${d.referencia}/cancelacion`),
+      'anular avisa a la hoja: tipo «cancelacion», con referencia propia');
+    const fc = c.movimientos.find(f => f.id === charm);
+    comprobar(fc && fc.unidades === 1 && fc.quedan === antes + 1 && fc.quedan === await libres(charm),
+      '«quedan» ya con la unidad devuelta', fc && `${antes} → ${fc.quedan}`);
+    comprobar(c.movimientos.reduce((s, f) => s + f.cobrado, 0) === -150000, 'y el cobrado en negativo');
+
+    salidas.length = 0;
+    await pedir({ anular: d.referencia });
+    comprobar(!aHoja().length, 'anular dos veces no manda otra cancelación');
+    delete process.env.HOJA_WEBHOOK;
+  }
+
   console.log(fallos ? `\n${fallos} comprobaciones en rojo.` : '\nTodo en verde.');
 }
 
