@@ -187,6 +187,10 @@ async function cerrarPago(registro) {
       total: (pedido && pedido.cuentas && pedido.cuentas.total) || registro.total,
       lineas: (pedido && pedido.lineas) || [],
       restante: cierre && cierre.restante,
+      cliente: pedido && pedido.cliente,
+      /* Los pedidos anteriores a este campo no lo traen: eran todos web. */
+      canal: (pedido && pedido.canal) || 'web',
+      estado: 'pagado',
     });
 
     const aTienda = await pagoTienda({ referencia, total: registro.total, pedido });

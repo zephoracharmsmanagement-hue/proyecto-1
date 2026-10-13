@@ -17,7 +17,10 @@
  *
  *   - NO manda Purchase a Meta. Un ajuste no es una compra; contarlo le
  *     enseñaría a la pauta que perder una pieza convierte.
- *   - NO se anota en la hoja (_hoja.mjs). Por eso ni siquiera se importa.
+ *   - SÍ avisa a la hoja de inventario, pero como `tipo: "ajuste"` y no como
+ *     venta: unidades con signo (− sale, + entra), `quedan` del propio CAS, el
+ *     motivo y sin cobrado (pedido del propietario, 2026-10-12). Revertir deja
+ *     su propia fila, «AJ-…/reversion», con el signo contrario.
  *   - NO cuenta en vendidas.mjs ni en mas-vendidos.mjs: los dos leen solo los
  *     estados 'confirmado', 'pagado' y 'venta-manual'. Este guarda 'ajuste', y
  *     queda fuera sin tocar esas funciones. Tampoco lo toca rescate.mjs, que
@@ -65,6 +68,7 @@ import { leerPedido, detallar, PedidoInvalido, SinInventario, inventario as INV 
   from './_precios.js';
 import { reservar, confirmar, anular, sumar, quitarSuma, _interno as INV_INTERNO } from './_inventario.mjs';
 import { guardar, leer, marcar } from './_pedidos.mjs';
+import { anotarAjuste } from './_hoja.mjs';
 
 const MOTIVOS = ['faltante', 'sobrante', 'danada', 'error-de-conteo', 'bloqueo-temporal'];
 /* Los que suman unidades; el resto las quita. */
@@ -101,6 +105,11 @@ function referencia() {
 const texto = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
 const sku = (id, talla) => (talla ? `${id}|${talla}` : id);
 
+/* En la hoja el motivo va como lo lee una persona, no en forma canónica. */
+const ETIQUETAS = { faltante: 'faltante', sobrante: 'sobrante', danada: 'dañada',
+  'error-de-conteo': 'error de conteo', 'bloqueo-temporal': 'bloqueo temporal' };
+const etiqueta = m => ETIQUETAS[m] || m || '';
+
 async function revertir(ref) {
   if (!/^(AJ|MAN)-/.test(ref)) {
     return responder(400, { error: 'Aquí solo se revierten ajustes (AJ-…, o un MAN-… reclasificado como ajuste).' });
@@ -127,7 +136,16 @@ async function revertir(ref) {
   }
   /* Solo la primera vez: repetir la reversión no debe mover la fecha. */
   if (r.modo === 'anulada') {
-    await marcar(ref, { estado: 'ajuste-revertido', revertidoEn: new Date().toISOString() });
+    const cuando = new Date().toISOString();
+    await marcar(ref, { estado: 'ajuste-revertido', revertidoEn: cuando });
+    /* Fila propia y con el signo contrario: con la referencia del ajuste tal
+       cual, n8n (que empareja por referencia + id + talla) pisaría la fila
+       original en vez de sumar una. */
+    const signo = SUMAN.has(registro.motivo) ? -1 : 1;
+    await anotarAjuste({
+      referencia: `${ref}/reversion`, cuando, lineas: registro.lineas, restante: r.restante,
+      signo, motivo: `reversión: ${etiqueta(registro.motivo)}`, estado: 'revertido',
+    });
   }
   console.log(JSON.stringify({ evento: 'ajuste_inventario_revertido', referencia: ref, modo: r.modo }));
   return responder(200, { referencia: ref, modo: r.modo, restante: r.restante || {} });
@@ -182,6 +200,8 @@ export default async (req) => {
     const lineasS = detallar(pedido);
     const regS = await guardar(ref, { estado: 'ajuste', motivo, signo: 1, lineas: lineasS, nota: texto(cuerpo.nota, 500) });
     if (!regS.ok) console.error(JSON.stringify({ evento: 'ajuste_sin_registro', referencia: ref, motivo: regS.motivo }));
+    await anotarAjuste({ referencia: ref, cuando: new Date().toISOString(), lineas: lineasS,
+      restante: r.restante, signo: 1, motivo: etiqueta(motivo) });
     console.log(JSON.stringify({ evento: 'ajuste_inventario', referencia: ref, motivo, signo: 1,
       lineas: lineasS.map(l => ({ id: l.id, talla: l.talla, unidades: l.unidades })) }));
     return responder(200, { referencia: ref, motivo, signo: 1, restante: r.restante || {} });
@@ -215,6 +235,8 @@ export default async (req) => {
        referencia. Se avisa en el log para corregirlo a mano. */
     console.error(JSON.stringify({ evento: 'ajuste_sin_registro', referencia: ref, motivo: registro.motivo }));
   }
+  await anotarAjuste({ referencia: ref, cuando: new Date().toISOString(), lineas,
+    restante: cierre.restante, signo: -1, motivo: etiqueta(motivo) });
 
   console.log(JSON.stringify({
     evento: 'ajuste_inventario', referencia: ref, motivo,

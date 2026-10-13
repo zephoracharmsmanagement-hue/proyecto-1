@@ -339,9 +339,15 @@ export default async (req) => {
 
   /* El pedido entero, guardado aparte del correo. Si Resend falla o el correo
      se pierde, esto sigue diciendo qué despachar y a dónde. */
+  /* Por dónde llegó, para la hoja de inventario: el enlace que arma el bot de
+     WhatsApp (armar-carrito.mjs) lleva `via=wa`, y el checkout lo reenvía. Se
+     guarda en el registro porque el pago en línea se anota en la hoja después,
+     desde _cierre.mjs, cuando esta petición ya no existe. */
+  const canal = cuerpo.via === 'wa' ? 'web→whatsapp' : 'web';
+
   const registro = await guardar(ref, {
     estado: pedido.pago === 'contraentrega' ? 'confirmado' : 'esperando-pago',
-    pago: addi ? 'addi' : pedido.pago, lineas, cuentas, cliente, regalo,
+    pago: addi ? 'addi' : pedido.pago, lineas, cuentas, cliente, regalo, canal,
   });
   if (!registro.ok) {
     console.error(JSON.stringify({
@@ -437,6 +443,7 @@ export default async (req) => {
       referencia: ref, pago: 'contraentrega', cuando: new Date().toISOString(),
       ciudad: `${cliente.ciudad}, ${cliente.depto}`,
       total: cuentas.total, lineas, restante: cierre.restante,
+      cliente, canal, estado: 'contraentrega pendiente',
     });
 
     /* El Purchase de contraentrega sale de aquí y no del webhook, porque para
