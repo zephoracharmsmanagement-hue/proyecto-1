@@ -558,6 +558,17 @@ function main() {
   comprobar(!/aviso automatico que llega solo por whatsapp cuando se entrega/.test(promptPlano),
     'ya no promete un aviso por WhatsApp al entregar, que no existe');
 
+  console.log('\n16 · La memoria del chat');
+
+  /* Simple Memory vivía en la RAM de n8n y se borraba en cada reinicio: el
+     2026-10-14 una clienta recibió la bienvenida tres veces el mismo día.
+     Desde entonces el historial vive en la tabla «Buffer WhatsApp Zephora» y
+     le llega a la asesora antes del mensaje, con este encabezado. */
+  comprobar(promptPlano.includes('historial de esta conversacion'),
+    'sabe que un HISTORIAL DE ESTA CONVERSACION significa que ya hablaron');
+  comprobar(/si lo trae, no mandes el saludo/.test(promptPlano),
+    'y que entonces no se repite la bienvenida');
+
   console.log(fallos
     ? `\nPrompt del bot: ${fallos} en rojo`
     : '\nPrompt del bot en verde ✓');

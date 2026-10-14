@@ -5,6 +5,23 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Bot de WhatsApp: memoria permanente del chat — 2026-10-14 (n8n `b708eba5`)
+
+- **El nodo «Simple Memory» se quitó.** Guardaba la conversación en la RAM de
+  n8n y se borraba sola en cada reinicio del servidor: una clienta recibió la
+  bienvenida tres veces el mismo día (ejecución 3117: memoria vacía a las 13:29
+  tras hablar a las 12:13 y 12:25). No hubo publicación en medio.
+- Ahora el historial vive en la columna **`historial`** de la tabla «Buffer
+  WhatsApp Zephora» (`NtMnCuFM8JbkPryF`), una fila por teléfono. «Guardar
+  historial» lo escribe tras cada respuesta; «Leer historial del chat» →
+  «Anotar mensaje del equipo» agrega lo que el equipo escribe desde el celular
+  (líneas `Equipo:`). La asesora lo recibe antes del mensaje nuevo, con el
+  encabezado `HISTORIAL DE ESTA CONVERSACION`, y con eso no repite el saludo.
+- Tope ~8.000 caracteres por chat (≈20 idas y vueltas); se descarta lo más
+  viejo. No caduca: si una clienta vuelve en un mes, el bot retoma.
+- Los chats que ya existían arrancan con el historial vacío: reciben el saludo
+  una última vez.
+
 ## Correo de posventa («¿cómo te fue?» + reseña) — DESPLEGADO el 2026-10-13
 
 En `main` (`69e3821`), despliegue `6acda9fa5ac9f5c76e3d000e`: 31 funciones,
