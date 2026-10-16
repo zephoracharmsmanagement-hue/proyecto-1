@@ -5,6 +5,60 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Sistecrédito como medio de pago — DESPLEGADO el 2026-10-16 (PR #29, `9554ce8`)
+
+Al lado de Addi y con el mismo peso visual: portada (un recuadro con una fila
+por crédito), línea bajo el precio de cada ficha, bloque de medios de pago y
+la opción **«Pagar con Sistecrédito»** en el checkout (cédula, desde $50.000).
+Aprobado por el propietario el 2026-10-15.
+
+- **Despliegue `6ad2532973b503b1b66ee35c`**, publicado 16:39 UTC: **34
+  funciones** —las nuevas son `_sistecredito`, `sistecredito-aviso` y
+  `sistecredito-enlace`—, 23 redirecciones, 7 cabeceras, escaneo de secretos
+  limpio. Lo mezcló una sesión desde el celular porque el computador donde se
+  construyó se apagó antes del «deploy»; la otra sesión quedó avisada.
+- **Flujo.** `crear-pago` crea la transacción en `api.credinet.co/pay`;
+  `sistecredito-enlace` le pasa al checkout la URL de pago cuando Sistecrédito
+  la tiene (segundos después; sirve una vez y vence a los ~15 min).
+  `sistecredito-aviso` recibe los cambios de estado y **nunca cree el aviso**:
+  vuelve a consultar la transacción con las llaves de la tienda y exige la
+  firma HMAC de `extraData`. Aprobado → `cerrarPago`, igual que Wompi y Addi
+  («PAGADO — despachar», `Purchase`, hoja, inventario). Rechazado o vencido →
+  libera las unidades.
+- **Sin «sin interés» ni número de cuotas para Sistecrédito**, en la web y en
+  el bot: el plan lo pone Sistecrédito según el crédito de cada clienta. La
+  frase de las 3 cuotas sin interés es solo de Addi.
+- **Variables en Netlify, verificadas el 2026-10-16:** `SISTECREDITO_SUBSCRIPTION_KEY`,
+  `SISTECREDITO_STORE_ID` y `SISTECREDITO_VENDOR_ID` en los cuatro contextos;
+  `SISTECREDITO_SANDBOX=Rejected` **solo en `deploy-preview`** (modo de pruebas
+  de la pasarela: en una vista previa tocar «Continuar con Sistecrédito» termina
+  en «no aprobado» sin crédito real; con `Approved` cerraría una venta de verdad
+  porque las vistas previas comparten pedidos e inventario con la tienda).
+  `SISTECREDITO_AMBIENTE` no existe, así que va a Production. **Si alguna vez
+  aparece `SISTECREDITO_SANDBOX` en `production`, la tienda deja de cobrar con
+  Sistecrédito.**
+- **Bot de WhatsApp al día: n8n `e9838f6b`**, publicado el mismo día. Confirma
+  Sistecrédito, lo manda a la pantalla de pago y no promete cuotas ni interés.
+  Antes de publicarlo se comprobó que el prompt de n8n quedara idéntico,
+  carácter por carácter, a `automatizaciones/n8n/prompt-asesora.md`, y que el
+  resto del workflow no cambiara.
+- **Pruebas:** `pruebas/sistecredito.js` (57) y checkout §3c. Suite completa
+  en verde con 1.338 comprobaciones.
+
+**Pendiente:**
+1. **La primera venta real con Sistecrédito.** Todo lo probado fue en modo de
+   pruebas. Cuando entre, confirmar que llegó el correo «PAGADO — despachar»,
+   que se descontó el inventario y que el `Purchase` aparece una sola vez en
+   el píxel `1029982529813994`.
+2. **Logo en vector.** El de `assets/pagos/sistecredito.webp` sale de un PNG de
+   288×35 px a doble tamaño; en pantallas muy nítidas se ve un poco suave. Si
+   llega el SVG o el AI original, se cambia.
+3. **Variables que no están marcadas como secretas.** `SISTECREDITO_SUBSCRIPTION_KEY`
+   (que además es la llave de la firma HMAC) y `ADMIN_TOKEN` se leen completas
+   por API y en el panel, y el contexto `dev` de varias secretas también. Marcar
+   las dos como secretas en Netlify (Environment variables → Edit → *Contains
+   secret values*). No cambia lo que reciben las funciones.
+
 ## Bot de WhatsApp: memoria permanente del chat — 2026-10-14 (n8n `b708eba5`)
 
 - **El nodo «Simple Memory» se quitó.** Guardaba la conversación en la RAM de
@@ -3316,8 +3370,13 @@ mecanismo puede estar certificando nada.
 
 ## Al desplegar
 
-> **Último despliegue: `4e89afe` (2026-08-28, 12:18 UTC) — 14 functions, 12
-> redirecciones, escaneo de secretos limpio.** Trajo la fundación de conversión:
+> **Último despliegue: `9554ce8` (2026-10-16, 16:39 UTC), Sistecrédito — 34
+> functions, 23 redirecciones, escaneo de secretos limpio.** El detalle está al
+> principio de este documento; cada sección fechada de arriba dice qué trajo su
+> despliegue.
+>
+> *Histórico —* `4e89afe` (2026-08-28, 12:18 UTC) — 14 functions, 12
+> redirecciones, escaneo de secretos limpio. Trajo la fundación de conversión:
 > `reanudar`, `armar-carrito`, `_carrito`, el rescate que le escribe sola a quien
 > autorizó, y el carrito por URL en las dos páginas. Comprobado en vivo:
 > `/armar-carrito` responde `{"error":"Solo POST"}` y `/reanudar` sin `ref`
@@ -3349,25 +3408,35 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **14 functions**
-(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`, `_hoja`, `_atribucion`, `_carrito`, `rescate`, `disponibilidad`,
-`reanudar`, `armar-carrito`);
+En la salida de cualquier despliegue hay que confirmar que diga **34 functions**
+—las mismas que archivos hay en `netlify/functions/` (`ls netlify/functions | wc -l`)—:
+`_addi`, `_atribucion`, `_carrito`, `_cierre`, `_correo`, `_envios`, `_hoja`,
+`_inventario`, `_meta`, `_pedidos`, `_precios`, `_rango`, `_sistecredito`,
+`_suscriptores`, `addi-callback`, `ajustar-inventario`, `armar-carrito`,
+`crear-pago`, `disponibilidad`, `envio-estado`, `estado-pedido`,
+`mas-vendidos`, `media`, `posventa`, `reanudar`, `registrar-venta`, `rescate`,
+`resenas`, `sistecredito-aviso`, `sistecredito-enlace`, `suscribir`,
+`suscriptores-export`, `vendidas`, `wompi-webhook`;
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 
 > **Este número sube cada vez que se añade un módulo a `netlify/functions/`, y
 > hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`,
 > 9 hasta que la consolidación trajo `_atribucion.mjs` y `disponibilidad.mjs`
-> —el despliegue `6a88fa3a` reportó 11—, y 14 desde que la fundación de
-> conversión trajo `reanudar.mjs`, `armar-carrito.mjs` y `_carrito.mjs`.
+> —el despliegue `6a88fa3a` reportó 11—, 14 desde que la fundación de
+> conversión trajo `reanudar.mjs`, `armar-carrito.mjs` y `_carrito.mjs`, 31 en
+> el despliegue de posventa (2026-10-13) y **34 desde Sistecrédito**
+> (2026-10-16, despliegue `6ad2532973b503b1b66ee35c`). Entre el 14 y el 31 nadie
+> la actualizó durante semanas.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
 > persona ve «9» donde el documento pide «8», da por bueno el desajuste, y la
 > comprobación deja de servir justo para lo que existe — detectar que las
 > funciones no se empaquetaron y el sitio quedó sin cobrar.
 
 Y que `crear-pago` y `wompi-webhook` pesen ~306 KB, no ~295 KB: esos ~11 KB de
-diferencia son `@netlify/blobs` empaquetado. Si vuelven al tamaño de antes, la
+diferencia son `@netlify/blobs` empaquetado. *(Al 2026-10-16 pesan ~399 KB y
+~394 KB, con más módulos dentro; lo que sigue valiendo es que no caigan de
+golpe unos 11 KB respecto al despliegue anterior.)* Si vuelven al tamaño de antes, la
 dependencia no entró y la tienda está vendiendo sin reservar —seguirá cobrando,
 porque eso falla hacia adelante, pero la carrera de la última unidad estaría
 otra vez abierta y nadie se enteraría—.
