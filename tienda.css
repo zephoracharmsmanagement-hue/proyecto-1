@@ -1546,11 +1546,13 @@ p,li,dd,.pp-acc-in{line-height:1.55}
    fila por medio, con los logos en una columna del mismo ancho para que los
    textos queden alineados. */
 .cuotas-caja{max-width:620px;margin:12px auto 0;border:1px solid #E4DDE0;background:#fff;border-radius:6px}
-.cuotas-fila{display:flex;align-items:center;gap:14px;padding:13px 16px;color:#2A1F2E;text-decoration:none}
+.cuotas-fila{display:flex;align-items:center;gap:12px;padding:12px 14px;color:#2A1F2E;text-decoration:none}
 .cuotas-fila+.cuotas-fila{border-top:1px solid #EFE7EA}
-.cuotas-logo{flex:0 0 92px;display:flex;align-items:center}
-.cuotas-fila .addi-logo{height:24px}
-.cuotas-fila .siste-logo{width:92px;height:auto}
+/* Los dos logos con el mismo peso visual: Addi es compacto y alto,
+   Sistecrédito ancho y bajo; a 20 px y 96 px de ancho se ven parejos. */
+.cuotas-logo{flex:0 0 96px;display:flex;align-items:center}
+.cuotas-fila .addi-logo{height:20px}
+.cuotas-fila .siste-logo{width:96px;height:auto}
 .cuotas-fila .addi-caja-tx b{color:#2A1F2E}
 .cuotas-fila .addi-caja-tx span{color:#5b5060}
 .cuotas-fila .addi-caja-fl{color:#5C3D63}
