@@ -110,7 +110,10 @@ async function main() {
     await pedir({ cuerpo: Object.assign({}, base, { producto: 'minnie-mouse', nombre: 'Tom', resena: token }) });
     const [b] = enlaces(correos[correos.length - 1].html);
     await pedir({ metodo: 'GET', q: '?moderar=' + encodeURIComponent(b) });
-    comprobar((await listar('minnie-mouse')).resenas[0].verificada === false, 'el mismo enlace para una pieza que no estaba en el pedido → sin chulo');
+    /* Por nombre y no la primera: el orden de la lista no es parte del contrato,
+       y con resenas[0] la prueba falló a veces en GitHub (2026-10-10). */
+    const tom = (await listar('minnie-mouse')).resenas.find(r => r.nombre === 'Tom');
+    comprobar(!!tom && tom.verificada === false, 'el mismo enlace para una pieza que no estaba en el pedido → sin chulo');
     const n = correos.length;
     const rui = await pedir({ cuerpo: Object.assign({}, base, { nombre: 'Rui', resena: 'ZC-260901-AAAA0001.firmafalsa' }) });
     comprobar(rui.status === 200 && correos.length === n + 1 && /Rui/.test(correos[n].html)
