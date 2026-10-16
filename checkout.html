@@ -957,7 +957,7 @@ function pintarPagoElegido(t){
   $('#campo-cedula').hidden=!credito;
   if(credito) $('#cedula-pista').textContent=credito+' la pide para aprobar tu '+(addi?'cupo':'crédito')+'.';
   else marcar('cedula',false);
-  $('#addi-atajo').hidden=addi||$('#addi-atajo').classList.contains('sin-addi');
+  $('#addi-atajo').hidden=!!credito||$('#addi-atajo').classList.contains('sin-addi');
 }
 
 /* Barra de la promo: una casilla por pieza del tramo en curso (1…4, después
