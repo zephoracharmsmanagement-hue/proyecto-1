@@ -1688,13 +1688,14 @@ function pintarCuotasAddi(total){
    elegido (desde 2026-10-07 Addi se paga ahí, integrado; antes era un enlace a
    WhatsApp). La forma de pago se guarda solo para el checkout: aquí `pago` sigue
    siendo la del carrito, que es la que decide el envío que se muestra. */
+/* Lo mismo con Sistecrédito (data-siste-checkout, 2026-10-16). */
 document.addEventListener('click',e=>{
-  const a=e.target.closest&&e.target.closest('[data-addi-checkout]');
+  const a=e.target.closest&&e.target.closest('[data-addi-checkout],[data-siste-checkout]');
   if(!a) return;
   e.preventDefault();
   if(!base&&!sel.length){ comprar(); return; }
   const antes=pago;
-  tocado=true; pago='addi'; guardar(); pago=antes;
+  tocado=true; pago=a.hasAttribute('data-siste-checkout')?'sistecredito':'addi'; guardar(); pago=antes;
   location.href='checkout.html';
 });
 /* El atajo del aviso de envío: aplica el pago anticipado sin que la clienta

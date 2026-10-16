@@ -464,6 +464,8 @@ FAQS = [
      '<b>tarjetas de crédito y débito</b> (hasta 36 cuotas), a través de <b>Wompi '
      '(Bancolombia)</b>. Con <b>Addi</b> puedes dividir tu compra en hasta 3 cuotas sin interés: '
      'lo eliges en la pantalla de pago y apruebas tu cupo en minutos con tu cédula. '
+     'Si tienes crédito <b>Sistecrédito</b>, también puedes pagar a cuotas con él: lo eliges '
+     'en la pantalla de pago y confirmas con tu cédula y un código que te llega al celular. '
      'También puedes pagar <b>contraentrega</b> en las ciudades '
      'donde la transportadora lo permite.</p>'),
     ('¿Cómo compro?',
