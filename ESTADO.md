@@ -5,6 +5,60 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Sistecrédito como medio de pago — DESPLEGADO el 2026-10-16 (PR #29, `9554ce8`)
+
+Al lado de Addi y con el mismo peso visual: portada (un recuadro con una fila
+por crédito), línea bajo el precio de cada ficha, bloque de medios de pago y
+la opción **«Pagar con Sistecrédito»** en el checkout (cédula, desde $50.000).
+Aprobado por el propietario el 2026-10-15.
+
+- **Despliegue `6ad2532973b503b1b66ee35c`**, publicado 16:39 UTC: **34
+  funciones** —las nuevas son `_sistecredito`, `sistecredito-aviso` y
+  `sistecredito-enlace`—, 23 redirecciones, 7 cabeceras, escaneo de secretos
+  limpio. Lo mezcló una sesión desde el celular porque el computador donde se
+  construyó se apagó antes del «deploy»; la otra sesión quedó avisada.
+- **Flujo.** `crear-pago` crea la transacción en `api.credinet.co/pay`;
+  `sistecredito-enlace` le pasa al checkout la URL de pago cuando Sistecrédito
+  la tiene (segundos después; sirve una vez y vence a los ~15 min).
+  `sistecredito-aviso` recibe los cambios de estado y **nunca cree el aviso**:
+  vuelve a consultar la transacción con las llaves de la tienda y exige la
+  firma HMAC de `extraData`. Aprobado → `cerrarPago`, igual que Wompi y Addi
+  («PAGADO — despachar», `Purchase`, hoja, inventario). Rechazado o vencido →
+  libera las unidades.
+- **Sin «sin interés» ni número de cuotas para Sistecrédito**, en la web y en
+  el bot: el plan lo pone Sistecrédito según el crédito de cada clienta. La
+  frase de las 3 cuotas sin interés es solo de Addi.
+- **Variables en Netlify, verificadas el 2026-10-16:** `SISTECREDITO_SUBSCRIPTION_KEY`,
+  `SISTECREDITO_STORE_ID` y `SISTECREDITO_VENDOR_ID` en los cuatro contextos;
+  `SISTECREDITO_SANDBOX=Rejected` **solo en `deploy-preview`** (modo de pruebas
+  de la pasarela: en una vista previa tocar «Continuar con Sistecrédito» termina
+  en «no aprobado» sin crédito real; con `Approved` cerraría una venta de verdad
+  porque las vistas previas comparten pedidos e inventario con la tienda).
+  `SISTECREDITO_AMBIENTE` no existe, así que va a Production. **Si alguna vez
+  aparece `SISTECREDITO_SANDBOX` en `production`, la tienda deja de cobrar con
+  Sistecrédito.**
+- **Bot de WhatsApp al día: n8n `e9838f6b`**, publicado el mismo día. Confirma
+  Sistecrédito, lo manda a la pantalla de pago y no promete cuotas ni interés.
+  Antes de publicarlo se comprobó que el prompt de n8n quedara idéntico,
+  carácter por carácter, a `automatizaciones/n8n/prompt-asesora.md`, y que el
+  resto del workflow no cambiara.
+- **Pruebas:** `pruebas/sistecredito.js` (57) y checkout §3c. Suite completa
+  en verde con 1.338 comprobaciones.
+
+**Pendiente:**
+1. **La primera venta real con Sistecrédito.** Todo lo probado fue en modo de
+   pruebas. Cuando entre, confirmar que llegó el correo «PAGADO — despachar»,
+   que se descontó el inventario y que el `Purchase` aparece una sola vez en
+   el píxel `1029982529813994`.
+2. **Logo en vector.** El de `assets/pagos/sistecredito.webp` sale de un PNG de
+   288×35 px a doble tamaño; en pantallas muy nítidas se ve un poco suave. Si
+   llega el SVG o el AI original, se cambia.
+3. **Variables que no están marcadas como secretas.** `SISTECREDITO_SUBSCRIPTION_KEY`
+   (que además es la llave de la firma HMAC) y `ADMIN_TOKEN` se leen completas
+   por API y en el panel, y el contexto `dev` de varias secretas también. Marcar
+   las dos como secretas en Netlify (Environment variables → Edit → *Contains
+   secret values*). No cambia lo que reciben las funciones.
+
 ## Bot de WhatsApp: memoria permanente del chat — 2026-10-14 (n8n `b708eba5`)
 
 - **El nodo «Simple Memory» se quitó.** Guardaba la conversación en la RAM de
@@ -110,7 +164,7 @@ No toca `stock.json` ni su `generado` (eso reinicia el contador de ventas).
 **Resultado del conteo:** faltan 5 piezas — Mariposas Tricolor, Pulpo Azul
 Cristal, Clip Forever Multicolor y 2 Pulsera Avengers (tallas 19 y 18) — y 4
 brazaletes que estaban en otra talla o modelo (Corazón Pavé Pequeño 19 y 18,
-Corazón Liso 18, Corona Pavé 18); sobran 3 charms y 7 brazaletes; el resto
+Corazón Liso 18, Corona Pavé 18); sobran 2 charms y 7 brazaletes; el resto
 cuadra con el sistema. La nota decía 7 faltantes (con Deadpool y una Avengers
 talla 20), pero esas dos ya cuadraban: el «sistema 4 / 8» salía del conteo del
 22-sep y después hubo dos ventas reales, ZC-260922-0932DC08 (Deadpool) y
@@ -151,6 +205,54 @@ una fila en la hoja (es un espejo; no se le quitan filas).
   con 2+ charms: «Si estás suscrita con este correo, elige tu inicial de
   regalo». `crear-pago` decide por el correo, sin cambios.
 
+### Paso 4 · después del despliegue, con la regla nueva
+
+Sobrantes (motivo «sobrante», nota «conteo 10-oct»), verificados en
+disponibilidad el 2026-10-10:
+
+| Pieza | Referencia | Disponible |
+|---|---|---|
+| Letra N | AJ-261010-FD6EB8E8 | 3 → 4 |
+| Tortuga Marina Cristal | AJ-261010-3951C3E1 | 0 → 1 |
+| ~~Casa de los Globos~~ | AJ-261010-6DEADAEA · **revertido** | 2 → 3 → 2 |
+| Pulsera Clásica Cierre Barril talla 21 | AJ-261010-38697FE6 | 3 → 4 |
+| Pulsera Clásica Cierre Barril talla 20 | AJ-261010-02903CC1 | 2 → 3 |
+| Pulsera Corazón Pavé Pequeño talla 20 | AJ-261010-3D5BE187 | 1 → 2 |
+| Pulsera Rosa Clásica talla 19 | AJ-261010-9D129EAD | 0 → 1 |
+| Pulsera Copo de Nieve talla 18 | AJ-261010-43624209 | 2 → 3 |
+| Pulsera Corazón Pavé talla 18 | AJ-261010-E502C455 | 1 → 2 |
+| Pulsera Corona Pavé talla 17 | AJ-261010-37069137 | 2 → 3 |
+
+La Pulsera Rosa Clásica no tenía ninguna talla en el conteo: la talla 19 pasó
+a existir por el sobrante (disponibilidad la lista desde el PR #24).
+
+Reclasificados como **faltante** sin anularlos (las unidades siguen
+descontadas; dejan de ser «regalo» en el registro): los 8 MAN-261010-… del
+paso 1 y MAN-261009-71D1B995 (Mariposas Tricolor, no apareció).
+
+Verificado en vivo tras el despliegue: Elefantito Rosa y Mariposas Tricolor
+dicen «Agotado» (ficha y tarjeta); Clip Forever «Queda 1 unidad»; el selector
+de la letra aparece en ventana privada con 2 charms; armar-carrito da los
+mismos totales que `_precios.js` con 3, 4 y 7 piezas (promo intacta).
+
+**Corrección · Casa de los Globos** (aviso del propietario después del paso 4). El sobrante +1 fue un
+error: en el estante hay 2, y disponibilidad ya daba 2 porque el pedido
+contraentrega ZC-261003-A3DDA53F (Rionegro, $115.000) se canceló el 3-oct y su
+unidad volvió al inventario. El +1 se calculó contra el conteo esperado de
+la nota y no contra disponibilidad. Revertido con
+`{"anular":"AJ-261010-6DEADAEA"}` → disponibilidad 2, verificado en vivo.
+Quedan 9 sobrantes.
+
+**Ese pedido sí mandó `Purchase` a Meta** (es la contraentrega cancelada de
+CLAUDE.md § Pendiente 2). En el píxel 1029982529813994, el 3-oct entre las
+20:00 y las 21:00 UTC (el pedido se creó a las 20:54) hay 1 Purchase de
+servidor (crear-pago, al registrar el pedido) y 1 del navegador (checkout.html
+de ese día), con la misma referencia como event_id: Meta los cuenta como **una
+compra de $115.000 que no se cobró**. No se puede corregir: la API de
+Conversiones no tiene forma de borrar ni restar un evento ya recibido, ni un
+evento de «cancelación» que lo descuente. Queda anotado: al comparar ventas
+reales contra lo que Meta reporta para ese periodo, hay que descontarla a mano.
+
 ### Cómo se usa la regla de ajuste
 
 POST a `/.netlify/functions/ajustar-inventario` con la cabecera
@@ -165,6 +267,15 @@ en `material-sin-publicar/claves-para-n8n.txt`; nunca en el chat):
   — no mueve unidades; deja de contar como venta.
 - Una unidad por pieza nombrada (repetir el id = más unidades). Responde
   `{referencia:"AJ-…", motivo, signo, restante}`. Listo para un formulario de n8n.
+
+**Regla antes de cada ajuste:** comparar el número real del estante con lo
+que dice `disponibilidad` **en ese momento** (`/.netlify/functions/disponibilidad`),
+nunca con un conteo esperado escrito en un mensaje o una nota: ese número
+puede venir de `stock.json` o de un día anterior y no ver ventas nuevas ni
+pedidos cancelados que devolvieron la unidad. Ajuste = estante − disponibilidad
+(negativo → faltante; positivo → sobrante). Si da 0, no se ajusta. Casos del
+10-oct: Deadpool y Avengers talla 20 (ventas posteriores) y Casa de los Globos
+(pedido cancelado).
 
 ## Reseñas del Excel del propietario — cargadas el 2026-10-06
 
@@ -592,6 +703,37 @@ mirar. No es una tarea con final escrito — es un ciclo.
 > o con soporte_aliados@addi.com); hora de corte y mensajería para 24 h en Bogotá (no se publica
 > sin eso);  almacenamiento externo
 > si se quieren videos largos en reseñas. Paleta: se mantiene la original.
+
+> **2026-09-29 · Ventas manuales registradas; CAPI y hoja reparados. Sin
+> código nuevo** (solo configuración de Netlify y n8n; un despliegue para que
+> las funciones leyeran las variables). El `ARRANQUE-SESION.md` de ese día se
+> escribió sin saber que `registrar-venta`, las claves, el arreglo de fotos
+> del carrito y la suscripción ya estaban en producción desde los PR #5–#8.
+>
+> - **4 ventas registradas con `registrar-venta`** (vigentes): Tatán
+>   `MAN-260929-F1F8CFE6`, Mari `-365BD9FE`, Stefanny `-5B62818C` (las tres
+>   Addi, con pago `otro` y nota «Addi», porque la función no acepta `addi`)
+>   y la letra S de regalo `-EE607645`. Las referencias anteriores del mismo
+>   día quedaron anuladas (fueron reenvíos para que llegara el Purchase).
+>   Corazón Luminoso talla 20 quedó en 0. La de Mariana (moño rosa talla 18)
+>   entró por la web y no se registra.
+> - **CAPI no mandaba nada desde el 2026-08-13:** `META_PIXEL_ID` en Netlify
+>   apuntaba al píxel viejo `2130673404542988` (400 «object does not exist»).
+>   Se quitó la variable: el código ya usa `1029982529813994` por defecto.
+> - **Una venta de chat necesita celular o correo:** con solo el nombre, Meta
+>   responde 400 subcódigo `2804050` («no hay suficientes datos de cliente»).
+>   Mandar siempre `telefono` a `registrar-venta`.
+> - **Hoja de inventario:** 403 porque la tienda manda la cabecera
+>   **`X-Zephora-Token`** (`_hoja.mjs`) y la credencial de n8n tenía otro
+>   nombre y otro valor. `HOJA_TOKEN` nuevo en Netlify y en la credencial
+>   «Hoja Inventario (entrada)». Además, «Agregar Fila a Movimientos» fallaba
+>   con 2+ piezas por petición («Multiple matches found», tapado por
+>   `onError`): se cambió por un solo nodo que agrega o actualiza por
+>   `referencia + id + talla`. Existencias sí se actualizaba.
+> - **Pendiente:** cargar en Movimientos las ventas web que faltan (403 desde
+>   ~2026-09-19 y pedidos de 2+ piezas desde el 2026-08-20). En Existencias,
+>   cada pieza se corrige sola con su próxima venta; la verdad sigue siendo
+>   `disponibilidad` (stock.json − Blobs), no la hoja.
 
 **Rama de trabajo:** `claude/tienda-paginas-producto` (antes
 `claude/zephoracharms-conversion-funnel-nom9ph`)
@@ -3228,8 +3370,13 @@ mecanismo puede estar certificando nada.
 
 ## Al desplegar
 
-> **Último despliegue: `4e89afe` (2026-08-28, 12:18 UTC) — 14 functions, 12
-> redirecciones, escaneo de secretos limpio.** Trajo la fundación de conversión:
+> **Último despliegue: `9554ce8` (2026-10-16, 16:39 UTC), Sistecrédito — 34
+> functions, 23 redirecciones, escaneo de secretos limpio.** El detalle está al
+> principio de este documento; cada sección fechada de arriba dice qué trajo su
+> despliegue.
+>
+> *Histórico —* `4e89afe` (2026-08-28, 12:18 UTC) — 14 functions, 12
+> redirecciones, escaneo de secretos limpio. Trajo la fundación de conversión:
 > `reanudar`, `armar-carrito`, `_carrito`, el rescate que le escribe sola a quien
 > autorizó, y el carrito por URL en las dos páginas. Comprobado en vivo:
 > `/armar-carrito` responde `{"error":"Solo POST"}` y `/reanudar` sin `ref`
@@ -3261,25 +3408,35 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **14 functions**
-(`crear-pago`, `wompi-webhook`, `_correo`, `_precios`, `_inventario`, `_meta`,
-`_pedidos`, `_hoja`, `_atribucion`, `_carrito`, `rescate`, `disponibilidad`,
-`reanudar`, `armar-carrito`);
+En la salida de cualquier despliegue hay que confirmar que diga **34 functions**
+—las mismas que archivos hay en `netlify/functions/` (`ls netlify/functions | wc -l`)—:
+`_addi`, `_atribucion`, `_carrito`, `_cierre`, `_correo`, `_envios`, `_hoja`,
+`_inventario`, `_meta`, `_pedidos`, `_precios`, `_rango`, `_sistecredito`,
+`_suscriptores`, `addi-callback`, `ajustar-inventario`, `armar-carrito`,
+`crear-pago`, `disponibilidad`, `envio-estado`, `estado-pedido`,
+`mas-vendidos`, `media`, `posventa`, `reanudar`, `registrar-venta`, `rescate`,
+`resenas`, `sistecredito-aviso`, `sistecredito-enlace`, `suscribir`,
+`suscriptores-export`, `vendidas`, `wompi-webhook`;
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
 anterior.
 
 > **Este número sube cada vez que se añade un módulo a `netlify/functions/`, y
 > hay que actualizarlo aquí el mismo día.** Eran 8 hasta que entró `_hoja.mjs`,
 > 9 hasta que la consolidación trajo `_atribucion.mjs` y `disponibilidad.mjs`
-> —el despliegue `6a88fa3a` reportó 11—, y 14 desde que la fundación de
-> conversión trajo `reanudar.mjs`, `armar-carrito.mjs` y `_carrito.mjs`.
+> —el despliegue `6a88fa3a` reportó 11—, 14 desde que la fundación de
+> conversión trajo `reanudar.mjs`, `armar-carrito.mjs` y `_carrito.mjs`, 31 en
+> el despliegue de posventa (2026-10-13) y **34 desde Sistecrédito**
+> (2026-10-16, despliegue `6ad2532973b503b1b66ee35c`). Entre el 14 y el 31 nadie
+> la actualizó durante semanas.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
 > persona ve «9» donde el documento pide «8», da por bueno el desajuste, y la
 > comprobación deja de servir justo para lo que existe — detectar que las
 > funciones no se empaquetaron y el sitio quedó sin cobrar.
 
 Y que `crear-pago` y `wompi-webhook` pesen ~306 KB, no ~295 KB: esos ~11 KB de
-diferencia son `@netlify/blobs` empaquetado. Si vuelven al tamaño de antes, la
+diferencia son `@netlify/blobs` empaquetado. *(Al 2026-10-16 pesan ~399 KB y
+~394 KB, con más módulos dentro; lo que sigue valiendo es que no caigan de
+golpe unos 11 KB respecto al despliegue anterior.)* Si vuelven al tamaño de antes, la
 dependencia no entró y la tienda está vendiendo sin reservar —seguirá cobrando,
 porque eso falla hacia adelante, pero la carrera de la última unidad estaría
 otra vez abierta y nadie se enteraría—.
