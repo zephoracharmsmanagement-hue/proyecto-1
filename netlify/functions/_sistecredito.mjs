@@ -31,6 +31,10 @@
  *                                   el modo de pruebas de la pasarela, que simula
  *                                   esa respuesta sin pasar por un crédito real.
  *                                   Solo en vistas previas, nunca en producción.
+ *                                   En las vistas previas va en Rejected: comparten
+ *                                   pedidos e inventario con la tienda, y con
+ *                                   Approved un clic de prueba cerraría una venta
+ *                                   de verdad (inventario, correos, Purchase).
  *   SISTECREDITO_MINIMO             opcional; mínimo de la tienda, $50.000
  *
  * Las llaves del correo de configuración (2026-10-15) son de producción:
