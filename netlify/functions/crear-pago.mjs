@@ -14,11 +14,16 @@
  *   URL_SITIO               https://zephoracharms.com (opcional; Netlify ya da URL)
  *   PEDIDOS_WEBHOOK         opcional: a dónde avisar de cada pedido nuevo
  *   ADDI_CLIENT_ID / ADDI_CLIENT_SECRET   pago con Addi (ver _addi.mjs)
+ *   SISTECREDITO_*                        pago con Sistecrédito (ver _sistecredito.mjs)
  *
  * Addi tampoco pasa por Wompi: se le pide a Addi una «solicitud de crédito» y
  * se manda a la clienta a la URL que devuelve. El resultado llega después a
  * addi-callback. Si Addi no responde, no hay pedido a medias: se liberan las
  * unidades y el checkout ofrece cerrarlo por WhatsApp, como antes.
+ *
+ * Sistecrédito igual, con una diferencia: su URL de pago no llega en la
+ * respuesta sino segundos después, así que el checkout la pide a
+ * sistecredito-enlace y el resultado llega a sistecredito-aviso.
  */
 import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
@@ -31,12 +36,17 @@ import { purchase, hashearCliente } from './_meta.js';
 import { guardar as guardarSenales } from './_atribucion.mjs';
 import { regaloPara, usarRegalo } from './_suscriptores.mjs';
 import { configuracion as configAddi, crearSolicitud } from './_addi.mjs';
+import { crearTransaccion, MINIMO as minimoSiste } from './_sistecredito.mjs';
 
 /* Cuánto se apartan las unidades de un pedido con Addi. Addi decide entre 20
    segundos y 10 minutos y deja la solicitud abierta hasta 2 horas: la reserva
    tiene que durar más que eso, o una compra aprobada a la hora y media
    llegaría a confirmar() sin reserva y no se descontaría. */
 const VIGENCIA_ADDI_MS = (2 * 60 + 15) * 60 * 1000;
+
+/* Y con Sistecrédito. La transacción vence a los ~15 minutos y el aviso puede
+   tardar unos minutos más: 45 cubren las dos cosas con margen. */
+const VIGENCIA_SISTE_MS = 45 * 60 * 1000;
 
 const CHECKOUT_WOMPI = 'https://checkout.wompi.co/p/';
 
@@ -237,18 +247,21 @@ export default async (req) => {
      el cálculo es un pago anticipado más (leerPedido lo lee así). Lo que cambia
      es la pasarela. */
   const addi = cuerpo.pago === 'addi';
+  /* Sistecrédito, igual que Addi: crédito de un tercero, cobrado por adelantado. */
+  const siste = cuerpo.pago === 'sistecredito';
+  const medio = addi ? 'addi' : siste ? 'sistecredito' : null;
 
   let pedido, cliente, cuentas;
   try {
     pedido = leerPedido(cuerpo);
     cliente = leerCliente(cuerpo.cliente);
-    if (addi) {
-      /* Addi solo opera con cédula de ciudadanía, y la necesita para aprobar
-         el cupo. */
+    if (medio) {
+      /* Addi y Sistecrédito operan con cédula de ciudadanía, y la necesitan
+         para aprobar el crédito. */
       cliente.tipodoc = 'CC';
       cliente.documento = String(cliente.documento || '').replace(/\D/g, '');
       if (!/^\d{5,10}$/.test(cliente.documento)) {
-        throw new PedidoInvalido('Para pagar con Addi necesitamos tu cédula (solo números)');
+        throw new PedidoInvalido(`Para pagar con ${addi ? 'Addi' : 'Sistecrédito'} necesitamos tu cédula (solo números)`);
       }
     }
     comprobarInventario(pedido);
@@ -276,6 +289,11 @@ export default async (req) => {
       });
     }
   }
+  if (siste && cuentas.total < minimoSiste()) {
+    return responder(400, {
+      error: `Sistecrédito aplica para compras desde ${cop(minimoSiste())}. Puedes elegir otro medio de pago.`,
+    });
+  }
 
   const ref = referencia();
 
@@ -291,7 +309,7 @@ export default async (req) => {
    * la venta sigue: la reserva es una red de seguridad, no un peaje. */
   let reserva;
   try {
-    reserva = await reservar(ref, pedido, addi ? VIGENCIA_ADDI_MS : undefined);
+    reserva = await reservar(ref, pedido, addi ? VIGENCIA_ADDI_MS : siste ? VIGENCIA_SISTE_MS : undefined);
   } catch (e) {
     if (e instanceof SinInventario) return responder(409, { error: e.message, agotado: true });
     throw e;
@@ -321,7 +339,7 @@ export default async (req) => {
     evento: 'pedido_creado',
     referencia: ref,
     total: cuentas.total,
-    pago: addi ? 'addi' : pedido.pago,
+    pago: medio || pedido.pago,
     piezas: pedido.charms.length + (pedido.base ? 1 : 0),
     ciudad: `${cliente.ciudad}, ${cliente.depto}`,
     /* Queda escrito si las unidades se apartaron de verdad o si la reserva se
@@ -347,7 +365,7 @@ export default async (req) => {
 
   const registro = await guardar(ref, {
     estado: pedido.pago === 'contraentrega' ? 'confirmado' : 'esperando-pago',
-    pago: addi ? 'addi' : pedido.pago, lineas, cuentas, cliente, regalo, canal,
+    pago: medio || pedido.pago, lineas, cuentas, cliente, regalo, canal,
   });
   if (!registro.ok) {
     console.error(JSON.stringify({
@@ -378,10 +396,32 @@ export default async (req) => {
     console.log(JSON.stringify({ evento: 'addi_solicitud_creada', referencia: ref, total: cuentas.total }));
   }
 
+  /* Sistecrédito: la transacción también se crea antes de los correos, por la
+     misma razón. Su id se guarda en el pedido: es con lo que sistecredito-enlace
+     consulta la URL de pago y con lo que se comprueba cada aviso. */
+  let transaccionSiste = null;
+  if (siste) {
+    transaccionSiste = await crearTransaccion({ referencia: ref, cliente, cuentas, sitio, ip: ipCliente(req.headers) });
+    if (!transaccionSiste.ok) {
+      console.error(JSON.stringify({
+        evento: 'sistecredito_sin_transaccion', referencia: ref, motivo: transaccionSiste.motivo,
+        detalle: transaccionSiste.detalle || null,
+      }));
+      await liberar(ref);
+      await marcar(ref, { estado: 'no-llego-a-sistecredito', motivo: transaccionSiste.motivo });
+      return responder(503, {
+        error: 'Sistecrédito no está disponible en este momento. Puedes elegir otro medio de pago.',
+      });
+    }
+    await marcar(ref, { sistecreditoId: transaccionSiste.id, sistecreditoEstado: transaccionSiste.estado });
+    console.log(JSON.stringify({ evento: 'sistecredito_transaccion_creada', referencia: ref, total: cuentas.total,
+      transaccion: transaccionSiste.id }));
+  }
+
   await avisar({
     evento: 'pedido_creado',
     referencia: ref,
-    pago: addi ? 'addi' : pedido.pago,
+    pago: medio || pedido.pago,
     total: cuentas.total,
     totalTexto: cop(cuentas.total),
     envio: cuentas.envio,
@@ -391,7 +431,7 @@ export default async (req) => {
 
   /* Comprobante a la clienta y copia a la tienda. En paralelo y sin dejar que
      un fallo de correo tumbe el pedido: allSettled, no all. */
-  const correos = { referencia: ref, lineas, cuentas, pago: addi ? 'addi' : pedido.pago, cliente, regalo };
+  const correos = { referencia: ref, lineas, cuentas, pago: medio || pedido.pago, cliente, regalo };
   const [aCliente, aTienda] = await Promise.allSettled([
     pedidoRecibido(correos), avisoTienda(correos),
   ]);
@@ -470,15 +510,18 @@ export default async (req) => {
     return responder(200, Object.assign({ modo: 'contraentrega' }, base));
   }
 
-  if (addi) {
-    /* Las señales para el Purchase que mandará addi-callback al aprobarse. */
-    const guardadoAddi = await guardarSenales(ref, senales);
-    if (guardadoAddi.modo !== 'guardado') {
+  if (medio) {
+    /* Las señales para el Purchase que se mandará al aprobarse el crédito. */
+    const guardadoCredito = await guardarSenales(ref, senales);
+    if (guardadoCredito.modo !== 'guardado') {
       console.log(JSON.stringify({
-        evento: 'atribucion_no_guardada', referencia: ref, modo: guardadoAddi.modo,
+        evento: 'atribucion_no_guardada', referencia: ref, modo: guardadoCredito.modo,
       }));
     }
-    return responder(200, Object.assign({ modo: 'addi', url: solicitudAddi.url }, base));
+    if (addi) return responder(200, Object.assign({ modo: 'addi', url: solicitudAddi.url }, base));
+    /* La URL casi nunca está todavía: el checkout la pide a sistecredito-enlace. */
+    return responder(200, Object.assign({ modo: 'sistecredito', url: transaccionSiste.url || null,
+      consulta: `/.netlify/functions/sistecredito-enlace?ref=${encodeURIComponent(ref)}` }, base));
   }
 
   const llave = process.env.WOMPI_LLAVE_PUBLICA;

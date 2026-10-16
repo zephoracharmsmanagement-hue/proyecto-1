@@ -201,54 +201,64 @@ if(modo==='contraentrega'){
      'Pagas al mensajero al recibir el paquete. Entre 1 y 6 días hábiles según el destino.']);
   pintarFicha(ref,pedido&&pedido.total,[['Forma de pago','Contraentrega']]);
   $('#wa').href=waTexto(ref,'Acabo de hacer un pedido contraentrega en la página.');
-}else if(modo==='addi'&&ref){
-  /* Addi devuelve a la clienta aquí, con la referencia. El resultado no viene
-     en la URL —y no se creería si viniera—: lo sabe el servidor por el aviso
-     de Addi (addi-callback). Se pregunta cada pocos segundos, porque Addi
-     puede devolverla antes de avisarnos. */
-  pintar('espera','Estamos confirmando con Addi',
+}else if((modo==='addi'||modo==='sistecredito')&&ref){
+  /* Addi y Sistecrédito devuelven a la clienta aquí, con la referencia. El
+     resultado no viene en la URL —y no se creería si viniera—: lo sabe el
+     servidor por el aviso de la pasarela (addi-callback, sistecredito-aviso).
+     Se pregunta cada pocos segundos, porque la pasarela puede devolverla antes
+     de avisarnos. Con Sistecrédito se pregunta a sistecredito-enlace, que le
+     consulta a Sistecrédito directamente: si su aviso tarda (hasta 3 minutos,
+     según su guía), la clienta no se queda esperándolo. */
+  const NOM=modo==='addi'?'Addi':'Sistecrédito';
+  const urlEstado=modo==='addi'
+    ? '/.netlify/functions/estado-pedido?ref='+encodeURIComponent(ref)
+    : '/.netlify/functions/sistecredito-enlace?ref='+encodeURIComponent(ref);
+  const leerEstado=d=>modo==='addi'?(d&&d.estado)
+    :(d&&d.terminado?d.estado:'pendiente');
+  pintar('espera','Estamos confirmando con '+NOM,
     'Esto toma unos segundos. No cierres esta página.',null);
-  pintarFicha(ref,pedido&&pedido.total,[['Forma de pago','Addi · cuotas']]);
-  $('#wa').href=waTexto(ref,'Pagué mi pedido con Addi y quiero confirmar cómo va.');
+  pintarFicha(ref,pedido&&pedido.total,[['Forma de pago',NOM+' · cuotas']]);
+  $('#wa').href=waTexto(ref,'Pagué mi pedido con '+NOM+' y quiero confirmar cómo va.');
   let intentos=0, listo=false;
   const consultar=()=>{
     intentos++;
-    fetch('/.netlify/functions/estado-pedido?ref='+encodeURIComponent(ref),{cache:'no-store'})
+    fetch(urlEstado,{cache:'no-store'})
       .then(r=>r.json()).catch(()=>({}))
       .then(d=>{
         if(listo) return;
         const total=(d&&d.total)||(pedido&&pedido.total);
-        if(d&&d.estado==='aprobado'){
+        const estado=leerEstado(d);
+        if(estado==='aprobado'){
           listo=true;
           pintar('ok','¡Compra aprobada!',
-            'Addi aprobó tu compra. Tu pedido quedó confirmado y ya entró a preparación.',
+            NOM+' aprobó tu compra. Tu pedido quedó confirmado y ya entró a preparación.',
             ['Te llega la confirmación al correo que registraste.',
-             'Las cuotas las pagas directamente a Addi, como te indicaron allá.',
+             'Las cuotas las pagas directamente a '+NOM+', como te indicaron allá.',
              'Despachamos por Inter Rapidísimo con número de guía. De 1 a 6 días hábiles según el destino.']);
-          /* Misma referencia que manda addi-callback como event_id: Meta
-             cuenta una compra y no dos. */
-          track('Purchase',{value:total||0,content_name:'Addi'},ref);
+          /* Misma referencia que manda el servidor como event_id: Meta cuenta
+             una compra y no dos. */
+          track('Purchase',{value:total||0,content_name:NOM},ref);
           try{ localStorage.removeItem('zephora.carrito.v1'); }catch(_){}
-          $('#wa').href=waTexto(ref,'Acabo de pagar mi pedido con Addi.');
-        }else if(d&&d.estado==='rechazado'){
+          $('#wa').href=waTexto(ref,'Acabo de pagar mi pedido con '+NOM+'.');
+        }else if(estado==='rechazado'){
           listo=true;
-          pintar('mal','Addi no aprobó la compra',
+          pintar('mal',NOM+' no aprobó la compra',
             'No se te cobró nada. Puedes intentar con otro medio de pago o pedirlo contraentrega.',
             ['Vuelve al checkout y elige otro medio.',
              'Si prefieres, escríbenos y lo cerramos por WhatsApp.']);
-          $('#wa').href=waTexto(ref,'Addi no aprobó mi compra y quiero terminar el pedido por aquí.');
+          $('#wa').href=waTexto(ref,NOM+' no aprobó mi compra y quiero terminar el pedido por aquí.');
           document.querySelector('.btns').insertAdjacentHTML('afterbegin',
             '<a class="btn" href="checkout.html">Intentar de nuevo</a>');
         }else if(intentos<40){
           setTimeout(consultar,4000);
         }else{
           listo=true;
-          pintar('espera','Addi sigue revisando tu solicitud',
-            'A veces tarda unos minutos más. Apenas Addi responda te llega un correo; no hace falta que vuelvas a pagar.',
+          pintar('espera',NOM+' sigue revisando tu solicitud',
+            'A veces tarda unos minutos más. Apenas '+NOM+' responda te llega un correo; no hace falta que vuelvas a pagar.',
             ['Espera el correo de confirmación.',
              'Si en una hora no te llega, escríbenos con tu referencia.']);
         }
-        if(total!=null) pintarFicha(ref,total,[['Forma de pago','Addi · cuotas']]);
+        if(total!=null) pintarFicha(ref,total,[['Forma de pago',NOM+' · cuotas']]);
       });
   };
   consultar();

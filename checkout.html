@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Finalizar compra · Zephora Charms</title>
-<meta name="description" content="Completa tu pedido de Zephora Charms. Pago seguro con Nequi, Bancolombia, PSE, tarjeta o Addi, y opción de pago contraentrega. Envíos a toda Colombia.">
+<meta name="description" content="Completa tu pedido de Zephora Charms. Pago seguro con Nequi, Bancolombia, PSE, tarjeta, Addi o Sistecrédito, y opción de pago contraentrega. Envíos a toda Colombia.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
 <meta name="theme-color" content="#2A1F2E">
@@ -401,12 +401,13 @@ button{font-family:inherit}
                 <span class="error">Revisa el correo: falta el @ o el dominio</span>
               </div>
             </div>
-            <!-- Solo con Addi: la piden para aprobar el cupo. Con los otros
-                 pagos no se pide (las transportadoras ya no la exigen). -->
+            <!-- Solo con Addi o Sistecrédito: la piden para aprobar el
+                 crédito. Con los otros pagos no se pide (las transportadoras ya
+                 no la exigen). -->
             <div class="campo" data-c="cedula" id="campo-cedula" hidden>
               <label for="cedula">Cédula <span class="req">*</span></label>
               <input id="cedula" name="cedula" type="text" inputmode="numeric" autocomplete="off" maxlength="15" placeholder="1.000.000.000">
-              <span class="pista">Addi la pide para aprobar tu cupo.</span>
+              <span class="pista" id="cedula-pista">Addi la pide para aprobar tu cupo.</span>
               <span class="error">Escribe tu número de cédula</span>
             </div>
 
@@ -540,6 +541,19 @@ button{font-family:inherit}
                 <span class="op-d op-tope" id="addi-tope" hidden></span>
               </span>
             </label>
+            <!-- Sistecrédito (pedido del propietario, 2026-10-15): mismo lugar y
+                 mismo trato que Addi. Sin número de cuotas ni «sin interés»: no
+                 se conoce su plan para la clienta, y prometerlo sería publicidad
+                 engañosa. Desde $50.000, decisión del propietario. crear-pago
+                 crea la transacción y sistecredito-enlace entrega la URL de pago. -->
+            <label class="op op--siste">
+              <input type="radio" name="pago" value="sistecredito">
+              <span class="op-tx">
+                <span class="op-t"><b>Pagar con Sistecrédito</b><span class="precio" id="p-sistecredito">—</span></span>
+                <span class="op-d">Paga a cuotas con tu crédito Sistecrédito. Te llevamos a Sistecrédito y confirmas con tu cédula y un código a tu celular. Envío gratis.</span>
+                <span class="op-d op-tope" id="siste-tope" hidden></span>
+              </span>
+            </label>
           </div>
 
           <div class="aval">
@@ -591,6 +605,11 @@ const LLAVE='zephora.carrito.v1';
    zephoracharms-ecommerce/config, 2026-10-07). crear-pago los vuelve a
    consultar en vivo; aquí solo sirven para deshabilitar la opción a tiempo. */
 const ADDI_TOPES={min:50000,max:3000000};
+/* Desde cuánto se ofrece Sistecrédito (decisión del propietario, 2026-10-15).
+   Es el mismo número que SISTECREDITO_MINIMO en crear-pago, que es quien manda. */
+const SISTE_MIN=50000;
+/* Los pagos con crédito de un tercero: piden cédula y se van a su página. */
+const CREDITO={addi:'Addi',sistecredito:'Sistecrédito'};
 let STOCK=null;
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
 /* El tercer argumento es el identificador con el que Meta deduplica. Cuando el
@@ -632,7 +651,7 @@ function leerCarrito(){
      interfaz que lo muestre ni casilla que lo quite, heredarlo sería cobrar
      $40.000 que la clienta no puede ver. Se pisa aquí, en la puerta. */
   return {base:base,charms:charms,empaque:false,
-    pago:['contraentrega','addi'].includes(d.pago)?d.pago:'anticipado'};
+    pago:['contraentrega','addi','sistecredito'].includes(d.pago)?d.pago:'anticipado'};
 }
 /* ——— el carrito puede llegar en el enlace ———
  *
@@ -682,7 +701,7 @@ function carritoDeUrl(){
   /* Igual que arriba: el «e=1» de los correos de recuperación ya enviados se
      lee y se descarta. */
   return {base:base,charms:charms,empaque:false,
-    pago:['contraentrega','addi'].includes(q.get('pago'))?q.get('pago'):'anticipado'};
+    pago:['contraentrega','addi','sistecredito'].includes(q.get('pago'))?q.get('pago'):'anticipado'};
 }
 
 /* Quita de la URL lo que ya se aplicó. Si no, recargar vuelve a imponer el
@@ -728,7 +747,7 @@ function calcular(c){
   /* El envío gratis es solo del pago anticipado; la contraentrega lo paga
      siempre. Misma regla que index.html y que _precios.js, que es quien cobra. */
   const alcanza=subtotal>=R.envioGratisDesde;
-  /* Addi es pago por adelantado: mismo envío que «Pagar ahora». */
+  /* Addi y Sistecrédito son pago por adelantado: mismo envío que «Pagar ahora». */
   const pe=c.pago==='contraentrega'?'contraentrega':'anticipado';
   const gratis=alcanza&&(!R.envioGratisSoloAnticipado||pe==='anticipado');
   const envio=(subtotal<=0||gratis)?0:R.envio[pe];
@@ -850,7 +869,7 @@ function pintarResumen(){
 
   /* Los dos precios de «Cambiar» se calculan con su propia forma de pago, para
      que la diferencia se vea antes de elegir y no después. */
-  ['anticipado','contraentrega','addi'].forEach(f=>{
+  ['anticipado','contraentrega','addi','sistecredito'].forEach(f=>{
     const tt=calcular(Object.assign({},c,{pago:f}));
     $('#p-'+f).textContent=cop(tt.total);
   });
@@ -870,6 +889,20 @@ function pintarResumen(){
     : 'Addi aplica para compras de hasta '+cop(ADDI_TOPES.max)+'.';
   $('#addi-atajo').classList.toggle('sin-addi',fuera);
   if(fuera&&carrito.pago==='addi'){
+    carrito.pago='anticipado';
+    document.querySelector('#ops-pago input[value="anticipado"]').checked=true;
+    guardarCarrito();
+  }
+
+  /* Sistecrédito, igual: por debajo del mínimo se deshabilita y dice por qué. */
+  const ts=calcular(Object.assign({},c,{pago:'sistecredito'})).total;
+  const bajo=ts<SISTE_MIN;
+  const rs=document.querySelector('#ops-pago input[value="sistecredito"]');
+  rs.disabled=bajo;
+  rs.closest('.op').classList.toggle('op--off',bajo);
+  $('#siste-tope').hidden=!bajo;
+  $('#siste-tope').textContent='Sistecrédito aplica para compras desde '+cop(SISTE_MIN)+'. Te faltan '+cop(SISTE_MIN-ts)+'.';
+  if(bajo&&carrito.pago==='sistecredito'){
     carrito.pago='anticipado';
     document.querySelector('#ops-pago input[value="anticipado"]').checked=true;
     guardarCarrito();
@@ -896,26 +929,34 @@ function pintarResumen(){
 function pintarPagoElegido(t){
   t=t||calcular(carrito);
   const contra=carrito.pago==='contraentrega', addi=carrito.pago==='addi';
+  const siste=carrito.pago==='sistecredito', credito=CREDITO[carrito.pago];
   $('#pago-elegido-tx').innerHTML=contra
     ? '<b>Pago contraentrega</b><span>Pagas en efectivo al recibir · envío '+cop(t.envio)+'</span>'
     : addi
     ? '<b>Pagar con Addi</b><span>Hasta 3 cuotas sin interés · apruebas tu cupo en minutos'
       +(t.gratis?' · envío gratis':'')+'</span>'
+    : siste
+    ? '<b>Pagar con Sistecrédito</b><span>A cuotas con tu crédito Sistecrédito'
+      +(t.gratis?' · envío gratis':'')+'</span>'
     : '<b>Pagar ahora con Wompi</b><span>Nequi, Bancolombia, PSE, Daviplata, tarjetas'
       +(t.gratis?' · envío gratis':'')+'</span>';
   if(!enviando) $('#confirmar').textContent=contra
     ? 'Confirmar pedido · '+cop(t.total)
-    : addi
-    ? 'Continuar con Addi · '+cop(t.total)
+    : credito
+    ? 'Continuar con '+credito+' · '+cop(t.total)
     : 'Pagar '+cop(t.total);
   $('#nota-pago').textContent=contra
     ? 'Pagas en efectivo al mensajero. Confirmamos disponibilidad por WhatsApp antes de despachar.'
     : addi
     ? 'Al continuar te llevamos a Addi: con tu cédula y tu celular apruebas el cupo en minutos. Las cuotas las pagas directamente a Addi.'
+    : siste
+    ? 'Al continuar te llevamos a Sistecrédito: eliges tus cuotas y confirmas con el código que te llega al celular. Las cuotas las pagas directamente a Sistecrédito.'
     : 'Zephora Charms no ve ni guarda los datos de tu tarjeta: los recibe Wompi directamente.';
-  /* La cédula solo con Addi; el atajo de abajo sobra cuando ya está elegido. */
-  $('#campo-cedula').hidden=!addi;
-  if(!addi) marcar('cedula',false);
+  /* La cédula solo con crédito (Addi o Sistecrédito); el atajo de abajo sobra
+     cuando Addi ya está elegido. */
+  $('#campo-cedula').hidden=!credito;
+  if(credito) $('#cedula-pista').textContent=credito+' la pide para aprobar tu '+(addi?'cupo':'crédito')+'.';
+  else marcar('cedula',false);
   $('#addi-atajo').hidden=addi||$('#addi-atajo').classList.contains('sin-addi');
 }
 
@@ -1036,8 +1077,8 @@ const REGLAS={
      el campo está oculto y vacío, y marcarlo sería marcar algo invisible. */
   ciudadotra:()=>$('#ciudad').value!==OTRO||val('ciudadotra').length>=3,
   direccion:()=>val('direccion').length>=5,
-  /* Solo cuenta con Addi; con los otros pagos el campo está oculto. */
-  cedula:()=>carrito.pago!=='addi'||val('cedula').replace(/\D/g,'').length>=5
+  /* Solo cuenta con Addi o Sistecrédito; con los otros pagos el campo está oculto. */
+  cedula:()=>!CREDITO[carrito.pago]||val('cedula').replace(/\D/g,'').length>=5
 };
 
 function validar(){
@@ -1140,7 +1181,7 @@ async function confirmar(){
   const btn=$('#confirmar');
   btn.disabled=true;
   btn.textContent=carrito.pago==='contraentrega'?'Registrando pedido…'
-    :carrito.pago==='addi'?'Conectando con Addi…':'Conectando con Wompi…';
+    :CREDITO[carrito.pago]?'Conectando con '+CREDITO[carrito.pago]+'…':'Conectando con Wompi…';
   error(null);
 
   const cuerpo={
@@ -1149,8 +1190,9 @@ async function confirmar(){
     fbp:cookie('_fbp'), fbc:cookie('_fbc'),
     via:viaWa()?'wa':''
   };
-  /* Addi la necesita para aprobar el cupo; con los otros pagos no se pide. */
-  if(carrito.pago==='addi'){ cuerpo.cliente.tipodoc='CC'; cuerpo.cliente.documento=val('cedula').replace(/\D/g,''); }
+  /* Addi y Sistecrédito la necesitan para aprobar el crédito; con los otros
+     pagos no se pide. */
+  if(CREDITO[carrito.pago]){ cuerpo.cliente.tipodoc='CC'; cuerpo.cliente.documento=val('cedula').replace(/\D/g,''); }
 
   try{
     const r=await fetch('/.netlify/functions/crear-pago',{
@@ -1211,6 +1253,17 @@ async function confirmar(){
       return;
     }
 
+    /* Sistecrédito: el servidor ya creó la transacción, pero Sistecrédito da la
+       URL de pago unos segundos después. Se pregunta a sistecredito-enlace hasta
+       que la tenga (máximo un minuto). Si Sistecrédito ya la rechazó, las
+       unidades se liberaron allá mismo y aquí se dice por qué. */
+    if(d.modo==='sistecredito'){
+      const url=d.url||await esperarSiste(d.consulta,d.referencia);
+      if(!/^https:\/\//.test(url||'')) throw new Error('Sistecrédito no devolvió el enlace de pago');
+      location.href=url;
+      return;
+    }
+
     /* Wompi: se va al Web Checkout con la firma que generó el servidor y el
        monto en centavos, que es como cobra Wompi.
 
@@ -1261,11 +1314,34 @@ async function confirmar(){
   }
 }
 
+/* Pregunta por la URL de pago de Sistecrédito cada 1,5 segundos durante un
+   minuto. Devuelve la URL, o lleva a gracias si ya quedó aprobado (el modo de
+   pruebas de Sistecrédito aprueba sin pasar por su página), o lanza el motivo. */
+async function esperarSiste(consulta,referencia){
+  if(!/^\/\.netlify\/functions\/sistecredito-enlace\?ref=/.test(consulta||'')) throw new Error('Sistecrédito no está disponible');
+  for(let i=0;i<40;i++){
+    await new Promise(r=>setTimeout(r,i?1500:800));
+    const r=await fetch(consulta,{cache:'no-store'}).catch(()=>null);
+    const d=r&&r.ok?await r.json().catch(()=>null):null;
+    if(!d) continue;
+    if(d.url) return d.url;
+    if(d.terminado&&d.estado==='aprobado'){
+      try{ localStorage.removeItem(LLAVE); }catch(_){}
+      location.href='gracias.html?ref='+encodeURIComponent(referencia)+'&modo=sistecredito';
+      return new Promise(()=>{});
+    }
+    if(d.terminado) throw new Error(d.mensaje||'Sistecrédito no aprobó el pago. Puedes elegir otro medio de pago.');
+  }
+  throw new Error('Sistecrédito está tardando en responder. Puedes intentar de nuevo o elegir otro medio de pago.');
+}
+
 /* Respaldo: el mismo pedido, en texto, para WhatsApp. */
 function waPedido(){
   const t=calcular(carrito), d=datos(), addi=carrito.pago==='addi';
   let s=addi
     ? 'Hola, Zephora Charms. Quiero pagar este pedido con Addi (hasta 3 cuotas sin interés):\n'
+    : carrito.pago==='sistecredito'
+    ? 'Hola, Zephora Charms. Quiero pagar este pedido con Sistecrédito:\n'
     : 'Hola, Zephora Charms. Armé este pedido en la página y quiero confirmarlo:\n';
   lineas(carrito).forEach(l=>{
     const talla=/Talla/.test(l.m)?' ('+l.m.replace(/^.*Talla /,'talla ')+')':'';

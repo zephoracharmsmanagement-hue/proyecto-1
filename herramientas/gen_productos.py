@@ -109,13 +109,19 @@ def tarjeta_principal(html, pid, cat):
     # La cuota de Addi bajo el precio (pedido del propietario, 2026-10-08). Mismos
     # topes que el carrito (pintarCuotasAddi en tienda.js): de $50.000 a $600.000
     # es «sin interés»; la cuota se redondea hacia arriba al peso.
+    #
+    # Y debajo, Sistecrédito (pedido del propietario, 2026-10-15), más discreto:
+    # sin cifra de cuota ni «sin interés», porque no se conoce su plan. Desde
+    # $50.000, el mínimo que puso la tienda (SISTECREDITO_MINIMO en crear-pago).
     precio = cat['precios'][pid]
+    siste = ('<p class="pp-cuotas pp-siste">o a cuotas con tu crédito <b>Sistecrédito</b></p>'
+             if precio >= 50000 else '')
     if 50000 <= precio <= 600000:
         cuota = cop(-(-precio // 3))
         t = t.replace('</div></div></article>',
                       '</div>\n<p class="pp-cuotas">o hasta 3 cuotas de <b>%s</b> sin interés con '
                       '<img class="addi-logo" src="assets/pagos/addi.webp?v=20260913" alt="Addi" width="183" '
-                      'height="70" decoding="async"></p></div></article>' % cuota, 1)
+                      'height="70" decoding="async"></p>%s</div></article>' % (cuota, siste), 1)
     return t
 
 

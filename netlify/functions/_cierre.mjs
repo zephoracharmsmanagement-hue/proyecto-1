@@ -32,17 +32,20 @@ async function reenviar(carga) {
   }
 }
 
-/* El correo de «pago recibido». Con Addi no hubo pago en la tienda: Addi
-   aprobó el crédito y es Addi quien le cobra a la clienta en cuotas. */
+/* El correo de «pago recibido». Con Addi o Sistecrédito no hubo pago en la
+   tienda: el tercero aprobó el crédito y es él quien le cobra a la clienta en
+   cuotas. */
+const CREDITO = { addi: 'Addi', sistecredito: 'Sistecrédito' };
+
 function correoPagado({ referencia, total, medio }) {
   const t = cop(total || 0);
-  const addi = medio === 'addi';
-  const titulo = addi ? '¡Compra aprobada!' : '¡Pago recibido!';
-  const frase = addi
-    ? `Addi aprobó tu compra de <b>${t}</b>. Las cuotas las pagas directamente a Addi.`
+  const credito = CREDITO[medio];
+  const titulo = credito ? '¡Compra aprobada!' : '¡Pago recibido!';
+  const frase = credito
+    ? `${credito} aprobó tu compra de <b>${t}</b>. Las cuotas las pagas directamente a ${credito}.`
     : `Confirmamos tu pago de <b>${t}</b>.`;
   return {
-    asunto: `${addi ? 'Compra aprobada' : 'Pago confirmado'} · ${referencia} · Zephora Charms`,
+    asunto: `${credito ? 'Compra aprobada' : 'Pago confirmado'} · ${referencia} · Zephora Charms`,
     html: `<!DOCTYPE html><html lang="es-CO"><head><meta charset="UTF-8">`
       + `<meta name="viewport" content="width=device-width,initial-scale=1"></head>`
       + `<body style="margin:0;background:#F6F3F4">`
@@ -83,7 +86,7 @@ function correoPagado({ referencia, total, medio }) {
 }
 
 /* registro: { referencia, aprobado, estado, transaccion, metodo, total, correo,
- *             telefono, nombre, cuandoMs, medio ('wompi' | 'addi') } */
+ *             telefono, nombre, cuandoMs, medio ('wompi' | 'addi' | 'sistecredito') } */
 async function cerrarPago(registro) {
   const { referencia, aprobado } = registro;
   const cuando = registro.cuandoMs ? new Date(registro.cuandoMs).toISOString() : null;

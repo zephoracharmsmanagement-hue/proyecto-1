@@ -569,6 +569,94 @@ async function llenarDatos(p, d) {
     delete process.env.ADDI_CLIENT_ID; delete process.env.ADDI_CLIENT_SECRET;
   }
 
+  // ——— 3c · Sistecrédito, al lado de Addi (2026-10-15) ———
+  out.push('\n3c · Sistecrédito: cuarta opción, espera el enlace y va a Sistecrédito');
+  {
+    /* La URL de pago de Sistecrédito no llega con la transacción: aparece unos
+       segundos después en GetTransactionResponse, y el checkout la pide a
+       sistecredito-enlace hasta tenerla. Aquí la red de Sistecrédito es de
+       mentira y la URL aparece a la segunda consulta. El registro de pedidos va
+       en memoria: sistecredito-enlace necesita leer el id de la transacción. */
+    const fetchAntes = globalThis.fetch;
+    const tx = {}; let n = 0, consultas = 0;
+    Object.assign(process.env, { SISTECREDITO_SUBSCRIPTION_KEY: 'llave-prueba', SISTECREDITO_STORE_ID: 'tienda-prueba',
+      SISTECREDITO_VENDOR_ID: 'vendedor-prueba' });
+    globalThis.fetch = async (url, op) => {
+      url = String(url);
+      if (url === 'https://api.credinet.co/pay/create') {
+        const c = JSON.parse(op.body);
+        const id = 'tx' + String(++n).padStart(10, '0');
+        tx[id] = { _id: id, invoice: c.invoice, value: c.value, documento: c.client.document,
+          transactionStatus: 'PendingForPaymentMethod', paymentMethodResponse: {} };
+        return new Response(JSON.stringify({ errorCode: 0, data: tx[id] }), { status: 200 });
+      }
+      if (url.startsWith('https://api.credinet.co/pay/GetTransactionResponse')) {
+        const t = tx[decodeURIComponent(url.split('=')[1])];
+        if (t && ++consultas >= 2) {
+          t.transactionStatus = 'Pending';
+          t.paymentMethodResponse = { paymentRedirectUrl: 'https://pago.sistecredito.test/x' };
+        }
+        return new Response(JSON.stringify({ errorCode: t ? 0 : 708, data: t || null }), { status: t ? 200 : 400 });
+      }
+      return fetchAntes(url, op);
+    };
+    const ped = await cargar('_pedidos.mjs');
+    const mem = {};
+    ped._interno.usarAlmacen({
+      async get(k) { return mem[k] ? JSON.parse(mem[k]) : null; },
+      async getWithMetadata(k) { return mem[k] ? { data: JSON.parse(mem[k]), etag: 'e', metadata: {} } : null; },
+      async setJSON(k, v) { mem[k] = JSON.stringify(v); return { modified: true }; },
+      async delete(k) { delete mem[k]; },
+      async list() { return { blobs: Object.keys(mem).map(key => ({ key })) }; },
+    });
+    const enlace = await cargar('sistecredito-enlace.mjs');
+
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    const cap = [];
+    await interceptar(p, cap);
+    await p.route('**/.netlify/functions/sistecredito-enlace**', async route => {
+      const u = new URL(route.request().url());
+      const r = await enlace.default(new Request('https://zephoracharms.com' + u.pathname + u.search));
+      await route.fulfill({ status: r.status, contentType: 'application/json', body: await r.text() });
+    });
+    let haciaSiste = null;
+    await p.route(/pago\.sistecredito\.test/, r => { haciaSiste = r.request().url(); r.fulfill({ status: 200, body: 'siste' }); });
+    await p.route(/widgets\.addi\.com/, r => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+    await ponerCarrito(p, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse', 'stitch', 'iron-man'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+    await llenarDatos(p, DATOS);
+    await p.click('#cambiar-pago');
+    ok(await p.locator('#ops-pago input[value="sistecredito"]').count() === 1, '«Cambiar» trae Sistecrédito como cuarta opción');
+    const ant = await p.locator('#p-anticipado').textContent(), sis = await p.locator('#p-sistecredito').textContent();
+    ok(ant === sis, 'Sistecrédito cuesta lo mismo que pagar ahora: envío gratis', sis);
+    const desc = await p.locator('.op--siste .op-d').first().textContent();
+    ok(!/sin inter[eé]s|\d+\s*cuotas/i.test(desc), 'no promete «sin interés» ni un número de cuotas', desc.slice(0, 60));
+    await p.check('#ops-pago input[value="sistecredito"]');
+    await p.waitForTimeout(200);
+    const r = await p.evaluate(() => ({ b: document.getElementById('confirmar').textContent, n: document.getElementById('nota-pago').textContent,
+      c: !document.getElementById('campo-cedula').hidden, pista: document.getElementById('cedula-pista').textContent }));
+    ok(/Continuar con Sistecrédito/.test(r.b) && /Sistecrédito/.test(r.n), 'el botón y la nota dicen que se sigue en Sistecrédito', r.b);
+    ok(r.c && /Sistecrédito/.test(r.pista), 'y aparece la cédula, con la pista de Sistecrédito', r.pista);
+    await p.fill('#cedula', '1.069.306.205');
+    await p.click('#confirmar');
+    await p.waitForTimeout(4500);
+    const ultimo = cap[cap.length - 1] || {};
+    ok(ultimo.pedido && ultimo.pedido.pago === 'sistecredito' && ultimo.pedido.cliente.documento === '1069306205',
+      'crear-pago recibe pago sistecredito y la cédula limpia');
+    ok(ultimo.codigo === 200 && ultimo.respuesta.modo === 'sistecredito', 'y responde modo sistecredito');
+    const t = tx['tx' + String(n).padStart(10, '0')] || {};
+    ok(t.invoice === ultimo.respuesta.referencia && t.documento === '1069306205', 'la transacción lleva la referencia y la cédula');
+    ok(consultas >= 2 && haciaSiste === 'https://pago.sistecredito.test/x',
+      'espera a que Sistecrédito dé la URL y lleva a la clienta allá', haciaSiste || 'no navegó');
+    await p.close();
+
+    ped._interno.usarAlmacen(null);
+    globalThis.fetch = fetchAntes;
+    ['SISTECREDITO_SUBSCRIPTION_KEY', 'SISTECREDITO_STORE_ID', 'SISTECREDITO_VENDOR_ID'].forEach(k => delete process.env[k]);
+  }
+
   // ——— 4 · contraentrega ———
   out.push('\n4 · Contraentrega');
   {
