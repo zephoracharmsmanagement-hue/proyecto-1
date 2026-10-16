@@ -156,7 +156,12 @@ async function crearTransaccion(datos) {
   try {
     const r = await llamar(`${API}/create`, { method: 'POST', body: JSON.stringify(cuerpoTransaccion(datos)) });
     const t = resumen(r.d && r.d.data);
-    if (r.status === 200 && t.id && !NEGATIVOS.has(t.estado)) return { ok: true, id: t.id, url: t.url, estado: t.estado };
+    /* create responde 201 (comprobado contra la pasarela real, 2026-10-15), no 200. */
+    const bien = r.status >= 200 && r.status < 300 && t.id;
+    if (bien && !NEGATIVOS.has(t.estado)) return { ok: true, id: t.id, url: t.url, estado: t.estado };
+    /* Rechazada al crearla (801 solicitud abierta, 802 bajo su mínimo…): no es
+       una caída, y la clienta tiene que saber el motivo. */
+    if (bien) return { ok: false, rechazada: true, motivo: `Sistecrédito rechazó la transacción (${t.estado} ${t.codigo})`, mensaje: mensaje(t) };
     return { ok: false, motivo: `Sistecrédito respondió ${r.status}`,
       detalle: (r.d && r.d.message) || t.descripcion || r.txt.slice(0, 200) };
   } catch (e) {
@@ -171,7 +176,7 @@ async function consultar(id) {
   try {
     const r = await llamar(`${API}/GetTransactionResponse?transactionId=${encodeURIComponent(id)}`, { method: 'GET' });
     const t = resumen(r.d && r.d.data);
-    if (r.status === 200 && t.id === id) return { ok: true, t };
+    if (r.status >= 200 && r.status < 300 && t.id === id) return { ok: true, t };
     return { ok: false, motivo: `Sistecrédito respondió ${r.status}`, detalle: (r.d && r.d.message) || '' };
   } catch (e) {
     return { ok: false, motivo: e.message };

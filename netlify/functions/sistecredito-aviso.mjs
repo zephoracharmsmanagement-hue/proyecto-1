@@ -27,29 +27,36 @@ export default async (req) => {
 
   let aviso;
   try { aviso = JSON.parse((await req.text()) || '{}'); } catch (_) { return json(400, { error: 'JSON inválido' }); }
-  /* Puede llegar la transacción sola o envuelta como la respuesta de la API. */
+  /* Puede llegar la transacción sola o envuelta como la respuesta de la API.
+     Los avisos reales (comprobado en su modo de pruebas, 2026-10-15) traen el
+     _id pero no el invoice donde lo trae la consulta: por eso del aviso solo
+     se toma el _id, y todo lo demás sale de la consulta. */
   const d = aviso && aviso.data && typeof aviso.data === 'object' ? aviso.data : (aviso || {});
-  const id = String(d._id || '').slice(0, 64);
-  const invoice = String(d.invoice || '').slice(0, 60);
+  const campo = (...nombres) => { for (const n of nombres) if (d[n] != null && d[n] !== '') return d[n]; return ''; };
+  const id = String(campo('_id', 'id', 'Id', 'transactionId', 'TransactionId')).slice(0, 64);
+  const invoiceAviso = String(campo('invoice', 'Invoice')).slice(0, 60);
 
-  /* El rastro para conciliar contra el portal de Sistecrédito, pase lo que pase. */
-  console.log(JSON.stringify({ evento: 'sistecredito_aviso', referencia: invoice, transaccion: id,
-    estado: String(d.transactionStatus || '') }));
+  /* El rastro para conciliar contra el portal de Sistecrédito, pase lo que pase.
+     `campos` son solo los NOMBRES de lo que trajo el aviso, para conocer su
+     forma real sin dejar valores en el log. */
+  console.log(JSON.stringify({ evento: 'sistecredito_aviso', referencia: invoiceAviso, transaccion: id,
+    estado: String(campo('transactionStatus', 'TransactionStatus')), campos: Object.keys(d).slice(0, 40) }));
 
-  if (!id || !invoice) return json(400, { error: 'Faltan _id o invoice' });
-  const auth = d.extraData && d.extraData.Authentication;
-  if (auth != null && !firmaValida(invoice, auth)) {
-    console.error('Aviso de Sistecrédito con una firma que no cuadra — descartado', invoice);
-    return json(401, { error: 'No autorizado' });
-  }
+  if (!id) return json(400, { error: 'Falta el _id de la transacción' });
 
   const c = await consultar(id);
   if (!c.ok) {
-    console.error(JSON.stringify({ evento: 'sistecredito_aviso_sin_verificar', referencia: invoice, motivo: c.motivo }));
+    console.error(JSON.stringify({ evento: 'sistecredito_aviso_sin_verificar', transaccion: id, motivo: c.motivo }));
     return json(502, { error: 'No se pudo verificar la transacción' });
   }
   const t = c.t;
-  if (t.invoice !== invoice) return json(409, { error: 'La transacción no corresponde a ese pedido' });
+  if (invoiceAviso && t.invoice !== invoiceAviso) return json(409, { error: 'La transacción no corresponde a ese pedido' });
+  const extra = d.extraData || d.ExtraData || {};
+  const auth = extra.Authentication != null ? extra.Authentication : extra.authentication;
+  if (auth != null && !firmaValida(t.invoice, auth)) {
+    console.error('Aviso de Sistecrédito con una firma que no cuadra — descartado', t.invoice);
+    return json(401, { error: 'No autorizado' });
+  }
 
   const pedido = await leer(t.invoice);
   if (!pedido) {

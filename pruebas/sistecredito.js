@@ -74,7 +74,11 @@ async function main() {
       sc.tx[id] = { _id: id, invoice: cuerpo.invoice, storeId: 'tienda-de-prueba', vendorId: 'vendedor-de-prueba',
         value: cuerpo.value, currency: 'COP', transactionStatus: 'PendingForPaymentMethod',
         paymentMethodResponse: { transactionId: id, statusResponse: 'PendingForPaymentMethod', codeResponse: '3' } };
-      return respuesta(sc.tx[id]);
+      if (sc.crear === 'rechaza-802') {
+        sc.tx[id].transactionStatus = 'Rejected';
+        sc.tx[id].paymentMethodResponse = { transactionId: id, statusResponse: 'Rejected', codeResponse: '802' };
+      }
+      return respuesta(sc.tx[id], 201); /* la pasarela real responde 201 al crear */
     }
     if (url.startsWith('https://api.credinet.co/pay/GetTransactionResponse?transactionId=')) {
       const id = decodeURIComponent(url.split('=')[1]);
@@ -201,7 +205,9 @@ async function main() {
   console.log('\n4 · Aprobado y repetidos');
   {
     const n = correos.length;
-    const r = await avisar(id);
+    /* Así llegan los avisos reales: con el _id, sin el invoice donde lo trae la
+       consulta. Basta: todo lo demás se saca de consultar la transacción. */
+    const r = await leerJ(await pedir(aviso, { crudo: JSON.stringify({ _id: id }), cabeceras: { 'Content-Type': 'application/json' } }));
     comprobar(r.s === 200, 'aprobado → 200');
     const reg = await ped.leer(ref);
     comprobar(reg.estado === 'pagado' && reg.metodo === 'SISTECREDITO' && reg.transaccion === id,
@@ -271,6 +277,16 @@ async function main() {
     comprobar(correos.length === n, 'y la clienta no recibe un «pedido recibido» de algo que no llegó a Sistecrédito');
     comprobar(regs.length === 1 && regs[0].estado === 'no-llego-a-sistecredito' && !reservas()[regs[0].referencia],
       'el intento queda anotado y las unidades se liberan');
+    /* Así responde la pasarela real cuando rechaza al crear (comprobado en su
+       modo de pruebas, 2026-10-15): 201, con la transacción ya en Rejected. */
+    sc.crear = 'rechaza-802';
+    const m = correos.length;
+    r = await crear([c1, c2], CLIENTE({ correo: 'minimo@ejemplo.com' }));
+    const regs2 = (await ped.listar()).filter(p => p.cliente && p.cliente.correo === 'minimo@ejemplo.com');
+    comprobar(r.s === 400 && /mínimo que acepta Sistecrédito/.test(r.d.error),
+      'rechazada al crearla por su mínimo (802) → 400 que dice el motivo, no «no está disponible»', r.d && r.d.error);
+    comprobar(correos.length === m && regs2.length === 1 && !reservas()[regs2[0].referencia],
+      'sin correos, y las unidades se liberan');
     sc.crear = 'ok';
     const sin = process.env.SISTECREDITO_SUBSCRIPTION_KEY; delete process.env.SISTECREDITO_SUBSCRIPTION_KEY;
     r = await crear([c1, c2], CLIENTE());

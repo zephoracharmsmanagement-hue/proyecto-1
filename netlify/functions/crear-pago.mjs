@@ -409,8 +409,9 @@ export default async (req) => {
       }));
       await liberar(ref);
       await marcar(ref, { estado: 'no-llego-a-sistecredito', motivo: transaccionSiste.motivo });
-      return responder(503, {
-        error: 'Sistecrédito no está disponible en este momento. Puedes elegir otro medio de pago.',
+      return responder(transaccionSiste.rechazada ? 400 : 503, {
+        error: transaccionSiste.mensaje
+          || 'Sistecrédito no está disponible en este momento. Puedes elegir otro medio de pago.',
       });
     }
     await marcar(ref, { sistecreditoId: transaccionSiste.id, sistecreditoEstado: transaccionSiste.estado });
