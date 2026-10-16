@@ -114,7 +114,9 @@ def tarjeta_principal(html, pid, cat):
     # sin cifra de cuota ni «sin interés», porque no se conoce su plan. Desde
     # $50.000, el mínimo que puso la tienda (SISTECREDITO_MINIMO en crear-pago).
     precio = cat['precios'][pid]
-    siste = ('<p class="pp-cuotas pp-siste">o a cuotas con tu crédito <b>Sistecrédito</b></p>'
+    siste = ('<p class="pp-cuotas pp-siste">o a cuotas con tu crédito '
+             '<img class="siste-logo" src="assets/pagos/sistecredito.webp?v=20261016" alt="Sistecrédito" '
+             'width="580" height="74" decoding="async"></p>'
              if precio >= 50000 else '')
     if 50000 <= precio <= 600000:
         cuota = cop(-(-precio // 3))
