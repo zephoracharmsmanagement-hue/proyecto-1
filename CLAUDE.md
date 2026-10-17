@@ -36,7 +36,9 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
 - **`VENTAS · ESCALA · IC`** (`120247398773240534`, antes "Nueva campaña de
   Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
   (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
-  `Purchase`**: es la limitación de fondo, no un descuido. 7 anuncios activos
+  `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-16
+  quedan 6 activos: Avengers, Inicial y mascota, Demo, Testimonio, Regalo y
+  Luciérnaga (detalle abajo). Historia: 7 anuncios activos
   desde el 2026-10-03 y **6 desde el 2026-10-06**, cuando se pausó Spider-Man:
   novio superhéroes (evergreen), Colección Avengers, Video Inicial y mascota, y
   tres traídos de la prueba con su misma publicación (Regalo · Dedicatoria,
@@ -51,6 +53,27 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   La mediana diaria es de 5 checkouts. No se sabe cuánto se debe a la
   consolidación, a pausar Spider-Man o a la promo del 4 de octubre: los tres
   cambios fueron seguidos.
+
+  **Subida del 15% y vuelta atrás (14–17 oct).** El propietario subió el
+  presupuesto a $27.600 el 14 de octubre (07:44) tras un buen 11–13 ($2.600 por
+  checkout, puente festivo del 12). Del 14 al 16 salió a ~$9.600 por checkout
+  (8 en tres días) y la semana 10–16 dio 38 checkouts a $4.479, contra 52 a
+  $3.238 la anterior con el mismo gasto. Por la regla de la skill (si el gasto
+  sube y los checkouts no, se devuelve), **el 17 de octubre volvió a $24.000**.
+  La causa no está probada: cayó la tasa de carrito por visita en todos los
+  anuncios a la vez (46% → 30%), sin cambios en el sitio esos días, y
+  coincidió con el fin del puente y con Avengers gastándose ($6.492 por
+  checkout el 16–17). El martillo de Thor está agotado; los cuatro héroes del
+  texto de Avengers todavía tienen unidades (el propietario avisa cuando uno
+  llegue a cero, y ahí se pausa Avengers y entra el relevo, ad29 con la promo
+  vigente).
+
+  **Cambios del 11 al 16 de octubre:** entraron VIDEO · Demo · Arma la suya ·
+  Paga 3 lleva 1 (`120248491836370534`) y VIDEO · Testimonio · Muro de reseñas
+  (`120248493108720534`); salió Atrapasueños; se pausó novio superhéroes el 16
+  ($4.128 sin un carrito). Inicial y mascota fue rechazado el 15 por «enlace
+  engañoso» (falso positivo del revisor automático), se aprobó en revisión y
+  volvió sin gasto: Meta lo reaprende.
 
   **Dos anuncios llevan toda la campaña.** Del 8 al 10 de octubre, el Video ·
   Inicial y mascota se llevó el 59% del gasto ($4.478 por checkout) y
