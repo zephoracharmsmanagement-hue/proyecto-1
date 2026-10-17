@@ -33,3 +33,6 @@ material-sin-publicar/
 
 # Entregables generados para el propietario (PDF, etc.): no se versionan
 entregables/
+
+# Paquete para el bot propio del propietario: lleva existencias del día.
+automatizaciones/bot-propio/
