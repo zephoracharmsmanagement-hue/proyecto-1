@@ -59,15 +59,15 @@ const U = BASE + '/index.html';
   const visiblesDisney = await p.locator('#resto-grid .pc:not([hidden])').count();
   out.push(`\nFiltro "Disney"\n  botones activos en #b-filters: ${bActivos} (debe ser 1)` +
     `\n  botones activos en #filters: ${fActivos} (debe ser 1)` +
-    `\n  contador dice: "${texto}"  (en pantalla: ${visiblesDisney} en grilla + 2 destacados = ${visiblesDisney + 2})`);
+    `\n  contador dice: "${texto}"  (en pantalla: ${visiblesDisney} en la grilla, que ya incluye los favoritos)`);
 
   // ---- 3. Botón catálogo completo ----
   await p.click('#filters .fbtn[data-f="todos"]');
   const revelados = await p.locator('#full-cat .pc').count();
   const destacados = await p.locator('#rail-top .pc').count();
   const rotulo = await p.locator('#more-btn').textContent();
-  out.push(`\nCatálogo\n  destacados en carrusel: ${destacados}\n  revelados por el botón: ${revelados}` +
-    `\n  total: ${destacados + revelados}\n  rótulo actual del botón: "${rotulo.trim()}"`);
+  out.push(`\nCatálogo\n  favoritos: ${destacados}\n  en el catálogo completo (los incluye): ${revelados}` +
+    `\n  rótulo actual del botón: "${rotulo.trim()}"`);
 
   // ---- 4. Categorías ----
   /* Las tarjetas grandes de «Compra por categoría» se quitaron de la portada
@@ -469,16 +469,23 @@ const U = BASE + '/index.html';
     out.push(`  las páginas legales tienen margen a los lados en el celular (${margen} px): ${margen >= 12 ? 'sí ✓' : 'NO ✗'}`);
   }
 
-  // ---- Portada del 2026-10-02: lo más vendido primero y reseñas en carrusel ----
-  /* Ventas y reseñas simuladas: la prueba no puede depender de lo que se haya
-     vendido hoy. Un brazalete y un charm del catálogo completo «vendieron», y
-     tienen que abrir sus carruseles; las reseñas con foto se suman al de
-     reseñas, todas con la misma forma, y las de solo texto no. */
+  // ---- Portada: brazaletes por ventas, favoritos por unidades, reseñas en carrusel ----
+  /* Ventas, existencias y reseñas simuladas: la prueba no puede depender de lo
+     que se haya vendido hoy. Un brazalete «vendió» y tiene que abrir su nivel.
+     «Los charms favoritos» se arman con los de MÁS UNIDADES LIBRES (pedido del
+     propietario, 2026-10-18): Wolverine tiene 9 y abre; una inicial, un clip y
+     un brazalete con más unidades no entran, y uno con 2 tampoco. Cada favorito
+     sigue también en el catálogo completo, y buscarlo ahí lo muestra —antes
+     decía «1 charm encontrado» sin ninguna tarjeta—. Las reseñas con foto se
+     suman al carrusel, todas con la misma forma, y las de solo texto no. */
   {
     const q = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
     q.on('pageerror', e => errores.push('portada: ' + e.message));
-    const brz = 'pulsera-trebol-verde', ch = 'iron-man';
-    await q.route(/\/\.netlify\/functions\/mas-vendidos/, r => r.fulfill({ json: { ventasRegistradas: 5, vendidas: [{ id: ch, unidades: 5 }, { id: brz, unidades: 3 }], disponibles: {} } }));
+    const brz = 'pulsera-trebol-verde', ch = 'wolverine';
+    const libres = { 'wolverine': 9, 'iron-man': 5, 'deadpool': 5, 'stitch': 4, 'atrapasuenos-azul': 4,
+      'letra-a': 20, 'clip-forever-multicolor': 15, 'pulsera-avengers': 30, 'hulk': 2 };
+    await q.route(/\/\.netlify\/functions\/mas-vendidos/, r => r.fulfill({ json: { ventasRegistradas: 5, minimoLibres: 3,
+      vendidas: [{ id: 'deadpool', unidades: 5 }, { id: brz, unidades: 3 }], disponibles: libres } }));
     await q.route(/\/\.netlify\/functions\/resenas/, r => r.fulfill({ json: { total: 4, promedio: 4.8, resenas: [
       { estrellas: 5, texto: 'Con foto', nombre: 'Ana', ciudad: 'Cali', verificada: false, fotos: ['/resenas?medio=x%2Fy%2Ff1.jpg'], video: null },
       { estrellas: 4, texto: 'Solo texto', nombre: 'Bea', ciudad: '', verificada: false, fotos: [], video: null },
@@ -495,7 +502,10 @@ const U = BASE + '/index.html';
         /* El primero en el orden y también a la vista: al insertar por delante,
            Chrome corría el carrusel para seguir mostrando el que ya se veía. */
         aLaVista: [...document.querySelectorAll('#rail-top .pc')].find(c => c.getBoundingClientRect().right > 0).dataset.id,
-        unaVez: document.querySelectorAll(`.pc[data-id="${ch}"]`).length,
+        enFav: document.querySelectorAll(`#rail-top .pc[data-id="${ch}"]`).length,
+        enCat: document.querySelectorAll(`#resto-grid .pc[data-id="${ch}"]`).length,
+        favs: [...document.querySelectorAll('#rail-top .pc')].map(c => c.dataset.id),
+        catSinTop: document.querySelectorAll('#resto-grid .pc--top').length,
         tarjetas: document.querySelectorAll('#tst-rail .tst').length,
         /* Todas las de la tienda, en el orden en que las manda el servidor
            (2026-10-06: él decide cuáles van primero); la de solo texto con el
@@ -515,9 +525,10 @@ const U = BASE + '/index.html';
     }, [brz, ch]);
     out.push('\nPortada: lo más vendido primero y reseñas en carrusel'
       + `\n  el brazalete más vendido abre su nivel: ${r.brz === brz ? 'sí ✓' : 'NO ✗ (' + r.brz + ')'}`
-      + `\n  el charm más vendido abre «Los charms favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
-      + `\n  y es el que se ve primero, sin que el carrusel se corra: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
-      + `\n  y sigue apareciendo una sola vez: ${r.unaVez === 1 ? 'sí ✓' : 'NO ✗ (' + r.unaVez + ')'}`
+      + `\n  el charm con más unidades libres abre «Los charms favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
+      + `\n  y es el que se ve primero: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
+      + `\n  favoritos = los charms con 3 o más, por unidades y, en empate, el que más vendió (deadpool antes que iron-man): ${r.favs.join(',') === 'wolverine,deadpool,iron-man,stitch,atrapasuenos-azul' ? 'sí ✓' : 'NO ✗ (' + r.favs.join(',') + ')'}`
+      + `\n  y está en favoritos y también en el catálogo completo, una vez en cada uno: ${r.enFav === 1 && r.enCat === 1 && r.catSinTop === 0 ? 'sí ✓' : 'NO ✗ (' + r.enFav + ' / ' + r.enCat + ' / ' + r.catSinTop + ')'}`
       + `\n  carrusel con todas las reseñas: 3 fijas + 4 = ${r.tarjetas}, en el orden del servidor, texto con recuadro y foto sin cita: ${r.tarjetas === 7 && r.formas === 'fffftff' && r.soloFotoSinCita ? 'sí ✓' : 'NO ✗ (' + r.formas + ')'}`
       + `\n  el texto de una reseña no se pinta como HTML: ${r.inyectado ? 'NO ✗' : 'sí ✓'}`
       + `\n  un punto por tarjeta y arriba el total que se ve (4 + las 3 fijas): ${r.puntos === 7 && /4,9 de 5 · 7 reseñas/.test(r.prom) ? 'sí ✓' : 'NO ✗ (' + r.puntos + ', ' + r.prom + ')'}`
@@ -536,7 +547,42 @@ const U = BASE + '/index.html';
     const abiertos = await niveles();
     out.push(`  un subfiltro muestra todos los niveles que lo cumplen (${conFiltro}) y «Todos» vuelve a uno (${sinFiltro}): ${conFiltro > 1 && sinFiltro === 1 ? 'sí ✓' : 'NO ✗'}`
       + `\n  «Ver más brazaletes» despliega los ${total} niveles (${abiertos}): ${abiertos === total ? 'sí ✓' : 'NO ✗'}`);
+    /* Lo que vio el propietario: abrir «Ver todos», buscar un favorito y no
+       encontrarlo. Ahora la tarjeta aparece en la cuadrícula y el contador
+       dice lo que se ve. */
+    await q.evaluate(() => document.getElementById('ver-todos').click());
+    await q.fill('#q', 'wolverine');
+    await q.waitForTimeout(350);
+    const busq = await q.evaluate(() => ({
+      vis: [...document.querySelectorAll('#resto-grid .pc:not([hidden])')].map(c => c.dataset.id),
+      cuenta: document.getElementById('count').textContent,
+      rotulo: document.getElementById('more-btn').textContent,
+    }));
+    out.push(`  buscar un favorito en el catálogo completo lo muestra ahí («${busq.cuenta}»): ${busq.vis.join(',') === 'wolverine' && /^1 charm/.test(busq.cuenta) ? 'sí ✓' : 'NO ✗ (' + busq.vis.join(',') + ' · ' + busq.cuenta + ')'}`);
     await q.close();
+  }
+
+  // ---- Colección Marvel: abre con lo más vendido (2026-10-18) ----
+  /* Con `ranking` simulado: Hulk y Deadpool vendieron más, Iron Man también
+     pero está agotado y se va al final; las que no vendieron siguen en su
+     orden. Sin ranking, la página no se mueve. */
+  {
+    const m = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+    m.on('pageerror', e => errores.push('marvel: ' + e.message));
+    const st = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'assets', 'stock.json'), 'utf8'));
+    st.items['iron-man'].stock = 0;
+    await m.route(/\/assets\/stock\.json/, r => r.fulfill({ json: st }));
+    await m.route(/\/\.netlify\/functions\/disponibilidad/, r => r.fulfill({ status: 503, body: '' }));
+    await m.route(/\/\.netlify\/functions\/mas-vendidos/, r => r.fulfill({ json: { ventasRegistradas: 9, vendidas: [], disponibles: {},
+      ranking: ['iron-man', 'hulk', 'pulsera-avengers', 'deadpool'] } }));
+    await m.goto(BASE + '/coleccion-marvel.html', { waitUntil: 'networkidle' });
+    await m.waitForTimeout(400);
+    const orden = await m.evaluate(() => [...document.querySelectorAll('#piezas .grid > .pc')].map(c => c.dataset.id));
+    out.push('\nColección Marvel: lo más vendido primero'
+      + `\n  abre con las más vendidas que hay (hulk, deadpool): ${orden[0] === 'hulk' && orden[1] === 'deadpool' ? 'sí ✓' : 'NO ✗ (' + orden.slice(0, 3).join(',') + ')'}`
+      + `\n  la agotada va al final aunque haya vendido más: ${orden[orden.length - 1] === 'iron-man' ? 'sí ✓' : 'NO ✗ (' + orden[orden.length - 1] + ')'}`
+      + `\n  ninguna pieza se pierde ni se repite (${orden.length}): ${orden.length === 15 && new Set(orden).size === 15 ? 'sí ✓' : 'NO ✗'}`);
+    await m.close();
   }
 
   out.push(`\nErrores JS: ${errores.length ? errores.join(' | ') : 'ninguno ✓'}`);

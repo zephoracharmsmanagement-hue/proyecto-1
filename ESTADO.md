@@ -5,6 +5,31 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Favoritos por existencias, Marvel por ventas y favoritos en el catálogo — 2026-10-18
+
+Pedido del propietario. En `tienda.js` y `mas-vendidos.mjs`; `index.html` solo
+cambia textos.
+
+- **«Los charms favoritos» = los charms con más unidades libres**, 3 o más
+  (`disponibles` de `mas-vendidos`, que ya descuenta lo apartado). Empate → el
+  que más vendió → orden del catálogo. Sin iniciales, clips ni cadenas. Hasta
+  12; con menos de 4 candidatos quedan los 8 elegidos a mano de `index.html`.
+  Antes eran los más vendidos. El subtítulo dejó de decir «los que más eligen
+  nuestras clientas», que con este criterio ya no sería cierto.
+- **Los favoritos también están en el catálogo completo.** Antes se *movían*
+  fuera de él: buscar uno en «Ver todos» decía «1 charm encontrados» sin
+  ninguna tarjeta. Ahora son copias. Es seguro porque `pintarTarjetas` recorre
+  todas las `.pc`, el carrito escucha por delegación y `tarjetaDe` solo lee.
+  **Una pieza puede salir dos veces en la portada a propósito**: no «arreglarlo».
+- **Colección Marvel abre con lo más vendido**, con `ranking` (campo nuevo de
+  `mas-vendidos`: todas las piezas vendidas, de más a menos, sin cifras). Las
+  agotadas van al final aunque hayan vendido; las que no han vendido conservan
+  su orden.
+- El botón del catálogo cuenta lo que contiene (117 charms, cada inicial como
+  uno); llevaba semanas diciendo 86.
+- Pruebas: `regresion.js` (portada y Marvel), `mas-vendidos.js` (ranking) y
+  `paginas.js` (cuenta piezas enlazadas, no enlaces). Suite en verde.
+
 ## Sistecrédito como medio de pago — DESPLEGADO el 2026-10-16 (PR #29, `9554ce8`)
 
 Al lado de Addi y con el mismo peso visual: portada (un recuadro con una fila

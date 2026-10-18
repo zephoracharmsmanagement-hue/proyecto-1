@@ -308,9 +308,15 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     const errs = [];
     p.on('pageerror', e => errs.push(e.message));
     await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
-    const enlazadas = await p.$$eval('.pc[data-id] .pc-name a', as => as.length);
-    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i)).length,
-      `${enlazadas} nombres de tarjeta enlazan a su página`);
+    /* Piezas distintas, no enlaces: desde el 2026-10-18 los favoritos están
+       también en el catálogo completo, así que su tarjeta sale dos veces. Y
+       ningún nombre de tarjeta puede quedarse sin enlace. */
+    const { enlazadas, sinEnlace } = await p.$$eval('.pc[data-id] .pc-name', hs => ({
+      enlazadas: new Set(hs.filter(h => h.querySelector('a')).map(h => h.closest('.pc').dataset.id)).size,
+      sinEnlace: hs.filter(h => !h.querySelector('a') && h.closest('.pc').dataset.id !== 'letras').length,
+    }));
+    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i)).length && sinEnlace === 0,
+      `${enlazadas} piezas con su nombre enlazado a su página${sinEnlace ? ` — ${sinEnlace} sin enlace` : ''}`);
     const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
     await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
     ok(true, `tocar la foto de ${id} en la portada lleva a ${archivoDe(id)}`);

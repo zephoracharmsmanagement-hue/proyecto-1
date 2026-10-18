@@ -55,6 +55,14 @@ async function main() {
   if (escaso) comprobar(!ids.includes(escaso), `${escaso} vendió 9 pero tiene menos de 3 libres: no se ofrece`);
   comprobar(r.ventasRegistradas === (escaso ? 4 : 3), `ventas registradas: ${r.ventasRegistradas} (sin la que espera pago ni el regalo)`);
   comprobar(Object.values(r.disponibles).every(n => n >= 3) && (!escaso || !(escaso in r.disponibles)), 'la lista de disponibles solo trae piezas con 3 o más');
+  /* El ranking ordena la Colección Marvel: todas las que vendieron, también
+     las de pocas unidades libres (la página manda las agotadas al final), y
+     nada que no haya vendido. */
+  const primero = escaso || A;   // escaso vendió 9; si no hay, A con 3
+  comprobar(Array.isArray(r.ranking) && r.ranking[0] === primero && r.ranking.every(x => typeof x === 'string'),
+    `ranking: solo ids, de más a menos vendido (${primero} primero)`, JSON.stringify(r.ranking));
+  comprobar(r.ranking.indexOf(A) < r.ranking.indexOf(B), `${A} (3) va antes que ${B} (1)`);
+  comprobar(!r.ranking.includes(C), 'ni lo que espera pago ni un regalo entran al ranking');
 
   console.log('2 · Respuesta');
   mod._interno.limpiar();

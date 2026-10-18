@@ -1867,7 +1867,31 @@ let bAbierto=false;
  * El botón se queda, ahora para cerrarlo: quien ya sabe lo que quiere agradece
  * poder plegar 86 tarjetas y volver a la parte de arriba. */
 const full=$('#full-cat'), moreBtn=$('#more-btn');
-const CERRADO='Ver el catálogo completo · 86 charms';
+const grid=document.getElementById('resto-grid');
+const destacados=document.getElementById('rail-top');
+
+/* Los favoritos también están en el catálogo completo (pedido del propietario,
+ * 2026-10-18).
+ *
+ * Hasta aquí cada pieza existía una sola vez: las de «Los charms favoritos» se
+ * sacaban del catálogo, y quien abría «Ver todos» y buscaba una de ellas leía
+ * «1 charm encontrado» sin ver ninguna tarjeta —el conteo las sumaba, la
+ * cuadrícula no las tenía—. Ahora el catálogo tiene todas y los favoritos son
+ * una copia aparte. No hay estado que se desincronice: pintarTarjetas recorre
+ * todas las .pc, el carrito escucha por delegación en document y tarjetaDe solo
+ * lee de la tarjeta (foto, tallas). Las copias del catálogo van sin pc--top,
+ * que es lo que marca a un favorito. */
+if(grid&&destacados){
+  [...destacados.querySelectorAll(':scope > .pc')].reverse().forEach(el=>{
+    const c=el.cloneNode(true); c.classList.remove('pc--top'); grid.insertBefore(c,grid.firstChild);
+  });
+}
+/* Lo que de verdad hay en el catálogo, con cada inicial como un charm: el
+   «86» que llevaba escrito el botón llevaba semanas sin coincidir. */
+const nCatalogo=grid?[...grid.querySelectorAll(':scope > .pc')]
+  .reduce((n,p)=>n+(p.dataset.id==='letras'?LETRAS.length:1),0):0;
+const CERRADO=nCatalogo?'Ver el catálogo completo · '+nCatalogo+' charms':moreBtn.textContent;
+if(full.hidden) moreBtn.textContent=CERRADO;
 function abrirCat(v){
   full.hidden=!v;
   moreBtn.textContent=v?'Ocultar catálogo completo':CERRADO;
@@ -1880,10 +1904,9 @@ $('#ver-todos').addEventListener('click',()=>{
 });
 
 /* filtros del catálogo
-   El conteo suma los destacados del carrusel, que viven fuera de #resto-grid:
-   si no, "Disney" decía 13 cuando en pantalla hay 15. */
-const grid=document.getElementById('resto-grid');
-const destacados=document.getElementById('rail-top');
+   El catálogo ya tiene todas las piezas, también las de «Los charms
+   favoritos» (ver arriba): el conteo es lo que se ve en la cuadrícula. Antes
+   sumaba aparte los destacados del carrusel, que no estaban en ella. */
 const cuenta=document.getElementById('count');
 let filtroActual='todos', soloDisp=false, busqueda='';
 /* Sin tildes y en minúscula: quien busca "angel" debe encontrar "Ángel Guardián". */
@@ -1910,14 +1933,6 @@ function aplicarFiltro(f){
     p.hidden=!ok;
     if(ok) v+= esLetras ? cuentaLetras() : 1;
   });
-  if(f!=='todos'||q){
-    destacados.querySelectorAll('.pc').forEach(p=>{
-      const id=p.dataset.id;
-      if((f==='todos'||p.dataset.g===f) &&
-         (!q||norm(p.querySelector('.pc-name').textContent).indexOf(q)>=0) &&
-         (!soloDisp||!agotado(id))) v++;
-    });
-  }
 
   /* Un catálogo en blanco sin explicación parece roto. */
   let vacio=document.getElementById('sin-res');
@@ -1935,7 +1950,7 @@ function aplicarFiltro(f){
   }else if(vacio) vacio.remove();
 
   cuenta.textContent = f==='todos' && !soloDisp && !q ? ''
-    : v+(v===1?' charm':' charms')+(q?' encontrados':(soloDisp?' disponibles':' en esta colección'));
+    : v+(v===1?' charm':' charms')+(q?(v===1?' encontrado':' encontrados'):(soloDisp?(v===1?' disponible':' disponibles'):' en esta colección'));
 }
 document.getElementById('filters').addEventListener('click',e=>{
   const d=e.target.closest('.fbtn--disp');
@@ -2006,25 +2021,28 @@ if(catBtn&&catMenu){
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrarCatMenu(); });
 }
 
-/* Portada: primero lo más comprado (pedido del propietario, 2026-10-02).
+/* Portada: el orden de cada sección, con los datos de
+ * netlify/functions/mas-vendidos —las mismas ventas de la página «Más
+ * vendidos» y las mismas unidades libres que disponibilidad.mjs—.
  *
- * Con las ventas reales de netlify/functions/mas-vendidos —las mismas de la
- * página «Más vendidos»—, en este orden: lo que más unidades vendió, después
- * los destacados (.pc--top, que eligió el propietario) y después el resto como
- * estaba. Se mueven las tarjetas que ya existen, no se copian: cada pieza
- * sigue apareciendo una sola vez y conserva su estado (agotada, elegida).
- *
- *  · Brazaletes: dentro de cada nivel de precio. Los niveles se quedan —el de
+ *  · Brazaletes: lo más vendido primero, dentro de cada nivel de precio
+ *    (pedido del propietario, 2026-10-02). Los niveles se quedan —el de
  *    $78.000 va primero y es donde están hoy los que más se venden—.
- *  · Charms: el carrusel «Los charms favoritos» abre con los más vendidos que
- *    estaban en el catálogo completo, seguidos de los destacados, hasta 12; si
- *    se pasa, los últimos destacados vuelven al principio del catálogo. Y el
- *    catálogo completo también abre con lo más vendido.
+ *  · «Los charms favoritos»: los charms con MÁS UNIDADES LIBRES (pedido del
+ *    propietario, 2026-10-18; antes eran los más vendidos). Solo con 3 o más,
+ *    que es lo que el servidor manda en `disponibles`: así nunca se destaca
+ *    algo a punto de agotarse. Empate de unidades → el que más vendió → el
+ *    orden del catálogo. Sin iniciales —se eligen, no se sugieren— y sin
+ *    clips ni cadenas, que acompañan a un charm pero no lo son. Hasta 12.
+ *    Son copias: la pieza sigue también en el catálogo completo.
+ *  · Catálogo completo: abre con lo más vendido.
  *
- * Si la función no responde, la página queda como venía: nada se mueve. */
+ * Si la función no responde, la página queda como venía: los favoritos que
+ * eligió el propietario, que también están en el catálogo. */
+const FAV_TOPE=12, FAV_SIN=new Set(['Clips','Cadenas']);
 function ordenarPorVentas(d){
   const u={}; (d&&d.vendidas||[]).forEach(v=>{ u[v.id]=v.unidades; });
-  if(!Object.keys(u).length) return;
+  const libres=(d&&d.disponibles)||{};
   const peso=el=>(u[el.dataset.id]||0);
   const reordenar=cont=>{
     const cs=[...cont.children].filter(el=>el.matches('.pc'));
@@ -2034,26 +2052,30 @@ function ordenarPorVentas(d){
      veía y lo corre a la derecha: el más vendido quedaba fuera de vista (visto
      en la vista previa, 1.171 px). Si la clienta no lo había movido, vuelve a
      donde estaba; si ya lo había deslizado, se respeta. */
-  const rieles=[...document.querySelectorAll('#brazaletes .rail, #rail-top')];
+  const rieles=[...document.querySelectorAll('#brazaletes .rail')];
   const antes=rieles.map(r=>r.scrollLeft);
-  document.querySelectorAll('#brazaletes .rail').forEach(reordenar);
+  if(Object.keys(u).length) rieles.forEach(reordenar);
+  rieles.forEach((r,i)=>{ if(antes[i]<40) r.scrollLeft=antes[i]; });
+
   const top=$('#rail-top'), resto=$('#resto-grid');
   if(top&&resto){
-    const nuevos=[...resto.querySelectorAll(':scope > .pc')].filter(el=>u[el.dataset.id]&&!agotado(el.dataset.id))
-      .sort((a,b)=>peso(b)-peso(a));
-    nuevos.reverse().forEach(el=>top.insertBefore(el,top.firstChild));
-    reordenar(top);
-    const TOPE=12, sobran=[...top.children].slice(TOPE);
-    sobran.reverse().forEach(el=>{ el.classList.remove('pc--top'); resto.insertBefore(el,resto.firstChild); });
-    [...top.children].forEach(el=>el.classList.add('pc--top'));
-    reordenar(resto);
+    const cat=[...resto.querySelectorAll(':scope > .pc')];
+    const fav=cat.map((el,i)=>({el,i,id:el.dataset.id,n:libres[el.dataset.id]||0}))
+      .filter(x=>x.n>=(d&&d.minimoLibres||3) && CH[x.id] && !/^letra-/.test(x.id) && !FAV_SIN.has(x.el.dataset.g))
+      .sort((a,b)=>b.n-a.n||(u[b.id]||0)-(u[a.id]||0)||a.i-b.i)
+      .slice(0,FAV_TOPE);
+    /* Con menos de 4 la sección quedaría casi vacía: mejor los de siempre. */
+    if(fav.length>=4){
+      top.replaceChildren(...fav.map(x=>{ const c=x.el.cloneNode(true); c.classList.add('pc--top'); c.hidden=false; return c; }));
+    }
+    if(Object.keys(u).length) reordenar(resto);
   }
-  rieles.forEach((r,i)=>{ if(antes[i]<40) r.scrollLeft=antes[i]; });
   dispatchEvent(new Event('resize'));
 }
 if($('#rail-top')||$('#brazaletes .rail')){
   fetch('.netlify/functions/mas-vendidos').then(r=>r.ok?r.json():null).then(ordenarPorVentas).catch(()=>{});
 }
+
 
 /* «Más vendidos» (coleccion-mas-vendidos.html): ventas reales de
    netlify/functions/mas-vendidos. Solo lleva el sello «Más vendido» una pieza
@@ -2338,7 +2360,7 @@ function alLlegarInventario(){
 
 /* El inventario llega después de pintar: la página ya es usable sin él, y si
    falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */
-fetch('assets/stock.json',{cache:'no-cache'})
+const inventarioListo=fetch('assets/stock.json',{cache:'no-cache'})
   .then(r=>r.ok?r.json():null)
   .then(d=>{
     if(!d||!d.items) return;
@@ -2349,6 +2371,33 @@ fetch('assets/stock.json',{cache:'no-cache'})
     if(n&&d.conteo_inventario) n.textContent='Último conteo: '+d.conteo_inventario;
   })
   .catch(()=>{});
+
+/* Colección Marvel: abre con lo más vendido (pedido del propietario,
+ * 2026-10-18). Con `ranking` de mas-vendidos, que trae TODAS las piezas con
+ * ventas ordenadas de más a menos, sin cifras: `vendidas` solo trae las 12
+ * primeras de toda la tienda y con 3 o más libres, y casi ninguna de Marvel
+ * entraría. Las agotadas van al final aunque hayan vendido —abrir la colección
+ * con un «Agotado» no vende—, y por eso espera también al inventario. Las que
+ * no han vendido quedan en el orden de siempre. Si algo falla, no se mueve. */
+const marvelGrid=(()=>{
+  const g=$('#piezas .grid'); if(!g) return null;
+  const cs=[...g.querySelectorAll(':scope > .pc')];
+  return cs.length&&cs.every(el=>el.dataset.g==='Marvel')?g:null;
+})();
+if(marvelGrid){
+  Promise.all([
+    fetch('.netlify/functions/mas-vendidos').then(r=>r.ok?r.json():null).catch(()=>null),
+    inventarioListo,
+  ]).then(([d])=>{
+    const rank=(d&&d.ranking)||[]; if(!rank.length) return;
+    const pos={}; rank.forEach((id,i)=>{ pos[id]=i; });
+    const clave=el=>{ const id=el.dataset.id;
+      return agotado(id) ? 2e6 : (id in pos ? pos[id] : 1e6); };
+    [...marvelGrid.querySelectorAll(':scope > .pc')].map((el,i)=>[el,i])
+      .sort((a,b)=>clave(a[0])-clave(b[0])||a[1]-b[1])
+      .forEach(([el])=>marvelGrid.appendChild(el));
+  });
+}
 
 /* Disponibilidad real, en todas las páginas. Antes se pedía solo en la página
    de un producto y solo para esa pieza, así que en la portada, la vitrina y
