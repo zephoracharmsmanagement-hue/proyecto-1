@@ -10,6 +10,9 @@
  *   ventasRegistradas  cuántos pedidos válidos hay en total
  *   vendidas           [{id, unidades}] con ventas y ≥3 libres, de más a
  *                      menos, hasta 12
+ *   ranking            [id] de TODAS las piezas con ventas, de más a menos,
+ *                      sin cifras ni filtro de existencias (orden de la
+ *                      Colección Marvel)
  *   disponibles        {id: libres} de las piezas con ≥3, para que la página
  *                      complete con las de más stock de las colecciones que
  *                      más venden mientras haya pocas ventas (<30): con tan
@@ -63,7 +66,15 @@ export async function calcularRanking() {
     .sort((a, b) => b[1] - a[1] || (disp[b[0]] - disp[a[0]]))
     .slice(0, TOPE)
     .map(([id, n]) => ({ id, unidades: n }));
-  return { ventasRegistradas, vendidas, disponibles: disp, fuente: libres ? 'conteo-menos-apartado' : 'solo-conteo' };
+  /* Todas las piezas que vendieron, de más a menos, SIN las cifras y sin
+     filtro de existencias: es para ordenar una colección (la de Marvel abre
+     con lo más vendido), no para ponerle a nada el sello «Más vendido». Las
+     cifras se quedan en las 12 de `vendidas`, como antes. */
+  const ranking = Object.entries(unidades)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1] || (disp[b[0]] || 0) - (disp[a[0]] || 0) || (a[0] < b[0] ? -1 : 1))
+    .map(([id]) => id);
+  return { ventasRegistradas, vendidas, ranking, disponibles: disp, fuente: libres ? 'conteo-menos-apartado' : 'solo-conteo' };
 }
 
 export default async () => {
