@@ -36,9 +36,9 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
 - **`VENTAS · ESCALA · IC`** (`120247398773240534`, antes "Nueva campaña de
   Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
   (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
-  `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-16
-  quedan 6 activos: Avengers, Inicial y mascota, Demo, Testimonio, Regalo y
-  Luciérnaga (detalle abajo). Historia: 7 anuncios activos
+  `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-21
+  quedan 5 activos: Avengers, Demo, Testimonio, Regalo y Luciérnaga (detalle
+  abajo). Historia: 7 anuncios activos
   desde el 2026-10-03 y **6 desde el 2026-10-06**, cuando se pausó Spider-Man:
   novio superhéroes (evergreen), Colección Avengers, Video Inicial y mascota, y
   tres traídos de la prueba con su misma publicación (Regalo · Dedicatoria,
@@ -74,6 +74,14 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   ($4.128 sin un carrito). Inicial y mascota fue rechazado el 15 por «enlace
   engañoso» (falso positivo del revisor automático), se aprobó en revisión y
   volvió sin gasto: Meta lo reaprende.
+
+  **Con $24.000 otra vez (17–21 oct): $98.619, 27 checkouts, $3.653 cada uno**
+  (mediana de anunciantes parecidos, según Meta: $5.165). Demo es el mejor
+  ($1.431 por checkout); Avengers estable pero caro ($3.901, calidad «por
+  debajo del promedio»). **Inicial y mascota se pausó el 21 de octubre**:
+  $17.496 por 2 checkouts ($8.748) desde que volvió del rechazo. Quedan 5
+  activos: Avengers, Demo, Regalo, Luciérnaga y Testimonio (este último casi
+  sin gasto).
 
   **Dos anuncios llevan toda la campaña.** Del 8 al 10 de octubre, el Video ·
   Inicial y mascota se llevó el 59% del gasto ($4.478 por checkout) y
