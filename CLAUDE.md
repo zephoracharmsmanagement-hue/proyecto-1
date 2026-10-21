@@ -37,8 +37,8 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
   (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
   `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-21
-  quedan 5 activos: Avengers, Demo, Testimonio, Regalo y Luciérnaga (detalle
-  abajo). Historia: 7 anuncios activos
+  hay 6 activos: Avengers, Demo, Regalo, Luciérnaga, Cuotas y Clienta real
+  (detalle abajo). Historia: 7 anuncios activos
   desde el 2026-10-03 y **6 desde el 2026-10-06**, cuando se pausó Spider-Man:
   novio superhéroes (evergreen), Colección Avengers, Video Inicial y mascota, y
   tres traídos de la prueba con su misma publicación (Regalo · Dedicatoria,
@@ -82,6 +82,19 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   $17.496 por 2 checkouts ($8.748) desde que volvió del rechazo. Quedan 5
   activos: Avengers, Demo, Regalo, Luciérnaga y Testimonio (este último casi
   sin gasto).
+
+  **21 oct: entran FOTO · Cuotas · Addi y Sistecrédito
+  (`120248625626570534`) y FOTO · Clienta real · Arma una igual
+  (`120248625632590534`); se pausa el Testimonio.** Imágenes del lote de
+  octubre (V2 y V5, en `assets/ads/lote-octubre/`, solo en la rama de pauta),
+  precios verificados con `calcular()`: $250.000 (3 × $83.334 con Addi) y
+  $270.000 (3 × $90.000). El Testimonio se perdía en 2 segundos (14% llegaba
+  al 25% del video, 0 checkouts en $7.639). Quedan 6 activos.
+  **Cómo se crean anuncios por API en esta cuenta:** `ads_get_ig_accounts`
+  devuelve vacío, pero `ads_create_ad` con `object_story_spec` inline (solo
+  `page_id`) sí sale con Instagram (`effective_instagram_media_id` presente).
+  Las imágenes se suben con `ads_creative_upload_media` desde una URL raw de
+  GitHub; la subida local está bloqueada por la red de la sesión.
 
   **Dos anuncios llevan toda la campaña.** Del 8 al 10 de octubre, el Video ·
   Inicial y mascota se llevó el 59% del gasto ($4.478 por checkout) y
