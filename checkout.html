@@ -608,6 +608,12 @@ const ADDI_TOPES={min:50000,max:3000000};
 /* Desde cuánto se ofrece Sistecrédito (decisión del propietario, 2026-10-15).
    Es el mismo número que SISTECREDITO_MINIMO en crear-pago, que es quien manda. */
 const SISTE_MIN=50000;
+/* Sistecrédito EN PAUSA (pedido del propietario, 2026-10-23): su integración
+   no está funcionando. La opción se ve, pero deshabilitada y con el aviso «No
+   disponible por el momento», con el mismo mecanismo del mínimo: quien llegue
+   con ?pago=sistecredito o lo tuviera elegido vuelve a «Pagar ahora». Para
+   reactivarlo: false aquí y borrar el bloque «EN PAUSA» de tienda.css. */
+const SISTE_PAUSADO=true;
 /* Los pagos con crédito de un tercero: piden cédula y se van a su página. */
 const CREDITO={addi:'Addi',sistecredito:'Sistecrédito'};
 let STOCK=null;
@@ -896,12 +902,14 @@ function pintarResumen(){
 
   /* Sistecrédito, igual: por debajo del mínimo se deshabilita y dice por qué. */
   const ts=calcular(Object.assign({},c,{pago:'sistecredito'})).total;
-  const bajo=ts<SISTE_MIN;
+  const bajo=SISTE_PAUSADO||ts<SISTE_MIN;
   const rs=document.querySelector('#ops-pago input[value="sistecredito"]');
   rs.disabled=bajo;
   rs.closest('.op').classList.toggle('op--off',bajo);
   $('#siste-tope').hidden=!bajo;
-  $('#siste-tope').textContent='Sistecrédito aplica para compras desde '+cop(SISTE_MIN)+'. Te faltan '+cop(SISTE_MIN-ts)+'.';
+  $('#siste-tope').textContent=SISTE_PAUSADO
+    ? 'No disponible por el momento.'+(fuera?'':' Si quieres pagar a cuotas, puedes hacerlo con Addi.')
+    : 'Sistecrédito aplica para compras desde '+cop(SISTE_MIN)+'. Te faltan '+cop(SISTE_MIN-ts)+'.';
   if(bajo&&carrito.pago==='sistecredito'){
     carrito.pago='anticipado';
     document.querySelector('#ops-pago input[value="anticipado"]').checked=true;

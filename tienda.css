@@ -1556,6 +1556,15 @@ p,li,dd,.pp-acc-in{line-height:1.55}
 .cuotas-fila .addi-caja-tx b{color:#2A1F2E}
 .cuotas-fila .addi-caja-tx span{color:#5b5060}
 .cuotas-fila .addi-caja-fl{color:#5C3D63}
+/* ── Sistecrédito EN PAUSA (pedido del propietario, 2026-10-23) ──
+   Su integración no está funcionando y el propietario lo está arreglando.
+   Mientras tanto no se anuncia en la portada ni en las fichas; en el checkout
+   la opción queda visible pero deshabilitada («No disponible por el momento»,
+   SISTE_PAUSADO en checkout.html). Para reactivarlo: borrar este bloque y
+   poner SISTE_PAUSADO=false. */
+.pp-siste,
+.cuotas-fila[data-siste-checkout],
+.pe-pie:has(.mp-siste){display:none}
 .pp-compra .promo-caja{margin:0 0 14px}
 
 /* Reseñas de la portada en carrusel: tarjetas iguales, foto arriba (cuadrada),
