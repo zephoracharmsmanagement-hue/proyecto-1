@@ -46,8 +46,8 @@ Sistecrédito. Mientras tanto:
   «Addi o Sistecrédito a cuotas» de la franja de garantías sigue: es texto
   plano repetido en todas las páginas, y el checkout ya avisa en el momento de
   elegir.
-- **Bot de WhatsApp:** dice que está en pausa y ofrece Addi
-  (`automatizaciones/n8n/prompt-asesora.md`).
+- **Bot de WhatsApp:** dice que está en pausa y ofrece Addi (n8n `3beca3e2`,
+  copia en `automatizaciones/n8n/prompt-asesora.md`).
 - `pruebas/checkout.js` §3c prueba la pausa con la página real y el flujo
   completo con una copia reactivada.
 
