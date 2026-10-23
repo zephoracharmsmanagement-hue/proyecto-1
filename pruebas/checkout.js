@@ -611,10 +611,45 @@ async function llenarDatos(p, d) {
     });
     const enlace = await cargar('sistecredito-enlace.mjs');
 
+    /* Sistecrédito EN PAUSA (2026-10-23): mientras SISTE_PAUSADO=true en
+       checkout.html, la opción se ve pero deshabilitada y la portada no lo
+       anuncia. Eso se prueba con la página real. El flujo completo se sigue
+       probando abajo con una copia del checkout reactivado, para que el día que
+       se quite la pausa no haya que reescribir nada. */
+    const htmlCheckout = require('fs').readFileSync(path.join(__dirname, '..', 'checkout.html'), 'utf8');
+    const pausado = /const SISTE_PAUSADO=true;/.test(htmlCheckout);
+    if (pausado) {
+      const q = await b.newPage({ viewport: { width: 390, height: 844 } });
+      q.on('pageerror', e => errores.push(e.message));
+      await interceptar(q, []);
+      await q.route(/widgets\.addi\.com/, r => r.fulfill({ status: 200, contentType: 'text/javascript', body: '' }));
+      await ponerCarrito(q, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse', 'stitch', 'iron-man'], empaque: false, pago: 'sistecredito' });
+      await q.goto(BASE + '/checkout.html?pago=sistecredito', { waitUntil: 'networkidle' });
+      await q.waitForTimeout(400);
+      await q.click('#cambiar-pago');
+      const e = await q.evaluate(() => ({
+        off: document.querySelector('#ops-pago input[value="sistecredito"]').disabled,
+        aviso: document.getElementById('siste-tope').hidden ? '' : document.getElementById('siste-tope').textContent,
+        elegido: (document.querySelector('#ops-pago input[name="pago"]:checked') || {}).value,
+        boton: document.getElementById('confirmar').textContent,
+      }));
+      ok(e.off && /No disponible por el momento/.test(e.aviso), 'en pausa: Sistecrédito se ve deshabilitado y dice «No disponible por el momento»', e.aviso);
+      ok(e.elegido === 'anticipado' && !/Sistecr/.test(e.boton), 'quien llega con ?pago=sistecredito vuelve a «Pagar ahora»', e.elegido + ' · ' + e.boton);
+      await q.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+      const anuncia = await q.evaluate(() => [...document.querySelectorAll('.cuotas-fila[data-siste-checkout], .pe-pie')]
+        .filter(el => el.querySelector('.siste-logo, .mp-siste') && el.offsetParent !== null).length);
+      ok(anuncia === 0, 'en pausa: la portada no anuncia Sistecrédito', anuncia + ' visibles');
+      await q.close();
+    }
+
     const p = await b.newPage({ viewport: { width: 390, height: 844 } });
     p.on('pageerror', e => errores.push(e.message));
     const cap = [];
     await interceptar(p, cap);
+    if (pausado) {
+      await p.route(/\/checkout\.html(\?|$)/, r => r.fulfill({ status: 200, contentType: 'text/html; charset=utf-8',
+        body: htmlCheckout.replace('const SISTE_PAUSADO=true;', 'const SISTE_PAUSADO=false;') }));
+    }
     await p.route('**/.netlify/functions/sistecredito-enlace**', async route => {
       const u = new URL(route.request().url());
       const r = await enlace.default(new Request('https://zephoracharms.com' + u.pathname + u.search));

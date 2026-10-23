@@ -30,6 +30,32 @@ cambia textos.
 - Pruebas: `regresion.js` (portada y Marvel), `mas-vendidos.js` (ranking) y
   `paginas.js` (cuenta piezas enlazadas, no enlaces). Suite en verde.
 
+## ⏸ Sistecrédito EN PAUSA — desde el 2026-10-23
+
+La integración no está funcionando y el propietario lo está arreglando con
+Sistecrédito. Mientras tanto:
+
+- **Checkout:** «Pagar con Sistecrédito» se ve, pero deshabilitado, con «No
+  disponible por el momento» (y la sugerencia de Addi si aplica).
+  `SISTE_PAUSADO=true` en `checkout.html`; reutiliza el mecanismo del mínimo,
+  así que quien llega con `?pago=sistecredito` o lo tenía elegido vuelve a
+  «Pagar ahora».
+- **Portada y fichas:** no se anuncia. Un bloque «EN PAUSA» en `tienda.css`
+  oculta la fila del recuadro de cuotas, la línea «o a cuotas con tu crédito»
+  de las 143 fichas y el párrafo de medios de pago (`:has(.mp-siste)`). La frase
+  «Addi o Sistecrédito a cuotas» de la franja de garantías sigue: es texto
+  plano repetido en todas las páginas, y el checkout ya avisa en el momento de
+  elegir.
+- **Bot de WhatsApp:** dice que está en pausa y ofrece Addi
+  (`automatizaciones/n8n/prompt-asesora.md`).
+- `pruebas/checkout.js` §3c prueba la pausa con la página real y el flujo
+  completo con una copia reactivada.
+
+**Para reactivarlo:** `SISTE_PAUSADO=false` en `checkout.html`, borrar el bloque
+«EN PAUSA» de `tienda.css` y devolverle al bot el párrafo de Sistecrédito (está
+en el historial de `prompt-asesora.md`, versión `e9838f6b`). Las funciones del
+servidor no se tocaron.
+
 ## Sistecrédito como medio de pago — DESPLEGADO el 2026-10-16 (PR #29, `9554ce8`)
 
 Al lado de Addi y con el mismo peso visual: portada (un recuadro con una fila
