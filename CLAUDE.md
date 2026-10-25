@@ -36,9 +36,9 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
 - **`VENTAS · ESCALA · IC`** (`120247398773240534`, antes "Nueva campaña de
   Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
   (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
-  `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-21
-  hay 6 activos: Avengers, Demo, Regalo, Luciérnaga, Cuotas y Clienta real
-  (detalle abajo). Historia: 7 anuncios activos
+  `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-25
+  hay 6 activos: Avengers, Demo, Regalo, Luciérnaga, Cuotas · Addi v2 y
+  Clienta real v2 (detalle abajo). Historia: 7 anuncios activos
   desde el 2026-10-03 y **6 desde el 2026-10-06**, cuando se pausó Spider-Man:
   novio superhéroes (evergreen), Colección Avengers, Video Inicial y mascota, y
   tres traídos de la prueba con su misma publicación (Regalo · Dedicatoria,
@@ -95,6 +95,17 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   `page_id`) sí sale con Instagram (`effective_instagram_media_id` presente).
   Las imágenes se suben con `ads_creative_upload_media` desde una URL raw de
   GitHub; la subida local está bloqueada por la red de la sesión.
+
+  **Semana 18–24 oct: $167.933, 53 checkouts a $3.169, 5 compras** — la mejor
+  desde la consolidación, y la primera con $24.000 que pasa de 50. **25 oct:**
+  se pausa Cuotas v1 porque prometía Sistecrédito, que está **en pausa en el
+  checkout desde el 23** (ver `ESTADO.md`); entra **FOTO · Cuotas · Addi · v2**
+  (`120248681086610534`), imagen editada sin Sistecrédito. Clienta real v1 (20
+  clics, 0 carritos: aterrizaba en la portada) se reemplaza por **v2**
+  (`120248681086990534`). Las dos v2 enlazan con `?p=<brazalete>&sug=<dijes>`
+  —el brazalete al carrito y los dijes de la foto resaltados, como los kits—
+  en vez de la portada. **Cuando vuelva Sistecrédito**, la Cuotas v1
+  (`120248625626570534`) se puede reactivar tal cual.
 
   **Dos anuncios llevan toda la campaña.** Del 8 al 10 de octubre, el Video ·
   Inicial y mascota se llevó el 59% del gasto ($4.478 por checkout) y
