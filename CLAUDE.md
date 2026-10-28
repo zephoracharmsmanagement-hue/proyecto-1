@@ -110,8 +110,11 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   **28 oct: se pausa Avengers** (`120248365237010534`): la foto enseña piezas
   agotadas (Iron Man, Deadpool, Spider-Man, Escudo y Mjolnir en 0 según la hoja
   *Existencias*). Llevaba el 70% del gasto del 25 al 28 a $3.640 por checkout.
-  Entra **FOTO · Promo · Elige 4 paga 3 · v1** (`120248720676220534`, imagen V1
-  del lote de octubre): Corona Pavé + atrapasueños azul, esfera azul y flor
+  Entra **FOTO · Promo · Elige 4 paga 3 · v1 HD** (`120248721652630534`): la
+  imagen V1 del lote de octubre con los cuatro recuadros cambiados por las
+  fotos HD de la tienda (`assets/hd/`), porque los originales eran cuadros de
+  video y se veían borrosos; la v1 sin HD (`120248720676220534`) se pausó a las
+  pocas horas. Corona Pavé + atrapasueños azul, esfera azul y flor
   azul, $328.000 → $246.000 con `calcular()`, enlace `?p=&sug=` al kit. El
   relevo Marvel (Pulsera Avengers + Spider-Man Pavé + Esfera Telaraña + Máscara
   Spider-Man Roja, $363.000 → $285.000) espera una foto real del kit. **Ojo:**
