@@ -5,6 +5,15 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Bot de WhatsApp apagado del 26 al 28-oct — vuelto a publicar el 2026-10-28
+
+El workflow `74TjEtDnn940jh9k` quedó **despublicado** después de la última
+ejecución (26-oct 23:59 UTC) sin que nadie lo pidiera, y el webhook de Meta
+quedó en blanco (n8n lo borra al despublicar). Unos dos días sin respuesta a
+nadie. Causa no identificada: no está en el historial ni en este archivo.
+Se volvió a publicar la misma versión `3beca3e2` (copia = main). **Si vuelve a
+pasar:** `search_workflows` → `active`, y la última ejecución, antes que nada.
+
 ## Favoritos por existencias, Marvel por ventas y favoritos en el catálogo — 2026-10-18
 
 Pedido del propietario. En `tienda.js` y `mas-vendidos.mjs`; `index.html` solo
