@@ -36,8 +36,8 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
 - **`VENTAS · ESCALA · IC`** (`120247398773240534`, antes "Nueva campaña de
   Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
   (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
-  `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-25
-  hay 6 activos: Avengers, Demo, Regalo, Luciérnaga, Cuotas · Addi v2 y
+  `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-28
+  hay 6 activos: Elige 4 paga 3, Demo, Regalo, Luciérnaga, Cuotas · Addi v2 y
   Clienta real v2 (detalle abajo). Historia: 7 anuncios activos
   desde el 2026-10-03 y **6 desde el 2026-10-06**, cuando se pausó Spider-Man:
   novio superhéroes (evergreen), Colección Avengers, Video Inicial y mascota, y
@@ -106,6 +106,17 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   —el brazalete al carrito y los dijes de la foto resaltados, como los kits—
   en vez de la portada. **Cuando vuelva Sistecrédito**, la Cuotas v1
   (`120248625626570534`) se puede reactivar tal cual.
+
+  **28 oct: se pausa Avengers** (`120248365237010534`): la foto enseña piezas
+  agotadas (Iron Man, Deadpool, Spider-Man, Escudo y Mjolnir en 0 según la hoja
+  *Existencias*). Llevaba el 70% del gasto del 25 al 28 a $3.640 por checkout.
+  Entra **FOTO · Promo · Elige 4 paga 3 · v1** (`120248720676220534`, imagen V1
+  del lote de octubre): Corona Pavé + atrapasueños azul, esfera azul y flor
+  azul, $328.000 → $246.000 con `calcular()`, enlace `?p=&sug=` al kit. El
+  relevo Marvel (Pulsera Avengers + Spider-Man Pavé + Esfera Telaraña + Máscara
+  Spider-Man Roja, $363.000 → $285.000) espera una foto real del kit. **Ojo:**
+  la Luciérnaga queda en 1 unidad y sale en tres anuncios (Luciérnaga, Cuotas
+  v2 y Demo); al agotarse, pausar el de Luciérnaga y revisar los otros dos.
 
   **Dos anuncios llevan toda la campaña.** Del 8 al 10 de octubre, el Video ·
   Inicial y mascota se llevó el 59% del gasto ($4.478 por checkout) y
