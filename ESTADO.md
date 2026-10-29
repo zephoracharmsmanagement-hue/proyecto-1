@@ -5,6 +5,33 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Bot de WhatsApp: imágenes, avisos al equipo y lista de espera — 2026-10-29 (n8n `373bf32d`)
+
+Aprobado por el propietario («apruebo los tres puntos»), tras revisar chats reales.
+
+- **Prompt:** la promo se explica con números (con 3 piezas no hay nada gratis;
+  con 4 sale gratis la de menor valor, con 7 las dos), y la **letra de regalo
+  por suscripción se suma aparte**: 4 charms y suscrita = paga 3, el cuarto
+  gratis por promo, más la letra. Sin doble asterisco (WhatsApp usa uno). Si
+  la pregunta viene debajo del texto del botón, se responde. Nunca adornar una
+  pieza para que encaje con lo que piden. Se quitó la etiqueta `[VERIFICAR REGALO]`.
+- **`avisar_equipo`** (herramienta): manda un WhatsApp al 573023228850 con
+  motivo, enlace wa.me de la clienta y resumen. **Solo llega si ese número le
+  escribió al número de la tienda en las últimas 24 h** (ventana de servicio).
+  El bot solo dice «ya le avisé» si la herramienta respondió sin error.
+- **`anotar_reposicion`** (herramienta): pieza agotada que alguien quiere →
+  fila en la Data Table **«Avisos de reposicion Zephora»** (`NOwAwFdyBPVmYLuP`:
+  telefono, pieza, nota, fecha, avisada). Al reponer, revisar esa tabla y
+  escribirles a mano; marcar `avisada`.
+- **Imágenes:** `Es imagen?` → `URL de la imagen` → `Descargar imagen` →
+  `Leer imagen` (claude-sonnet-5, ~$20–50 COP por imagen) → el bot recibe
+  `[IMAGEN] Lo que se ve …`. Los tres nodos siguen aunque fallen (cae a
+  `[SIN-TEXTO]`). **Un pantallazo de pago nunca confirma un pago.**
+- Al publicar se borra la suscripción `smb_message_echoes` del webhook en Meta:
+  re-suscribir con el POST de Graph Explorer (token de app), como el 2026-10-28.
+- Pendiente de costo: `disponibilidad` devuelve el catálogo entero (~13k
+  tokens); filtrarlo por pieza bajaría a la mitad el costo de esas respuestas.
+
 ## Bot de WhatsApp apagado del 26 al 28-oct — vuelto a publicar el 2026-10-28
 
 El workflow `74TjEtDnn940jh9k` quedó **despublicado** después de la última
