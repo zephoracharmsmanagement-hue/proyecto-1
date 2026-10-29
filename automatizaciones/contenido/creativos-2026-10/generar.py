@@ -11,6 +11,10 @@ misma tipografía de los anuncios ganadores, y así las tildes salen bien.
     python generar.py --solo-componer      # prueba el texto sobre las fotos reales, sin Kie
     python generar.py marvel color         # genera con Kie (cobra créditos) y compone
     python generar.py marvel --intentos 2  # dos tiradas por formato (por defecto 1)
+    python generar.py marvel color --gpt   # GPT Image 2 a 2K (10 créditos): más fiel con charms pequeños
+
+Nano Banana Edit (4 créditos) se probó el 2026-10-29 y redibujó piezas (casco de Iron Man,
+corazón del colibrí, corazón multicolor): ninguna imagen pasó la regla de oro.
 
 La clave se lee de KIE_API_KEY o de C:\\Users\\Martin\\anuncios-zephora\\.env y nunca
 se imprime. Lo generado va a material-sin-publicar/ (fuera de git). El registro
@@ -30,6 +34,8 @@ RAMA = 'claude/creativos-marvel-color'
 REF_URL = ('https://raw.githubusercontent.com/zephoracharmsmanagement-hue/proyecto-1/'
            + RAMA + '/automatizaciones/contenido/creativos-2026-10/referencias/{}.jpg')
 FORMATOS = {'feed': ('4:5', (1080, 1350)), 'historia': ('9:16', (1080, 1920))}
+# GPT Image 2 a 2K no acepta 4:5: el feed se pide en 3:4 y `cubrir` recorta al centro (~3 % arriba y abajo).
+GPT_RELACION = {'4:5': '3:4', '9:16': '9:16'}
 
 CREMA, TINTA, ROSA = (250, 244, 236), (43, 26, 36), (232, 160, 180)
 
@@ -102,10 +108,16 @@ def kie(metodo, ruta, k, cuerpo=None):
     return json.load(urllib.request.urlopen(req, timeout=60))
 
 
-def generar(pieza, relacion, k):
-    d = kie('POST', '/jobs/createTask', k, {'model': MODELO, 'input': {
-        'prompt': PIEZAS[pieza]['prompt'], 'image_urls': [REF_URL.format(PIEZAS[pieza]['ref'])],
-        'output_format': 'png', 'image_size': relacion}})
+def generar(pieza, relacion, k, gpt=False):
+    if gpt:
+        cuerpo = {'model': 'gpt-image-2-image-to-image', 'input': {
+            'prompt': PIEZAS[pieza]['prompt'], 'input_urls': [REF_URL.format(PIEZAS[pieza]['ref'])],
+            'aspect_ratio': GPT_RELACION[relacion], 'resolution': '2K'}}
+    else:
+        cuerpo = {'model': MODELO, 'input': {
+            'prompt': PIEZAS[pieza]['prompt'], 'image_urls': [REF_URL.format(PIEZAS[pieza]['ref'])],
+            'output_format': 'png', 'image_size': relacion}}
+    d = kie('POST', '/jobs/createTask', k, cuerpo)
     tarea = (d.get('data') or {}).get('taskId')
     if not tarea:
         raise RuntimeError('Kie no dio taskId: ' + str(d)[:300])
@@ -158,11 +170,11 @@ def componer(base, pieza, W, H):
         y += int(W * 0.11)
     bf = fuente('DMSans', int(W * 0.042), 500)
     bw = d.textlength(p['boton'], font=bf) + int(W * 0.13); bh = int(W * 0.095)
-    bx, by = (W - bw) / 2, H - bh - int(H * 0.085)
+    bx, by = (W - bw) / 2, H - bh - int(H * 0.058)   # más abajo: a 0,085 tapaba las plumas del atrapasueños
     d.rounded_rectangle([bx, by, bx + bw, by + bh], radius=bh / 2, fill=ROSA, outline=TINTA, width=2)
     d.text((W / 2, by + bh / 2), p['boton'], font=bf, fill=TINTA, anchor='mm')
     mf = fuente('PlayfairDisplay', int(W * 0.036), 500)
-    d.text((W / 2, H - int(H * 0.04)), 'Zephora Charms', font=mf, fill=texto, anchor='mm')
+    d.text((W / 2, H - int(H * 0.024)), 'Zephora Charms', font=mf, fill=texto, anchor='mm')
     return im
 
 
@@ -186,6 +198,7 @@ def main():
     args = sys.argv[1:]
     intentos = int(args[args.index('--intentos') + 1]) if '--intentos' in args else 1
     solo = '--solo-componer' in args
+    gpt = '--gpt' in args
     piezas = [a for a in args if a in PIEZAS] or ['marvel', 'color']
     reg = json.load(open(REG, encoding='utf-8')) if os.path.exists(REG) else {}
     k = None if solo else clave()
@@ -197,14 +210,14 @@ def main():
                 guardar(componer(real, pieza, W, H), os.path.join(SALIDA, 'prueba', f'{pieza}-{nombre}.jpg'))
                 continue
             for n in range(1, intentos + 1):
-                clave_reg = f'{pieza}-{nombre}-{n}'
+                clave_reg = f'{pieza}-{nombre}-{"gpt-" if gpt else ""}{n}'
                 cruda = os.path.join(SALIDA, 'crudas', clave_reg + '.png')
                 if reg.get(clave_reg, {}).get('estado') == 'listo' and os.path.exists(cruda):
                     print(f'{clave_reg}: ya estaba, no se cobra otra vez')
                 else:
                     print(f'{clave_reg}: generando con Kie…')
                     try:
-                        tarea, url, creditos = generar(pieza, relacion, k)
+                        tarea, url, creditos = generar(pieza, relacion, k, gpt)
                     except Exception as e:
                         reg[clave_reg] = {'estado': 'error', 'error': str(e)[:300]}
                         json.dump(reg, open(REG, 'w', encoding='utf-8'), indent=1, ensure_ascii=False)
