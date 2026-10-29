@@ -67,7 +67,10 @@ PIEZAS = {
                'the colored stones catching small sparkles of light, high-end editorial jewelry '
                'photography, macro lens look, shallow depth of field. ')
             + CIERRE.format(tono='light'),
-        'titulo': ['Tu pulsera,', 'a todo color'], 'boton': 'Arma la tuya', 'oscuro': False,
+        # «Colección Amuletos» (propietario, 2026-10-29): se vende por el significado
+        # de las piezas, no por la piedra. Son circonias, no circones ni piedras
+        # preciosas, y el trébol es otra piedra: el anuncio no nombra el material.
+        'titulo': ['Amuletos para', 'tu buena suerte'], 'boton': 'Arma la tuya', 'oscuro': False,
     },
     'color-regalo': {
         'ref': 'color',
