@@ -1,0 +1,89 @@
+/* Portada · capa de estilo tomada de la plantilla «Luxury Jewelry Website UI
+   Design» (Figma Community, Pankaj Sharma), pedido del propietario el
+   2026-10-29: restyling, no reemplazo.
+
+   Solo la carga index.html, DESPUÉS de tienda.css. Los generadores copian el
+   <head> de la portada hasta la línea de tienda.css (gen_colecciones.py,
+   bloques()), así que esta hoja no llega a las fichas ni a las colecciones.
+   Aquí no hay HTML nuevo salvo el botón del hero: las tarjetas .pc salen de
+   index.html hacia 135 páginas, y tienda.js depende de su estructura.
+
+   De la plantilla se toma el ritmo, no la marca: fondo crema cálido, sin
+   rayas entre secciones (se alternan fondos), títulos serif grandes y
+   centrados, tarjetas sin caja y botones en mayúsculas con más aire. La
+   paleta ciruela/rosa de Zephora y la Cormorant se quedan. */
+
+:root{--crema:#F6F3ED;--bone:#F6F3ED}
+body{background:var(--crema)}
+
+/* ── secciones: aire y fondos alternos en vez de líneas ── */
+.sec,.story,.plata,.social,.talla-sec,.pe,.trust-sec{border-top:0}
+.sec,.social,.trust-sec,.talla-sec,.pe{padding:52px 0}
+.story,.plata{padding:56px 0}
+.promo{padding-top:30px;padding-bottom:30px}
+#brazaletes,.story,.social,.trust-sec{background:var(--white)}
+#charms,.plata,.pe,.talla-sec{background:var(--crema)}
+/* .pe y .promo llevan .wrap (ancho limitado): su fondo se queda dentro del
+   ancho; se extiende a todo el ancho con una sombra sin desenfoque. */
+.pe{box-shadow:0 0 0 100vmax var(--crema);clip-path:inset(0 -100vmax)}
+
+/* ── títulos: centrados y grandes, como «Discover the New Arrivals» ── */
+.sec-head,.sec-top .sec-head{max-width:640px;margin:0 auto 30px;text-align:center}
+.sec-head h2,.story h2,.plata h2{font-size:clamp(32px,8vw,46px);line-height:1.1;letter-spacing:.01em}
+.sec-head p{margin:0 auto;max-width:56ch;font-size:15px;line-height:1.6}
+.sec-head--c h2{font-size:clamp(26px,6.5vw,36px);letter-spacing:.12em}
+.sec-top{align-items:center;text-align:center}
+.sec-top .sec-head{margin-bottom:0}
+
+/* Filtros de brazaletes centrados bajo el título. Con justify-content:center
+   un carril que desborda pierde el principio en celular; con márgenes
+   automáticos en los extremos se centra si cabe y se desliza si no. */
+#b-filters>:first-child{margin-left:auto}
+#b-filters>:last-child{margin-right:auto}
+
+/* ── tarjetas: sin caja, nombre y precio centrados ── */
+.pc{border-color:transparent;background:transparent}
+@media(hover:hover){.pc:hover{border-color:transparent}.pc:hover .pc-img{box-shadow:0 0 0 1px var(--silver)}}
+.pc.is-sel,.pc.is-sug{background:var(--white)}
+.pc-img{border-radius:3px;box-shadow:0 0 0 1px var(--line);transition:box-shadow .2s}
+.pc-body{padding:13px 4px 4px;text-align:center}
+.pc-name{font-size:16.5px}
+.pc-foot{justify-items:center}
+.pc-price{font-size:15px;letter-spacing:.03em}
+.pc-add{width:100%}
+.pc-encargo{justify-self:center}
+
+/* ── botones: mayúsculas con más aire, como «SHOP COLLECTIONS» ── */
+.btn{letter-spacing:.14em;padding:16px 28px}
+.link-all{letter-spacing:.16em}
+
+/* ── hero: botón a la vista, SOLO en escritorio ──
+   En celular el botón salió de encima de la foto el 2026-09-11 a pedido del
+   propietario (commit 8025784: «en celular el banner se comía media foto»).
+   Esa decisión se respeta: ahí el hero queda como estaba. En escritorio la
+   foto es ancha y el botón cabe sin taparla, como en la plantilla. */
+/* Entre foto y foto las dos quedan casi transparentes ~0,4 s (@keyframes hbf):
+   con fondo oscuro el cambio es un fundido suave y no un destello claro. */
+.hbanner{background:var(--ink)}
+.hbanner-cta{display:none;background:#fff;border-color:#fff;color:var(--ink);padding:14px 26px;font-size:13px}
+.hbanner-cta:hover{background:var(--crema);border-color:var(--crema);color:var(--ink)}
+
+/* ── franja de garantías: crema, para no fundirse con «Nuestro compromiso»
+   (blanco) que va justo encima ── */
+.guar{background:var(--crema);border-color:transparent}
+.guar-in{padding-top:40px;padding-bottom:40px}
+
+@media(min-width:700px){
+  .sec,.social,.trust-sec,.talla-sec,.pe{padding:84px 0}
+  .story,.plata{padding:90px 0}
+  .sec-head{margin-bottom:40px}
+  .sec-top{flex-direction:column;align-items:center;gap:18px}
+  .grid{gap:28px 20px}
+  .hbanner{height:84dvh;max-height:820px}
+  .hbanner-copy{padding-top:96px}
+  .hbanner-copy h1,.hbanner-copy h2{font-size:clamp(52px,4.4vw,64px)}
+  .hbanner-fixed-in{display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+  .hbanner-cta{display:inline-flex}
+  /* Son cinco garantías: en cuatro columnas la quinta quedaba sola abajo. */
+  .guar-in{grid-template-columns:repeat(5,1fr);padding-top:52px;padding-bottom:52px}
+}
