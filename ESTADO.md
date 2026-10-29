@@ -5,6 +5,31 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Portada con el estilo de una plantilla de Figma — rama `claude/portada-estilo`, SIN desplegar (2026-10-29)
+
+**Reclamado (regla 4):** esta rama toca la portada. Pedido del propietario:
+tomar el estilo de la plantilla «Luxury Jewelry Website UI Design» (Figma
+Community, Pankaj Sharma) **como restyling, no como reemplazo** — se le
+preguntó y eligió eso frente a copiarla fiel.
+
+- Todo vive en **`portada.css`**, que solo carga `index.html`, después de
+  `tienda.css`. Los generadores copian el `<head>` hasta la línea de
+  `tienda.css`, así que no llega a fichas ni colecciones. Quitar la línea lo
+  deshace entero.
+- Qué cambia: fondo crema cálido `#F6F3ED` (era `#F6F3F4`, rosado), secciones
+  sin rayas y con fondos alternos blanco/crema, títulos centrados y más
+  grandes, tarjetas sin caja con nombre y precio centrados, más aire. Paleta
+  ciruela/rosa y Cormorant se quedan.
+- HTML nuevo: solo el botón «Arma tu pulsera» del hero, **visible solo en
+  escritorio** — en celular salió de la foto el 2026-09-11 a pedido del
+  propietario (commit `8025784`) y eso se respetó.
+- **No se volvió a poner** la sección de categorías con fotos de la plantilla:
+  el propietario la quitó el 2026-10-02 («abrumaba»).
+- Fotos de la plantilla: ninguna. Son modelos de stock con joyas de otras
+  marcas.
+- Suite completa en verde contra la rama. Falta: que el propietario la vea en
+  la vista previa y diga «deploy».
+
 ## Bot de WhatsApp apagado del 26 al 28-oct — vuelto a publicar el 2026-10-28
 
 El workflow `74TjEtDnn940jh9k` quedó **despublicado** después de la última
