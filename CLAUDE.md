@@ -38,7 +38,9 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
   `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-28
   hay 6 activos: Elige 4 paga 3, Demo, Regalo, Luciérnaga, Cuotas · Addi v2 y
-  Clienta real v2 (detalle abajo). Historia: 7 anuncios activos
+  Clienta real v2 (detalle abajo). **29 oct: se pausa Pareja · Luciérnaga**
+  (`120248382866980534`) por inventario (queda 1); quedan 5 activos. Cuotas v2
+  y el Demo también enseñan la Luciérnaga: revisar cuando llegue a cero. Historia: 7 anuncios activos
   desde el 2026-10-03 y **6 desde el 2026-10-06**, cuando se pausó Spider-Man:
   novio superhéroes (evergreen), Colección Avengers, Video Inicial y mascota, y
   tres traídos de la prueba con su misma publicación (Regalo · Dedicatoria,
