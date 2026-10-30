@@ -35,7 +35,10 @@ concurrency:
 
 jobs:
   pruebas:
-    runs-on: ubuntu-latest
+    # Fijo en 24.04: desde el 2026-10-28 ubuntu-latest es 26.04, y Playwright
+    # 1.56 no sabe instalar las dependencias de Chromium ahí (falla el paso
+    # «Navegador» antes de correr una sola prueba).
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
