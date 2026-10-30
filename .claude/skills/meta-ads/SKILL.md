@@ -340,23 +340,23 @@ La persona tiene que sentir que recibió varias veces lo que pagó. Zephora ya
 regala más de lo que dice en sus anuncios; verificar vigencia en el sitio antes
 de prometerlo: empaque de regalo en todos los pedidos, dedicatoria escrita a
 mano, paño de limpieza, envío gratis con pago anticipado, «paga 3, lleva 1
-gratis · paga 5, lleva 2 gratis» (lo de menor valor), Addi, garantía de 30 días, 5 días para cambio
+gratis · paga 4, lleva 2 gratis» (lo de menor valor), Addi, garantía de 30 días, 5 días para cambio
 de talla.
 
 Promo real desde el 2026-10-04 (`tienda.js`, `PROMO`): **paga 3 y llévate 1
-gratis; paga 5 y llévate 2 gratis**. Brazalete y charms cuentan igual; con 4
-piezas sale gratis la de menor valor, con 7 las dos de menor valor, y no pasa
+gratis; paga 4 y llévate 2 gratis**. Brazalete y charms cuentan igual; con 4
+piezas sale gratis la de menor valor, con 6 las dos de menor valor, y no pasa
 de 2. Ya no existen la escalera 8/15/25% ni el −30% del brazalete: un anuncio
 que los prometa promete algo que el checkout no cobra. Texto del banner del
 sitio: «🎁 ARMA TU SET: Mezcla charms y brazaletes. ¡PAGA 3 Y LLÉVATE 1 GRATIS!
-· Paga 5 y llévate 2 ✨».
+· Paga 4 y llévate 2 ✨».
 
 Las promos vigentes completas (2026-10-06, confirmadas por el propietario):
 
 | Promoción | Cómo funciona |
 |---|---|
 | Paga 3, lleva 1 gratis | Con 4 piezas, la más barata sale gratis. El brazalete cuenta como pieza. |
-| Paga 5, lleva 2 gratis | Con 7 piezas, las 2 más baratas salen gratis. Es el máximo: con 8 o más siguen siendo 2. |
+| Paga 4, lleva 2 gratis | Con 6 piezas, las 2 más baratas salen gratis. Es el máximo: con 7 o más siguen siendo 2. |
 | Regalo de suscripción | Una letra (su inicial) gratis. Solo en la primera compra de 2 charms o más, con el mismo correo con el que se suscribió y confirmó. |
 | Envío gratis | Pagando en línea. Con contraentrega el envío cuesta **$20.000**. |
 

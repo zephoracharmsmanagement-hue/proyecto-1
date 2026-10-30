@@ -246,7 +246,7 @@ PAGINA = '''<!DOCTYPE html>
 <section class="col-combo wrap" id="combo">
   <h2>El combo de la colección</h2>
   <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
-  sale <b>gratis</b>. Con 7 piezas son 2 gratis. Se aplica solo en el carrito.</p>
+  sale <b>gratis</b>. Con 6 piezas son 2 gratis. Se aplica solo en el carrito.</p>
   <div class="col-escalera">
     <div class="col-paso"><span class="col-paso-n">Brazalete solo</span><b>{pulsera_sola}</b></div>
     <div class="col-paso"><span class="col-paso-n">+ 2 charms</span><b>{dos}</b></div>
@@ -430,7 +430,7 @@ def generar(col, html, escribir):
 # Lo que la página enseña es la promo que la tienda YA aplica, «paga 3, lleva
 # 1 gratis» (desde el 2026-10-04): el mismo kit a 1, 2, 3 y 4 dijes. Con
 # brazalete + 3 dijes (4 piezas) la de menor valor sale gratis: ese es el paso
-# marcado. (Las 2 gratis llegan con 7 piezas; un kit tiene 5.)
+# marcado. (Las 2 gratis llegan con 6 piezas; un kit tiene 5.)
 #
 # **El enlace NO arma el carrito por la clienta.** Antes cada paso ponía el
 # brazalete Y los N dijes directamente en el carrito (`?p=base,charm1,charm2`)
@@ -572,7 +572,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
 <section class="kits-esc wrap">
   <div class="promo-caja">
     <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis.</b></p>
-    <p class="promo-caja-x">El brazalete cuenta como una pieza: con brazalete + 3 dijes, el de menor valor te sale totalmente <b>GRATIS</b>; con 7 piezas, 2 gratis. <span>(Se aplica automáticamente).</span></p>
+    <p class="promo-caja-x">El brazalete cuenta como una pieza: con brazalete + 3 dijes, el de menor valor te sale totalmente <b>GRATIS</b>; con 6 piezas, 2 gratis. <span>(Se aplica automáticamente).</span></p>
   </div>
 </section>
 
@@ -680,7 +680,7 @@ def generar_kits(html, escribir):
     n_catalogo = len(cat['precios'])
     desc = ('Kits con dijes en Plata Esterlina 925 con sello grabado y brazalete con '
             'baño de plata de alta calidad. '
-            'Paga 3 y llévate 1 gratis (paga 5 y llévate 2): la de menor valor sale gratis, y se aplica solo. '
+            'Paga 3 y llévate 1 gratis (paga 4 y llévate 2): la de menor valor sale gratis, y se aplica solo. '
             'Envío gratis a toda Colombia.')
 
     from gen_productos import bloques_media   # aquí: gen_productos importa este módulo

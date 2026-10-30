@@ -224,7 +224,7 @@ def main():
 
     # ── Promociones, con las cifras sacadas de las reglas reales ──
     A(Paragraph('Promociones', H1))
-    # Desde el 2026-10-04: «paga 3, lleva 1 gratis · paga 5, lleva 2 gratis»,
+    # Desde el 2026-10-04: «paga 3, lleva 1 gratis · paga 4, lleva 2 gratis»,
     # brazalete y charms contando igual, lo gratis es lo de menor valor, y no
     # pasa de 2.
     (p1, g1), (p2, g2) = reglas['promo']['tramos'][0], reglas['promo']['tramos'][-1]

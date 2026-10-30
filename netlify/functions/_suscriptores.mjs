@@ -1,10 +1,16 @@
-/* Suscriptoras por correo, con charm de regalo en la primera compra de 2
- * charms o más. Encargo: automatizaciones/suscripcion/BRIEF.md.
+/* Suscriptoras por correo, con $15.000 de descuento en la primera compra de 2
+ * piezas o más (decisión del propietario, 2026-10-29: reemplaza el charm de la
+ * inicial de regalo, que casi nadie usó —2 de 30— por las condiciones que
+ * tenía y porque gastaba letras escasas). Encargo original:
+ * automatizaciones/suscripcion/BRIEF.md.
  *
  * ── Qué guarda y dónde ──
  *
  * Blobs, almacén propio (`suscriptores`), clave = sha256 del correo en
- * minúsculas. Valor: { correo, confirmado, fecha, regaloUsado }. El correo va
+ * minúsculas. Valor: { correo, confirmado, fecha, regaloUsado }. `regaloUsado`
+ * guarda la referencia del pedido que usó el beneficio de primera compra —antes
+ * el charm, ahora el descuento—: se conserva el nombre para que quien ya usó el
+ * charm no reciba además el descuento. El correo va
  * en el valor porque la lista de envíos (suscriptores-export) lo necesita; la
  * clave hasheada es para que listar el almacén no sea listar correos.
  *
@@ -12,19 +18,24 @@
  * confirmación): el enlace lleva un token firmado con SUSCRIPCION_SECRETO, así
  * que no hace falta un registro de «pendientes».
  *
- * ── El regalo no toca el precio ──
+ * ── El descuento sí toca el precio ──
  *
- * calcular() y el cobro de Wompi no cambian. El pedido solo se marca
- * (`regalo: 'suscriptor'`) para que la hoja de despacho diga «incluir regalo»,
- * y el regalo se da por usado cuando el pedido se CONFIRMA: contraentrega al
- * crearse, pago en línea al aprobarse. Un pago rechazado no lo gasta.
+ * crear-pago lo resta del total DESPUÉS de la promo, así que es lo que cobran
+ * Wompi, Addi o el mensajero. El pedido se marca (`regalo: 'suscriptor'` y
+ * `cuentas.descuentoSuscripcion`) y el beneficio se da por usado cuando el
+ * pedido se CONFIRMA: contraentrega al crearse, pago en línea al aprobarse. Un
+ * pago rechazado no lo gasta.
  */
 import crypto from 'node:crypto';
 import { getStore } from '@netlify/blobs';
 
 const TIENDA = process.env.CONTEXT === 'production' ? 'suscriptores' : 'suscriptores-pruebas';
 const VIGENCIA_CONFIRMAR_MS = 7 * 24 * 3600 * 1000;
-export const MIN_CHARMS_REGALO = 2;
+/* $15.000 desde 2 piezas, charms y brazaletes por igual, como cuenta la promo
+   (decisión del propietario, 2026-10-29). */
+export const DESCUENTO_SUSCRIPTORA = 15000;
+export const MIN_PIEZAS_DESCUENTO = 2;
+const piezasDe = pedido => (pedido && Array.isArray(pedido.charms) ? pedido.charms.length : 0) + (pedido && pedido.base ? 1 : 0);
 
 let inyectado = null;
 function almacen() {
@@ -98,18 +109,24 @@ export async function darDeBaja(correo) {
   return { ok: true };
 }
 
-/* ¿Este pedido lleva regalo? Suscrita confirmada, regalo sin usar y 2 charms o
-   más. Nunca lanza: una lectura fallida es «sin regalo», no un pedido caído. */
-export async function regaloPara(correo, pedido) {
-  if (!pedido || !Array.isArray(pedido.charms) || pedido.charms.length < MIN_CHARMS_REGALO) return null;
+/* ¿Tiene el beneficio sin usar? Para el aviso del checkout antes de pagar. */
+export async function descuentoDisponible(correo) {
   const r = await leer(correo);
-  return r && r.confirmado && !r.regaloUsado ? 'suscriptor' : null;
+  return Boolean(r && r.confirmado && !r.regaloUsado);
 }
 
-/* Gasta el regalo a nombre de una referencia. Con CAS: si dos pedidos de la
-   misma clienta se confirman a la vez, solo uno lo lleva. Idempotente por
+/* Cuánto se descuenta a este pedido: $15.000 si es suscrita confirmada, no ha
+   usado el beneficio y lleva 2 piezas o más; si no, 0. Nunca lanza: una lectura
+   fallida es «sin descuento», no un pedido caído. */
+export async function descuentoPara(correo, pedido) {
+  if (piezasDe(pedido) < MIN_PIEZAS_DESCUENTO) return 0;
+  return (await descuentoDisponible(correo)) ? DESCUENTO_SUSCRIPTORA : 0;
+}
+
+/* Gasta el beneficio a nombre de una referencia. Con CAS: si dos pedidos de la
+   misma clienta se confirman a la vez, solo uno lo cuenta. Idempotente por
    referencia (Wompi reintenta sus avisos). */
-export async function usarRegalo(correo, referencia) {
+export async function usarDescuento(correo, referencia) {
   const s = almacen();
   if (!s) return { ok: false, motivo: 'sin almacén' };
   const k = clave(correo);
@@ -121,7 +138,7 @@ export async function usarRegalo(correo, referencia) {
     const r = actual && actual.data;
     if (!r || !r.confirmado) return { ok: false, motivo: 'no suscrita' };
     if (r.regaloUsado === referencia) return { ok: true, modo: 'ya-usado-aqui' };
-    if (r.regaloUsado) return { ok: false, motivo: 'regalo ya usado en ' + r.regaloUsado };
+    if (r.regaloUsado) return { ok: false, motivo: 'beneficio ya usado en ' + r.regaloUsado };
     const escrito = await s.setJSON(k, Object.assign({}, r, { regaloUsado: referencia }),
       { onlyIfMatch: actual.etag });
     if (escrito && escrito.modified) return { ok: true, modo: 'usado' };

@@ -15,7 +15,7 @@ import { marcar, leer } from './_pedidos.mjs';
 import { purchase } from './_meta.js';
 import { tomar as tomarSenales } from './_atribucion.mjs';
 import { enviar, pagoTienda } from './_correo.js';
-import { usarRegalo } from './_suscriptores.mjs';
+import { usarDescuento } from './_suscriptores.mjs';
 
 async function reenviar(carga) {
   const url = process.env.PEDIDOS_WEBHOOK;
@@ -167,14 +167,14 @@ async function cerrarPago(registro) {
   try {
     const pedido = await leer(referencia);
 
-    /* Charm de regalo de suscriptora: se gasta AQUÍ, con el pago aprobado, y
-       no al crear el pedido —un pago rechazado no puede gastarlo—. Si otro
-       pedido de la misma clienta lo usó primero, este va sin regalo y la
-       hoja de «PAGADO» deja de pedirlo. */
+    /* Descuento de suscriptora: el beneficio se gasta AQUÍ, con el pago
+       aprobado, y no al crear el pedido —un pago rechazado no puede gastarlo—.
+       El cobro ya lo llevaba; si otro pedido de la misma clienta lo usó
+       primero (dos a la vez), queda anotado para que la tienda lo vea. */
     if (pedido && pedido.regalo === 'suscriptor') {
-      const uso = await usarRegalo(pedido.cliente && pedido.cliente.correo, referencia);
-      if (!uso.ok) pedido.regalo = null;
-      await marcar(referencia, { regalo: pedido.regalo, regaloMotivo: uso.ok ? null : uso.motivo });
+      const uso = await usarDescuento(pedido.cliente && pedido.cliente.correo, referencia);
+      if (!uso.ok) console.error(JSON.stringify({ evento: 'descuento_suscriptora_doble', referencia, motivo: uso.motivo }));
+      await marcar(referencia, { regaloMotivo: uso.ok ? null : uso.motivo });
       console.log(JSON.stringify({ evento: 'regalo_suscriptor', referencia,
         usado: uso.ok, motivo: uso.motivo || uso.modo }));
     }

@@ -7,7 +7,7 @@
 | Demostración | Armar una pulsera en tres pasos: brazalete, charms, cierre. En la mano, no en render | Presentación |
 | Producto | Primer plano de un charm con el sello S925 visible. Marvel y Disney son los más fotogénicos | Evaluación |
 | Testimonio | Unboxing: caja, paño, dedicatoria escrita a mano. Solo clientes reales, o «así llega tu pedido» grabado por la marca y dicho así | Evaluación y conversión |
-| Promoción | «Paga 3, lleva 1 gratis» (paga 5, lleva 2): la pieza de menor valor con el precio tachado y «GRATIS», mezclando charms y brazalete | Conversión |
+| Promoción | «Paga 3, lleva 1 gratis» (paga 4, lleva 2): la pieza de menor valor con el precio tachado y «GRATIS», mezclando charms y brazalete | Conversión |
 | Pantalla dividida | El charm suelto a un lado, puesto en la muñeca al otro; o pulsera genérica vs. pulsera armada | Evaluación |
 | Educativo | Cómo medir la talla (la muñeca más 2 cm); por qué la Plata 925 se oscurece y cómo recuperar el brillo | Solución |
 | Beneficios | Un beneficio por imagen: Plata 925 con sello, empaque de regalo, envío gratis | Producto |
@@ -73,7 +73,7 @@ producto, 1 de problema. Los de decisión van en personalizados y ascensión.
   plata», nunca «plata».
 - **Empaque:** caja, paño y dedicatoria escrita a mano. Nada más.
 - **Precios del sitio el día del anuncio**, con la promo real: «paga 3, lleva
-  1 gratis · paga 5, lleva 2» (desde el 2026-10-04; con 4 piezas una gratis, con 7 dos, tope 2). La
+  1 gratis · paga 4, lleva 2» (desde el 2026-10-04; con 4 piezas una gratis, con 6 dos, tope 2 —el segundo tramo bajó de 7 a 6 el 2026-10-29—). La
   escalera 8/15/25% y el −30% del brazalete ya no existen. Un número de precio que no se pueda reproducir con `calcular()` no se
   escribe.
 - **No nombrar a Pandora** ni a ninguna marca competidora. Las comparaciones van

@@ -582,14 +582,19 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await ctx9.close();
   }
 
-  // ── 10 · Checkout: la inicial de regalo de suscriptora (2026-09-27) ──
-  console.log('10 · Checkout: elegir la inicial de regalo');
+  // ── 10 · Checkout: el descuento de suscriptora (2026-10-29; antes, la inicial de regalo) ──
+  console.log('10 · Checkout: el descuento de suscriptora se ve al escribir el correo');
   {
-    const conUnidades = Object.keys(cat.precios).filter(i => i.startsWith('letra-') && unidades(stock[i]) > 0).map(i => i.slice(6));
     const dos = Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i) && hay(i)).slice(0, 2);
+    /* descuento-suscripcion de mentira: solo ana@ejemplo.com tiene el beneficio. */
     const abrir = async (charms, suscrita) => {
       const ctx10 = await b.newContext({ viewport: { width: 390, height: 844 } });
       await rutasFalsas(ctx10);
+      await ctx10.route('**/.netlify/functions/descuento-suscripcion**', r => {
+        const correo = new URL(r.request().url()).searchParams.get('correo');
+        r.fulfill({ status: 200, contentType: 'application/json',
+          body: JSON.stringify({ descuento: correo === 'ana@ejemplo.com' ? 15000 : 0, minimoPiezas: 2 }) });
+      });
       await ctx10.addInitScript(([ch, s]) => {
         localStorage.setItem('zephora.carrito.v1', JSON.stringify({ v: 1, base: null, charms: ch, pago: 'anticipado', cuando: Date.now() }));
         if (s) localStorage.setItem('zephora.suscrita', '1');
@@ -600,33 +605,38 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       await p.waitForTimeout(300);
       return { ctx10, p, errs };
     };
+    const escribir = async (p, correo) => { await p.fill('#correo', correo); await p.locator('#correo').blur(); await p.waitForTimeout(400); };
+    const leer = p => p.evaluate(() => ({ tx: document.getElementById('res-totales').textContent,
+      total: document.getElementById('res-total').textContent, selector: !!document.getElementById('campo-regalo') }));
+    const pesos = t => Number(String(t).replace(/\D/g, ''));
+
     let { ctx10, p, errs } = await abrir(dos, true);
-    const r = await p.evaluate(() => ({ ver: !document.getElementById('campo-regalo').hidden,
-      letras: [...document.querySelectorAll('#regalo-inicial option')].map(o => o.value).filter(Boolean) }));
-    ok(r.ver && JSON.stringify(r.letras) === JSON.stringify(conUnidades),
-      `suscrita con 2 charms: aparece el selector de la inicial, solo con las ${r.letras.length} letras que tienen unidades`);
-    // El campo vive en el paso de datos (oculto hasta llegar ahí): se elige por valor.
-    await p.evaluate(l => { document.getElementById('regalo-inicial').value = l; }, conUnidades[0]);
-    ok(!errs.length, 'consola limpia' + lista(errs));  // que la letra viaja lo prueba checkout.js § 4b
+    let r = await leer(p);
+    ok(!r.selector, 'ya no hay selector de letra de regalo');
+    ok(/Escribe el correo con el que te suscribiste/.test(r.tx), 'suscrita en este navegador, sin correo todavía: le recuerda escribirlo');
+    const antes = pesos(r.total);
+    await escribir(p, 'ana@ejemplo.com');
+    r = await leer(p);
+    ok(/Descuento de suscriptora/.test(r.tx) && /15\.000/.test(r.tx), 'con su correo y 2 piezas: aparece «Descuento de suscriptora −$15.000»');
+    ok(pesos(r.total) === antes - 15000, `y el total baja $15.000 (${antes} → ${pesos(r.total)})`);
+    await escribir(p, 'otra@ejemplo.com');
+    r = await leer(p);
+    ok(!/Descuento de suscriptora/.test(r.tx) && pesos(r.total) === antes, 'si cambia a un correo sin beneficio, el descuento se va');
+    ok(!errs.length, 'consola limpia' + lista(errs));
     await ctx10.close();
-    ({ ctx10, p, errs } = await abrir(dos.slice(0, 1), true));
-    ok(await p.evaluate(() => document.getElementById('campo-regalo').hidden), 'con 1 charm no se ofrece');
+
+    ({ ctx10, p, errs } = await abrir(dos.slice(0, 1), false));
+    await escribir(p, 'ana@ejemplo.com');
+    r = await leer(p);
+    ok(!/Descuento de suscriptora/.test(r.tx) && /Agrega 1 pieza más/.test(r.tx), 'con 1 pieza no se aplica: le dice que agregue 1 más');
     await ctx10.close();
-    /* Sin la marca de suscripción en ESTE navegador: es el caso de la clienta
-       que confirmó desde el correo en otro navegador, o compra en ventana
-       privada. Antes no veía el selector aunque el servidor sí le daba el
-       regalo (2026-10-09). Ahora lo ve, con texto condicional — pero el aviso
-       del resumen, que AFIRMA que el regalo va incluido, no puede salirle: a
-       quien no está suscrita le prometería algo que no recibe. */
+
+    /* Sin la marca de suscripción en este navegador y con un correo sin
+       beneficio: no se le promete nada. */
     ({ ctx10, p, errs } = await abrir(dos, false));
-    const s = await p.evaluate(() => ({
-      ver: !document.getElementById('campo-regalo').hidden,
-      etiqueta: document.querySelector('label[for="regalo-inicial"]').textContent,
-      promete: /Incluye el charm de tu inicial/.test(document.getElementById('res-totales').textContent),
-    }));
-    ok(s.ver, 'sin suscripción en este navegador, con 2 charms: el selector igual aparece');
-    ok(/Si estás suscrita con este correo/.test(s.etiqueta), 'con texto condicional — ' + s.etiqueta.trim());
-    ok(!s.promete, 'y el resumen NO afirma que el regalo va incluido');
+    await escribir(p, 'nadie@ejemplo.com');
+    r = await leer(p);
+    ok(!/Descuento de suscriptora|suscri/i.test(r.tx), 'a quien no está suscrita no se le muestra ni se le promete el descuento');
     await ctx10.close();
   }
 

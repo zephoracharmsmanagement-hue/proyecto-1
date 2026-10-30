@@ -263,11 +263,18 @@ TERMINOS = '''  <p>Estos términos regulan la compra de productos de <b>Zephora 
   habías pagado, te devolvemos el dinero.</p>
 
   <h2>7. Promociones</h2>
-  <p>La promoción vigente —<b>paga 3 y llévate 1 gratis; paga 5 y llévate 2 gratis</b>: con 4
-  piezas en el pedido, sean charms o brazaletes, la de menor valor sale gratis, y con 7 piezas
+  <p>La promoción vigente —<b>paga 3 y llévate 1 gratis; paga 4 y llévate 2 gratis</b>: con 4
+  piezas en el pedido, sean charms o brazaletes, la de menor valor sale gratis, y con 6 piezas
   salen gratis las 2 de menor valor; con más piezas siguen siendo 2— se aplica
   automáticamente en el carrito del sitio. Las promociones tienen vigencia limitada, no son
   acumulables con otras salvo que lo indiquemos, y no son canjeables por dinero.</p>
+  <p><b>Descuento de suscriptora.</b> Quien se suscribe con su correo y confirma la suscripción
+  tiene <b>$15.000 de descuento</b> en su primera compra de <b>2 piezas o más</b> (charms o
+  brazaletes) hecha en el sitio con ese mismo correo. Se suma a la promoción vigente: se
+  descuenta después de las piezas gratis. Se usa una sola vez por correo, con cualquier medio
+  de pago, y no es canjeable por dinero. Reemplaza al charm de la inicial de regalo que se
+  ofrecía antes a las suscriptoras: quien ya recibió ese regalo no recibe además el
+  descuento.</p>
 
   <h2>8. Garantía legal</h2>
   <p>Todos nuestros productos cuentan con la <b>garantía legal</b> prevista en la Ley 1480 de 2011
@@ -483,10 +490,15 @@ FAQS = [
      '<p>No vendemos al por mayor: nos enfocamos exclusivamente en la venta al detal, pieza por '
      'pieza.</p>'),
     ('¿En qué consiste la promoción?',
-     '<p><b>Paga 3 y llévate 1 gratis; paga 5 y llévate 2 gratis.</b> Mezcla charms y '
-     'brazaletes: con 4 piezas en tu carrito la de menor valor te sale <b>gratis</b>, y con 7 '
+     '<p><b>Paga 3 y llévate 1 gratis; paga 4 y llévate 2 gratis.</b> Mezcla charms y '
+     'brazaletes: con 4 piezas en tu carrito la de menor valor te sale <b>gratis</b>, y con 6 '
      'piezas te salen las 2 de menor valor gratis (con más piezas siguen siendo 2). Se aplica '
      'sola en el carrito: sin códigos ni letra pequeña.</p>'),
+    ('¿Qué gano si me suscribo?',
+     '<p><b>$15.000 de descuento en tu primera compra de 2 piezas o más</b>, charms o brazaletes. '
+     'Te suscribes con tu correo en el botón del regalo de la tienda y confirmas desde el correo que '
+     'te llega. Luego, al pagar con ese mismo correo, el descuento aparece solo en el resumen, '
+     'y se suma a la promoción. Es una sola vez por correo.</p>'),
     ('¿Puedo devolver o cambiar mi pedido?',
      '<p>Sí. Tienes <b>5 días hábiles</b> desde la entrega para retractarte o solicitar un cambio '
      'de talla, con la pieza sin uso y en su empaque original. El detalle está en '

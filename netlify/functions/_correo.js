@@ -59,13 +59,13 @@ function correoTienda() {
 /* Sin imágenes ni fuentes externas: los clientes de correo bloquean lo remoto
    por defecto, y una plantilla que depende de eso llega rota. Tabla y estilos
    en línea porque Gmail descarta el <style> del <head>. */
-/* La promo (paga 3 lleva 1 gratis, paga 5 lleva 2): la línea dice cuántas unidades salieron gratis y, aparte,
+/* La promo (paga 3 lleva 1 gratis, paga 4 lleva 2): la línea dice cuántas unidades salieron gratis y, aparte,
    va el renglón del descuento, para que la suma de las líneas cuadre con el
    total. Un pedido viejo, sin `gratis` ni `descuento`, se ve como siempre. */
 const nGratis = l => (Number(l.gratis) > 0 ? Number(l.gratis) : 0);
 const rotuloGratis = l => (nGratis(l) ? (nGratis(l) === Number(l.unidades || 1) ? 'GRATIS' : `${nGratis(l)} gratis`) : '');
 
-function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, descuento, total, pago, cliente, pasos }) {
+function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, descuento, descuentoSusc, total, pago, cliente, pasos }) {
   const fila = l => `
     <tr>
       <td style="padding:9px 0;border-bottom:1px solid #E4DDE0;font:400 14px/1.4 Georgia,serif;color:#2A1F2E">
@@ -107,6 +107,10 @@ function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, de
       ${descuento > 0 ? `<tr>
         <td style="padding:9px 0;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">Promo: piezas gratis</td>
         <td style="padding:9px 0;text-align:right;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">− ${esc(cop(descuento))}</td>
+      </tr>` : ''}
+      ${descuentoSusc > 0 ? `<tr>
+        <td style="padding:9px 0;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">Descuento de suscriptora</td>
+        <td style="padding:9px 0;text-align:right;font:400 14px/1.4 Arial,sans-serif;color:#1F7A5C">− ${esc(cop(descuentoSusc))}</td>
       </tr>` : ''}
       <tr>
         <td style="padding:9px 0;font:400 14px/1.4 Arial,sans-serif;color:#6d6070">Envío</td>
@@ -166,7 +170,7 @@ function plantilla({ titulo, entrada, referencia, lineas, envio, envioGratis, de
 /* Versión en texto plano. No es un adorno: sin ella, varios filtros marcan el
    correo como sospechoso, y un comprobante de compra en spam es un comprobante
    que no existe. */
-function texto({ titulo, entrada, referencia, lineas, envio, envioGratis, descuento, total, pago, cliente }) {
+function texto({ titulo, entrada, referencia, lineas, envio, envioGratis, descuento, descuentoSusc, total, pago, cliente }) {
   const l = lineas.map(x => `- ${x.nombre}${Number(x.unidades) > 1 ? ` x${x.unidades}` : ''}`
     + `${x.talla ? ` (talla ${x.talla} cm)` : ''}: ${cop(x.precio)}${rotuloGratis(x) ? ` (${rotuloGratis(x)})` : ''}`);
   return [
@@ -174,6 +178,7 @@ function texto({ titulo, entrada, referencia, lineas, envio, envioGratis, descue
     `Referencia: ${referencia}`, '',
     ...l,
     ...(descuento > 0 ? [`Promo, piezas gratis: − ${cop(descuento)}`] : []),
+    ...(descuentoSusc > 0 ? [`Descuento de suscriptora: − ${cop(descuentoSusc)}`] : []),
     `Envío: ${envioGratis ? 'Gratis' : cop(envio)}`,
     `Total: ${cop(total)} (${pago === 'contraentrega' ? 'contraentrega'
       : CREDITO[pago] ? `con ${CREDITO[pago]}, a cuotas` : 'pagado por adelantado'})`, '',
@@ -220,8 +225,7 @@ async function enviar({ para, asunto, html, txt, responder }) {
 async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente, regalo }) {
   const contra = pago === 'contraentrega';
   const conRegalo = regalo === 'suscriptor'
-    ? ' Tu pedido incluye de regalo el charm de tu inicial' + (cliente && cliente.regaloInicial ? ' «' + cliente.regaloInicial.toUpperCase() + '»' : '')
-      + ' por estar suscrita.' + (cliente && cliente.regaloInicial ? '' : ' Te escribimos para que nos digas qué letra quieres.')
+    ? ` Por estar suscrita, tu primera compra lleva ${cop(cuentas.descuentoSuscripcion || 0)} de descuento, ya aplicado en el total.`
     : '';
   const datos = {
     titulo: contra ? 'Pedido confirmado' : 'Recibimos tu pedido',
@@ -231,7 +235,8 @@ async function pedidoRecibido({ referencia, lineas, cuentas, pago, cliente, rega
       ? `Estamos esperando que ${CREDITO[pago]} apruebe tu compra. En cuanto quede aprobada te escribimos otra vez.`
       : 'Estamos confirmando tu pago. En cuanto quede aprobado te escribimos otra vez.') + conRegalo,
     referencia, lineas,
-    envio: cuentas.envio, envioGratis: cuentas.envioGratis, descuento: cuentas.descuento || 0, total: cuentas.total,
+    envio: cuentas.envio, envioGratis: cuentas.envioGratis, descuento: cuentas.descuento || 0,
+    descuentoSusc: cuentas.descuentoSuscripcion || 0, total: cuentas.total,
     pago, cliente,
     pasos: contra
       ? ['Te escribimos por WhatsApp para confirmar existencias y la talla.',
@@ -353,17 +358,11 @@ const BLOQUE = (rotulo, valor, destacado) => !valor ? '' : `
        ${destacado ? 'background:#FDF1F2;border-left:3px solid #B03A48;padding:10px 12px' : ''}">${valor}</p>
   </td></tr>`;
 
-/* El regalo de suscriptora, en la hoja de despacho. Destacado en rojo como las
-   indicaciones: es de lo que se olvida si se empaca leyendo en diagonal. La
-   pieza la escoge quien empaca y la descuenta con registrar-venta (pago
-   «regalo»), ver automatizaciones/suscripcion/BRIEF.md. */
-/* El regalo de suscriptora es el charm de su inicial (decisión del
-   propietario, 2026-09-27). Con la letra que eligió en el checkout, o el aviso
-   de que hay que preguntarle. */
-const txtRegalo = cliente => (cliente && cliente.regaloInicial
-  ? 'Charm de la inicial «' + cliente.regaloInicial.toUpperCase() + '» (letra-' + cliente.regaloInicial + ') de regalo por ser suscriptora. '
-  : 'Charm de inicial de regalo por ser suscriptora: NO eligió la letra, pregúntale por WhatsApp antes de despachar. ')
-  + 'Regístralo en el formulario de ventas manuales, pago «regalo», total 0, para que salga del inventario.';
+/* El descuento de suscriptora en la hoja de despacho: solo en las cuentas,
+   porque no hay nada que empacar de más (desde el 2026-10-29 reemplaza al
+   charm de la inicial de regalo). */
+const lineaDescSusc = cuentas => (cuentas && cuentas.descuentoSuscripcion > 0
+  ? `Descuento de suscriptora −${cop(cuentas.descuentoSuscripcion)} (ya va en el total)` : '');
 
 function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regalo }) {
   const contra = pago === 'contraentrega';
@@ -411,11 +410,11 @@ function plantillaTienda({ referencia, lineas, cuentas, pago, cliente, pagado, r
   ${BLOQUE('⚠ Indicaciones para la entrega', esc(cliente.notas).replace(/\n/g, '<br>'), true)}
   ${BLOQUE('✎ Dedicatoria — va escrita a mano',
     esc(cliente.dedicatoria).replace(/\n/g, '<br>'), true)}
-  ${regalo === 'suscriptor' ? BLOQUE('🎁 INCLUIR REGALO DE SUSCRIPTOR', esc(txtRegalo(cliente)), true) : ''}
   ${BLOQUE('Qué empacar', piezas)}
   ${BLOQUE('Para la guía — destinatario', contacto)}
   ${BLOQUE('Para la guía — dirección', direccion)}
   ${BLOQUE('Cuentas', `Mercancía ${esc(cop(cuentas.total - cuentas.envio))}<br>`
+    + (lineaDescSusc(cuentas) ? `${esc(lineaDescSusc(cuentas))}<br>` : '')
     + `Envío ${cuentas.envioGratis ? 'GRATIS' : esc(cop(cuentas.envio))}<br>`
     + `<b>Total ${esc(cop(cuentas.total))}</b>`)}
 
@@ -444,7 +443,6 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regal
     '',
     ...bloque('>> INDICACIONES PARA LA ENTREGA:', cliente.notas),
     ...bloque('>> DEDICATORIA (va escrita a mano):', cliente.dedicatoria),
-    ...bloque('>> INCLUIR REGALO DE SUSCRIPTOR:', regalo === 'suscriptor' ? txtRegalo(cliente) : ''),
     'QUÉ EMPACAR:',
     ...lineas.map(l => `- ${l.nombre}${l.talla ? ` (talla ${l.talla} cm)` : ''}`
       + `${l.unidades > 1 ? ` x${l.unidades}` : ''}`),
@@ -458,6 +456,7 @@ function textoTienda({ referencia, lineas, cuentas, pago, cliente, pagado, regal
     ...(cliente.barrio ? [`Barrio ${cliente.barrio}`] : []),
     `${cliente.ciudad}, ${cliente.depto}`,
     '',
+    ...(lineaDescSusc(cuentas) ? [lineaDescSusc(cuentas)] : []),
     `Envío: ${cuentas.envioGratis ? 'GRATIS' : cop(cuentas.envio)}`,
     `Total: ${cop(cuentas.total)}`,
   ].join('\n');
@@ -470,8 +469,7 @@ async function avisoTienda({ referencia, lineas, cuentas, pago, cliente, regalo 
   /* Las indicaciones y la dedicatoria van en el asunto —marcadas— porque el
      correo se ve primero en una lista, y lo que no se ve ahí se empaca sin
      leer. */
-  const avisos = [cliente.notas ? '⚠ CON INDICACIONES' : '', cliente.dedicatoria ? '✎ DEDICATORIA' : '',
-    regalo === 'suscriptor' ? '🎁 REGALO' : '']
+  const avisos = [cliente.notas ? '⚠ CON INDICACIONES' : '', cliente.dedicatoria ? '✎ DEDICATORIA' : '']
     .filter(Boolean).join(' ');
   const r = await enviar({
     para,
@@ -519,8 +517,7 @@ async function pagoTienda({ referencia, total, pedido }) {
     pago: pedido.pago || 'anticipado', cliente: pedido.cliente, pagado: true, regalo: pedido.regalo,
   };
   const avisos = [pedido.cliente.notas ? '⚠ CON INDICACIONES' : '',
-    pedido.cliente.dedicatoria ? '✎ DEDICATORIA' : '',
-    pedido.regalo === 'suscriptor' ? '🎁 REGALO' : ''].filter(Boolean).join(' ');
+    pedido.cliente.dedicatoria ? '✎ DEDICATORIA' : ''].filter(Boolean).join(' ');
   const r = await enviar({
     para,
     asunto: `PAGADO · ${referencia} · ${cop(cuentas.total)} — despachar${avisos ? ' · ' + avisos : ''}`,
