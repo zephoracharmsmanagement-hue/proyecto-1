@@ -5,6 +5,40 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Promo «paga 4, lleva 2» y $15.000 de descuento de suscriptora — desplegado el 2026-10-29 (PR #34)
+
+Decisión del propietario con el análisis de ventas reales (42 ventas desde
+agosto; desde el 4-oct, 10 de 21 pedidos quedaron justo en 4 piezas y ninguno
+llegó a 7; 30 suscritas y solo 2 usaron la letra de regalo).
+
+- **Promoción:** `PROMO={tramos:[[4,1],[6,2]]}` en `tienda.js` → `catalogo.json`
+  (`extraer_catalogo.py`). «Paga 3, lleva 1 gratis · paga 4, lleva 2 gratis»:
+  con 4 piezas la de menor valor, con 6 las dos de menor valor, tope 2. Textos
+  en portada, fichas, colecciones, kits, carrito, checkout, preguntas,
+  términos, bot y guías (CLAUDE.md, skill de meta-ads). Ningún anuncio activo
+  nombraba el tramo de 7 (revisado: 5 anuncios activos).
+- **Suscripción:** $15.000 de descuento en la primera compra de **2 piezas o
+  más** (charms y brazaletes cuentan igual), en vez del charm de la inicial.
+  `crear-pago` lo resta después de la promo y antes de todo lo que mira el
+  total (Wompi, Addi, Sistecrédito); queda en `cuentas.descuentoSuscripcion`
+  y el pedido sigue marcado `regalo: 'suscriptor'`. Se gasta como se gastaba el
+  regalo —contraentrega al crear, en línea al aprobarse (`_cierre`)— en el
+  mismo campo `regaloUsado`, así que es una vez por correo y quien ya usó la
+  letra no lo recibe además. Constantes en `_suscriptores.mjs`
+  (`DESCUENTO_SUSCRIPTORA`, `MIN_PIEZAS_DESCUENTO`).
+- **`descuento-suscripcion`** (nuevo, GET `?correo=`): el checkout lo pregunta
+  al escribir el correo y muestra «Descuento de suscriptora −$15.000» y el total
+  antes de pagar. Responde solo 15000/0; 30 consultas por IP y hora. Si la
+  consulta falla, el servidor igual aplica el descuento y el checkout lo acepta
+  (compara los totales sin el descuento).
+- **Ventana del botón del regalo:** cupón en HTML (no imagen con texto
+  quemado) con foto real recortada de la tienda (`assets/susc-pulsera.webp`),
+  «$15.000» en la serif de la marca, entrada suave con `@starting-style` y sin
+  movimiento con `prefers-reduced-motion`.
+- **Fuera:** el selector de la letra del checkout y la instrucción de
+  registrar la letra como venta manual «regalo» en la hoja de despacho.
+- Suite completa en verde: **1.364 comprobaciones**.
+
 ## Bot de WhatsApp apagado del 26 al 28-oct — vuelto a publicar el 2026-10-28
 
 El workflow `74TjEtDnn940jh9k` quedó **despublicado** después de la última
