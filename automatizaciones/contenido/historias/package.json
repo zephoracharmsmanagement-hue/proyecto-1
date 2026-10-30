@@ -1,0 +1,22 @@
+{
+  "name": "zephora-historias",
+  "private": true,
+  "description": "Historias de Instagram de noviembre 2026 renderizadas con Remotion (stills 1080x1920).",
+  "scripts": {
+    "render": "node render.mjs",
+    "studio": "remotion studio src/index.ts"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.539",
+    "@remotion/cli": "4.0.539",
+    "@remotion/fonts": "4.0.539",
+    "@remotion/renderer": "4.0.539",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.539",
+    "typescript": "7.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.0"
+  }
+}
