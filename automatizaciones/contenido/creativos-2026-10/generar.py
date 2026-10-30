@@ -21,7 +21,7 @@ se imprime. Lo generado va a material-sin-publicar/ (fuera de git). El registro
 evita volver a cobrar una tirada que ya salió bien.
 """
 import io, json, os, sys, time, urllib.request
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.abspath(os.path.join(AQUI, '..', '..', '..'))
@@ -157,24 +157,44 @@ def cubrir(im, W, H):
     return im.resize((W, H), Image.LANCZOS)
 
 
+def detalle(im, caja):
+    """Cuánto «dibujo» hay en una zona (bordes promedio). La joya tiene mucho; un fondo liso o desenfocado, poco."""
+    g = im.convert('L').crop(tuple(int(v) for v in caja)).filter(ImageFilter.FIND_EDGES)
+    return sum(i * n for i, n in enumerate(g.histogram())) / max(1, g.width * g.height)
+
+
 def componer(base, pieza, W, H):
+    """Todo el texto va ARRIBA, en el cuarto que el prompt deja libre: marca, título y botón.
+    La mitad de abajo queda solo para la joya (antes el botón, abajo, tapó al Spider-Man colgante).
+    Si una caja de texto cae sobre una zona con mucho detalle, se avisa: hay que revisarla a ojo."""
     p = PIEZAS[pieza]
     im = cubrir(base.convert('RGB'), W, H)
+    limpio = im.copy()
     d = ImageDraw.Draw(im)
     texto = CREMA if p['oscuro'] else TINTA
-    tf = fuente('PlayfairDisplay', int(W * 0.095), 500)
-    y = int(H * 0.06)
+    cajas = []
+    mf = fuente('PlayfairDisplay', int(W * 0.034), 500)
+    y = int(H * 0.035)
+    d.text((W / 2, y), 'Zephora Charms', font=mf, fill=texto, anchor='mt')
+    y += int(W * 0.06)
+    tf = fuente('PlayfairDisplay', int(W * 0.088), 500)
     for linea in p['titulo']:
         tw = d.textlength(linea, font=tf)
         d.text(((W - tw) / 2, y), linea, font=tf, fill=texto)
-        y += int(W * 0.11)
-    bf = fuente('DMSans', int(W * 0.042), 500)
-    bw = d.textlength(p['boton'], font=bf) + int(W * 0.13); bh = int(W * 0.095)
-    bx, by = (W - bw) / 2, H - bh - int(H * 0.058)   # más abajo: a 0,085 tapaba las plumas del atrapasueños
+        cajas.append(((W - tw) / 2, y, (W + tw) / 2, y + int(W * 0.1)))
+        y += int(W * 0.1)
+    bf = fuente('DMSans', int(W * 0.04), 500)
+    bw = d.textlength(p['boton'], font=bf) + int(W * 0.12); bh = int(W * 0.085)
+    bx, by = (W - bw) / 2, y + int(W * 0.03)
     d.rounded_rectangle([bx, by, bx + bw, by + bh], radius=bh / 2, fill=ROSA, outline=TINTA, width=2)
     d.text((W / 2, by + bh / 2), p['boton'], font=bf, fill=TINTA, anchor='mm')
-    mf = fuente('PlayfairDisplay', int(W * 0.036), 500)
-    d.text((W / 2, H - int(H * 0.024)), 'Zephora Charms', font=mf, fill=texto, anchor='mm')
+    cajas.append((bx, by, bx + bw, by + bh))
+    # Control: el detalle bajo cada caja no puede ser mucho mayor que el de la franja de arriba (fondo).
+    ref = detalle(limpio, (0, 0, W, int(H * 0.03))) + 1
+    peor = max(detalle(limpio, c) / ref for c in cajas)
+    fondo_texto = by + bh
+    print(f'    texto hasta {fondo_texto / H:.0%} de la altura · detalle bajo el texto {peor:.1f}× el fondo'
+          + ('  ⚠ REVISAR: podría tapar la joya' if peor > 3 else ''))
     return im
 
 
