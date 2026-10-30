@@ -19,9 +19,9 @@ const ESP = new Set(pulseras);
    sin él, un carrito con 10.000 charms genera un cobro absurdo. */
 const MAX_CHARMS = 60;
 
-/* «Paga 3, lleva 1 gratis · paga 5, lleva 2 gratis» (pedido del
+/* «Paga 3, lleva 1 gratis · paga 4, lleva 2 gratis» (pedido del
    propietario, 2026-10-04). Brazalete y charms cuentan igual como piezas: con
-   4 sale gratis la más barata y con 7 las dos más baratas; de ahí no pasa
+   4 sale gratis la más barata y con 6 las dos más baratas; de ahí no pasa
    (8 o más siguen siendo 2). `reglas.promo.tramos` = [[piezas, gratis], …].
 
    El orden de las piezas importa solo para decir CUÁL sale gratis cuando hay

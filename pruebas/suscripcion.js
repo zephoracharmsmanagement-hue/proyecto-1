@@ -1,5 +1,6 @@
 'use strict';
-/* Suscripción por correo con charm de regalo (automatizaciones/suscripcion/BRIEF.md).
+/* Suscripción por correo con $15.000 de descuento en la primera compra de 2
+ * piezas o más (antes: charm de regalo; automatizaciones/suscripcion/BRIEF.md).
  *
  * De punta a punta con las funciones reales y almacenes falsos: suscribirse,
  * confirmar desde el enlace del correo, y que el regalo se marque en el pedido
@@ -106,40 +107,68 @@ async function main() {
     comprobar(sus.verificar('baja', t) === null, 'un token de confirmar no sirve para darse de baja');
   }
 
-  console.log(`\n3 · El regalo en el pedido (charms de prueba: ${c1}, ${c2})`);
-  /* Inventario limpio en cada pedido: aquí se prueba el regalo, no el stock, y
-     varios pedidos seguidos agotarían las piezas de prueba. */
-  // `inicial`: la letra que eligió para el charm de regalo (desde el 2026-09-27
-  // el regalo de suscriptora es el charm de su inicial).
-  const crear = async (correo, charms, pago, inicial) => {
+  console.log(`\n3 · El descuento en el pedido (charms de prueba: ${c1}, ${c2})`);
+  /* Desde el 2026-10-29 el beneficio de suscriptora es $15.000 de descuento en
+     la primera compra de 2 piezas o más (charms y brazaletes cuentan igual), en
+     vez del charm de la inicial. Inventario limpio en cada pedido: aquí se
+     prueba el descuento, no el stock. */
+  const { brazalete } = require('./_pieza');
+  const BRZ = brazalete();
+  const crear = async (correo, charms, pago, base = null) => {
     inv._interno.usarAlmacen(almacen());
-    const r = await pedir(crearPago, { cuerpo: { charms, base: null, pago,
-      cliente: CLIENTE(correo, inicial === undefined ? null : { regaloInicial: inicial }) } });
-    return leerJ(r);
+    return leerJ(await pedir(crearPago, { cuerpo: { charms, base, pago, cliente: CLIENTE(correo) } }));
   };
   {
     let r = await crear('ana@ejemplo.com', [c1], 'contraentrega');
-    comprobar(r.s === 200 && !r.d.regalo, 'suscrita con 1 charm → sin regalo');
+    const sinSus1 = await crear('nadie@ejemplo.com', [c1], 'contraentrega');
+    comprobar(r.s === 200 && !r.d.regalo && !r.d.descuentoSuscripcion && r.d.total === sinSus1.d.total,
+      'suscrita con 1 pieza → sin descuento');
     const sinSus = await crear('nadie@ejemplo.com', [c1, c2], 'contraentrega');
     const n = correos.length;
-    // Una «letra» que no es letra del catálogo se descarta: la tienda pregunta.
-    r = await crear('ana@ejemplo.com', [c1, c2], 'contraentrega', '<b>');
-    comprobar(r.s === 200 && r.d.regalo === 'suscriptor', 'suscrita con 2 charms → pedido marcado con regalo');
-    comprobar(r.d.total === sinSus.d.total, `el total cobrado es idéntico con y sin suscripción (${r.d.total})`);
+    r = await crear('ana@ejemplo.com', [c1, c2], 'contraentrega');
+    comprobar(r.s === 200 && r.d.regalo === 'suscriptor' && r.d.descuentoSuscripcion === 15000,
+      'suscrita con 2 piezas → $15.000 de descuento');
+    comprobar(r.d.total === sinSus.d.total - 15000, `el total cobrado baja $15.000 (${sinSus.d.total} → ${r.d.total})`);
     const tienda = correos.slice(n).find(c => c.to[0] === 'tienda@ejemplo.com');
     const cliente = correos.slice(n).find(c => c.to[0] === 'ana@ejemplo.com');
-    comprobar(tienda && /INCLUIR REGALO DE SUSCRIPTOR/.test(tienda.html) && /INCLUIR REGALO/.test(tienda.text)
-      && /REGALO/.test(tienda.subject), 'la hoja de despacho dice INCLUIR REGALO (html, texto y asunto)');
-    comprobar(cliente && /charm de tu inicial/.test(cliente.html) && /qué letra quieres/.test(cliente.html),
-      'y el comprobante de la clienta lo menciona (sin letra válida: le escribimos para preguntarle)');
-    comprobar(/NO eligió la letra/.test(tienda.html) && !/&lt;b&gt;|<b>b/.test(tienda.text),
-      'una letra inválida no llega a la hoja: dice que hay que preguntarle');
-    comprobar((await sus.leer('ana@ejemplo.com')).regaloUsado === r.d.referencia, 'contraentrega gasta el regalo al crearse');
+    comprobar(tienda && /Descuento de suscriptora −\$15\.000/.test(tienda.html) && /Descuento de suscriptora −\$15\.000/.test(tienda.text),
+      'la hoja de despacho lo muestra en las cuentas (html y texto)');
+    comprobar(tienda && !/REGALO/.test(tienda.subject) && !/INCLUIR REGALO|inicial/i.test(tienda.html),
+      'y ya no pide incluir un charm de regalo');
+    comprobar(cliente && /Descuento de suscriptora/.test(cliente.html) && /15\.000 de descuento/.test(cliente.html),
+      'el comprobante de la clienta muestra el descuento');
+    comprobar((await sus.leer('ana@ejemplo.com')).regaloUsado === r.d.referencia, 'contraentrega gasta el beneficio al crearse');
     r = await crear('ana@ejemplo.com', [c1, c2], 'contraentrega');
-    comprobar(!r.d.regalo, 'el segundo pedido ya no lleva regalo');
+    comprobar(!r.d.regalo && r.d.total === sinSus.d.total, 'el segundo pedido ya no lleva descuento');
+
+    /* Brazalete + 1 charm también son 2 piezas. */
+    await confirmar('lia@ejemplo.com');
+    const conBase = await crear('lia@ejemplo.com', [c1], 'contraentrega', { id: BRZ.id, talla: BRZ.talla });
+    const conBaseSin = await crear('nadie@ejemplo.com', [c1], 'contraentrega', { id: BRZ.id, talla: BRZ.talla });
+    comprobar(conBase.d.descuentoSuscripcion === 15000 && conBase.d.total === conBaseSin.d.total - 15000,
+      'brazalete + 1 charm (2 piezas) → también lleva el descuento');
   }
 
-  console.log('\n4 · Pago en línea: el regalo se gasta con el pago aprobado');
+  console.log('\n3b · El aviso del checkout (descuento-suscripcion)');
+  {
+    const ds = await import(F + 'descuento-suscripcion.mjs');
+    const preguntar = async (correo, ip = '1.2.3.4') => leerJ(await ds.default(new Request(
+      'https://tienda.test/x?correo=' + encodeURIComponent(correo), { headers: { 'x-nf-client-connection-ip': ip } })));
+    await confirmar('cami@ejemplo.com');
+    let r = await preguntar('Cami@Ejemplo.com');
+    comprobar(r.s === 200 && r.d.descuento === 15000 && r.d.minimoPiezas === 2, 'suscrita sin usar → 15000, desde 2 piezas');
+    r = await preguntar('ana@ejemplo.com');
+    comprobar(r.s === 200 && r.d.descuento === 0, 'ya lo usó → 0');
+    r = await preguntar('nadie@ejemplo.com');
+    comprobar(r.s === 200 && r.d.descuento === 0 && Object.keys(r.d).length === 2, 'no suscrita → 0, y no dice nada más');
+    r = await preguntar('no-es-correo');
+    comprobar(r.s === 400, 'un correo inválido → 400');
+    let ultimo;
+    for (let i = 0; i < 32; i++) ultimo = await preguntar('x' + i + '@ejemplo.com', '9.9.9.9');
+    comprobar(ultimo.s === 429, 'más de 30 consultas por hora desde la misma IP → 429');
+  }
+
+  console.log('\n4 · Pago en línea: el descuento se cobra al crear y se gasta con el pago aprobado');
   const avisar = async (ref, total, estado) => {
     const evento = { event: 'transaction.updated', timestamp: 1786290000,
       data: { transaction: { id: 'tx-' + ref, reference: ref, status: estado, amount_in_cents: total * 100,
@@ -151,20 +180,22 @@ async function main() {
   };
   {
     await confirmar('bea@ejemplo.com');
+    const sin = await crear('nadie@ejemplo.com', [c1, c2], 'anticipado');
     let r = await crear('bea@ejemplo.com', [c1, c2], 'anticipado');
-    comprobar(r.s === 200 && r.d.regalo === 'suscriptor', 'el pedido en línea se marca con regalo');
+    comprobar(r.s === 200 && r.d.regalo === 'suscriptor' && r.d.total === sin.d.total - 15000,
+      'el pedido en línea lleva el descuento en el total');
+    comprobar(r.d.centavos === r.d.total * 100, 'y Wompi cobra ese total (centavos y firma salen del total con descuento)');
     comprobar((await sus.leer('bea@ejemplo.com')).regaloUsado === null, 'pero no lo gasta todavía');
     comprobar(await avisar(r.d.referencia, r.d.total, 'DECLINED') === 200
-      && (await sus.leer('bea@ejemplo.com')).regaloUsado === null, 'pago rechazado → el regalo sigue sin usar');
+      && (await sus.leer('bea@ejemplo.com')).regaloUsado === null, 'pago rechazado → el beneficio sigue sin usar');
     const n = correos.length;
-    r = await crear('bea@ejemplo.com', [c1, c2], 'anticipado', 'B');
-    comprobar(await avisar(r.d.referencia, r.d.total, 'APPROVED') === 200
-      && (await sus.leer('bea@ejemplo.com')).regaloUsado === r.d.referencia, 'pago aprobado → regalo usado');
-    const pagado = correos.slice(n).find(c => c.to[0] === 'tienda@ejemplo.com' && /^PAGADO/.test(c.subject));
-    comprobar(pagado && /INCLUIR REGALO DE SUSCRIPTOR/.test(pagado.html) && /inicial «B» \(letra-b\)/.test(pagado.html),
-      'la hoja de «PAGADO» lo pide, con la inicial que eligió (B)');
     r = await crear('bea@ejemplo.com', [c1, c2], 'anticipado');
-    comprobar(!r.d.regalo, 'el pedido siguiente ya no lleva regalo');
+    comprobar(await avisar(r.d.referencia, r.d.total, 'APPROVED') === 200
+      && (await sus.leer('bea@ejemplo.com')).regaloUsado === r.d.referencia, 'pago aprobado → beneficio usado');
+    const pagado = correos.slice(n).find(c => c.to[0] === 'tienda@ejemplo.com' && /^PAGADO/.test(c.subject));
+    comprobar(pagado && /Descuento de suscriptora −\$15\.000/.test(pagado.html), 'la hoja de «PAGADO» muestra el descuento');
+    r = await crear('bea@ejemplo.com', [c1, c2], 'anticipado');
+    comprobar(!r.d.regalo && r.d.total === sin.d.total, 'el pedido siguiente ya no lleva descuento');
   }
 
   console.log('\n5 · Lista para envíos y baja');
@@ -173,7 +204,7 @@ async function main() {
     comprobar(r.status === 401, 'suscriptores-export sin clave → 401');
     r = await leerJ(await pedir(exportar, { metodo: 'GET', cabeceras: { 'x-zephora-automation-key': process.env.SUSCRIPTORES_KEY } }));
     const correosLista = r.d.suscriptoras.map(s => s.correo).sort();
-    comprobar(r.s === 200 && JSON.stringify(correosLista) === JSON.stringify(['ana@ejemplo.com', 'bea@ejemplo.com'])
+    comprobar(r.s === 200 && JSON.stringify(correosLista) === JSON.stringify(['ana@ejemplo.com', 'bea@ejemplo.com', 'cami@ejemplo.com', 'lia@ejemplo.com'])
       && r.d.suscriptoras.every(s => /suscribir\?baja=/.test(s.baja)), 'devuelve solo las confirmadas, cada una con su enlace de baja');
     const baja = r.d.suscriptoras[0].baja.split('?')[1];
     const h = await (await pedir(suscribir, { metodo: 'GET', url: 'https://tienda.test/suscribir?' + baja })).text();

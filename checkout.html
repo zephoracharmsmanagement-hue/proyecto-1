@@ -471,21 +471,10 @@ button{font-family:inherit}
               </div>
             </div>
 
-            <!-- Regalo de suscriptora: el charm de su inicial (decisión del
-                 propietario, 2026-09-27). Se muestra a quien lleve 2 charms o
-                 más, esté o no suscrita: antes solo salía si ESTE navegador
-                 había confirmado la suscripción, y una clienta real que
-                 confirmó desde el correo en otro navegador no lo vio, aunque
-                 el servidor sí le daba el regalo (pedido del propietario,
-                 2026-10-09). Por eso el texto es condicional. Quien decide de
-                 verdad sigue siendo crear-pago, con el correo: a una clienta no
-                 suscrita le ignora la letra, y como no la aparta del
-                 inventario, elegirla nunca bloquea su compra. -->
-            <div class="campo" data-c="regalo" id="campo-regalo" hidden>
-              <label for="regalo-inicial">🎁 Si estás suscrita con este correo, elige tu inicial de regalo</label>
-              <select id="regalo-inicial" name="regalo-inicial"><option value="">Elige una letra</option></select>
-              <span class="pista">Si te suscribiste con este correo, tu primera compra de 2 charms o más lleva de regalo el charm de tu inicial. Solo aparecen las letras con unidades; si no eliges, te escribimos para preguntarte.</span>
-            </div>
+            <!-- Desde el 2026-10-29 el beneficio de suscriptora es $15.000 de
+                 descuento en la primera compra de 2 piezas o más (antes, el
+                 charm de su inicial con un selector aquí). Se ve en el resumen
+                 en cuanto escribe su correo: ver revisarDescuento(). -->
 
             <!-- Autorización aparte, sin marcar y opcional.
                  Bajo la Ley 1581 la finalidad que autoriza estos datos es la
@@ -731,8 +720,8 @@ function guardarCarrito(){
 /* Las mismas reglas que index.html y que netlify/functions/_precios.js. Aquí
    solo se muestran: lo que se cobra lo vuelve a calcular el servidor, que es
    el único que no se puede alterar desde la consola del navegador. */
-/* «Paga 3, lleva 1 gratis · paga 5, lleva 2 gratis»: con 4 piezas —brazalete
-   o charm— sale gratis la más barata, con 7 las dos más baratas, y no más.
+/* «Paga 3, lleva 1 gratis · paga 4, lleva 2 gratis»: con 4 piezas —brazalete
+   o charm— sale gratis la más barata, con 6 las dos más baratas, y no más.
    Mismo desempate que piezasGratis() de _precios.js (a igual
    precio, los charms antes que el brazalete), para que la línea tachada aquí
    sea la misma que dice el correo. */
@@ -743,6 +732,10 @@ function gratisDe(c){
   const n=P.tramos.reduce((g,t)=>piezas.length>=t[0]?t[1]:g,0);
   return piezas.map((x,i)=>[x,i]).sort((a,b)=>a[0].p-b[0].p||a[1]-b[1]).slice(0,n).map(x=>x[0]);
 }
+/* Descuento de suscriptora para el correo que escribió la clienta: lo dice
+   descuento-suscripcion (0 o 15000) y crear-pago lo vuelve a decidir con el
+   mismo correo. Aplica desde 2 piezas, charms y brazaletes por igual. */
+let DESC_SUSC=0, DESC_MIN=2, DESC_CORREO='';
 function calcular(c){
   const R=CAT.reglas;
   const brutoC=c.charms.reduce((s,id)=>s+CAT.precios[id],0);
@@ -757,9 +750,12 @@ function calcular(c){
   const pe=c.pago==='contraentrega'?'contraentrega':'anticipado';
   const gratis=alcanza&&(!R.envioGratisSoloAnticipado||pe==='anticipado');
   const envio=(subtotal<=0||gratis)?0:R.envio[pe];
+  /* Después de la promo y del envío, como en crear-pago. */
+  const nPiezas=c.charms.length+(c.base?1:0);
+  const descSusc=(DESC_SUSC>0&&nPiezas>=DESC_MIN&&subtotal+envio>DESC_SUSC)?DESC_SUSC:0;
   return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(desc),nGratis:libres.length,
-    subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,
-    total:Math.round(subtotal+envio)};
+    subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,descSusc:descSusc,
+    total:Math.round(subtotal+envio-descSusc)};
 }
 
 function lineas(c){
@@ -810,24 +806,17 @@ function pintarResumen(){
   h+=t.gratis
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
+  if(t.descSusc>0) h+='<div class="tot-row save tot-susc"><span>🎁 Descuento de suscriptora</span><b>− '+cop(t.descSusc)+'</b></div>';
   h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
-  /* Regalo de suscriptora. Dos cosas distintas con reglas distintas:
-     - Este AVISO del resumen afirma «incluye tu regalo». Solo sale si ESTE
-       navegador confirmó la suscripción: decírselo a cualquiera prometería un
-       regalo a quien no lo tiene. Y no se le pregunta al servidor por el
-       correo, porque eso revelaría quién está suscrita.
-     - El SELECTOR de la letra, en cambio, sale a cualquiera con 2 charms o más
-       (ver pintarRegalo abajo), con texto condicional. No revela nada —sale
-       igual a todas— y no depende de en qué navegador se confirmó.
-     Quien decide de verdad es crear-pago, con el correo del pedido. */
+  /* El aviso del descuento de suscriptora. Con el correo ya revisado, lo que
+     falta (si falta) para aplicarlo; si este navegador se suscribió pero aún no
+     escribe el correo, el recordatorio. A quien no está suscrita no se le
+     promete nada. Quien decide de verdad es crear-pago. */
   let suscrita=false; try{ suscrita=!!localStorage.getItem('zephora.suscrita'); }catch(e){}
-  if(suscrita){
-    const n=c.charms.length;
-    if(n>=2) h+='<p class="susc-ck">🎁 Incluye el charm de tu inicial de regalo, por estar suscrita (con el correo con que te suscribiste). La eliges en tus datos de entrega.</p>';
-    else if(n===1) h+='<p class="susc-ck">🎁 Agrega 1 charm más y te llevas de regalo el charm de tu inicial, por estar suscrita.</p>';
-  }
+  const nP=c.charms.length+(c.base?1:0);
+  if(DESC_SUSC>0&&nP<DESC_MIN) h+='<p class="susc-ck">🎁 Agrega '+(DESC_MIN-nP)+' pieza más y se descuentan '+cop(DESC_SUSC)+' por estar suscrita.</p>';
+  else if(!DESC_CORREO&&suscrita) h+='<p class="susc-ck">🎁 Escribe el correo con el que te suscribiste y se descuentan $15.000 de tu primera compra.</p>';
   $('#res-totales').innerHTML=h;
-  pintarRegalo(c.charms.length>=2);
   pintarDescuento(c,t);
 
   /* Cuánto falta para el envío gratis.
@@ -1052,20 +1041,22 @@ const marcar=(nombre,mal)=>{
 };
 const val=id=>$('#'+id).value.trim();
 
-/* La inicial de regalo: solo letras con unidades (stock.json; sin él, todas
-   las del catálogo —el servidor y la tienda confirman al despachar—). Las
-   opciones se llenan una vez y la elección sobrevive a los repintados del
-   resumen, que no tocan este campo. */
-function pintarRegalo(ver){
-  const campo=$('#campo-regalo'), sel=$('#regalo-inicial');
-  if(!campo||!sel) return;
-  campo.hidden=!ver;
-  if(!ver||sel.options.length>1||!CAT) return;
-  Object.keys(CAT.precios).filter(id=>/^letra-/.test(id)).forEach(id=>{
-    const it=STOCK&&STOCK.items&&STOCK.items[id];
-    if(STOCK&&!(it&&typeof it.stock==='number'&&it.stock>0)) return;
-    const o=document.createElement('option'); o.value=id.slice(6); o.textContent=id.slice(6).toUpperCase(); sel.appendChild(o);
-  });
+/* Pregunta si el correo tiene el descuento de suscriptora y repinta. Una vez
+   por correo distinto; si la consulta falla, no hay descuento en pantalla (el
+   servidor igual lo aplica al pagar si corresponde). */
+function revisarDescuento(){
+  const correo=val('correo').toLowerCase();
+  if(correo===DESC_CORREO) return;
+  if(!REGLAS.correo()){ if(DESC_SUSC){ DESC_SUSC=0; DESC_CORREO=''; pintarResumen(); } return; }
+  DESC_CORREO=correo;
+  fetch('/.netlify/functions/descuento-suscripcion?correo='+encodeURIComponent(correo),{cache:'no-store'})
+    .then(r=>r.ok?r.json():null).catch(()=>null)
+    .then(d=>{
+      if(correo!==DESC_CORREO) return;
+      DESC_SUSC=d&&d.descuento>0?d.descuento:0;
+      DESC_MIN=d&&d.minimoPiezas?d.minimoPiezas:2;
+      pintarResumen();
+    });
 }
 
 /* Una regla por campo, en un solo sitio. La usan las dos cosas que validan:
@@ -1144,7 +1135,6 @@ function datos(){
        después de escribir ya no quiere ese texto en la tarjeta. */
     notas:$('#con-notas').checked?val('notas'):'',
     dedicatoria:$('#con-dedicatoria').checked?val('dedicatoria'):'',
-    regaloInicial:$('#campo-regalo').hidden?'':$('#regalo-inicial').value,
     /* Autorización para escribirle por algo que no sea este pedido. Viaja con
        el resto y la guarda el registro: es lo que decide, más adelante, si un
        checkout sin pagar se puede recuperar escribiéndole a ella o solo
@@ -1230,9 +1220,12 @@ async function confirmar(){
     /* El servidor manda su propio total. Si no coincide con el que la clienta
        tiene en pantalla, algo cambió entre medias (un precio, el catálogo) y
        es mejor parar que cobrar una cifra que nadie aceptó. */
-    const mio=calcular(carrito).total;
-    if(d.total!==mio){
-      throw new Error('El total cambió mientras armabas el pedido ('+cop(mio)+' → '
+    /* Se compara sin el descuento de suscriptora: ese lo decide el servidor
+       con el correo, y si la consulta del checkout falló el total del
+       servidor es menor por eso y no por un cambio de precio. */
+    const yo=calcular(carrito), mio=yo.total+yo.descSusc;
+    if(d.total+(d.descuentoSuscripcion||0)!==mio){
+      throw new Error('El total cambió mientras armabas el pedido ('+cop(yo.total)+' → '
         +cop(d.total)+'). Vuelve a revisar tu selección.');
     }
 
@@ -1406,6 +1399,9 @@ Promise.all([
 
   pintarDeptos();
   pintarResumen();
+  $('#correo').addEventListener('change',revisarDescuento);
+  $('#correo').addEventListener('blur',revisarDescuento);
+  if(val('correo')) revisarDescuento();
 
   /* El resumen es una barra plegable arriba en móvil y una columna fija al lado
      en escritorio. Es el mismo nodo movido, no dos copias que se desincronizan. */

@@ -357,7 +357,7 @@ ADDI_SCRIPT = ('<script>/(^|\\.)zephoracharms\\.com$|\\.netlify\\.app$/.test(loc
                '{src:"https://s3.amazonaws.com/widgets.addi.com/bundle.min.js",defer:true}))</script>')
 
 
-# La promo («paga 3, lleva 1 gratis · paga 5, lleva 2», 2026-10-04) en un solo recuadro, junto al precio (pedido del
+# La promo («paga 3, lleva 1 gratis · paga 4, lleva 2», 2026-10-04 y 2026-10-29) en un solo recuadro, junto al precio (pedido del
 # propietario, 2026-10-02). Reemplaza al selector de paquetes «Compra 1 / 2 /
 # 3 / Lleva 4», que con la escalera vieja obligaba a comparar cuatro totales.
 # Es el mismo recuadro de la portada (#promo en index.html).
@@ -365,7 +365,7 @@ PROMO_CAJA = (
     '      <div class="promo-caja">\n'
     '        <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis.</b></p>\n'
     '        <p class="promo-caja-x">Mezcla charms y brazaletes: con 4 piezas la de menor valor te sale '
-    'totalmente <b>GRATIS</b>, y con 7 piezas te salen <b>2 gratis</b>. <span>(Se aplica automáticamente).</span></p>\n'
+    'totalmente <b>GRATIS</b>, y con 6 piezas te salen <b>2 gratis</b>. <span>(Se aplica automáticamente).</span></p>\n'
     '      </div>')
 
 
@@ -400,7 +400,7 @@ def bloque_compra(pid, tipo, nombre, hay, primeras, precio):
             '        </div>\n'
             '        <p class="pp-susc"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" '
             'stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">%s</svg><span><a href="#" data-susc>Suscríbete y '
-            'llévate de regalo el charm de tu inicial</a> en tu primera compra de 2 charms o más.</span></p>\n'
+            'llévate $15.000 de descuento</a> en tu primera compra de 2 piezas o más.</span></p>\n'
             '      </div>\n'
             '      <p class="pp-agotado" id="pp-agotado"%s>Esta pieza está agotada. <a data-wa="encargo" id="pp-encargo" href="%s">Pídela por encargo por WhatsApp</a> y te avisamos cuando vuelva.</p>'
             % (oculto, selector, botones, PAGOS, precio, ADDI_SLUG, ICONO['regalo'], '' if not hay else ' hidden',

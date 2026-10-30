@@ -152,7 +152,12 @@ function main() {
 
   console.log('\n2 · Las cifras de dinero salen de las reglas reales');
 
-  const enElPrompt = platas(prompt);
+  /* El descuento de suscriptora (desde el 2026-10-29) también es $15.000, la
+     misma cifra que la tarifa de envío anticipado que NO se puede nombrar. Sus
+     líneas se apartan de esta cuenta y su monto se comprueba en la sección del
+     descuento contra _suscriptores.mjs; cualquier otro $15.000 sigue en rojo. */
+  const enElPrompt = platas(prompt.split('\n')
+    .filter(l => !/DESCUENTO POR SUSCRIBIRSE|de descuento en su primera compra/i.test(l)).join('\n'));
   /* Lo único que la tienda cobra hoy por envío. El anticipado es gratis
      (envioGratisDesde 0 y solo para anticipado), así que su tarifa NO debe
      aparecer: nombrarla es cobrarla de palabra. */
@@ -192,8 +197,9 @@ function main() {
      aunque las reglas ya le llegaban dentro de disponibilidad: sencillamente el
      prompt no las nombraba. Ahora las explica, y aqui se comprueba que los
      porcentajes que dice sean los que de verdad se cobran. */
-  /* Desde el 2026-10-04 la promo es «paga 3, lleva 1 gratis · paga 5, lleva
-     2 gratis», con brazalete y charms contando igual y tope de 2. Se comprueba
+  /* Desde el 2026-10-04 la promo es «paga 3, lleva 1 gratis · paga 4, lleva
+     2 gratis» (el segundo tramo bajó de 7 a 6 piezas el 2026-10-29), con
+     brazalete y charms contando igual y tope de 2. Se comprueba
      con los números de las reglas, no escritos aquí. */
   const [[p1, g1], [p2, g2]] = [reglas.promo.tramos[0], reglas.promo.tramos[reglas.promo.tramos.length - 1]];
   comprobar(new RegExp(`paga ${p1 - g1} y llevate ${g1} gratis`, 'i').test(prompt) && new RegExp(`paga ${p2 - g2} y llevate ${g2} gratis`, 'i').test(prompt),
@@ -448,20 +454,23 @@ function main() {
     'no queda «caja de lujo», «tarjeta impresa» ni «con su bolsa» afirmándolo',
     vieja.length ? vieja[0].trim().slice(0, 90) : undefined);
 
-  // 5 · Regalo por suscribirse: la condición real sale de _suscriptores.mjs,
-  //     no de la memoria de nadie.
+  // 5 · Descuento por suscribirse (desde el 2026-10-29; antes, charm de
+  //     regalo): el monto y el mínimo salen de _suscriptores.mjs, no de la
+  //     memoria de nadie.
   const suscriptores = fs.readFileSync(
     path.join(RAIZ, 'netlify', 'functions', '_suscriptores.mjs'), 'utf8');
-  const minCharms = suscriptores.match(/MIN_CHARMS_REGALO\s*=\s*(\d+)/);
-  comprobar(!!minCharms, 'encontró MIN_CHARMS_REGALO en _suscriptores.mjs');
-  if (minCharms) {
-    comprobar(prompt.includes(`${minCharms[1]} charms o mas`),
-      `dice la condición real: ${minCharms[1]} charms o más`);
+  const monto = suscriptores.match(/DESCUENTO_SUSCRIPTORA\s*=\s*(\d+)/);
+  const minPiezas = suscriptores.match(/MIN_PIEZAS_DESCUENTO\s*=\s*(\d+)/);
+  comprobar(!!monto && !!minPiezas, 'encontró DESCUENTO_SUSCRIPTORA y MIN_PIEZAS_DESCUENTO en _suscriptores.mjs');
+  if (monto && minPiezas) {
+    const texto = Number(monto[1]).toLocaleString('es-CO').replace(/,/g, '.');
+    comprobar(prompt.includes(`${texto} pesos de descuento`) && prompt.includes(`${minPiezas[1]} piezas o mas`),
+      `dice la condición real: ${texto} de descuento desde ${minPiezas[1]} piezas`);
   }
-  comprobar(/VERIFICAR REGALO/.test(prompt),
-    'deja la etiqueta [VERIFICAR REGALO] para pedidos de suscriptora por WhatsApp');
-  comprobar(/SOLO aparecen las letras que tienen unidades/i.test(prompt),
-    'no promete una letra sin confirmar unidades');
+  comprobar(!/se lleva de regalo el charm de su inicial|elige la letra/i.test(prompt),
+    'ya no promete el charm de la inicial de regalo');
+  comprobar(/VERIFICAR DESCUENTO/.test(prompt),
+    'deja la etiqueta [VERIFICAR DESCUENTO] para pedidos de suscriptora por WhatsApp');
 
   // 6 · Enlaces directos por producto: el patrón tiene que ser el real.
   comprobar(prompt.includes('producto-{id}.html'),

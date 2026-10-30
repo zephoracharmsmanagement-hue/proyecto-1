@@ -272,8 +272,8 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     ok(cb.descuento === Math.min(CAT.precios[b], CAT.precios[caro]),
       'el brazalete cuenta como pieza: brazalete + 3 charms ya son 4', cop(cb.descuento));
     const n = k => calcular(leerPedido({ charms: Array(k).fill(caro), pago: 'anticipado' })).gratis.length;
-    ok(n(3) === 0 && n(4) === 1 && n(6) === 1 && n(7) === 2 && n(8) === 2 && n(12) === 2,
-      'paga 3 lleva 1, paga 5 lleva 2, y ahí para: 3 → 0, 4 → 1, 6 → 1, 7 → 2, 8 → 2, 12 → 2', [3, 4, 6, 7, 8, 12].map(n).join(' · '));
+    ok(n(3) === 0 && n(4) === 1 && n(5) === 1 && n(6) === 2 && n(7) === 2 && n(12) === 2,
+      'paga 3 lleva 1, paga 4 lleva 2, y ahí para: 3 → 0, 4 → 1, 5 → 1, 6 → 2, 7 → 2, 12 → 2', [3, 4, 5, 6, 7, 12].map(n).join(' · '));
   }
 
   /* Que el servidor rechace lo que no debería aceptar. Cada uno de estos es un

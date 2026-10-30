@@ -63,9 +63,9 @@ def main():
 
     data = json.loads(saca(r'const DATA=(\{.*?\});\n', motor, 'la tabla DATA', 'tienda.js'))
 
-    # PROMO={tramos:[[4,1],[7,2]]} — «Paga 3, lleva 1 gratis · paga 5, lleva 2
+    # PROMO={tramos:[[4,1],[6,2]]} — «Paga 3, lleva 1 gratis · paga 4, lleva 2
     # gratis» desde el 2026-10-04: con 4 piezas (brazalete o charm) sale gratis
-    # la más barata, con 7 las dos más baratas, y de ahí no pasa. Antes fueron
+    # la más barata, con 6 las dos más baratas, y de ahí no pasa. Antes fueron
     # «lleva 4, paga 3» cíclica y la escalera ESC con el 30% del brazalete.
     promo_txt = saca(r'const PROMO=(\{.*?\});', motor, 'la promoción PROMO', 'tienda.js')
     promo = json.loads(re.sub(r'(\w+):', r'"\1":', promo_txt))

@@ -76,13 +76,14 @@ const agotado = id => {
 /* Tope de unidades por charm, para no vender 5 de algo que tiene 1. */
 const tope = id => { const u=unidades(id); return u===null?Infinity:u; };
 const cop=n=>'$'+Math.round(n).toLocaleString('es-CO').replace(/,/g,'.');
-/* «Paga 3, lleva 1 gratis · paga 5, lleva 2 gratis» (pedido del propietario,
-   2026-10-04): brazalete y charms cuentan igual; con 4 piezas sale gratis la de
-   menor valor y con 7, las dos de menor valor. Y ahí para: con 8 o más siguen
-   siendo 2 («dejemos la promoción hasta ahí»). Cada tramo es [piezas, gratis].
+/* «Paga 3, lleva 1 gratis · paga 4, lleva 2 gratis» (pedido del propietario,
+   2026-10-04; el segundo tramo bajó de 7 a 6 piezas el 2026-10-29, porque en
+   un mes ningún pedido llegó a 7 y 10 de 21 se quedaron justo en 4): brazalete
+   y charms cuentan igual; con 4 piezas sale gratis la de menor valor y con 6,
+   las dos de menor valor. Y ahí para: con 7 o más siguen siendo 2. Cada tramo es [piezas, gratis].
    extraer_catalogo.py copia PROMO a catalogo.json, de donde cobra
    _precios.js: este objeto es la fuente. */
-const PROMO={tramos:[[4,1],[7,2]]};
+const PROMO={tramos:[[4,1],[6,2]]};
 const cuantasGratis=n=>PROMO.tramos.reduce((g,t)=>n>=t[0]?t[1]:g,0);
 /* El tramo de la barra en el que va: de qué pieza a qué pieza (1…4, después
    5…7), si ya lo completó y si llegó al máximo de la promo. */
@@ -410,7 +411,8 @@ const verPieza=id=>{ const p=PU[id]||CH[id]; if(!p) return;
   track('ViewContent',{content_type:'product',content_ids:[id],content_name:p.n,value:p.p});
   suscVista(); };
 
-/* ——— Suscripción por correo con charm de regalo ———
+/* ——— Suscripción por correo con $15.000 de descuento en la primera compra ———
+ * (desde el 2026-10-29; antes, el charm de la inicial de regalo).
  * automatizaciones/suscripcion/BRIEF.md. Aparece a los 15 s o tras ver 2
  * productos, lo primero que pase; nunca encima de la ficha o del carrito
  * (espera a que se cierren). Cerrada, no vuelve en 30 días. checkout.html no
@@ -433,7 +435,7 @@ function botonRegalo(ver){
   if(lsLeer('zephora.suscrita')||lsLeer('zephora.susc.enviada')) return;
   if(!b){
     b=document.createElement('button'); b.type='button'; b.className='susc-fab';
-    b.setAttribute('aria-label','El charm de tu inicial de regalo: suscríbete');
+    b.setAttribute('aria-label','$15.000 de descuento en tu primera compra: suscríbete');
     b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>';
     b.addEventListener('click',()=>abrirSusc(true));
     document.body.appendChild(b);
@@ -458,15 +460,24 @@ function abrirSusc(forzar){
   const capa=document.createElement('div');
   capa.className='susc'; capa.setAttribute('role','dialog'); capa.setAttribute('aria-modal','true');
   capa.setAttribute('aria-labelledby','susc-t');
+  /* El cupón (pedido del propietario, 2026-10-29: «que salga como una imagen
+     chévere que diga los 15.000, no solo texto»). Es HTML y no una imagen con
+     el texto quemado: se lee nítido en cualquier pantalla, lo lee un lector de
+     pantalla y el monto sale de una sola cifra. La foto es real de la tienda. */
   capa.innerHTML='<div class="susc-box"><button type="button" class="susc-x" aria-label="Cerrar">✕</button>'
-    +'<span class="eyebrow">Suscríbete</span>'
-    +'<h2 id="susc-t">El charm de tu inicial, de regalo</h2>'
-    +'<p class="susc-sub">Suscríbete y en tu primera compra de 2 charms o más te llevas de regalo el charm de la letra que elijas. Y te enteras primero cuando lleguen piezas nuevas.</p>'
+    +'<div class="susc-cupon">'
+    +'<img class="susc-cupon-foto" src="assets/susc-pulsera.webp?v=20261029" alt="" width="600" height="400" decoding="async">'
+    +'<div class="susc-cupon-tx"><span class="susc-cupon-k">Tu regalo de bienvenida</span>'
+    +'<b class="susc-cupon-m">$15.000</b>'
+    +'<span class="susc-cupon-d">de descuento en tu primera compra</span></div>'
+    +'<p class="susc-cupon-pie">Desde 2 piezas · se suma a «Paga 3, lleva 1 gratis»</p></div>'
+    +'<h2 id="susc-t">Suscríbete y es tuyo</h2>'
+    +'<p class="susc-sub">Se aplica solo en la pantalla de pago, con el correo con que te suscribas. Y te enteras primero cuando lleguen piezas nuevas.</p>'
     +'<form class="susc-f" novalidate>'
     +'<input type="email" name="correo" required autocomplete="email" placeholder="Tu correo" aria-label="Tu correo">'
     +'<input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">'
     +'<label class="susc-ok"><input type="checkbox" name="acepta"> <span>Acepto recibir correos de Zephora Charms con novedades y ofertas. Puedo darme de baja cuando quiera. <a href="politica-de-privacidad.html" target="_blank" rel="noopener">Política de datos</a></span></label>'
-    +'<button class="btn" type="submit">Quiero mi regalo</button>'
+    +'<button class="btn" type="submit">Quiero mis $15.000</button>'
     +'<p class="susc-msg" aria-live="polite"></p></form></div>';
   document.body.appendChild(capa);
   /* Recién cerrada, el botón se ve aunque esté el precio a la vista: la
@@ -493,7 +504,7 @@ function abrirSusc(forzar){
       track('Lead',{content_name:'suscripcion'});
       lsPoner('zephora.susc.cerrado',String(Date.now()));
       lsPoner('zephora.susc.enviada','1');
-      f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». El charm de tu inicial queda guardado para tu primera compra de 2 charms o más.</p>';
+      f.innerHTML='<p class="susc-listo"><b>¡Casi listo!</b> '+'Revisa tu correo y toca «Confirmar». Tus $15.000 de descuento quedan guardados para tu primera compra de 2 piezas o más.</p>';
     }catch(err){ msg.textContent='Sin conexión. Intenta de nuevo.'; b.disabled=false; }
   });
   f.correo.focus();

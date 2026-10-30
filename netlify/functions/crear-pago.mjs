@@ -27,14 +27,14 @@
  */
 import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario, nombres, fotos } from './_precios.js';
+  PedidoInvalido, SinInventario, fotos } from './_precios.js';
 import { reservar, confirmar, liberar } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
 import { purchase, hashearCliente } from './_meta.js';
 import { guardar as guardarSenales } from './_atribucion.mjs';
-import { regaloPara, usarRegalo } from './_suscriptores.mjs';
+import { descuentoPara, usarDescuento } from './_suscriptores.mjs';
 import { configuracion as configAddi, crearSolicitud } from './_addi.mjs';
 import { crearTransaccion, MINIMO as minimoSiste } from './_sistecredito.mjs';
 
@@ -98,12 +98,6 @@ function leerCliente(c) {
     barrio: txt(c.barrio, 80),
     notas: txt(c.notas, 400),
     dedicatoria: txt(c.dedicatoria, 200),
-    /* La inicial que eligió para su regalo de suscriptora (una letra del
-       catálogo; cualquier otra cosa se descarta). Solo cuenta si crear-pago
-       le concede el regalo; si llega vacía, la hoja de despacho dice que hay
-       que preguntarle. */
-    regaloInicial: (() => { const l = txt(c.regaloInicial, 2).toLowerCase();
-      return /^[a-zñ]$/.test(l) && nombres['letra-' + l] ? l : ''; })(),
     /* Autorización de comunicaciones comerciales, separada de la compra.
      *
      * Se guarda con el pedido porque es la prueba de la autorización: la Ley
@@ -278,6 +272,20 @@ export default async (req) => {
     return responder(400, { error: 'El total del pedido es cero' });
   }
 
+  /* Descuento de suscriptora: $15.000 en la primera compra de 2 piezas o más
+   * (_suscriptores.mjs). Se resta DESPUÉS de la promo y ANTES de todo lo que
+   * mira el total —topes de Addi, mínimo de Sistecrédito, la firma de Wompi—,
+   * así que lo que se cobra es esto. Nunca deja el pedido sin cobro: con 2
+   * piezas el total ronda los $150.000. */
+  let descSusc = 0;
+  try { descSusc = await descuentoPara(cliente.correo, pedido); } catch (_) { descSusc = 0; }
+  if (descSusc && cuentas.total > descSusc) {
+    const total = cuentas.total - descSusc;
+    cuentas = Object.assign({}, cuentas, { descuentoSuscripcion: descSusc, total, centavos: total * 100 });
+  } else {
+    descSusc = 0;
+  }
+
   /* Los topes de Addi para la tienda. El checkout ya deshabilita la opción
      fuera de ellos, pero el checkout no manda. */
   if (addi) {
@@ -317,17 +325,15 @@ export default async (req) => {
 
   const sitio = (process.env.URL_SITIO || process.env.URL || '').replace(/\/$/, '');
 
-  /* Charm de regalo de suscriptora (automatizaciones/suscripcion/BRIEF.md).
-   * NO toca el total: `cuentas` ya está calculado y no se vuelve a mirar. Solo
-   * marca el pedido para que la hoja de despacho diga qué incluir. El regalo
-   * se gasta al CONFIRMARSE el pedido: contraentrega aquí mismo (se confirma
-   * al crearse), pago en línea en wompi-webhook al aprobarse. Si no se puede
-   * gastar —otro pedido lo usó primero—, este va sin regalo. */
-  let regalo = null;
-  try { regalo = await regaloPara(cliente.correo, pedido); } catch (_) { regalo = null; }
+  /* El descuento de suscriptora ya está en `cuentas`. Aquí se marca el pedido
+   * y se gasta el beneficio al CONFIRMARSE: contraentrega aquí mismo (se
+   * confirma al crearse), pago en línea en _cierre al aprobarse. Si al gastarlo
+   * resulta que otro pedido lo usó primero (dos pedidos a la vez), este ya va
+   * cobrado con el descuento: queda en el log para que la tienda lo vea. */
+  const regalo = descSusc ? 'suscriptor' : null;
   if (regalo && pedido.pago === 'contraentrega') {
-    const uso = await usarRegalo(cliente.correo, ref);
-    if (!uso.ok) regalo = null;
+    const uso = await usarDescuento(cliente.correo, ref);
+    if (!uso.ok) console.error(JSON.stringify({ evento: 'descuento_suscriptora_doble', referencia: ref, motivo: uso.motivo }));
   }
 
   /* Queda en el log de la función: es el registro de que el pedido se creó, y
@@ -449,6 +455,7 @@ export default async (req) => {
     envio: cuentas.envio,
     envioGratis: cuentas.envioGratis,
     descuento: cuentas.descuento,
+    descuentoSuscripcion: cuentas.descuentoSuscripcion || 0,
     lineas: detallar(pedido),
     regalo,
   };

@@ -337,9 +337,9 @@ documento dice *qué se graba con ella*. Tres cosas de ahí que cambian decision
 y que no estaban escritas en ningún sitio:
 
 - **El tercer dije cuesta $8.000.** Desde el 2026-10-04 la promo es «paga 3,
-  lleva 1 gratis · paga 5, lleva 2 gratis» (`PROMO={tramos:[[4,1],[7,2]]}` en
+  lleva 1 gratis · paga 4, lleva 2 gratis» (`PROMO={tramos:[[4,1],[6,2]]}` en
   tienda.js → `reglas.promo`): brazalete y charms cuentan igual; con 4 piezas
-  sale gratis la de menor valor, con 7 las dos de menor valor, y no pasa de 2.
+  sale gratis la de menor valor, con 6 las dos de menor valor, y no pasa de 2.
   Sobre Corazón Liso ($78.000) con dijes de $86.000: pulsera + 2 dijes
   $250.000, + 3 $258.000 (el brazalete sale gratis). (Salen de `calcular()`.)
   Antes fueron «lleva 4, paga 3» cíclica (2026-10-02) y la escalera

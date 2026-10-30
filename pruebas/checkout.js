@@ -219,13 +219,15 @@ async function llenarDatos(p, d) {
        vuelta en curso (brazalete y charms cuentan igual) y que diga cuántas
        faltan para la gratis, o la celebre. */
     const casos = [
-      /* 1…4 hasta la primera gratis; después 5…7; desde 7, el máximo. */
+      /* 1…4 hasta la primera gratis; después 5…6 (desde el 2026-10-29; antes
+         5…7); desde 6, el máximo. */
       { charms: [], base: true, tramos: 4, llenos: 1, dice: /Agrega 3 piezas más/i },
       { charms: ['iron-man'], base: true, tramos: 4, llenos: 2, dice: /Agrega 2 piezas más/i },
       { charms: ['iron-man', 'stitch'], base: true, tramos: 4, llenos: 3, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
       { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, tramos: 4, llenos: 4, dice: /Felicidades, tienes 1 pieza GRATIS.*te salen 2 gratis/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 3, llenos: 2, dice: /Ya tienes 1 pieza GRATIS.*Agrega 1 pieza más y otra/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse', 'ariel'], base: true, tramos: 3, llenos: 3, dice: /tienes 2 piezas GRATIS, lo máximo/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk'], base: true, tramos: 2, llenos: 1, dice: /Ya tienes 1 pieza GRATIS.*Agrega 1 pieza más y otra/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 2, llenos: 2, dice: /tienes 2 piezas GRATIS, lo máximo/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse', 'ariel'], base: true, tramos: 2, llenos: 2, dice: /tienes 2 piezas GRATIS, lo máximo/i },
     ];
     for (const k of casos) {
       const p = await b.newPage({ viewport: { width: 390, height: 844 } });
@@ -737,26 +739,70 @@ async function llenarDatos(p, d) {
     await p.close();
   }
 
-  // ——— 4b · suscrita: elige la inicial de su regalo (2026-09-27) ———
-  out.push('\n4b · Suscrita: la inicial de regalo viaja con el pedido');
+  // ——— 4b · suscrita: $15.000 de descuento en su primera compra (2026-10-29) ———
+  out.push('\n4b · Suscrita: el descuento se ve antes de pagar y el servidor cobra lo mismo');
   {
-    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
-    p.on('pageerror', e => errores.push(e.message));
-    const cap = [];
-    await interceptar(p, cap);
-    await ponerCarrito(p, { base: null, charms: ['mickey-mouse', 'stitch'], empaque: false, pago: 'contraentrega' });
-    await p.addInitScript(() => localStorage.setItem('zephora.suscrita', '1'));
-    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
-    await p.waitForTimeout(500);
-    await llenarDatos(p, DATOS);
-    ok(await p.locator('#campo-regalo').isVisible(), 'en los datos de entrega aparece «Elige la inicial de tu regalo»');
-    const primera = await p.$eval('#regalo-inicial option:nth-child(2)', o => o.value);
-    await p.selectOption('#regalo-inicial', primera);
+    /* Antes era la letra de regalo con un selector. Ahora: el checkout pregunta
+       a descuento-suscripcion con el correo, muestra la línea y el total, y
+       crear-pago cobra exactamente eso. Registro de suscriptoras en memoria. */
+    const mem = {};
+    const sus = await cargar('_suscriptores.mjs');
+    sus._interno.usar({
+      async get(k) { return mem[k] ? JSON.parse(mem[k]) : null; },
+      async getWithMetadata(k) { return mem[k] ? { data: JSON.parse(mem[k]), etag: 'e' + mem[k].length, metadata: {} } : null; },
+      async setJSON(k, v) { mem[k] = JSON.stringify(v); return { modified: true }; },
+      async delete(k) { delete mem[k]; },
+      async list() { return { blobs: Object.keys(mem).map(key => ({ key })) }; },
+    });
+    process.env.SUSCRIPCION_SECRETO = 'secreto-de-prueba-de-la-suscripcion';
+    await sus.confirmarSuscripcion(DATOS.correo);
+    const ds = await cargar('descuento-suscripcion.mjs');
+    let consultaCae = false;
+    const caso = async () => {
+      const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+      p.on('pageerror', e => errores.push(e.message));
+      const cap = [];
+      await interceptar(p, cap);
+      await p.route('**/.netlify/functions/descuento-suscripcion**', async route => {
+        if (consultaCae) return route.fulfill({ status: 500, body: '{}' });
+        const u = new URL(route.request().url());
+        const r = await ds.default(new Request('https://zephoracharms.com' + u.pathname + u.search));
+        await route.fulfill({ status: r.status, contentType: 'application/json', body: await r.text() });
+      });
+      await ponerCarrito(p, { base: null, charms: ['mickey-mouse', 'stitch'], empaque: false, pago: 'contraentrega' });
+      await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+      await p.waitForTimeout(500);
+      await llenarDatos(p, DATOS);
+      await p.locator('#correo').blur();
+      await p.waitForTimeout(500);
+      return { p, cap };
+    };
+
+    let { p, cap } = await caso();
+    const pantalla = await p.evaluate(() => ({ tx: document.getElementById('res-totales').textContent,
+      total: Number(document.getElementById('res-total').textContent.replace(/\D/g, '')) }));
+    ok(/Descuento de suscriptora/.test(pantalla.tx), 'con su correo, el resumen muestra «Descuento de suscriptora»');
     await p.click('#confirmar');
     await p.waitForTimeout(900);
-    ok(cap[0] && cap[0].pedido.cliente && cap[0].pedido.cliente.regaloInicial === primera,
-      `la letra elegida (${primera}) llega al servidor con el pedido`);
+    const r0 = cap[0] && cap[0].respuesta;
+    ok(r0 && r0.descuentoSuscripcion === 15000 && r0.total === pantalla.total,
+      `crear-pago cobra el mismo total que vio en pantalla (${pantalla.total})`, r0 && String(r0.total));
+    ok(/gracias\.html/.test(p.url()), 'y el pedido sigue sin el aviso de «el total cambió»', p.url().slice(-60));
     await p.close();
+
+    /* Si la consulta del checkout falla, el servidor igual aplica el descuento
+       y el pedido no se cae por la diferencia. */
+    mem[Object.keys(mem)[0]] = JSON.stringify(Object.assign(JSON.parse(mem[Object.keys(mem)[0]]), { regaloUsado: null }));
+    consultaCae = true;
+    ({ p, cap } = await caso());
+    await p.click('#confirmar');
+    await p.waitForTimeout(900);
+    const r1 = cap[0] && cap[0].respuesta;
+    ok(r1 && r1.descuentoSuscripcion === 15000 && /gracias\.html/.test(p.url()),
+      'si la consulta del checkout falla, el servidor aplica el descuento y el pedido sigue');
+    await p.close();
+    sus._interno.usar(null);
+    delete process.env.SUSCRIPCION_SECRETO;
   }
 
   // ——— 5 · lo que el servidor no puede aceptar ———
