@@ -5,6 +5,22 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Revisión automática de vuelta en verde — desplegado el 2026-10-30 (PR #35)
+
+- Desde el 2026-10-28 `ubuntu-latest` en GitHub Actions es 26.04 y Playwright
+  1.56.1 no instala ahí las dependencias de Chromium: `pruebas` fallaba en el
+  paso «Navegador» y main quedó en rojo. Se fijó `runs-on: ubuntu-24.04` en
+  `.github/workflows/pruebas.yml`. Para empujar cambios a `.github/workflows`
+  el token de `gh` necesita el permiso `workflow` (se agregó el 2026-10-30).
+- Al subir Playwright a una versión que soporte 26.04 se puede volver a
+  `ubuntu-latest`.
+- **Bot de WhatsApp:** el 2026-10-29 se publicó en n8n la versión
+  `b97caca8-5c8a-4224-bd72-c713bf386ef1` («Promo paga 4 lleva 2 y descuento de
+  suscriptora $15.000»), hecha sobre el texto publicado (`373bf32d`), no sobre
+  `automatizaciones/n8n/prompt-asesora.md`, que está atrasada frente a n8n.
+  Lo que no hay que confundir: la asistente ya no escribe etiquetas entre
+  corchetes, avisa al equipo con `avisar_equipo`.
+
 ## Promo «paga 4, lleva 2» y $15.000 de descuento de suscriptora — desplegado el 2026-10-29 (PR #34)
 
 Decisión del propietario con el análisis de ventas reales (42 ventas desde
