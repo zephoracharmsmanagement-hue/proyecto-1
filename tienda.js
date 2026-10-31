@@ -169,7 +169,9 @@ if (quietoPorPreferencia) {
       const v = e.target; cerca.unobserve(v);
       if (!v.dataset.pedido && v.paused && v.readyState === 0) { v.dataset.pedido = '1'; v.preload = 'auto'; v.load(); }
     });
-  }, { rootMargin: '600px 0px' });
+  /* 1.500 px y no 600 (2026-10-31): con 600 la clienta llegaba al video
+     mientras todavía bajaba y veía la portada quieta unos segundos. */
+  }, { rootMargin: '1500px 0px' });
   const ojo = new IntersectionObserver(entradas => {
     entradas.forEach(e => {
       const v = e.target;
@@ -2492,6 +2494,15 @@ pintarPagina();
       if(sello) ph.appendChild(sello);
       ph.after(mini);
       new IntersectionObserver(es=>{ enVista=es[0].isIntersecting; ppGal.ajustar(); },{threshold:.5}).observe(ph);
+      /* El video de la joya se baja solo cuando la página ya cargó (pedido del
+         propietario, 2026-10-31: «fotos y videos demorando en cargar»). Antes
+         esperaba al primer toque sobre la galería y la clienta deslizaba a una
+         portada quieta 1–3 s. Después de `load` y un respiro, para no competir
+         con la foto principal. En la página de la pieza quien llegó ya eligió
+         verla; quien pidió reducir movimiento no lo baja. */
+      const vj=ph.querySelector('.fx-vid video');
+      const precargar=()=>setTimeout(()=>{ if(vj&&!quietoPorPreferencia&&vj.preload!=='auto') vj.preload='auto'; },1200);
+      if(document.readyState==='complete') precargar(); else addEventListener('load',precargar,{once:true});
     }else{
       /* Sin galería (una sola foto), la foto principal igual va nítida. */
       mini.remove();

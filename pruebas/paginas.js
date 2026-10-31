@@ -142,6 +142,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await ctx.route(/\/resenas\?medio=/, r => r.fulfill({ status: 200, contentType: 'image/png',
       body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
     await ctx.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: { ventasRegistradas: 0, tope: 12, minimoLibres: 3, vendidas: [], disponibles: {} } }));
+    /* Los videos viven en Netlify Blobs (/media/…) y el servidor local no los
+       tiene. Desde el 2026-10-31 se piden antes —el de la joya al cargar la
+       página, los de bloque a 1.500 px—, así que sin esto salían como 404 aquí
+       aunque en producción existen. Que estén de verdad lo mira paginas.js §1
+       (nombre en /media/) y, en la vista previa, la revisión a mano. */
+    await ctx.route(/\/media\/[^/]+\.mp4$/, r => r.fulfill({ status: 200, contentType: 'video/mp4', body: Buffer.alloc(0) }));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
