@@ -5,6 +5,32 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Una página por kit, manilla en la colección, agotados a la vista y X visible — desplegado el 2026-10-31 (PR #37)
+
+Pedidos del propietario del 30 y 31-oct para que los anuncios aterricen en una
+página hecha para vender.
+
+- **`kit-<id>.html`** (8 páginas, `gen_colecciones.py`, `generar_paginas_kit`):
+  arriba la foto del anuncio (`assets/kits/*.webp`), precio de la colección
+  completa —de `escalera()`/`calcular()`, nunca a mano— y «Lo quiero completo»
+  (pone los charms y pide la talla); debajo la tarjeta del kit; al final
+  «Colecciones populares» (`pagina.popular` en `kits.json`).
+- **`kits.json`**: entran Colección Azul Mar ($340.000, lista $504.000),
+  Colección Amuletos ($356.000, lista $516.000; brazalete Clásica Cierre
+  Barril) y Colección Avengers ($380.000), con las piezas de los anuncios.
+- **Manilla en la vitrina** de cada kit, primera, con su ficha (foto y video)
+  y «Elegir talla»; pestaña Brazaletes habilitada en los kits.
+- **Agotados a la vista** («para causar urgencia»): en la vitrina salen al
+  final de cada colección con «Agotado» y «Avísame» (WhatsApp); 2 o menos
+  unidades → «Quedan N» / «Última unidad». No se pueden agregar.
+- **Arreglo**: `marcarKits` buscaba `data-piezas` y los pasos traen
+  `data-kit-piezas`: un paso con pieza agotada nunca se marcaba. Ahora sí, y el
+  botón grande pone las disponibles y dice cuál falta (hoy Deadpool).
+- **X de la ventana de suscripción** siempre visible: círculo blanco de 44 px,
+  `position:sticky` arriba (la tapaba la foto del cupón en el celular).
+- Texto de la asistente (copia del repo): los 8 kits y sus páginas. Falta
+  publicarlo en n8n (la copia del repo sigue atrasada frente a la publicada).
+
 ## Revisión automática de vuelta en verde — desplegado el 2026-10-30 (PR #35)
 
 - Desde el 2026-10-28 `ubuntu-latest` en GitHub Actions es 26.04 y Playwright

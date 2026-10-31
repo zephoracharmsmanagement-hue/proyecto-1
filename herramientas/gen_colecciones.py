@@ -504,6 +504,7 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
         <h3>{nombre}</h3>
         <p class="kit-lema">{lema}</p>
         <p class="kit-entrada">{entrada}</p>
+        <a class="kit-ir" href="kit-{id}.html">Ver la página de este kit →</a>
       </div>
       <div class="kit-piezas">{fotos}</div>
       <p class="kit-tercer">Brazalete + 3 dijes son 4 piezas: <b>pagas 3 y la de menor valor te sale gratis</b>; ahorras {ahorro_cuatro}.</p>
@@ -673,7 +674,9 @@ def generar_kits(html, escribir):
             ahorro_cuatro=pasos[2]['ahorro'],
             pasos='\n'.join(filas),
             base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
-            vitrina=vitrina(k['charms'], 'De este kit', brazaletes=False),
+            # El brazalete del kit va primero en su vitrina, como un charm más: con su foto,
+            # su video (la ficha) y «Elegir talla» (pedido del propietario, 2026-10-31).
+            vitrina=vitrina([k['base']] + k['charms'], 'De este kit'),
         ))
 
     b = bloques(html)
@@ -705,6 +708,149 @@ def generar_kits(html, escribir):
         e = escalera(k['base'], k['charms'])
         print('     %-22s %s' % (k['nombre'],
               ' · '.join('%dd %s (-%d%%)' % (p['n'], p['totalTexto'], p['dto']) for p in e)))
+
+
+# ══ UNA PÁGINA POR KIT ═════════════════════════════════════════════════════
+#
+# kit-<id>.html: a donde llegan los anuncios (pedido del propietario,
+# 2026-10-30: «una página solamente para cada kit, especializada para
+# conversión»). Arriba, la misma foto del anuncio —la clienta ve lo que tocó—
+# con el precio de la colección completa y un botón que la pone en el carrito;
+# debajo, la tarjeta del kit de siempre (escalera, talla, vitrina) y, al final,
+# «Colecciones populares» con los demás kits. El precio sale de escalera(),
+# o sea de calcular(): ninguna cifra se escribe a mano, tampoco aquí.
+#
+# El botón grande usa el mismo `data-kit-piezas` que los pasos de la escalera:
+# pone los charms y pide la talla del brazalete (tienda.js); si alguna pieza se
+# agotó, tienda.js lo cambia por «las disponibles» y dice cuál falta.
+
+HERO_KIT = '''<section class="kp-hero wrap" id="top">
+  <div class="kp-foto">{foto}</div>
+  <div class="kp-txt">
+    <span class="eyebrow">{eyebrow}</span>
+    <h1>{nombre}</h1>
+    <p class="kp-lema">{lema}</p>
+    <p class="kp-precio">Brazalete + {n} charms: <b>{total}</b> <s>{lista}</s></p>
+    <p class="kp-gratis">{gratis} · ahorras {ahorro}</p>
+    <button type="button" class="btn kp-cta" data-kit-piezas="{piezas}" data-kit-ir="kit-{id}">Lo quiero completo</button>
+    <p class="kp-agotadas" hidden></p>
+    <a class="kp-ver" href="#kit-{id}">o elige pieza por pieza, y tu talla</a>
+    <ul class="kp-confia">
+      <li>Charms en Plata 925 con sello grabado</li>
+      <li>Envío gratis pagando en línea</li>
+      <li>Llega en su caja, con paño y dedicatoria</li>
+    </ul>
+  </div>
+</section>
+'''
+
+TARJETA_POP = ('    <a class="kp-pop-it" href="kit-{id}.html">{foto}'
+               '<span class="kp-pop-n">{nombre}</span><span class="kp-pop-l">{lema}</span>'
+               '<span class="kp-pop-p"><b>{total}</b> <s>{lista}</s></span></a>')
+
+
+def foto_kit(k, fotos, nombres, clase):
+    """La foto del anuncio si la hay; si no, las piezas del kit."""
+    p = k.get('pagina') or {}
+    if p.get('imagen'):
+        return ('<img class="%s" src="assets/%s" alt="%s" width="1080" height="1350" decoding="async">'
+                % (clase, p['imagen'], p.get('alt', k['nombre']).replace('"', '')))
+    return ('<span class="%s %s--piezas">%s</span>' % (clase, clase, ''.join(
+        '<img src="assets/%s" alt="" width="120" height="120" loading="lazy" decoding="async">' % fotos[pid]
+        for pid in [k['base']] + k['charms'])))
+
+
+def generar_paginas_kit(html, escribir):
+    cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
+    kits = json.loads(KITS_JSON.read_text(encoding='utf-8'))['kits']
+    promo = cat['reglas']['promo']
+    fotos, nombres = cat['fotos'], cat['nombres']
+    completo = {k['id']: escalera(k['base'], k['charms'])[-1] for k in kits}
+    b = bloques(html)
+    from gen_productos import bloques_media
+
+    ini = PAGINA_KITS.index('<section class="col-hero wrap" id="top">')
+    fin = PAGINA_KITS.index('<section class="col-resto wrap">')
+    for k in kits:
+        pasos = escalera(k['base'], k['charms'])
+        todo = pasos[-1]
+        pz = len(k['charms']) + 1
+        gratis = 0
+        for piezas_t, gratis_t in promo['tramos']:
+            if pz >= piezas_t:
+                gratis = gratis_t
+        hero = HERO_KIT.format(
+            foto=foto_kit(k, fotos, nombres, 'kp-img'), eyebrow=k['eyebrow'], nombre=k['nombre'],
+            lema=k['lema'], n=len(k['charms']), total=todo['totalTexto'], lista=todo['listaTexto'],
+            gratis=('%d piezas: %s' % (pz, 'una te sale GRATIS' if gratis == 1 else '%d te salen GRATIS' % gratis))
+                   if gratis else 'Precio de lista',
+            ahorro=todo['ahorro'], piezas=','.join(todo['piezas']), id=k['id'])
+
+        miniaturas = ''.join(
+            '<img src="assets/%s" alt="%s" width="80" height="80" loading="lazy" decoding="async">'
+            % (fotos[pid], nombres[pid].replace('"', '')) for pid in [k['base']] + k['charms'])
+        filas = []
+        for p in pasos:
+            n_pz = p['n'] + 1
+            g = 0
+            for piezas_t, gratis_t in promo['tramos']:
+                if n_pz >= piezas_t:
+                    g = gratis_t
+            filas.append(PASO_KIT.format(
+                clase=' kit-paso--best' if p['n'] in (3, 5) else '',
+                piezas=','.join(p['piezas']), n=p['n'], s='s' if p['n'] > 1 else '',
+                total=p['totalTexto'], lista=p['listaTexto'] if p['dto'] > 0 else '',
+                marca=('%d piezas: %s · ahorras %s' % (n_pz, 'una GRATIS' if g == 1 else '%d GRATIS' % g, p['ahorro']))
+                      if g else 'precio de lista'))
+        tarjeta = TARJETA_KIT.format(
+            id=k['id'], eyebrow=k['eyebrow'], nombre=k['nombre'], lema=k['lema'], entrada=k['entrada'],
+            fotos=miniaturas, ahorro_cuatro=pasos[2]['ahorro'], pasos='\n'.join(filas),
+            base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
+            vitrina=vitrina([k['base']] + k['charms'], 'De esta colección'))
+        # En su propia página, el enlace «ver la página de este kit» sobra.
+        tarjeta = tarjeta.replace('        <a class="kit-ir" href="kit-%s.html">Ver la página de este kit →</a>\n' % k['id'], '')
+
+        otros = [o for o in kits if o['id'] != k['id']]
+        otros.sort(key=lambda o: not (o.get('pagina') or {}).get('popular'))
+        pop = '\n'.join(TARJETA_POP.format(
+            id=o['id'], foto=foto_kit(o, fotos, nombres, 'kp-pop-img'), nombre=o['nombre'], lema=o['lema'],
+            total=completo[o['id']]['totalTexto'], lista=completo[o['id']]['listaTexto']) for o in otros[:4])
+
+        cuerpo = (hero
+                  + '\n<section class="kits-esc wrap">\n  <div class="promo-caja">\n'
+                  + '    <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis · paga 4 y llévate 2.</b></p>\n'
+                  + '    <p class="promo-caja-x">El brazalete cuenta como una pieza: con 4 piezas, la de menor valor te sale '
+                  + '<b>GRATIS</b>; con 6, las 2 de menor valor. <span>(Se aplica automáticamente).</span></p>\n  </div>\n</section>\n\n'
+                  + '<section class="kits wrap kp-kit">\n' + tarjeta + '</section>\n\n'
+                  + '<section class="kp-pop wrap" aria-label="Colecciones populares">\n  <h2>Colecciones populares</h2>\n'
+                  + '  <div class="kp-pop-grid">\n' + pop + '\n  </div>\n'
+                  + '  <a class="btn btn--ghost" href="kits.html">Ver todos los kits</a>\n</section>\n\n')
+        url = 'https://zephoracharms.com/kit-%s.html' % k['id']
+        imagen = 'https://zephoracharms.com/assets/' + ((k.get('pagina') or {}).get('imagen') or 'avengers-marmol.webp')
+        titulo = '%s · %s · Zephora Charms' % (k['nombre'], k['lema'])
+        desc = ('%s: %s Brazalete + %d charms por %s (en vez de %s). Paga 3, lleva 1 gratis · paga 4, lleva 2. '
+                'Envío gratis a toda Colombia.' % (k['nombre'], k['entrada'], len(k['charms']),
+                                                    todo['totalTexto'], todo['listaTexto']))
+        cabeza = PAGINA_KITS[:ini]
+        cabeza = re.sub(r'<title>[^<]*</title>', '<title>%s</title>' % titulo, cabeza)
+        cabeza = cabeza.replace('https://zephoracharms.com/kits.html', url)
+        cabeza = cabeza.replace('Kits Zephora · Dijes de Plata 925 y brazalete', titulo)
+        cabeza = cabeza.replace('https://zephoracharms.com/assets/avengers-marmol.webp', imagen)
+        pagina = (cabeza.replace('{', '{{').replace('}', '}}')
+                  .replace('{{head}}', '{head}').replace('{{ann}}', '{ann}').replace('{{header}}', '{header}')
+                  .replace('{{desc}}', '{desc}')
+                  + cuerpo.replace('{', '{{').replace('}', '}}')
+                  + PAGINA_KITS[fin:]).format(
+            head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+            bloques_media=bloques_media(None, 'charm', False, cat, arma_href='#kit-' + k['id']),
+            historia=b['historia'], resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
+            footer=b['footer'], chrome=b['chrome'], n_catalogo=len(cat['precios']), desc=desc.replace('"', ''))
+        pagina = arregla_nav(pagina)
+        destino = RAIZ / ('kit-%s.html' % k['id'])
+        if escribir:
+            destino.write_text(pagina, encoding='utf-8')
+        print('  %s  %-24s %s (lista %s)' % ('escrito ' if escribir else 'se escribiría', destino.name,
+                                             todo['totalTexto'], todo['listaTexto']))
 
 
 MV_CUERPO = '''<section class="col-hero wrap" id="top">
@@ -777,6 +923,8 @@ def main():
         generar(col, html, escribir)
     print('\nKits:')
     generar_kits(html, escribir)
+    print('\nUna página por kit:')
+    generar_paginas_kit(html, escribir)
     print('\nMás vendidos:')
     generar_mas_vendidos(html, escribir)
     if not escribir:

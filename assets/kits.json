@@ -1,6 +1,37 @@
 {
   "_": "Los kits de la tienda. Los edita una persona; no lo pisa ningún extractor. Cada kit es una selección de piezas que YA existen en el catálogo — no hay precio aquí a propósito: lo calcula calcular() con las mismas reglas que firman el cobro, así que un kit nunca puede prometer un precio que el checkout no vaya a cobrar. El orden de `charms` es el orden en que se van sumando en la escalera, así que el primero es el que mejor cuenta el kit solo.",
+  "_pagina": "Cada kit tiene su propia página, kit-<id>.html, a la que llegan los anuncios (pedido del propietario, 2026-10-30). `pagina.imagen` es la foto del anuncio que lleva ahí: la clienta ve arriba lo mismo que tocó. Sin imagen, la portada son las fotos de las piezas. `pagina.popular` decide si sale en «Colecciones populares» al final de las demás páginas de kit.",
   "kits": [
+    {
+      "id": "azul-mar",
+      "nombre": "Colección Azul Mar",
+      "eyebrow": "Colección",
+      "lema": "El mar en tu muñeca",
+      "entrada": "El pulpo, el gatito con su corazón, el atrapasueños, la flor y la esfera de cristal, todos en la misma gama de azules y en Plata Esterlina 925 con su sello grabado, sobre la Pulsera Corona Pavé con acabado en baño de plata.",
+      "base": "pulsera-corona-pave",
+      "charms": ["pulpo-azul-cristal", "gatito-con-corazon-azul", "atrapasuenos-azul", "flor-azul-con-cristales", "esfera-azul-con-cristales"],
+      "pagina": {"imagen": "kits/azul-mar.webp", "alt": "Colección Azul Mar: brazalete Corona Pavé con pulpo, gatito, atrapasueños, flor y esfera azul", "popular": true}
+    },
+    {
+      "id": "amuletos",
+      "nombre": "Colección Amuletos",
+      "eyebrow": "Colección",
+      "lema": "Los que te cuidan",
+      "entrada": "Un carrusel, dos atrapasueños, el corazón del árbol de la vida y el trébol que gira: amuletos para la buena suerte, en Plata Esterlina 925 con su sello grabado, sobre la Pulsera Clásica de Cierre Barril con acabado en baño de plata.",
+      "base": "pulsera-clasica-cierre-barril",
+      "charms": ["carrusel-rosado", "atrapasuenos-azul", "corazon-arbol-de-la-vida", "trebol-verde-giratorio", "atrapasuenos-corazon-multicolor"],
+      "pagina": {"imagen": "kits/amuletos.webp", "alt": "Colección Amuletos: brazalete con carrusel, dos atrapasueños, corazón árbol de la vida y trébol", "popular": true}
+    },
+    {
+      "id": "avengers",
+      "nombre": "Colección Avengers",
+      "eyebrow": "Marvel",
+      "lema": "Tus héroes, en tu muñeca",
+      "entrada": "Iron Man, el Capitán América, Wolverine y Deadpool en Plata Esterlina 925 con su sello grabado, sobre la Pulsera Avengers con el emblema en el broche y acabado en baño de plata. El regalo para su héroe.",
+      "base": "pulsera-avengers",
+      "charms": ["iron-man", "capitan-america", "wolverine", "deadpool"],
+      "pagina": {"imagen": "kits/avengers.webp", "alt": "Colección Avengers: Pulsera Avengers con Iron Man, Capitán América, Wolverine y Deadpool", "popular": true}
+    },
     {
       "id": "luz-y-suenos",
       "nombre": "Kit Luz y Sueños",

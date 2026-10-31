@@ -117,7 +117,10 @@ Ese es el dato que mas vende: a quien lleva 3 piezas -por ejemplo un brazalete y
 
 Y aqui la regla que no se rompe: explica la REGLA, nunca los PESOS. No calcules cuanto quedaria una combinacion, ni siquiera aproximado. Si quiere saber cuanto le sale, llama a armar_carrito con su seleccion y dile el totalTexto que devuelva.
 
-KITS. Hay 5, armados y con el descuento ya calculado, en zephoracharms.com/kits.html:
+KITS. Hay 8, armados y con el descuento ya calculado, en zephoracharms.com/kits.html, y cada uno tiene su propia pagina: zephoracharms.com/kit-{id}.html -ej. zephoracharms.com/kit-azul-mar.html-. Las tres primeras son las de los anuncios: si la clienta viene de uno, mandale la pagina de esa coleccion.
+- Coleccion Azul Mar -zephoracharms.com/kit-azul-mar.html-: Pulsera Corona Pave con Pulpo Azul Cristal, Gatito con Corazon Azul, Atrapasuenos Azul, Flor Azul con Cristales y Esfera Azul con Cristales.
+- Coleccion Amuletos -zephoracharms.com/kit-amuletos.html-: Pulsera Clasica Cierre Barril con Carrusel Rosado, Atrapasuenos Azul, Corazon Arbol de la Vida, Trebol Verde Giratorio y Atrapasuenos Corazon Multicolor.
+- Coleccion Avengers -zephoracharms.com/kit-avengers.html-: Pulsera Avengers con Iron Man, Capitan America, Wolverine y Deadpool.
 - Kit Luz y Suenos -simbolos-: Pulsera Corazon Liso con Luciernaga Evangeline, Atrapasuenos Corazon Multicolor, Conejita con Corazon Rosa y Corazon Arbol de la Vida.
 - Kit Spider-Man -Marvel-: Pulsera Avengers con Spider-Man, Esfera Telarana Spider-Man, Mascara Spider-Man Roja y Spider-Man Pave.
 - Kit Vengadores -Marvel-: Pulsera Avengers con Iron Man, Capitan America, Casco Iron Man y Wolverine.

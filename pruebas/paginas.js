@@ -386,7 +386,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     const otra = grupos.find(g => g !== cat.grupos[charm]);
     await p.click(`.vit-tab:text-is("${otra}")`);
     const enOtra = await p.$$eval('.vit-it', x => x.map(i => i.dataset.vid));
-    ok(enOtra.length > 0 && enOtra.every(i => cat.grupos[i] === otra && hay(i)), `«${otra}» muestra solo sus piezas con unidades (${enOtra.length})`);
+    /* Desde el 2026-10-31 las agotadas también se ven («para causar
+       urgencia»), pero al final y sin botón de agregar. */
+    const conUnidades = enOtra.filter(hay), sinUnidades = enOtra.filter(i => !hay(i));
+    ok(enOtra.length > 0 && enOtra.every(i => cat.grupos[i] === otra)
+       && JSON.stringify(enOtra) === JSON.stringify(conUnidades.concat(sinUnidades)),
+      `«${otra}» muestra solo sus piezas, las que tienen unidades primero (${conUnidades.length} + ${sinUnidades.length} agotadas)`);
     const antes = p.url();
     await p.click('.vit-it >> nth=0 >> .vit-add');
     await p.waitForTimeout(200);
@@ -703,7 +708,21 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
        la pestaña no venga vacía. Sin ellos, «no aparecen» pasaría sola. */
     ok(activa.trim() === 'Símbolos', `la vitrina está en la pestaña Símbolos — «${activa.trim()}»`);
     ok(vit.length >= 3, `y esa pestaña sí tiene piezas (${vit.length})`);
-    ok(enCero.every(id => !vit.includes(id)), 'y no ofrece ninguna de las dos agotadas según la real');
+    /* Desde el 2026-10-31 las agotadas se ven (urgencia), pero marcadas, al
+       final, con «Avísame» y sin manera de agregarlas al carrito. */
+    const marcadas = await pB.evaluate(ids => ids.map(id => {
+      const it = document.querySelector('.vit-it[data-vid="' + id + '"]');
+      return it && it.classList.contains('vit-it--agot') && !it.querySelector('[data-add]')
+        && /Agotado/.test((it.querySelector('.vit-marca') || {}).textContent || '')
+        && /Avísame/.test((it.querySelector('.vit-avisa') || {}).textContent || '');
+    }), enCero);
+    /* Símbolos puede tener otras agotadas: lo que se exige es que el bloque de
+       agotadas vaya al final y que estas dos estén dentro de él. */
+    const agot = await pB.evaluate(() => [...document.querySelectorAll('.vit-it[data-vid]')].map(i => i.classList.contains('vit-it--agot')));
+    const desde = agot.indexOf(true);
+    const alFinal = desde >= 0 && agot.slice(desde).every(Boolean) && enCero.every(id => vit.indexOf(id) >= desde);
+    ok(marcadas.every(Boolean) && alFinal,
+      'las dos agotadas según la real salen al final, marcadas «Agotado», con «Avísame» y sin botón de agregar');
     await ctxB.close();
   }
 
@@ -736,8 +755,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       piezas: document.querySelector('.kit .kit-paso:last-child').dataset.kitPiezas,
       bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#tst-rail .tst').length - 3, lista: !!document.getElementById('rp-lista'),
       formulario: !!document.getElementById('rp-form'), videos: document.querySelectorAll('.ugc-v').length }));
-    ok(k.primero === 'kit-luz-y-suenos' && k.piezas === 'pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida',
-      `el Kit Luz y Sueños sale primero, con sus 5 piezas (${k.piezas})`);
+    /* El primero es el primero de kits.json (desde el 2026-10-30, las
+       colecciones de los anuncios van arriba) y su último paso lleva todas
+       sus piezas, brazalete incluido. */
+    const kj = require(path.join(RAIZ, 'assets', 'kits.json')).kits[0];
+    ok(k.primero === 'kit-' + kj.id && k.piezas === [kj.base, ...kj.charms].join(','),
+      `el ${kj.nombre} sale primero, con sus ${kj.charms.length + 1} piezas (${k.piezas})`);
     ok(k.bloques === 4 && k.resenas === 1 && !k.lista && !k.formulario && k.videos === 3,
       `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda en el carrusel (sin lista aparte ni formulario) y 3 videos de clientas`);
     ok(!errs.length, 'consola limpia' + lista(errs));

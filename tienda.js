@@ -305,14 +305,22 @@ function pestanasDe(v){
   Object.keys(grupos).sort((a,b)=>pos(a)-pos(b)).forEach(g=>tabs.push([g,grupos[g]]));
   tabs.push(['Iniciales',DATA.charms.map(c=>c.id).filter(id=>/^letra-/.test(id)&&id!==sin)]);
   if(v.dataset.vitB!=='0') tabs.push(['Brazaletes',DATA.pulseras.map(c=>c.id).filter(id=>id!==sin)]);
-  return tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id))]).filter(([,ids])=>ids.length);
+  /* Las agotadas también se ven, al final de cada colección y marcadas
+     (pedido del propietario, 2026-10-31: «para causar urgencia»). Antes se
+     quitaban, y la Colección Avengers salía sin Deadpool. */
+  return tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id)).concat(ids.filter(agotado))]).filter(([,ids])=>ids.length);
 }
 function itemVit(id){
-  const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id];
-  return '<div class="vit-it" data-vid="'+id+'" role="listitem">'
+  const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id], fuera=agotado(id);
+  /* Urgencia con el dato real, el mismo texto de la ficha (estadoDe): «Agotado»,
+     «Queda 1 unidad», «Quedan 2 unidades». Sin dato real no se pone nada. */
+  const e=estadoDe(id), marca=fuera?'Agotado':(e.k==='few'?(unidades(id)===1?'Última unidad':'Quedan '+unidades(id)):'');
+  return '<div class="vit-it'+(fuera?' vit-it--agot':'')+'" data-vid="'+id+'" role="listitem">'
+    +(marca?'<span class="vit-marca'+(fuera?'':' vit-marca--pocas')+'">'+marca+'</span>':'')
     +(f?'<img src="assets/'+f+VFOTO+'" alt="" width="96" height="96" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'">':'<span class="vit-nof"></span>')
     +'<span class="vit-n">'+escHTML(d.n)+'</span><small>'+cop(d.p)+'</small>'
-    +(esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
+    +(fuera?'<a class="vit-add vit-avisa" href="'+escHTML(waEncargo(d.n))+'" target="_blank" rel="noopener">Avísame</a>'
+     :esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
          +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
          :'<button type="button" class="vit-add" data-add="'+id+'">Agregar</button>')
     +'</div>';
@@ -343,6 +351,7 @@ function estadoVit(){
   if((STOCK||DISP)&&!vitConStock){ vitConStock=true; VIT.forEach(v=>dibujarVit(v)); return; }
   document.querySelectorAll('.vit-it').forEach(it=>{
     const id=it.dataset.vid, b=it.querySelector('.vit-add');
+    if(it.classList.contains('vit-it--agot')) return;   // su botón es «Avísame»
     if(PU[id]){
       const on=!!(base&&base.id===id);
       it.classList.toggle('is-sel',on);
@@ -387,9 +396,12 @@ document.addEventListener('click',e=>{
      la página, y pide la talla del brazalete si aún no la tiene. */
   const kp=e.target.closest('[data-kit-piezas]');
   if(kp){
+    if(kp.dataset.wa){ location.href=kp.dataset.wa; return; }
     const [b,...cs]=kp.dataset.kitPiezas.split(',');
     cs.forEach(id=>{ if(CH[id]&&!sel.includes(id)) sumarCharm(id); });
-    const kit=kp.closest('.kit'), caja=kit&&kit.querySelector('.kit-tallas');
+    /* El botón grande de kit-<id>.html está fuera de la tarjeta: data-kit-ir
+       dice cuál es, para pedir la talla de su brazalete. */
+    const kit=kp.closest('.kit')||document.getElementById(kp.dataset.kitIr||''), caja=kit&&kit.querySelector('.kit-tallas');
     if(kit) kit.querySelectorAll('[data-kit-piezas]').forEach(x=>x.classList.toggle('is-on',x===kp));
     if(caja&&!(base&&base.id===b&&base.talla)){
       caja.scrollIntoView({behavior:'smooth',block:'center'});
@@ -640,16 +652,41 @@ function etiquetaStock(p,id){
    catálogo. No toca páginas sin `.kit-paso`: el selector devuelve vacío. */
 function marcarKits(){
   if(!STOCK&&!DISP) return;
-  document.querySelectorAll('.kit-paso[data-piezas]').forEach(a=>{
+  /* Los pasos son <button data-kit-piezas> desde el 2026-09-27; este selector
+     buscaba solo `data-piezas` (de cuando eran enlaces) y no marcaba nada
+     (2026-10-30, con Deadpool agotado en la Colección Avengers). El botón
+     agotado guarda el enlace de WhatsApp en data-wa: lo abre el clic. */
+  document.querySelectorAll('.kit-paso[data-kit-piezas], .kit-paso[data-piezas]').forEach(a=>{
     if(a.dataset.marcado) return;
-    const ids=a.dataset.piezas.split(',');
+    const ids=(a.dataset.kitPiezas||a.dataset.piezas).split(',');
     if(!ids.some(agotado)) return;
     a.dataset.marcado='1';
     a.classList.add('kit-paso--agotado');
     const nombre=a.closest('.kit')?.querySelector('h3')?.textContent || 'este kit';
-    a.href=waEncargo(nombre);
+    if(a.tagName==='A') a.href=waEncargo(nombre); else a.dataset.wa=waEncargo(nombre);
     const p=a.querySelector('.kit-paso-p'); if(p) p.innerHTML='<b>Agotado</b>';
     const d=a.querySelector('.kit-paso-d'); if(d) d.textContent='Escríbenos y te avisamos';
+  });
+  /* El botón grande de kit-<id>.html: si una pieza se agotó, no se apaga —
+     pone las disponibles y dice cuál falta, en vez de perder la venta entera.
+     Si se agotó el brazalete, sí: sin brazalete no hay colección que armar. */
+  document.querySelectorAll('.kp-cta[data-kit-piezas]').forEach(bt=>{
+    if(bt.dataset.marcado) return;
+    const [b,...cs]=bt.dataset.kitPiezas.split(',');
+    const fuera=cs.filter(agotado);
+    if(!fuera.length&&!agotado(b)) return;
+    bt.dataset.marcado='1';
+    const aviso=bt.parentNode.querySelector('.kp-agotadas');
+    if(agotado(b)){
+      bt.dataset.wa=waEncargo(bt.closest('.kp-hero')?.querySelector('h1')?.textContent||'esta colección');
+      bt.textContent='Agotado · escríbenos';
+      return;
+    }
+    bt.dataset.kitPiezas=[b].concat(cs.filter(id=>!agotado(id))).join(',');
+    bt.textContent='Agregar las disponibles';
+    if(aviso){ aviso.hidden=false;
+      aviso.textContent=fuera.map(id=>(CH[id]&&CH[id].n)||id).join(', ')+(fuera.length>1?' están agotados':' está agotado')
+        +' por ahora; el resto va con el descuento de la promo.'; }
   });
 }
 
