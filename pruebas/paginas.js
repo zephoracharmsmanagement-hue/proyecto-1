@@ -736,8 +736,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       piezas: document.querySelector('.kit .kit-paso:last-child').dataset.kitPiezas,
       bloques: document.querySelectorAll('.bv-b').length, resenas: document.querySelectorAll('#tst-rail .tst').length - 3, lista: !!document.getElementById('rp-lista'),
       formulario: !!document.getElementById('rp-form'), videos: document.querySelectorAll('.ugc-v').length }));
-    ok(k.primero === 'kit-luz-y-suenos' && k.piezas === 'pulsera-corazon-liso,luciernaga-you-are-my-light,atrapasuenos-corazon-multicolor,conejita-con-corazon-rosa,corazon-arbol-de-la-vida',
-      `el Kit Luz y Sueños sale primero, con sus 5 piezas (${k.piezas})`);
+    /* El primero es el primero de kits.json (desde el 2026-10-30, las
+       colecciones de los anuncios van arriba) y su último paso lleva todas
+       sus piezas, brazalete incluido. */
+    const kj = require(path.join(RAIZ, 'assets', 'kits.json')).kits[0];
+    ok(k.primero === 'kit-' + kj.id && k.piezas === [kj.base, ...kj.charms].join(','),
+      `el ${kj.nombre} sale primero, con sus ${kj.charms.length + 1} piezas (${k.piezas})`);
     ok(k.bloques === 4 && k.resenas === 1 && !k.lista && !k.formulario && k.videos === 3,
       `kits al bajar: 4 bloques con foto y video, las reseñas de la tienda en el carrusel (sin lista aparte ni formulario) y 3 videos de clientas`);
     ok(!errs.length, 'consola limpia' + lista(errs));

@@ -1710,3 +1710,50 @@ p,li,dd,.pp-acc-in{line-height:1.55}
 .tot-big span{color:var(--gris-suave)}
 .tot-big b{color:var(--ink)}
 .sheet-seguro{color:var(--gris-suave)}
+
+/* ── Una página por kit (kit-<id>.html, 2026-10-30) ──────────────────────────
+   A donde llegan los anuncios: arriba la misma foto que la clienta tocó, el
+   precio de la colección completa y un solo botón; abajo, la tarjeta del kit de
+   siempre y «Colecciones populares». En celular va en una columna. */
+.kit-ir{display:inline-block;margin-top:10px;font-size:14px;color:var(--plum);text-underline-offset:3px}
+.kp-hero{display:grid;gap:18px;padding-top:18px;padding-bottom:22px}
+.kp-foto{margin:0 -16px}
+.kp-img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;background:var(--white)}
+.kp-img--piezas{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;aspect-ratio:auto;padding:10px;background:var(--white)}
+.kp-img--piezas img{width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+.kp-txt{text-align:center}
+.kp-txt h1{font-size:clamp(32px,8.5vw,54px);line-height:1.05;margin:8px 0 4px}
+.kp-lema{margin:0 0 14px;font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:clamp(20px,5vw,26px);color:var(--plum)}
+.kp-precio{margin:0;font-size:16px}
+.kp-precio b{font-size:26px;font-weight:500;color:var(--ink)}
+.kp-precio s{margin-left:6px;color:var(--gris-suave);font-size:15px}
+.kp-gratis{margin:4px 0 16px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--pagar)}
+.kp-cta{width:100%;max-width:420px;min-height:52px;font-size:16px;transition:transform 160ms ease-out}
+.kp-cta:active{transform:scale(.97)}
+.kp-agotadas{margin:10px auto 0;max-width:420px;font-size:13px;color:var(--gris)}
+.kp-ver{display:inline-block;margin-top:12px;font-size:14px;color:var(--plum);text-underline-offset:3px}
+.kp-confia{list-style:none;margin:18px auto 0;padding:0;display:grid;gap:6px;max-width:420px;font-size:13.5px;color:var(--gris)}
+.kp-confia li::before{content:'✓';color:var(--rose);margin-right:8px}
+.kp-kit{padding-top:6px}
+.kp-pop{padding:30px 16px 34px;border-top:1px solid var(--line);text-align:center}
+.kp-pop h2{font-size:clamp(24px,6vw,34px);margin:0 0 16px}
+.kp-pop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;text-align:left}
+.kp-pop-it{display:grid;gap:3px;color:inherit;text-decoration:none;background:var(--white);border:1px solid var(--line);
+  border-radius:3px;padding:0 0 12px;overflow:hidden;transition:border-color 160ms ease}
+.kp-pop-it:hover{border-color:var(--plum)}
+.kp-pop-img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;margin-bottom:8px}
+.kp-pop-img--piezas{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:8px;aspect-ratio:4/5;align-content:center}
+.kp-pop-img--piezas img{width:100%;height:auto;aspect-ratio:1;object-fit:contain}
+.kp-pop-n,.kp-pop-l,.kp-pop-p{padding:0 10px}
+.kp-pop-n{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;line-height:1.15}
+.kp-pop-l{font-size:12.5px;color:var(--gris-suave)}
+.kp-pop-p b{font-weight:500}
+.kp-pop-p s{color:var(--gris-suave);font-size:12px;margin-left:4px}
+@media (min-width:860px){
+  .kp-hero{grid-template-columns:1fr 1fr;align-items:center;gap:40px;padding-top:34px}
+  .kp-foto{margin:0}
+  .kp-txt{text-align:left}
+  .kp-cta,.kp-agotadas,.kp-confia{margin-left:0}
+  .kp-pop-grid{grid-template-columns:repeat(4,1fr)}
+}
+@media (prefers-reduced-motion:reduce){.kp-cta,.kp-pop-it{transition:none}}
