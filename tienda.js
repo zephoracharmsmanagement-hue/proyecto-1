@@ -305,14 +305,22 @@ function pestanasDe(v){
   Object.keys(grupos).sort((a,b)=>pos(a)-pos(b)).forEach(g=>tabs.push([g,grupos[g]]));
   tabs.push(['Iniciales',DATA.charms.map(c=>c.id).filter(id=>/^letra-/.test(id)&&id!==sin)]);
   if(v.dataset.vitB!=='0') tabs.push(['Brazaletes',DATA.pulseras.map(c=>c.id).filter(id=>id!==sin)]);
-  return tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id))]).filter(([,ids])=>ids.length);
+  /* Las agotadas también se ven, al final de cada colección y marcadas
+     (pedido del propietario, 2026-10-31: «para causar urgencia»). Antes se
+     quitaban, y la Colección Avengers salía sin Deadpool. */
+  return tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id)).concat(ids.filter(agotado))]).filter(([,ids])=>ids.length);
 }
 function itemVit(id){
-  const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id];
-  return '<div class="vit-it" data-vid="'+id+'" role="listitem">'
+  const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id], fuera=agotado(id);
+  /* Urgencia con el dato real, el mismo texto de la ficha (estadoDe): «Agotado»,
+     «Queda 1 unidad», «Quedan 2 unidades». Sin dato real no se pone nada. */
+  const e=estadoDe(id), marca=fuera?'Agotado':(e.k==='few'?(unidades(id)===1?'Última unidad':'Quedan '+unidades(id)):'');
+  return '<div class="vit-it'+(fuera?' vit-it--agot':'')+'" data-vid="'+id+'" role="listitem">'
+    +(marca?'<span class="vit-marca'+(fuera?'':' vit-marca--pocas')+'">'+marca+'</span>':'')
     +(f?'<img src="assets/'+f+VFOTO+'" alt="" width="96" height="96" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'">':'<span class="vit-nof"></span>')
     +'<span class="vit-n">'+escHTML(d.n)+'</span><small>'+cop(d.p)+'</small>'
-    +(esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
+    +(fuera?'<a class="vit-add vit-avisa" href="'+escHTML(waEncargo(d.n))+'" target="_blank" rel="noopener">Avísame</a>'
+     :esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
          +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
          :'<button type="button" class="vit-add" data-add="'+id+'">Agregar</button>')
     +'</div>';
@@ -343,6 +351,7 @@ function estadoVit(){
   if((STOCK||DISP)&&!vitConStock){ vitConStock=true; VIT.forEach(v=>dibujarVit(v)); return; }
   document.querySelectorAll('.vit-it').forEach(it=>{
     const id=it.dataset.vid, b=it.querySelector('.vit-add');
+    if(it.classList.contains('vit-it--agot')) return;   // su botón es «Avísame»
     if(PU[id]){
       const on=!!(base&&base.id===id);
       it.classList.toggle('is-sel',on);

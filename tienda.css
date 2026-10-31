@@ -1761,3 +1761,13 @@ p,li,dd,.pp-acc-in{line-height:1.55}
   .kp-pop-grid{grid-template-columns:repeat(4,1fr)}
 }
 @media (prefers-reduced-motion:reduce){.kp-cta,.kp-pop-it{transition:none}}
+
+/* Vitrina: agotadas y pocas unidades a la vista (2026-10-31, «para causar
+   urgencia»). La agotada va al final de su colección, atenuada, con «Avísame»
+   por WhatsApp; la que tiene 2 o menos lleva «Quedan 2» / «Última unidad». */
+.vit-marca{position:absolute;top:6px;left:6px;z-index:1;padding:3px 7px;border-radius:2px;
+  font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:#fff}
+.vit-marca--pocas{background:var(--pagar)}
+.vit-it--agot img{opacity:.45;filter:grayscale(.5)}
+.vit-it--agot .vit-n,.vit-it--agot small{color:var(--gris-suave)}
+.vit-avisa{display:block;text-align:center;text-decoration:none;color:var(--wa);border-color:var(--wa);background:#fff}
