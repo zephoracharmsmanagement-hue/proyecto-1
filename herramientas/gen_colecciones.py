@@ -674,7 +674,9 @@ def generar_kits(html, escribir):
             ahorro_cuatro=pasos[2]['ahorro'],
             pasos='\n'.join(filas),
             base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
-            vitrina=vitrina(k['charms'], 'De este kit', brazaletes=False),
+            # El brazalete del kit va primero en su vitrina, como un charm más: con su foto,
+            # su video (la ficha) y «Elegir talla» (pedido del propietario, 2026-10-31).
+            vitrina=vitrina([k['base']] + k['charms'], 'De este kit'),
         ))
 
     b = bloques(html)
@@ -804,7 +806,7 @@ def generar_paginas_kit(html, escribir):
             id=k['id'], eyebrow=k['eyebrow'], nombre=k['nombre'], lema=k['lema'], entrada=k['entrada'],
             fotos=miniaturas, ahorro_cuatro=pasos[2]['ahorro'], pasos='\n'.join(filas),
             base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
-            vitrina=vitrina(k['charms'], 'De esta colección', brazaletes=False))
+            vitrina=vitrina([k['base']] + k['charms'], 'De esta colección'))
         # En su propia página, el enlace «ver la página de este kit» sobra.
         tarjeta = tarjeta.replace('        <a class="kit-ir" href="kit-%s.html">Ver la página de este kit →</a>\n' % k['id'], '')
 
