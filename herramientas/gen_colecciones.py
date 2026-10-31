@@ -753,8 +753,11 @@ def foto_kit(k, fotos, nombres, clase):
     """La foto del anuncio si la hay; si no, las piezas del kit."""
     p = k.get('pagina') or {}
     if p.get('imagen'):
-        return ('<img class="%s" src="assets/%s" alt="%s" width="1080" height="1350" decoding="async">'
-                % (clase, p['imagen'], p.get('alt', k['nombre']).replace('"', '')))
+        # La de arriba (kp-img) es la imagen principal: va primero. Las de «Colecciones
+        # populares» están al final de la página: perezosas, para no competir con ella.
+        prio = ' fetchpriority="high"' if clase == 'kp-img' else ' loading="lazy"'
+        return ('<img class="%s" src="assets/%s" alt="%s" width="1080" height="1350"%s decoding="async">'
+                % (clase, p['imagen'], p.get('alt', k['nombre']).replace('"', ''), prio))
     return ('<span class="%s %s--piezas">%s</span>' % (clase, clase, ''.join(
         '<img src="assets/%s" alt="" width="120" height="120" loading="lazy" decoding="async">' % fotos[pid]
         for pid in [k['base']] + k['charms'])))
