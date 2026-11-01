@@ -708,7 +708,9 @@ def generar(pid, html, cat, stock, b, exigidos):
         rel_sub = '<p class="col-sub">Cada uno en talla 5, 6, 7 u 8, en Plata 925 con sello.</p>'
         charms = [c for c in cat['destacados'] + list(cat['precios'])
                   if c in cat['precios'] and c not in cat['pulseras'] and not c.startswith(('letra-', 'anillo-'))
-                  and (unidades(stock.get(c)) or 0) > 0]
+                  # 3 o más en el conteo: las de 1–2 suelen estar ya vendidas y
+                  # una venta cruzada llena de «Agotado» no invita a sumar.
+                  and (unidades(stock.get(c)) or 0) >= 3]
         bloque_b = BLOQUE_CHARMS_ANILLO.format(tarjetas='\n'.join(
             '      ' + t.replace('class="pc pc--top"', 'class="pc"')
             for t in tarjetas(html, list(dict.fromkeys(charms))[:8])))
