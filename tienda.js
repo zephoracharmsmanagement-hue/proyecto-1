@@ -965,7 +965,7 @@ function specsDe(id){
   const fila=(k,v)=>filas.push('<div><dt>'+k+'</dt><dd>'+v+'</dd></div>');
   if(ANI[id]){
     fila('Material','Plata Esterlina 925 verificada, con sello grabado');
-    fila('Tallas','5, 6, 7 y 8 (talla de anillo colombiana). Elige la tuya en los botones de arriba');
+    fila('Tallas','5, 6, 7 y 8. Elige la tuya en los botones de arriba');
     fila('Sin níquel','Libre de níquel y plomo — apta para pieles sensibles');
     return filas.join('');
   }
