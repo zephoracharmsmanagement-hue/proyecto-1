@@ -311,7 +311,7 @@ let CAT=null, vitConStock=false;
 const VFOTO='?v=20261009';
 function pestanasDe(v){
   const sin=v.dataset.vitSin||'', tabs=[];
-  const rel=(v.dataset.vit||'').split(',').filter(id=>id&&id!==sin&&(CH[id]||PU[id]));
+  const rel=(v.dataset.vit||'').split(',').filter(id=>id&&id!==sin&&(CH[id]||PU[id]||ANI[id]));
   if(rel.length) tabs.push([v.dataset.vitT||'Relacionados',rel]);
   const grupos={};
   /* Los anillos se eligen en su tarjeta, con talla: no van sueltos en la vitrina. */
@@ -326,6 +326,15 @@ function pestanasDe(v){
   return tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id)).concat(ids.filter(agotado))]).filter(([,ids])=>ids.length);
 }
 function itemVit(id){
+  /* Un anillo en la vitrina (2026-11-01): se elige la talla en su página. */
+  if(ANI[id]){
+    const a=ANI[id], fa=CAT.fotos[a.tallas[0]], fu=agotado(id);
+    return '<div class="vit-it'+(fu?' vit-it--agot':'')+'" data-vid="'+id+'" role="listitem">'
+      +(fu?'<span class="vit-marca">Agotado</span>':'')
+      +(fa?'<img src="assets/'+fa+VFOTO+'" alt="" width="96" height="96" loading="lazy" decoding="async">':'<span class="vit-nof"></span>')
+      +'<span class="vit-n">'+escHTML(a.n)+'</span><small>'+cop(a.p)+'</small>'
+      +'<a class="vit-add" href="'+paginaDe(id)+'">Elegir talla</a></div>';
+  }
   const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id], fuera=agotado(id);
   /* Urgencia con el dato real, el mismo texto de la ficha (estadoDe): «Agotado»,
      «Queda 1 unidad», «Quedan 2 unidades». Sin dato real no se pone nada. */
@@ -402,6 +411,7 @@ document.addEventListener('click',e=>{
   const verVit=e.target.closest('.vit-it img, .vit-it .vit-n, .vit-it .vit-nof');
   if(verVit && !e.target.closest('.mv-ir')){
     const it=verVit.closest('.vit-it');
+    if(it&&it.dataset.vid&&ANI[it.dataset.vid]){ location.href=paginaDe(it.dataset.vid); return; }
     if(it&&it.dataset.vid&&(CH[it.dataset.vid]||PU[it.dataset.vid])){ abrirFicha(it.dataset.vid); return; }
   }
   const bt=e.target.closest('[data-vit-talla]');
@@ -1836,6 +1846,15 @@ document.getElementById('pago').addEventListener('click',e=>{
 const bloqueado = el => el.getAttribute('aria-disabled')==='true';
 /* Sin talla no hay anillo: lleva a los botones de talla de su tarjeta y los
    resalta un momento. */
+/* El enlace «¿Cuál es mi talla?» abre la guía de la página del anillo. */
+function abrirGuiaTalla(){
+  if(location.hash!=='#guia-talla') return;
+  const d=document.getElementById('guia-talla'); if(!d) return;
+  d.open=true; setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'start'}),60);
+}
+addEventListener('hashchange',abrirGuiaTalla);
+if(document.readyState==='loading') addEventListener('DOMContentLoaded',abrirGuiaTalla); else abrirGuiaTalla();
+
 function tallaAnillo(id){
   const t=document.querySelector('.pc[data-id="'+CSS.escape(id)+'"] .anillo-tallas'); if(!t) return;
   t.scrollIntoView({behavior:'smooth',block:'center'});
