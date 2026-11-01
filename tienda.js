@@ -2236,8 +2236,14 @@ const BUSQ_MAX = 8;
 const IDX = (() => {
   const e = [];
   DATA.pulseras.forEach(x => e.push({ id: x.id, n: x.n.replace(/^Pulsera /, ''), p: x.p, t: 'Brazalete' }));
-  DATA.charms.filter(x => !/^letra-/.test(x.id))
+  DATA.charms.filter(x => !/^letra-/.test(x.id) && !/^anillo-.+-t\d+$/.test(x.id))
     .forEach(x => e.push({ id: x.id, n: x.n, p: x.p, t: 'Charm · Plata 925' }));
+  /* Un resultado por anillo, no uno por talla: lleva a la sección, donde se
+     elige la talla (2026-11-01). */
+  const anillos = {};
+  DATA.charms.forEach(x => { const m = x.id.match(/^(anillo-.+)-t\d+$/);
+    if (m && !anillos[m[1]]) anillos[m[1]] = { id: m[1], n: x.n.replace(/ · Talla .*$/, ''), p: x.p, t: 'Anillo · Tallas 5 a 8', anillo: true }; });
+  Object.values(anillos).forEach(x => e.push(x));
   e.push({ id: 'letras', n: 'Iniciales A – Z', p: CH['letra-a'].p, t: 'Charm · Plata 925', letras: true });
   return e.map(x => Object.assign(x, { k: norm(x.n) }));
 })();
@@ -2254,7 +2260,15 @@ function buscarPiezas(q) {
     else if (i > 0) dentro.push(x);
     else if (x.letras && ('inicial letra abecedario').indexOf(t) >= 0) dentro.push(x);
   });
-  return empieza.concat(dentro).slice(0, BUSQ_MAX);
+  /* Brazaletes y charms intercalados: con «corazón» los brazaletes solos ya
+     llenaban los 8 puestos y ningún charm se veía (2026-11-01). */
+  const todo = empieza.concat(dentro);
+  const b = todo.filter(x => x.t === 'Brazalete'), o = todo.filter(x => x.t !== 'Brazalete'), r = [];
+  while (r.length < BUSQ_MAX && (b.length || o.length)) {
+    if (o.length) r.push(o.shift());
+    if (b.length && r.length < BUSQ_MAX) r.push(b.shift());
+  }
+  return r;
 }
 
 /* Menú de secciones (☰): antes era una franja fija en la portada (Kits ·
@@ -2338,6 +2352,7 @@ function irAPieza(id) {
   abrirBusqueda(false);
   /* Como las tarjetas: el resultado lleva a la página de la pieza. «Letras»
      lleva a la de la A, que trae la tira con todas las iniciales. */
+  if (/^anillo-/.test(id)) { location.href = 'index.html#anillos'; return; }
   location.href = paginaDe(id === 'letras' ? 'letra-a' : id);
 }
 

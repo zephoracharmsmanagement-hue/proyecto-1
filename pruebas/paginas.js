@@ -313,9 +313,10 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
        ningún nombre de tarjeta puede quedarse sin enlace. */
     const { enlazadas, sinEnlace } = await p.$$eval('.pc[data-id] .pc-name', hs => ({
       enlazadas: new Set(hs.filter(h => h.querySelector('a')).map(h => h.closest('.pc').dataset.id)).size,
-      sinEnlace: hs.filter(h => !h.querySelector('a') && h.closest('.pc').dataset.id !== 'letras').length,
+      /* Los anillos no tienen página: la talla se elige en su tarjeta. */
+      sinEnlace: hs.filter(h => !h.querySelector('a') && h.closest('.pc').dataset.id !== 'letras' && !h.closest('.pc--anillo')).length,
     }));
-    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i)).length && sinEnlace === 0,
+    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !/^anillo-.+-t\d+$/.test(i) && !cat.pulseras.includes(i)).length && sinEnlace === 0,
       `${enlazadas} piezas con su nombre enlazado a su página${sinEnlace ? ` — ${sinEnlace} sin enlace` : ''}`);
     const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
     await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
@@ -375,7 +376,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(!sinSalida.length, 'ninguna ficha tiene «Ver todo el catálogo»' + lista(sinSalida));
     const sinVit = paginas.filter(f => !leer(f).includes('class="vit"'));
     ok(!sinVit.length, `las ${paginas.length} fichas traen la vitrina` + lista(sinVit));
-    const grupos = [...new Set(Object.entries(cat.grupos).filter(([i]) => cat.precios[i]).map(([, g]) => g))];
+    /* «Anillos» no es pestaña de la vitrina: la talla se elige en su tarjeta. */
+    const grupos = [...new Set(Object.entries(cat.grupos).filter(([i]) => cat.precios[i]).map(([, g]) => g))].filter(g => g !== 'Anillos');
 
     const charm = tipos.find(t => t[0] === 'charm con unidades')[1];
     await p.goto(BASE + '/' + archivoDe(charm), { waitUntil: 'networkidle' });
