@@ -755,7 +755,17 @@ function pintarTallas(p,id){
   });
 }
 
+/* Venta cruzada de la página de un anillo (#charms-sugeridos): llegan 16
+   candidatas y se ven las 8 primeras con unidades reales; sin inventario, las 8
+   primeras. */
+function pintarSugeridos(){
+  const g=document.querySelector('#charms-sugeridos .grid'); if(!g) return;
+  let n=0;
+  [...g.children].forEach(t=>{ const ve=!agotado(t.dataset.id)&&n<8; t.hidden=!ve; if(ve) n++; });
+}
+
 function pintarTarjetas(){
+  pintarSugeridos();
   document.querySelectorAll('.pc').forEach(p=>{
     const id=p.dataset.id;
     if(!id||id==='letras') return;

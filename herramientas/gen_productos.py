@@ -708,12 +708,12 @@ def generar(pid, html, cat, stock, b, exigidos):
         rel_sub = '<p class="col-sub">Cada uno en talla 5, 6, 7 u 8, en Plata 925 con sello.</p>'
         charms = [c for c in cat['destacados'] + list(cat['precios'])
                   if c in cat['precios'] and c not in cat['pulseras'] and not c.startswith(('letra-', 'anillo-'))
-                  # 3 o más en el conteo: las de 1–2 suelen estar ya vendidas y
-                  # una venta cruzada llena de «Agotado» no invita a sumar.
-                  and (unidades(stock.get(c)) or 0) >= 3]
+                  # 16 candidatas con unidades en el conteo; tienda.js enseña las 8
+                  # primeras que de verdad tienen (la venta cruzada no muestra agotadas).
+                  and (unidades(stock.get(c)) or 0) > 0]
         bloque_b = BLOQUE_CHARMS_ANILLO.format(tarjetas='\n'.join(
             '      ' + t.replace('class="pc pc--top"', 'class="pc"')
-            for t in tarjetas(html, list(dict.fromkeys(charms))[:8])))
+            for t in tarjetas(html, list(dict.fromkeys(charms))[:16])))
     else:
         rel_sub = '<p class="col-sub">Juntos rinden más: con 4 piezas la de menor valor te sale gratis.</p>'
         mismo = tipo == 'charm' and any(cat['grupos'].get(p) == grupo for p in rel)
