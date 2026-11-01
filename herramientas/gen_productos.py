@@ -309,6 +309,23 @@ PAGINA = '''<!DOCTYPE html>
 </html>
 '''
 
+# En la página de un anillo (2026-11-01): el anillo no va en un brazalete; la
+# venta cruzada es con charms, que cuentan igual en la promo.
+BLOQUE_CHARMS_ANILLO = '''
+<!-- 3 · PARA COMPLETAR EL SET. Charms con unidades. -->
+<div id="brazaletes" hidden></div>
+<section class="sec" id="charms-sugeridos">
+  <div class="wrap">
+    <span class="eyebrow">Completa tu set</span>
+    <h2>Suma charms a tu pedido</h2>
+    <p class="col-sub">Anillos y charms cuentan igual: con 4 piezas, la de menor valor te sale gratis.</p>
+    <div class="grid">
+{tarjetas}
+    </div>
+  </div>
+</section>
+'''
+
 BLOQUE_BRAZALETES = '''
 <!-- 3 · LA BASE. Un charm necesita brazalete; estos tienen tallas con unidades. -->
 <section class="sec" id="brazaletes">
@@ -390,7 +407,7 @@ def bloque_compra(pid, tipo, nombre, hay, primeras, precio):
                    '      <p class="pp-nota-t">Elige tu talla (5, 6, 7 u 8) en el anillo de arriba para agregarlo al carrito.</p>\n'
                    '      <div class="pq-mas" id="pq-mas">\n        <p class="pq-mas-t">Completa tu set: con 4 piezas, '
                    'la de menor valor es <b>GRATIS</b></p>\n        %s\n      </div>'
-                   % (pid, vitrina(primeras, 'Relacionados', sin=pid)))
+                   % (pid, vitrina(primeras, 'Charms', sin=pid, brazaletes=False)))
     elif tipo == 'brazalete':
         botones = ('      <div class="pp-cta"><button class="btn" type="button" data-comprar="%s">Comprar ahora</button></div>\n'
                    '      <p class="pp-nota-t">Elige tu talla en la pieza de arriba para agregarla al carrito.</p>\n'
@@ -567,6 +584,8 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
     # botón de armar lleva a donde se arma en esa página y no hay «Agregar».
     arma = '<a class="btn btn--ghost" href="%s">Arma tu pulsera</a>' % (
         arma_href or ('#pp-compra' if hay else 'index.html#brazaletes'))
+    if tipo == 'anillo':
+        arma = '<a class="btn btn--ghost" href="#charms-sugeridos">Ver charms</a>'
     if not pid or not hay:
         agregar = ''
     elif es_b or tipo == 'anillo':
@@ -684,6 +703,15 @@ def generar(pid, html, cat, stock, b, exigidos):
     if tipo == 'brazalete':
         rel_eyebrow, rel_titulo, id_rel = 'Brazaletes', 'Más brazaletes', ' id="brazaletes"'
         bloque_b = ''
+    elif tipo == 'anillo':
+        rel_eyebrow, rel_titulo, id_rel = 'Relacionados', 'Más anillos', ' id="mas-anillos"'
+        rel_sub = '<p class="col-sub">Cada uno en talla 5, 6, 7 u 8, en Plata 925 con sello.</p>'
+        charms = [c for c in cat['destacados'] + list(cat['precios'])
+                  if c in cat['precios'] and c not in cat['pulseras'] and not c.startswith(('letra-', 'anillo-'))
+                  and (unidades(stock.get(c)) or 0) > 0]
+        bloque_b = BLOQUE_CHARMS_ANILLO.format(tarjetas='\n'.join(
+            '      ' + t.replace('class="pc pc--top"', 'class="pc"')
+            for t in tarjetas(html, list(dict.fromkeys(charms))[:8])))
     else:
         rel_sub = '<p class="col-sub">Juntos rinden más: con 4 piezas la de menor valor te sale gratis.</p>'
         mismo = tipo == 'charm' and any(cat['grupos'].get(p) == grupo for p in rel)
@@ -707,6 +735,7 @@ def generar(pid, html, cat, stock, b, exigidos):
                                     list(dict.fromkeys(
                                         c for c in (rel + cat['destacados'] + list(cat['precios']))
                                         if c != pid and c in cat['precios'] and c not in cat['pulseras']
+                                        and not c.startswith('anillo-')
                                         and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16],
                                     precio),
         beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat, pid),
@@ -714,7 +743,7 @@ def generar(pid, html, cat, stock, b, exigidos):
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
         resenas=resenas_con_formulario(b['resenas'], H.escape(nombre)), historia=b['historia'],
-        bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'], addi_script=ADDI_SCRIPT,
+        bloque_brazaletes=bloque_b, talla=('<div hidden aria-hidden="true">%s</div>' % b['talla']) if tipo == 'anillo' else b['talla'], confianza=b['confianza'], addi_script=ADDI_SCRIPT,
         bloques_media=bloques_media(pid, tipo, hay, cat),
         pagos=b['pagos'], footer=b['footer'], chrome=b['chrome'],
     )
