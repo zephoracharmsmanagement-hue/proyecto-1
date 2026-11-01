@@ -574,19 +574,33 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
     else:
         agregar = '<button class="btn" type="button" data-add="%s">Agregar al carrito</button>' % pid
 
-    def video(nombre, alto):
+    def video(nombre, alto, poster=None, src=None):
         return ('<video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="%d" '
                 'poster="assets/%s.webp" aria-hidden="true"><source src="media/%s.mp4" type="video/mp4"></video>'
-                % (alto, nombre, nombre))
+                % (alto, poster or nombre, src or nombre))
 
-    bloques = [
-        ('✦', 'Plata 925 que puedes comprobar',
-         '<img src="assets/bloque-s925.webp" alt="Sello S925 grabado en un charm de Zephora" width="720" '
-         'height="720" loading="lazy" decoding="async">', t1, ''),
-        ('♡', 'Para llevarla todos los días', video('bloque-diario-v1', 960), t2, ''),
-        ('✧', 'Tu historia, un charm a la vez', video('bloque-historia-v1', 714), t3, arma),
-        ('✦', 'Llega lista para regalar', video('bloque-regalo-v1', 960), t4, agregar),
-    ]
+    if tipo == 'anillo':
+        # Videos del propietario (2026-11-01): el anillo en la palma (se ve el
+        # sello por dentro del aro), los tres en la mano, dos manos y la caja.
+        v = lambda n: video(n, 900, poster='vid-' + n, src='joya-' + n)
+        t3 = ('Tu anillo combina con tus charms y tu pulsera: <b>arma tu set completo</b>. Anillos, charms y '
+              'brazaletes cuentan igual: <b>con %d piezas, la de menor valor te sale gratis</b>, y con %d te salen 2.'
+              % (r['promo']['tramos'][0][0], r['promo']['tramos'][-1][0]))
+        bloques = [
+            ('✦', 'Plata 925 que puedes comprobar', v('anillo-rojo-palma-v1'), t1, ''),
+            ('♡', 'Para llevarlo todos los días', v('anillos-en-la-mano-v1'), t2, ''),
+            ('✧', 'Combínalos a tu manera', v('anillos-dos-manos-v1'), t3, arma),
+            ('✦', 'Llega listo para regalar', v('anillo-caja-regalo-v1'), t4, agregar),
+        ]
+    else:
+        bloques = [
+            ('✦', 'Plata 925 que puedes comprobar',
+             '<img src="assets/bloque-s925.webp" alt="Sello S925 grabado en un charm de Zephora" width="720" '
+             'height="720" loading="lazy" decoding="async">', t1, ''),
+            ('♡', 'Para llevarla todos los días', video('bloque-diario-v1', 960), t2, ''),
+            ('✧', 'Tu historia, un charm a la vez', video('bloque-historia-v1', 714), t3, arma),
+            ('✦', 'Llega lista para regalar', video('bloque-regalo-v1', 960), t4, agregar),
+        ]
     return ('<section class="sec bv" aria-label="Por qué Zephora">\n  <div class="wrap bv-in">\n' + '\n'.join(
         '    <article class="bv-b">\n      <div class="bv-m">%s</div>\n      <div class="bv-t"><h2><span '
         'aria-hidden="true">%s</span> %s</h2><p>%s</p>%s</div>\n    </article>'

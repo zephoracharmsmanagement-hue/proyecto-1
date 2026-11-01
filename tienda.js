@@ -247,13 +247,10 @@ const VIDEOS = new Set((
    acostada aunque el cuadro fuera vertical). Las versiones viejas siguen en
    Blobs para quien tenga la página en caché. */
 const vidSrc=id=>'media/joya-'+id+'-v3.mp4';
-/* Videos de más en la galería (2026-11-01): van antes del video propio de la
-   pieza. Archivo media/joya-<nombre>.mp4 (Blobs) y portada assets/vid-<nombre>.webp. */
-const VIDEOS_EXTRA = {
-  'anillo-corazon-elevado-blanco': ['anillos-en-la-mano-v1', 'anillos-dos-manos-v1'],
-  'anillo-corazon-elevado-rojo': ['anillo-rojo-palma-v1', 'anillos-en-la-mano-v1', 'anillos-dos-manos-v1', 'anillo-caja-regalo-v1'],
-  'anillo-doble-corazon': ['anillos-en-la-mano-v1', 'anillos-dos-manos-v1'],
-};
+/* Videos de más en la galería: ninguno por ahora. Los de los anillos en la mano
+   y de regalo van en los bloques de abajo de su página (gen_productos.py,
+   pedido del propietario 2026-11-01), no aquí. */
+const VIDEOS_EXTRA = {};
 const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261003';
 
 /* Versión nítida de cada foto de producto (1200 px, assets/hd/, herramientas/
