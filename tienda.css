@@ -448,6 +448,9 @@ section{scroll-margin-top:64px}
 .abtn small{display:block;font-size:12px;letter-spacing:.02em;margin-top:2px;text-transform:none}
 .anillo-tallas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .pc--anillo .pc-foot{margin-bottom:8px}
+/* carrusel de anillos: columnas algo más anchas que las de brazaletes para
+   que los cuatro botones de talla se toquen bien con el dedo */
+.anillos-rail .rail{grid-auto-columns:minmax(190px,1fr)}
 
 .fbtn--disp[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:#fff}
 
