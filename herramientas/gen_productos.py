@@ -58,7 +58,9 @@ IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res'}
 IDS_OPCIONALES = {'pq-mas', 'b-mas', 'b-mas-wrap', 'pp-estrellas', 'pp-vendidas', 'pp-compra', 'pp-agotado',
                   'pp-encargo', 'pp-desc', 'rp-resumen', 'rp-lista', 'rp-form', 'rp-escribir',
                   # Solo en la portada (EN_PORTADA) y en coleccion-mas-vendidos.html.
-                  'charms', 'mv-aviso', 'mv-relleno', 'mv-relleno-sec', 'mv-vendidas'}
+                  'charms', 'mv-aviso', 'mv-relleno', 'mv-relleno-sec', 'mv-vendidas',
+                  # Solo en la página de un anillo (guía de talla).
+                  'guia-talla'}
 
 
 def archivo_de(pid):
@@ -161,6 +163,8 @@ def relacionadas(pid, tipo, grupo, cat, stock):
         pool = [p for p in cat['pulseras'] if p != pid]
     elif tipo == 'charm':
         pool = [p for p, g in cat['grupos'].items() if g == grupo and p != pid]
+    elif tipo == 'anillo':
+        pool = [p for p in cat['_anillos'] if p != pid]
     else:
         pool = []
     if not pool:
@@ -180,6 +184,8 @@ def migas(tipo, grupo, nombre):
         paso = ('Brazaletes', col.get('Brazaletes', 'index.html#brazaletes'))
     elif tipo == 'inicial':
         paso = ('Iniciales', 'index.html#charms')
+    elif tipo == 'anillo':
+        paso = ('Anillos', 'index.html#anillos')
     else:
         paso = (grupo or 'Charms', col.get(grupo, 'index.html#charms'))
     return ('<nav class="migas wrap" aria-label="Estás en">\n  <ol>\n'
@@ -305,6 +311,23 @@ PAGINA = '''<!DOCTYPE html>
 </html>
 '''
 
+# En la página de un anillo (2026-11-01): el anillo no va en un brazalete; la
+# venta cruzada es con charms, que cuentan igual en la promo.
+BLOQUE_CHARMS_ANILLO = '''
+<!-- 3 · PARA COMPLETAR EL SET. Charms con unidades. -->
+<div id="brazaletes" hidden></div>
+<section class="sec" id="charms-sugeridos">
+  <div class="wrap">
+    <span class="eyebrow">Completa tu set</span>
+    <h2>Suma charms a tu pedido</h2>
+    <p class="col-sub">Anillos y charms cuentan igual: con 4 piezas, la de menor valor te sale gratis.</p>
+    <div class="grid">
+{tarjetas}
+    </div>
+  </div>
+</section>
+'''
+
 BLOQUE_BRAZALETES = '''
 <!-- 3 · LA BASE. Un charm necesita brazalete; estos tienen tallas con unidades. -->
 <section class="sec" id="brazaletes">
@@ -369,6 +392,17 @@ PROMO_CAJA = (
     '      </div>')
 
 
+def primeras_anillo(pid, cat, stock):
+    """La vitrina de un anillo (pedido del propietario, 2026-11-01): primero los
+    otros anillos, luego los charms de Marvel/Avengers y después los demás, cada
+    grupo de más a menos unidades. Las agotadas las aparta tienda.js."""
+    otros = [m for m in cat['_anillos'] if m != pid]
+    charms = [c for c in cat['precios'] if c not in cat['pulseras'] and not c.startswith(('letra-', 'anillo-'))
+              and (unidades(stock.get(c)) or 0) > 0]
+    charms.sort(key=lambda c: (cat['grupos'].get(c) != 'Marvel', -(unidades(stock.get(c)) or 0)))
+    return otros + charms[:14]
+
+
 def bloque_compra(pid, tipo, nombre, hay, primeras, precio):
     """Recuadro de la promo, botones, vitrina, medios de pago y suscripción.
     Todo el bloque se esconde si la pieza está agotada (lo decide tienda.js con
@@ -381,7 +415,13 @@ def bloque_compra(pid, tipo, nombre, hay, primeras, precio):
     charms antes se abría al elegir 2, 3 o 4 en el selector de paquetes, que ya
     no existe; ahora está siempre. Sin pestaña de brazaletes en la ficha de un
     brazalete: el carrito lleva uno solo, y ofrecer otro ahí lo cambiaría."""
-    if tipo == 'brazalete':
+    if tipo == 'anillo':
+        botones = ('      <div class="pp-cta"><button class="btn" type="button" data-comprar="%s">Comprar ahora</button></div>\n'
+                   '      <p class="pp-nota-t">Elige tu talla (5, 6, 7 u 8) en el anillo de arriba para agregarlo al carrito.</p>\n'
+                   '      <div class="pq-mas" id="pq-mas">\n        <p class="pq-mas-t">Completa tu set: con 4 piezas, '
+                   'la de menor valor es <b>GRATIS</b></p>\n        %s\n      </div>'
+                   % (pid, vitrina(primeras, 'Relacionados', sin=pid, brazaletes=False)))
+    elif tipo == 'brazalete':
         botones = ('      <div class="pp-cta"><button class="btn" type="button" data-comprar="%s">Comprar ahora</button></div>\n'
                    '      <p class="pp-nota-t">Elige tu talla en la pieza de arriba para agregarla al carrito.</p>\n'
                    '      <div class="pq-mas pq-mas--b">\n        <p class="pq-mas-t">Elige los charms de tu pulsera aquí mismo</p>\n'
@@ -470,6 +510,47 @@ def acordeones(tipo, meta, grupo, cat, pid=None):
                 '<li><b>Evita la humedad:</b> quítatela antes de bañarte, nadar en la piscina o el mar, o hacer ejercicio.</li>'
                 '<li><b>Guardado ideal:</b> guárdala en su caja, en un lugar seco, cuando no la uses.</li>'
                 '<li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul>')
+    if tipo == 'anillo':
+        talla_wa = WA + urllib.parse.quote('Hola, Zephora Charms. Quiero confirmar mi talla para un anillo.')
+        secciones = [
+            ('Descripción', '<p>Anillo en <b>Plata Esterlina 925</b>, con el sello <b>S925</b> grabado por dentro del aro: '
+                            'lo puedes comprobar con tus propios ojos apenas lo recibas. Circones engastados que brillan '
+                            'con la luz y un acabado pulido que combina con tus charms y tu pulsera.</p>'
+                            '<p><b>Talla fija: no es ajustable.</b> La plata 925 es un metal macizo; abrirla o forzarla la '
+                            'deforma y puede soltar las piedras. Por eso cada anillo viene en su talla: elige la tuya '
+                            '(5, 6, 7 u 8) en los botones de arriba.</p>', True),
+            # Tabla: contorno interior por talla (numeración 5–8 de anillo, la del
+            # proveedor). Pendiente de que el propietario la verifique con un anillo
+            # real de cada talla (2026-11-01).
+            ('¿Cuál es mi talla?', '<p><b>Con un hilo, en un minuto:</b></p>'
+                                   '<ol class="pp-lista"><li>Rodea con un hilo (o una tira de papel) la base del dedo donde vas '
+                                   'a usar el anillo. Que quede justo, sin apretar.</li>'
+                                   '<li>Marca con un lapicero el punto donde el hilo se cruza.</li>'
+                                   '<li>Estíralo sobre una regla o un metro y mide hasta la marca, en centímetros.</li>'
+                                   '<li>Busca tu medida en la tabla.</li></ol>'
+                                   '<table class="pp-tabla"><thead><tr><th>Talla</th><th>Contorno del dedo</th></tr></thead><tbody>'
+                                   '<tr><td>5</td><td>4,9 cm</td></tr><tr><td>6</td><td>5,2 cm</td></tr>'
+                                   '<tr><td>7</td><td>5,4 cm</td></tr><tr><td>8</td><td>5,7 cm</td></tr></tbody></table>'
+                                   '<p>Si quedas entre dos tallas, escoge la más grande: el anillo tiene que pasar el nudillo. '
+                                   'Mídete en la tarde, cuando el dedo está más ancho.</p>'
+                                   '<p><b>¿Ya tienes un anillo que te queda bien?</b> Mide con la regla el ancho por dentro del aro: '
+                                   '1,57 cm es talla 5 · 1,65 cm talla 6 · 1,73 cm talla 7 · 1,81 cm talla 8.</p>'
+                                   '<p>¿Dudas? <a data-wa="talla" href="%s">Escríbenos por WhatsApp</a> con tu medida y te '
+                                   'confirmamos la talla antes de que pagues. Y si al recibirlo no te queda, tienes <b>5 días '
+                                   'hábiles para cambiar la talla</b>.</p>' % talla_wa, False),
+            ('Materiales', '<dl class="fx-specs" id="pp-specs"></dl>', False),
+            ('Envíos gratis', '<p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los '
+                              'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
+                              'a Bogotá 1 – 2; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de '
+                              'guía por WhatsApp o correo.</p>', False),
+            ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta '
+                              '%s: lo cobra la transportadora al recaudar.</p>' % contra, False),
+            ('Consejos y cuidados', '<p>%s</p>%s' % (cuidado, consejos), False),
+        ]
+        return ('\n'.join('      <details class="pp-acc"%s><summary>%s</summary><div class="pp-acc-in">%s</div></details>'
+                          % (' open' if abierto else '', t, c) for t, c, abierto in secciones)
+                .replace('<details class="pp-acc"><summary>¿Cuál es mi talla?',
+                         '<details class="pp-acc" id="guia-talla"><summary>¿Cuál es mi talla?'))
     secciones = [
         ('Descripción', '<p>%s.</p>%s<p id="pp-desc"></p>' % (
             H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo),
@@ -508,6 +589,12 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
         t2 = ('Brazalete en baño de plata <b>hipoalergénico y libre de níquel</b>, liviano y cómodo para '
               '<b>usarlo a diario</b>. Guárdalo seco y lejos de perfumes para que el <b>baño conserve su '
               'brillo</b> por más tiempo.')
+    elif tipo == 'anillo':
+        t1 = ('Cada anillo lleva grabado el sello <b>S925</b> por dentro del aro: la marca de la <b>Plata Esterlina '
+              '925</b>. <b>Búscalo con tus propios ojos</b> apenas lo recibas; está ahí para que no tengas que creernos.')
+        t2 = ('Plata 925 <b>hipoalergénica y libre de níquel</b>, cómoda para <b>usarla a diario</b>. Es de talla fija: '
+              'no se ajusta ni se debe forzar. Si con el tiempo se oscurece, es natural en la plata real: <b>un paño le '
+              'devuelve el brillo</b> en segundos.')
     else:
         t1 = ('Cada charm lleva grabado el sello <b>S925</b>: la marca de la <b>Plata Esterlina 925</b>. '
               '<b>Búscalo con tus propios ojos</b> apenas la recibas; está ahí para que no tengas que creernos.')
@@ -524,26 +611,42 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
     # botón de armar lleva a donde se arma en esa página y no hay «Agregar».
     arma = '<a class="btn btn--ghost" href="%s">Arma tu pulsera</a>' % (
         arma_href or ('#pp-compra' if hay else 'index.html#brazaletes'))
+    if tipo == 'anillo':
+        arma = '<a class="btn btn--ghost" href="#charms-sugeridos">Ver charms</a>'
     if not pid or not hay:
         agregar = ''
-    elif es_b:
+    elif es_b or tipo == 'anillo':
         agregar = '<button class="btn" type="button" data-comprar="%s">Elige tu talla</button>' % pid
     else:
         agregar = '<button class="btn" type="button" data-add="%s">Agregar al carrito</button>' % pid
 
-    def video(nombre, alto):
+    def video(nombre, alto, poster=None, src=None):
         return ('<video class="bv-v" muted loop playsinline preload="none" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback width="720" height="%d" '
                 'poster="assets/%s.webp" aria-hidden="true"><source src="media/%s.mp4" type="video/mp4"></video>'
-                % (alto, nombre, nombre))
+                % (alto, poster or nombre, src or nombre))
 
-    bloques = [
-        ('✦', 'Plata 925 que puedes comprobar',
-         '<img src="assets/bloque-s925.webp" alt="Sello S925 grabado en un charm de Zephora" width="720" '
-         'height="720" loading="lazy" decoding="async">', t1, ''),
-        ('♡', 'Para llevarla todos los días', video('bloque-diario-v1', 960), t2, ''),
-        ('✧', 'Tu historia, un charm a la vez', video('bloque-historia-v1', 714), t3, arma),
-        ('✦', 'Llega lista para regalar', video('bloque-regalo-v1', 960), t4, agregar),
-    ]
+    if tipo == 'anillo':
+        # Videos del propietario (2026-11-01): el anillo en la palma (se ve el
+        # sello por dentro del aro), los tres en la mano, dos manos y la caja.
+        v = lambda n: video(n, 900, poster='vid-' + n, src='joya-' + n)
+        t3 = ('Tu anillo combina con tus charms y tu pulsera: <b>arma tu set completo</b>. Anillos, charms y '
+              'brazaletes cuentan igual: <b>con %d piezas, la de menor valor te sale gratis</b>, y con %d te salen 2.'
+              % (r['promo']['tramos'][0][0], r['promo']['tramos'][-1][0]))
+        bloques = [
+            ('✦', 'Plata 925 que puedes comprobar', v('anillo-rojo-palma-v1'), t1, ''),
+            ('♡', 'Para llevarlo todos los días', v('anillos-en-la-mano-v1'), t2, ''),
+            ('✧', 'Combínalos a tu manera', v('anillos-dos-manos-v1'), t3, arma),
+            ('✦', 'Llega listo para regalar', v('anillo-caja-regalo-v1'), t4, agregar),
+        ]
+    else:
+        bloques = [
+            ('✦', 'Plata 925 que puedes comprobar',
+             '<img src="assets/bloque-s925.webp" alt="Sello S925 grabado en un charm de Zephora" width="720" '
+             'height="720" loading="lazy" decoding="async">', t1, ''),
+            ('♡', 'Para llevarla todos los días', video('bloque-diario-v1', 960), t2, ''),
+            ('✧', 'Tu historia, un charm a la vez', video('bloque-historia-v1', 714), t3, arma),
+            ('✦', 'Llega lista para regalar', video('bloque-regalo-v1', 960), t4, agregar),
+        ]
     return ('<section class="sec bv" aria-label="Por qué Zephora">\n  <div class="wrap bv-in">\n' + '\n'.join(
         '    <article class="bv-b">\n      <div class="bv-m">%s</div>\n      <div class="bv-t"><h2><span '
         'aria-hidden="true">%s</span> %s</h2><p>%s</p>%s</div>\n    </article>'
@@ -599,9 +702,10 @@ def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
 
 
 def generar(pid, html, cat, stock, b, exigidos):
-    tipo = ('brazalete' if pid in cat['pulseras']
+    tipo = ('anillo' if pid in cat.get('_anillos', {})
+            else 'brazalete' if pid in cat['pulseras']
             else 'inicial' if pid.startswith('letra-') else 'charm')
-    grupo = {'brazalete': 'Brazaletes', 'inicial': 'Iniciales'}.get(tipo) or cat['grupos'].get(pid, 'Charms')
+    grupo = {'brazalete': 'Brazaletes', 'inicial': 'Iniciales', 'anillo': 'Anillos'}.get(tipo) or cat['grupos'].get(pid, 'Charms')
     nombre = cat['nombres'][pid]
     precio = cat['precios'][pid]
 
@@ -618,12 +722,25 @@ def generar(pid, html, cat, stock, b, exigidos):
     imagen = SITIO + (hd if os.path.exists(os.path.join(RAIZ, hd.split('?')[0])) else foto)
     canon = SITIO + href_de(pid)
     hay = (unidades(stock.get(pid)) or 0) > 0
+    if tipo == 'anillo':
+        hay = any((unidades(stock.get(t)) or 0) > 0 for t in cat['_anillos'][pid])
 
     rel = relacionadas(pid, tipo, grupo, cat, stock)
     rel_sub = ''
     if tipo == 'brazalete':
         rel_eyebrow, rel_titulo, id_rel = 'Brazaletes', 'Más brazaletes', ' id="brazaletes"'
         bloque_b = ''
+    elif tipo == 'anillo':
+        rel_eyebrow, rel_titulo, id_rel = 'Relacionados', 'Más anillos', ' id="mas-anillos"'
+        rel_sub = '<p class="col-sub">Cada uno en talla 5, 6, 7 u 8, en Plata 925 con sello.</p>'
+        charms = [c for c in primeras_anillo(pid, cat, stock) if not c.startswith('anillo-')] + [c for c in cat['destacados'] + list(cat['precios'])
+                  if c in cat['precios'] and c not in cat['pulseras'] and not c.startswith(('letra-', 'anillo-'))
+                  # 16 candidatas con unidades en el conteo; tienda.js enseña las 8
+                  # primeras que de verdad tienen (la venta cruzada no muestra agotadas).
+                  and (unidades(stock.get(c)) or 0) > 0]
+        bloque_b = BLOQUE_CHARMS_ANILLO.format(tarjetas='\n'.join(
+            '      ' + t.replace('class="pc pc--top"', 'class="pc"')
+            for t in tarjetas(html, list(dict.fromkeys(charms))[:16])))
     else:
         rel_sub = '<p class="col-sub">Juntos rinden más: con 4 piezas la de menor valor te sale gratis.</p>'
         mismo = tipo == 'charm' and any(cat['grupos'].get(p) == grupo for p in rel)
@@ -643,10 +760,11 @@ def generar(pid, html, cat, stock, b, exigidos):
         jsonld=jsonld(pid, nombre, imagen, precio, grupo, hay, canon), pid=pid,
         head=b['head'], ann=b['ann'], header=b['header'], migas=migas(tipo, grupo, nombre),
         tarjeta='    ' + tarjeta, id_rel=id_rel, rel_sub=rel_sub,
-        bloque_compra=bloque_compra(pid, tipo, nombre, hay,
+        bloque_compra=bloque_compra(pid, tipo, nombre, hay, primeras_anillo(pid, cat, stock) if tipo == 'anillo' else
                                     list(dict.fromkeys(
                                         c for c in (rel + cat['destacados'] + list(cat['precios']))
                                         if c != pid and c in cat['precios'] and c not in cat['pulseras']
+                                        and not c.startswith('anillo-')
                                         and not c.startswith('letra-') and (unidades(stock.get(c)) or 0) > 0))[:16],
                                     precio),
         beneficios=beneficios(tipo, cat), acordeones=acordeones(tipo, meta, grupo, cat, pid),
@@ -654,7 +772,7 @@ def generar(pid, html, cat, stock, b, exigidos):
         rel_titulo=H.escape(rel_titulo),
         tarjetas_rel='\n'.join('      ' + t for t in tarjetas(html, rel)),
         resenas=resenas_con_formulario(b['resenas'], H.escape(nombre)), historia=b['historia'],
-        bloque_brazaletes=bloque_b, talla=b['talla'], confianza=b['confianza'], addi_script=ADDI_SCRIPT,
+        bloque_brazaletes=bloque_b, talla=('<div hidden aria-hidden="true">%s</div>' % b['talla']) if tipo == 'anillo' else b['talla'], confianza=b['confianza'], addi_script=ADDI_SCRIPT,
         bloques_media=bloques_media(pid, tipo, hay, cat),
         pagos=b['pagos'], footer=b['footer'], chrome=b['chrome'],
     )
@@ -721,7 +839,9 @@ def main():
     b = bloques(html)
     exigidos = ids_que_exige_tiendajs()
 
-    todos = list(cat['precios'])
+    # Las tallas de los anillos (anillo-<modelo>-t<talla>, 2026-11-01) no tienen
+    # tarjeta propia ni página: se eligen en la tarjeta del modelo, en la portada.
+    todos = [p for p in cat['precios'] if not re.match(r'anillo-.+-t\d+$', p)]
     if '--solo' in sys.argv:
         pedidos = sys.argv[sys.argv.index('--solo') + 1].split(',')
         desconocidos = [p for p in pedidos if p not in cat['precios']]
@@ -736,6 +856,24 @@ def main():
         pagina, tipo = generar(pid, html, cat, stock, b, exigidos)
         salida.append((pid, pagina))
         cuenta[tipo] = cuenta.get(tipo, 0) + 1
+
+    # Anillos (2026-11-01): una página por modelo (la tarjeta pc--anillo de la
+    # portada, con su selector de talla). El modelo no está en catalogo.json —se
+    # cobran las tallas, anillo-<modelo>-t<talla>—, así que se le presta nombre y
+    # precio de sus tallas en una copia del catálogo.
+    if '--solo' not in sys.argv:
+        modelos = re.findall(r'<article class="pc pc--anillo" data-id="([^"]+)"', html)
+        cat2 = json.loads(json.dumps(cat))
+        cat2['_anillos'] = {m: [t for t in cat['precios'] if re.match(re.escape(m) + r'-t\d+$', t)] for m in modelos}
+        for m, ts in cat2['_anillos'].items():
+            if not ts:
+                raise SystemExit('El anillo %s no tiene tallas en catalogo.json.' % m)
+            cat2['precios'][m] = cat['precios'][ts[0]]
+            cat2['nombres'][m] = re.sub(r' · Talla .*$', '', cat['nombres'][ts[0]])
+        for m in modelos:
+            pagina, tipo = generar(m, html, cat2, stock, b, exigidos)
+            salida.append((m, pagina))
+            cuenta[tipo] = cuenta.get(tipo, 0) + 1
 
     for pid, pagina in salida:
         if escribir:

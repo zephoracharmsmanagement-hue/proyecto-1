@@ -121,7 +121,8 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   let s = await buscar('angel');
   ok(s.n > 0, `"angel" encuentra sin tilde lo que se llama "Ángel" → ${s.cuenta}`);
   s = await buscar('medicina');
-  ok(s.n === 1, `"medicina" → ${s.n} resultado`);
+  /* Charm Medicina y Símbolo de la Medicina (2026-11-01). */
+  ok(s.n === 2, `"medicina" → ${s.n} resultados`);
   s = await buscar('xyzq');
   ok(s.n === 0 && s.vacio, 'sin resultados muestra el aviso, no una grilla en blanco');
   await p.click('#q-x');

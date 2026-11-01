@@ -5,6 +5,31 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Piezas nuevas de noviembre y anillos con talla — PR #39 (vista previa, sin desplegar)
+
+Zip «Charms nuevos» (1-nov), «Anillos y faltantes» y el inventario
+`Inventario_Zephora_Nuevo_v3.csv` del propietario. Precios suyos: Avengers
+$95.000, demás charms nuevos $94.000, brazaletes $82.000, anillos $115.000;
+los precios de las piezas que ya existían NO cambian.
+
+- **8 charms y 3 brazaletes nuevos** con foto 600/1200, video vertical en Blobs
+  y página propia. Mano Rock: foto que pasó el propietario (la del video era
+  borrosa). Black Panther: foto de origen pequeña, aceptable.
+- **Anillos**: cada talla es una pieza de DATA (`anillo-<modelo>-t<talla>`),
+  así carrito, cobro y reserva no cambian. El modelo (`ANI` en tienda.js) tiene
+  tarjeta en el carrusel `#anillos` de la portada, página `producto-anillo-*`
+  (gen_productos con un catálogo prestado), guía de talla `#guia-talla`
+  (contorno en cm; tabla de numeración 5–8, el propietario la dejó así) y
+  «talla fija, no ajustable». Galería: foto + video del plato; los videos en la
+  mano y de regalo van en los bloques de abajo. Vitrina «Relacionados» = otros
+  anillos + Marvel y las de más unidades; venta cruzada con charms, nunca con
+  brazalete. Doble Corazón: foto sin el grabado «PANDORA» (pedido del
+  propietario; «S925 ALE» se dejó).
+- **stock.json**: entradas nuevas y las unidades que llegaron de piezas que ya
+  existían (Minnie, Wall-E, Avión, Torre Eiffel, signos, Candado Rosa y
+  Corazón Rosado con cadena) SUMADAS al conteo, sin tocar `generado`: lo vendido
+  desde el 22-sep se sigue restando (cambiar `generado` lo reiniciaría).
+
 ## Una página por kit, manilla en la colección, agotados a la vista y X visible — desplegado el 2026-10-31 (PR #37)
 
 Pedidos del propietario del 30 y 31-oct para que los anuncios aterricen en una

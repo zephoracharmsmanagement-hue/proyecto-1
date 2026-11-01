@@ -438,6 +438,26 @@ section{scroll-margin-top:64px}
 .lbtn[aria-disabled="true"]{color:#b3adb7;background:#faf8f9;cursor:not-allowed}
 .lbtn[aria-disabled="true"]:hover{border-color:var(--line)}
 .lbtn small{display:block;font-size:12px;letter-spacing:.02em;margin-top:2px;text-transform:none}
+/* anillos: selector de talla 5–8 en la tarjeta (2026-11-01) */
+.abtn{font:400 14px/1 Jost;min-height:42px;cursor:pointer;border:1px solid var(--line);
+  background:var(--white);color:var(--ink);border-radius:2px;transition:.16s;text-transform:uppercase}
+.abtn:hover{border-color:var(--plum)}
+.abtn.is-on{background:var(--plum);border-color:var(--plum);color:#fff}
+.abtn[aria-disabled="true"]{color:#b3adb7;background:#faf8f9;cursor:not-allowed}
+.abtn[aria-disabled="true"]:hover{border-color:var(--line)}
+.abtn small{display:block;font-size:12px;letter-spacing:.02em;margin-top:2px;text-transform:none}
+.anillo-tallas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pc--anillo .pc-foot{margin-bottom:8px}
+.anillo-guia{display:inline-block;margin-top:8px;font-size:12.5px;color:var(--plum);text-decoration:underline;text-underline-offset:3px}
+.pp-tabla{border-collapse:collapse;margin:10px 0 12px;min-width:220px}
+.pp-tabla th,.pp-tabla td{border:1px solid var(--line);padding:7px 14px;text-align:left;font-size:14px}
+.pp-tabla th{font-weight:500;background:#faf8f9}
+.anillo-tallas.is-pide{animation:pide-talla .9s ease 2}
+@keyframes pide-talla{50%{box-shadow:0 0 0 3px var(--plum);border-radius:2px}}
+@media (prefers-reduced-motion:reduce){.anillo-tallas.is-pide{animation:none;outline:2px solid var(--plum)}}
+/* carrusel de anillos: columnas algo más anchas que las de brazaletes para
+   que los cuatro botones de talla se toquen bien con el dedo */
+.anillos-rail .rail{grid-auto-columns:minmax(190px,1fr)}
 
 .fbtn--disp[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:#fff}
 

@@ -770,9 +770,9 @@ function lineas(c){
   /* Las unidades gratis, en su propia línea con el precio tachado. */
   Object.keys(cuenta).forEach(id=>{
     const g=libres[id]||0, pagas=cuenta[id]-g;
-    if(pagas) out.push({id:id,n:CAT.nombres[id]+(pagas>1?' ×'+pagas:''),m:'Charm · Plata 925',
+    if(pagas) out.push({id:id,n:CAT.nombres[id]+(pagas>1?' ×'+pagas:''),m:(/^anillo-/.test(id)?'Anillo · Plata 925':'Charm · Plata 925'),
       p:CAT.precios[id]*pagas});
-    if(g) out.push({id:id,n:CAT.nombres[id]+(g>1?' ×'+g:''),m:'Charm · Plata 925',
+    if(g) out.push({id:id,n:CAT.nombres[id]+(g>1?' ×'+g:''),m:(/^anillo-/.test(id)?'Anillo · Plata 925':'Charm · Plata 925'),
       p:CAT.precios[id]*g, gratis:true});
   });
   return out;

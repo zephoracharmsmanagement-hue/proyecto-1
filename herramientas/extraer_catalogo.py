@@ -128,6 +128,17 @@ def main():
             propia = c['id'] + '.webp'
             fotos[c['id']] = propia if (carpeta / propia).exists() else letras
 
+    # Los anillos (2026-11-01): una tarjeta por modelo, y cada talla es una
+    # pieza propia (`anillo-<modelo>-t<talla>`) que hereda la foto del modelo.
+    # La tarjeta del modelo no es una pieza: no tiene precio y sale de fotos.
+    for c in data['charms']:
+        m = re.match(r'(anillo-.+)-t\d+$', c['id'])
+        if m and m.group(1) in fotos:
+            fotos[c['id']] = fotos[m.group(1)]
+            grupos[c['id']] = 'Anillos'
+    for modelo in [k for k in fotos if k.startswith('anillo-') and not re.search(r'-t\d+$', k)]:
+        del fotos[modelo]
+
     catalogo = {
         '_': ('Generado por herramientas/extraer_catalogo.py desde index.html. '
               'No editar a mano: el próximo extractor lo pisa. Lo leen '

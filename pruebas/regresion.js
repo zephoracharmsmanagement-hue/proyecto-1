@@ -581,7 +581,7 @@ const U = BASE + '/index.html';
     out.push('\nColección Marvel: lo más vendido primero'
       + `\n  abre con las más vendidas que hay (hulk, deadpool): ${orden[0] === 'hulk' && orden[1] === 'deadpool' ? 'sí ✓' : 'NO ✗ (' + orden.slice(0, 3).join(',') + ')'}`
       + `\n  la agotada va al final aunque haya vendido más: ${orden[orden.length - 1] === 'iron-man' ? 'sí ✓' : 'NO ✗ (' + orden[orden.length - 1] + ')'}`
-      + `\n  ninguna pieza se pierde ni se repite (${orden.length}): ${orden.length === 15 && new Set(orden).size === 15 ? 'sí ✓' : 'NO ✗'}`);
+      + `\n  ninguna pieza se pierde ni se repite (${orden.length}): ${orden.length === 16 && new Set(orden).size === 16 ? 'sí ✓' : 'NO ✗'}`);
     await m.close();
   }
 
