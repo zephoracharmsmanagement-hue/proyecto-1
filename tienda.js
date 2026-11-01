@@ -376,6 +376,12 @@ function estadoVit(){
   document.querySelectorAll('.vit-it').forEach(it=>{
     const id=it.dataset.vid, b=it.querySelector('.vit-add');
     if(it.classList.contains('vit-it--agot')) return;   // su botón es «Avísame»
+    if(ANI[id]){   // anillo: lleva a su página a elegir la talla
+      const n=ANI[id].tallas.filter(t=>sel.includes(t)).length;
+      it.classList.toggle('is-sel',n>0);
+      b.textContent=n?'En tu carrito ✓':'Elegir talla';
+      return;
+    }
     if(PU[id]){
       const on=!!(base&&base.id===id);
       it.classList.toggle('is-sel',on);
