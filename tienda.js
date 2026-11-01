@@ -1333,8 +1333,8 @@ function render(){
     Object.entries(cont).forEach(([id,n])=>{
       const g=libres[id]||0, pagas=n-g;
       const quitar=()=>{sel.splice(sel.lastIndexOf(id),1);render()};
-      if(pagas) body.appendChild(fila(id,CH[id].n+(pagas>1?' ×'+pagas:''),'Charm · Plata 925',CH[id].p*pagas,quitar));
-      if(g) body.appendChild(fila(id,CH[id].n+(g>1?' ×'+g:''),'Charm · Plata 925',CH[id].p*g,quitar,true));
+      if(pagas) body.appendChild(fila(id,CH[id].n+(pagas>1?' ×'+pagas:''),(/^anillo-/.test(id)?'Anillo · Plata 925':'Charm · Plata 925'),CH[id].p*pagas,quitar));
+      if(g) body.appendChild(fila(id,CH[id].n+(g>1?' ×'+g:''),(/^anillo-/.test(id)?'Anillo · Plata 925':'Charm · Plata 925'),CH[id].p*g,quitar,true));
     });
   }
 
