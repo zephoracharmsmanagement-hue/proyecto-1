@@ -161,6 +161,8 @@ def relacionadas(pid, tipo, grupo, cat, stock):
         pool = [p for p in cat['pulseras'] if p != pid]
     elif tipo == 'charm':
         pool = [p for p, g in cat['grupos'].items() if g == grupo and p != pid]
+    elif tipo == 'anillo':
+        pool = [p for p in cat['_anillos'] if p != pid]
     else:
         pool = []
     if not pool:
@@ -180,6 +182,8 @@ def migas(tipo, grupo, nombre):
         paso = ('Brazaletes', col.get('Brazaletes', 'index.html#brazaletes'))
     elif tipo == 'inicial':
         paso = ('Iniciales', 'index.html#charms')
+    elif tipo == 'anillo':
+        paso = ('Anillos', 'index.html#anillos')
     else:
         paso = (grupo or 'Charms', col.get(grupo, 'index.html#charms'))
     return ('<nav class="migas wrap" aria-label="Estás en">\n  <ol>\n'
@@ -381,7 +385,13 @@ def bloque_compra(pid, tipo, nombre, hay, primeras, precio):
     charms antes se abría al elegir 2, 3 o 4 en el selector de paquetes, que ya
     no existe; ahora está siempre. Sin pestaña de brazaletes en la ficha de un
     brazalete: el carrito lleva uno solo, y ofrecer otro ahí lo cambiaría."""
-    if tipo == 'brazalete':
+    if tipo == 'anillo':
+        botones = ('      <div class="pp-cta"><button class="btn" type="button" data-comprar="%s">Comprar ahora</button></div>\n'
+                   '      <p class="pp-nota-t">Elige tu talla (5, 6, 7 u 8) en el anillo de arriba para agregarlo al carrito.</p>\n'
+                   '      <div class="pq-mas" id="pq-mas">\n        <p class="pq-mas-t">Completa tu set: con 4 piezas, '
+                   'la de menor valor es <b>GRATIS</b></p>\n        %s\n      </div>'
+                   % (pid, vitrina(primeras, 'Relacionados', sin=pid)))
+    elif tipo == 'brazalete':
         botones = ('      <div class="pp-cta"><button class="btn" type="button" data-comprar="%s">Comprar ahora</button></div>\n'
                    '      <p class="pp-nota-t">Elige tu talla en la pieza de arriba para agregarla al carrito.</p>\n'
                    '      <div class="pq-mas pq-mas--b">\n        <p class="pq-mas-t">Elige los charms de tu pulsera aquí mismo</p>\n'
@@ -526,7 +536,7 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
         arma_href or ('#pp-compra' if hay else 'index.html#brazaletes'))
     if not pid or not hay:
         agregar = ''
-    elif es_b:
+    elif es_b or tipo == 'anillo':
         agregar = '<button class="btn" type="button" data-comprar="%s">Elige tu talla</button>' % pid
     else:
         agregar = '<button class="btn" type="button" data-add="%s">Agregar al carrito</button>' % pid
@@ -599,9 +609,10 @@ def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
 
 
 def generar(pid, html, cat, stock, b, exigidos):
-    tipo = ('brazalete' if pid in cat['pulseras']
+    tipo = ('anillo' if pid in cat.get('_anillos', {})
+            else 'brazalete' if pid in cat['pulseras']
             else 'inicial' if pid.startswith('letra-') else 'charm')
-    grupo = {'brazalete': 'Brazaletes', 'inicial': 'Iniciales'}.get(tipo) or cat['grupos'].get(pid, 'Charms')
+    grupo = {'brazalete': 'Brazaletes', 'inicial': 'Iniciales', 'anillo': 'Anillos'}.get(tipo) or cat['grupos'].get(pid, 'Charms')
     nombre = cat['nombres'][pid]
     precio = cat['precios'][pid]
 
@@ -618,6 +629,8 @@ def generar(pid, html, cat, stock, b, exigidos):
     imagen = SITIO + (hd if os.path.exists(os.path.join(RAIZ, hd.split('?')[0])) else foto)
     canon = SITIO + href_de(pid)
     hay = (unidades(stock.get(pid)) or 0) > 0
+    if tipo == 'anillo':
+        hay = any((unidades(stock.get(t)) or 0) > 0 for t in cat['_anillos'][pid])
 
     rel = relacionadas(pid, tipo, grupo, cat, stock)
     rel_sub = ''
@@ -738,6 +751,24 @@ def main():
         pagina, tipo = generar(pid, html, cat, stock, b, exigidos)
         salida.append((pid, pagina))
         cuenta[tipo] = cuenta.get(tipo, 0) + 1
+
+    # Anillos (2026-11-01): una página por modelo (la tarjeta pc--anillo de la
+    # portada, con su selector de talla). El modelo no está en catalogo.json —se
+    # cobran las tallas, anillo-<modelo>-t<talla>—, así que se le presta nombre y
+    # precio de sus tallas en una copia del catálogo.
+    if '--solo' not in sys.argv:
+        modelos = re.findall(r'<article class="pc pc--anillo" data-id="([^"]+)"', html)
+        cat2 = json.loads(json.dumps(cat))
+        cat2['_anillos'] = {m: [t for t in cat['precios'] if re.match(re.escape(m) + r'-t\d+$', t)] for m in modelos}
+        for m, ts in cat2['_anillos'].items():
+            if not ts:
+                raise SystemExit('El anillo %s no tiene tallas en catalogo.json.' % m)
+            cat2['precios'][m] = cat['precios'][ts[0]]
+            cat2['nombres'][m] = re.sub(r' · Talla .*$', '', cat['nombres'][ts[0]])
+        for m in modelos:
+            pagina, tipo = generar(m, html, cat2, stock, b, exigidos)
+            salida.append((m, pagina))
+            cuenta[tipo] = cuenta.get(tipo, 0) + 1
 
     for pid, pagina in salida:
         if escribir:

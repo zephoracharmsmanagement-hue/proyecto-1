@@ -448,6 +448,9 @@ section{scroll-margin-top:64px}
 .abtn small{display:block;font-size:12px;letter-spacing:.02em;margin-top:2px;text-transform:none}
 .anillo-tallas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .pc--anillo .pc-foot{margin-bottom:8px}
+.anillo-tallas.is-pide{animation:pide-talla .9s ease 2}
+@keyframes pide-talla{50%{box-shadow:0 0 0 3px var(--plum);border-radius:2px}}
+@media (prefers-reduced-motion:reduce){.anillo-tallas.is-pide{animation:none;outline:2px solid var(--plum)}}
 /* carrusel de anillos: columnas algo más anchas que las de brazaletes para
    que los cuatro botones de talla se toquen bien con el dedo */
 .anillos-rail .rail{grid-auto-columns:minmax(190px,1fr)}

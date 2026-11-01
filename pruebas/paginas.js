@@ -42,7 +42,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
   console.log(`1 · Estructura de las ${paginas.length} páginas de producto`);
   ok(paginas.length > 0, `${paginas.length} páginas encontradas`);
   const idsPagina = new Set(paginas.map(f => f.slice(9, -5)));
-  const fuera = [...idsPagina].filter(i => !(i in cat.precios));
+  /* Los anillos (2026-11-01) tienen una página por modelo, con la tarjeta de la
+     portada; se cobran sus tallas (anillo-<modelo>-t<talla>). */
+  const ANILLOS = [...leer('index.html').matchAll(/<article class="pc pc--anillo" data-id="([^"]+)"/g)].map(m => m[1]);
+  ok(ANILLOS.length > 0 && ANILLOS.every(m => idsPagina.has(m) && Object.keys(cat.precios).some(t => t.startsWith(m + '-t'))),
+    `cada anillo tiene su página y sus tallas en catalogo.json (${ANILLOS.length})`);
+  const fuera = [...idsPagina].filter(i => !(i in cat.precios) && !ANILLOS.includes(i));
   ok(fuera.length === 0, 'cada página es un id de catalogo.json' + (fuera.length ? ' — sobran: ' + fuera.join(', ') : ''));
 
   const malos = { init: [], canon: [], og: [], data: [], enlaces: [], clases: new Set() };
@@ -313,10 +318,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
        ningún nombre de tarjeta puede quedarse sin enlace. */
     const { enlazadas, sinEnlace } = await p.$$eval('.pc[data-id] .pc-name', hs => ({
       enlazadas: new Set(hs.filter(h => h.querySelector('a')).map(h => h.closest('.pc').dataset.id)).size,
-      /* Los anillos no tienen página: la talla se elige en su tarjeta. */
-      sinEnlace: hs.filter(h => !h.querySelector('a') && h.closest('.pc').dataset.id !== 'letras' && !h.closest('.pc--anillo')).length,
+      sinEnlace: hs.filter(h => !h.querySelector('a') && h.closest('.pc').dataset.id !== 'letras').length,
     }));
-    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !/^anillo-.+-t\d+$/.test(i) && !cat.pulseras.includes(i)).length && sinEnlace === 0,
+    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !/^anillo-.+-t\d+$/.test(i) && !cat.pulseras.includes(i)).length + ANILLOS.length && sinEnlace === 0,
       `${enlazadas} piezas con su nombre enlazado a su página${sinEnlace ? ` — ${sinEnlace} sin enlace` : ''}`);
     const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
     await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
