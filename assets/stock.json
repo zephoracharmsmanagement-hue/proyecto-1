@@ -83,61 +83,61 @@
     "aries": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "tauro": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "geminis": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 1,
+      "stock": 3,
       "familia": "pasador"
     },
     "leo": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "virgo": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "libra": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "escorpio": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "sagitario": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "capricornio": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 1,
+      "stock": 3,
       "familia": "pasador"
     },
     "piscis": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "charm-medicina": {
@@ -197,7 +197,7 @@
     "minnie-mouse": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 1,
+      "stock": 2,
       "familia": "pasador"
     },
     "stitch": {
@@ -401,13 +401,13 @@
     "torre-eiffel-y-camara": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 0,
+      "stock": 3,
       "familia": "colgante"
     },
     "avion-globo-y-pasaporte": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 0,
+      "stock": 2,
       "familia": "colgante"
     },
     "carrusel-rosado": {
@@ -601,7 +601,9 @@
       "tipo": "pulsera",
       "precio": 88000,
       "tallas": {
+        "18": 1,
         "19": 1,
+        "20": 1,
         "21": 1
       }
     },
@@ -690,7 +692,8 @@
       "tipo": "pulsera",
       "precio": 88000,
       "tallas": {
-        "20": 1
+        "18": 1,
+        "20": 2
       }
     },
     "angel": {
@@ -708,7 +711,7 @@
     "walle": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 0,
+      "stock": 2,
       "familia": "colgante"
     },
     "tortuga-marina-cristal": {
@@ -732,13 +735,13 @@
     "cancer": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 0,
+      "stock": 3,
       "familia": "pasador"
     },
     "acuario": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 0,
+      "stock": 3,
       "familia": "pasador"
     },
     "letra-f": {
