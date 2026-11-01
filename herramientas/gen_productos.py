@@ -721,7 +721,9 @@ def main():
     b = bloques(html)
     exigidos = ids_que_exige_tiendajs()
 
-    todos = list(cat['precios'])
+    # Las tallas de los anillos (anillo-<modelo>-t<talla>, 2026-11-01) no tienen
+    # tarjeta propia ni página: se eligen en la tarjeta del modelo, en la portada.
+    todos = [p for p in cat['precios'] if not re.match(r'anillo-.+-t\d+$', p)]
     if '--solo' in sys.argv:
         pedidos = sys.argv[sys.argv.index('--solo') + 1].split(',')
         desconocidos = [p for p in pedidos if p not in cat['precios']]

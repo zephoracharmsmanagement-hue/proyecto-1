@@ -438,6 +438,9 @@ section{scroll-margin-top:64px}
 .lbtn[aria-disabled="true"]{color:#b3adb7;background:#faf8f9;cursor:not-allowed}
 .lbtn[aria-disabled="true"]:hover{border-color:var(--line)}
 .lbtn small{display:block;font-size:12px;letter-spacing:.02em;margin-top:2px;text-transform:none}
+/* anillos: selector de talla 5–8 en la tarjeta (2026-11-01) */
+.anillo-tallas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pc--anillo .pc-foot{margin-bottom:8px}
 
 .fbtn--disp[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:#fff}
 
