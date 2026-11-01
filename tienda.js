@@ -247,6 +247,13 @@ const VIDEOS = new Set((
    acostada aunque el cuadro fuera vertical). Las versiones viejas siguen en
    Blobs para quien tenga la página en caché. */
 const vidSrc=id=>'media/joya-'+id+'-v3.mp4';
+/* Videos de más en la galería (2026-11-01): van antes del video propio de la
+   pieza. Archivo media/joya-<nombre>.mp4 (Blobs) y portada assets/vid-<nombre>.webp. */
+const VIDEOS_EXTRA = {
+  'anillo-corazon-elevado-blanco': ['anillos-en-la-mano-v1', 'anillos-dos-manos-v1'],
+  'anillo-corazon-elevado-rojo': ['anillo-rojo-palma-v1', 'anillos-en-la-mano-v1', 'anillos-dos-manos-v1', 'anillo-caja-regalo-v1'],
+  'anillo-doble-corazon': ['anillos-en-la-mano-v1', 'anillos-dos-manos-v1'],
+};
 const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261003';
 
 /* Versión nítida de cada foto de producto (1200 px, assets/hd/, herramientas/
@@ -877,8 +884,8 @@ function pintarGaleria(id, img, nombre){
  * video que nadie va a deslizar. */
 function armarGaleria(ph, mini, id, src0, nombre, op){
   const alt=nombre.replace(/"/g,'&quot;');
-  const extra=FOTOS[id]||[], conVideo=VIDEOS.has(id);
-  if(!extra.length&&!conVideo){ mini.innerHTML=''; mini.hidden=true; return null; }
+  const extra=FOTOS[id]||[], conVideo=VIDEOS.has(id), masVid=VIDEOS_EXTRA[id]||[];
+  if(!extra.length&&!conVideo&&!masVid.length){ mini.innerHTML=''; mini.hidden=true; return null; }
   /* La version va en la URL a proposito: las fotos se sirven con max-age
      de una semana y conservan el nombre al cambiar, asi que sin esto una
      clienta que ya visito la tienda seguiria viendo la foto vieja hasta
@@ -887,6 +894,7 @@ function armarGaleria(ph, mini, id, src0, nombre, op){
   /* El video va segundo: la galería abre en la foto de siempre, y lo
      siguiente que se ve al deslizar es la pieza en movimiento. */
   if(conVideo) fuentes.splice(1,0,{src:vidPortada(id),video:vidSrc(id)});
+  if(masVid.length) fuentes.splice(1,0,...masVid.map(v=>({src:'assets/vid-'+v+'.webp?v=20261101',video:'media/joya-'+v+'.mp4'})));
   const n=fuentes.length;
   ph.innerHTML='<div class="fx-gal"'+(op.ids?' id="fx-gal"':'')+'>'
     + fuentes.map((f,i)=>f.video
@@ -905,14 +913,17 @@ function armarGaleria(ph, mini, id, src0, nombre, op){
   mini.hidden=false;
 
   const gal=ph.querySelector('.fx-gal'), pts=[...ph.querySelector('.fx-pts').children], btns=[...mini.children];
-  const vid=gal.querySelector('video');
-  const bajar=()=>{ if(vid&&!quietoPorPreferencia&&vid.preload!=='auto') vid.preload='auto'; };
+  /* Puede haber varios videos: corre solo el de la lámina que se ve. */
+  const vids=[...gal.querySelectorAll('figure')].map(f=>f.querySelector('video'));
+  const vid=vids.find(v=>v)||null;
+  const bajar=v=>{ v=v||vid; if(v&&!quietoPorPreferencia&&v.preload!=='auto') v.preload='auto'; };
   if(op.precargar) bajar();
   let activa=0;
   const ajustar=()=>{
     if(!vid||quietoPorPreferencia) return;
-    if(fuentes[activa].video&&op.visible()){ bajar(); vid.play().catch(()=>{ vid.controls=true; }); }
-    else vid.pause();
+    vids.forEach((v,j)=>{ if(!v) return;
+      if(j===activa&&op.visible()){ bajar(v); v.play().catch(()=>{ v.controls=true; }); }
+      else v.pause(); });
   };
   const marcar=i=>{
     activa=Math.max(0,Math.min(n-1,i));
@@ -966,6 +977,9 @@ function specsDe(id){
   if(ANI[id]){
     fila('Material','Plata Esterlina 925 verificada, con sello grabado');
     fila('Tallas','5, 6, 7 y 8. Elige la tuya en los botones de arriba');
+    fila('Ajuste','Talla fija: no es ajustable. La plata 925 no se debe abrir ni forzar');
+    fila('Sello','S925 grabado por dentro del aro');
+    fila('Piedras','Circones (zirconia cúbica) engastados');
     fila('Sin níquel','Libre de níquel y plomo — apta para pieles sensibles');
     return filas.join('');
   }

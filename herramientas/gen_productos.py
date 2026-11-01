@@ -480,6 +480,33 @@ def acordeones(tipo, meta, grupo, cat, pid=None):
                 '<li><b>Evita la humedad:</b> quítatela antes de bañarte, nadar en la piscina o el mar, o hacer ejercicio.</li>'
                 '<li><b>Guardado ideal:</b> guárdala en su caja, en un lugar seco, cuando no la uses.</li>'
                 '<li><b>Limpieza:</b> límpiala frotándola suavemente con un paño seco para joyería.</li></ul>')
+    if tipo == 'anillo':
+        talla_wa = WA + urllib.parse.quote('Hola, Zephora Charms. Quiero confirmar mi talla para un anillo.')
+        secciones = [
+            ('Descripción', '<p>Anillo en <b>Plata Esterlina 925</b>, con el sello <b>S925</b> grabado por dentro del aro: '
+                            'lo puedes comprobar con tus propios ojos apenas lo recibas. Circones engastados que brillan '
+                            'con la luz y un acabado pulido que combina con tus charms y tu pulsera.</p>'
+                            '<p><b>Talla fija: no es ajustable.</b> La plata 925 es un metal macizo; abrirla o forzarla la '
+                            'deforma y puede soltar las piedras. Por eso cada anillo viene en su talla: elige la tuya '
+                            '(5, 6, 7 u 8) en los botones de arriba.</p>', True),
+            ('¿Cuál es mi talla?', '<p>La forma más segura es medir un anillo que ya te quede bien en el mismo dedo:</p>'
+                                   '<ul class="pp-lista"><li>Ponlo sobre una regla y mide <b>el diámetro por dentro</b>, de borde '
+                                   'interior a borde interior, en milímetros.</li><li>Mídelo al final del día: los dedos se '
+                                   'hinchan un poco con el calor y en la tarde.</li><li>Si dudas entre dos tallas, escoge la más '
+                                   'grande: el nudillo tiene que pasar.</li></ul><p><a data-wa="talla" href="%s">Escríbenos por '
+                                   'WhatsApp</a> con esa medida y te confirmamos la talla antes de que pagues. Y si al recibirlo no '
+                                   'te queda, tienes <b>5 días hábiles para cambiar la talla</b>.</p>' % talla_wa, False),
+            ('Materiales', '<dl class="fx-specs" id="pp-specs"></dl>', False),
+            ('Envíos gratis', '<p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los '
+                              'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
+                              'a Bogotá 1 – 2; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de '
+                              'guía por WhatsApp o correo.</p>', False),
+            ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta '
+                              '%s: lo cobra la transportadora al recaudar.</p>' % contra, False),
+            ('Consejos y cuidados', '<p>%s</p>%s' % (cuidado, consejos), False),
+        ]
+        return '\n'.join('      <details class="pp-acc"%s><summary>%s</summary><div class="pp-acc-in">%s</div></details>'
+                         % (' open' if abierto else '', t, c) for t, c, abierto in secciones)
     secciones = [
         ('Descripción', '<p>%s.</p>%s<p id="pp-desc"></p>' % (
             H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo),
@@ -518,6 +545,12 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
         t2 = ('Brazalete en baño de plata <b>hipoalergénico y libre de níquel</b>, liviano y cómodo para '
               '<b>usarlo a diario</b>. Guárdalo seco y lejos de perfumes para que el <b>baño conserve su '
               'brillo</b> por más tiempo.')
+    elif tipo == 'anillo':
+        t1 = ('Cada anillo lleva grabado el sello <b>S925</b> por dentro del aro: la marca de la <b>Plata Esterlina '
+              '925</b>. <b>Búscalo con tus propios ojos</b> apenas lo recibas; está ahí para que no tengas que creernos.')
+        t2 = ('Plata 925 <b>hipoalergénica y libre de níquel</b>, cómoda para <b>usarla a diario</b>. Es de talla fija: '
+              'no se ajusta ni se debe forzar. Si con el tiempo se oscurece, es natural en la plata real: <b>un paño le '
+              'devuelve el brillo</b> en segundos.')
     else:
         t1 = ('Cada charm lleva grabado el sello <b>S925</b>: la marca de la <b>Plata Esterlina 925</b>. '
               '<b>Búscalo con tus propios ojos</b> apenas la recibas; está ahí para que no tengas que creernos.')
