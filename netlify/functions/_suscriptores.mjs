@@ -146,14 +146,20 @@ export async function usarDescuento(correo, referencia) {
   return { ok: false, motivo: 'CAS sin converger' };
 }
 
-export async function confirmadas() {
+/* `conBeneficio` agrega si todavía tiene el descuento de primera compra: lo usa
+   boletin.mjs para mencionar los $15.000 solo a quien no los ha usado. La
+   exportación para n8n no lo pide (no saca la referencia del pedido). */
+export async function confirmadas({ conBeneficio = false } = {}) {
   const s = almacen();
   if (!s) return null;
   const { blobs } = await s.list();
   const salida = [];
   for (const b of blobs || []) {
     const r = await s.get(b.key, { type: 'json' });
-    if (r && r.confirmado && r.correo) salida.push({ correo: r.correo, fecha: r.fecha });
+    if (!(r && r.confirmado && r.correo)) continue;
+    const fila = { correo: r.correo, fecha: r.fecha };
+    if (conBeneficio) fila.descuentoDisponible = !r.regaloUsado;
+    salida.push(fila);
   }
   return salida;
 }

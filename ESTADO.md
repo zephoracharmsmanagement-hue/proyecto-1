@@ -5,6 +5,16 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Correo de novedades del 1-nov a las suscriptoras — función `boletin` (sin enviar)
+
+Pedido del propietario (2026-11-01): contar los anillos, las 8 charms, los 3
+brazaletes y lo que volvió. Eligió una función en el sitio (no Broadcasts de
+Resend, para no tener dos listas de bajas), remitente `novedades@`, prueba a
+`zephoracharms@gmail.com` y los $15.000 solo a quien no los usó.
+**No se manda a la lista hasta que el propietario diga «enviar».** Cómo se usa:
+README § «Correos de novedades a las suscriptoras». Falta crear `BOLETIN_KEY`
+en Netlify si no está.
+
 ## Piezas nuevas de noviembre y anillos con talla — PR #39 (vista previa, sin desplegar)
 
 Zip «Charms nuevos» (1-nov), «Anillos y faltantes» y el inventario

@@ -301,6 +301,29 @@ correo y el pedido sigue igual; si Resend falla o tarda, se registra el error y
 el cobro continúa. Perder un comprobante es molesto; perder una compra cobrada
 porque el proveedor de correo estaba lento, no se perdona.
 
+### Correos de novedades a las suscriptoras
+
+`netlify/functions/boletin.mjs` manda las campañas definidas en
+`_boletin.mjs` a las suscriptoras confirmadas (almacén `suscriptores`), desde
+`Zephora Charms <novedades@zephoracharms.com>` (`CORREO_NOVEDADES` lo cambia) y
+con respuestas a `CORREO_TIENDA`. Se llama con `POST` y la cabecera
+`x-zephora-automation-key` = `BOLETIN_KEY` (o `SUSCRIPTORES_KEY`):
+
+| `modo` | Qué hace |
+|---|---|
+| `vista` | Arma el correo y devuelve HTML, texto y cuántas lo recibirían. No manda nada |
+| `prueba` + `para` | Manda las dos versiones (con y sin la línea de $15.000) solo a `para` |
+| `enviar` + `confirmo: "enviar"` | Manda a todas. Una campaña sale una sola vez (registro en Blobs `boletines`) |
+
+- Precios, unidades y fotos (JPG del CDN) salen de `disponibilidad` en el
+  momento de armar: lo agotado no aparece. Si la promo del sitio ya no es la
+  que dice el texto, responde 409 y no arma nada.
+- Cada correo lleva su propio enlace de baja firmado y la cabecera
+  `List-Unsubscribe` (baja con un clic: `POST /suscribir?baja=…`). Una sola
+  lista de bajas: por eso no se usan las Audiencias/Broadcasts de Resend.
+- Los $15.000 de suscriptora solo aparecen a quien todavía no los usó.
+- Pruebas: `pruebas/boletin.js`.
+
 ### El envío gratis es solo del pago anticipado
 
 La contraentrega le cuesta a la tienda la comisión de recaudo de la
