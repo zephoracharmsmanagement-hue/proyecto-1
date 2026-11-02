@@ -5,6 +5,16 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Filtro «Religiosos» en el catálogo — rama `claude/filtro-religiosos`
+
+Pedido del propietario del 2-nov: una sección de solo religiosos, aparte de
+Símbolos. Botón «Religiosos» después de «Símbolos» con Virgen María, Virgen de
+Fátima, Virgen Aparecida, Manos Orando con Cruz y Ángel Guardián. Es un tema
+(`data-tema="Religiosos"` en la tarjeta), NO una categoría: `data-g` sigue en
+Símbolos porque de ahí leen el checkout, disponibilidad.mjs, la colección
+Símbolos y la hoja de la asesora. Funciona también `index.html?cat=Religiosos`.
+Pieza religiosa nueva → ponerle `data-tema="Religiosos"` a su tarjeta.
+
 ## Portada limpia: círculos de categoría, sin pasos, menú lateral — rama `claude/portada-limpia` (vista previa, sin desplegar)
 
 Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»).

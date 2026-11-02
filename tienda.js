@@ -2142,7 +2142,12 @@ function aplicarFiltro(f){
     const nombre=norm(p.querySelector('.pc-name').textContent);
     const casa = !q || nombre.indexOf(q)>=0 ||
       (esLetras && LETRAS.some(L=>norm('letra '+L).indexOf(q)>=0));
-    const ok = casa && (f==='todos'||(favs?favs.has(id):p.dataset.g===f)) &&
+    /* «Religiosos» (pedido del propietario, 2026-11-02) es un tema y no una
+       categoría: las Vírgenes, las manos orando y el Ángel Guardián siguen en
+       Símbolos (data-g), que es lo que leen el checkout, el inventario y la
+       página de la colección; data-tema solo los junta en este filtro. */
+    const enTema=(p.dataset.tema||'').split(' ').includes(f);
+    const ok = casa && (f==='todos'||(favs?favs.has(id):(p.dataset.g===f||enTema))) &&
                (esLetras ? (!soloDisp||cuentaLetras()>0) : (!soloDisp||!agotado(id)));
     p.hidden=!ok;
     if(ok) v+= esLetras ? cuentaLetras() : 1;
