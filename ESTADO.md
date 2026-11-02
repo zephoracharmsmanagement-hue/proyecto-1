@@ -5,6 +5,21 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
+
+Pedido del propietario (2026-11-01): contar los anillos, las charms nuevas, los
+brazaletes nuevos y lo que volvió. Eligió una función en el sitio (no Broadcasts de
+Resend, para no tener dos listas de bajas), remitente `novedades@`, prueba a
+`zephoracharms@gmail.com` y los $15.000 solo a quien no los usó.
+**No se manda a la lista hasta que el propietario diga «enviar».** Cómo se usa:
+README § «Correos de novedades a las suscriptoras». Falta crear `BOLETIN_KEY`
+en Netlify si no está.
+
+*2026-11-12:* la campaña `novedades-2026-11-01` (se dejó la clave) trae ahora
+también los 7 charms del 6-nov. La Pulsera Barril Pandora **no** va en el correo:
+nombra a la marca, el mismo riesgo por el que `assets/ads/` deja fuera la
+variante con Pandora.
+
 ## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — rama `claude/pixel-nuevo` (2026-11-10)
 
 Todo lo de Meta (página, cuenta `1583713932705268`, portafolio

@@ -235,7 +235,7 @@ En *Site configuration → Environment variables*. **Ninguna va al repo.**
 | `CORREO_DESDE` | `Zephora Charms <pedidos@zephoracharms.com>` | Remitente |
 | `CORREO_TIENDA` | `zephoracharms@gmail.com` | Copia interna de cada pedido |
 | `PEDIDOS_WEBHOOK` | opcional | A dónde avisar de cada pedido y cada pago |
-| `META_CAPI_TOKEN` | Events Manager → dataset `2005297310144764` («Zephora web») → Configuración → Conversions API → *Generar token de acceso* | Mandar `Purchase` a Meta desde el servidor. Sin él no se manda y no se rompe nada |
+| `META_CAPI_TOKEN` | Events Manager → dataset `2130673404542988` → Configuración → Conversions API → *Generar token de acceso* | Mandar `Purchase` a Meta desde el servidor. Sin él no se manda y no se rompe nada |
 | `META_PIXEL_ID` | opcional | Solo para apuntar a un dataset de pruebas; por defecto usa el de producción |
 | `META_TEST_EVENT_CODE` | opcional | Mientras se prueba: manda los eventos a *Probar eventos* sin que entren en la optimización. **Quitarla al terminar** |
 
@@ -300,6 +300,29 @@ Sin verificar, Resend solo deja mandar desde su dominio de pruebas.
 correo y el pedido sigue igual; si Resend falla o tarda, se registra el error y
 el cobro continúa. Perder un comprobante es molesto; perder una compra cobrada
 porque el proveedor de correo estaba lento, no se perdona.
+
+### Correos de novedades a las suscriptoras
+
+`netlify/functions/boletin.mjs` manda las campañas definidas en
+`_boletin.mjs` a las suscriptoras confirmadas (almacén `suscriptores`), desde
+`Zephora Charms <novedades@zephoracharms.com>` (`CORREO_NOVEDADES` lo cambia) y
+con respuestas a `CORREO_TIENDA`. Se llama con `POST` y la cabecera
+`x-zephora-automation-key` = `BOLETIN_KEY` (o `SUSCRIPTORES_KEY`):
+
+| `modo` | Qué hace |
+|---|---|
+| `vista` | Arma el correo y devuelve HTML, texto y cuántas lo recibirían. No manda nada |
+| `prueba` + `para` | Manda las dos versiones (con y sin la línea de $15.000) solo a `para` |
+| `enviar` + `confirmo: "enviar"` | Manda a todas. Una campaña sale una sola vez (registro en Blobs `boletines`) |
+
+- Precios, unidades y fotos (JPG del CDN) salen de `disponibilidad` en el
+  momento de armar: lo agotado no aparece. Si la promo del sitio ya no es la
+  que dice el texto, responde 409 y no arma nada.
+- Cada correo lleva su propio enlace de baja firmado y la cabecera
+  `List-Unsubscribe` (baja con un clic: `POST /suscribir?baja=…`). Una sola
+  lista de bajas: por eso no se usan las Audiencias/Broadcasts de Resend.
+- Los $15.000 de suscriptora solo aparecen a quien todavía no los usó.
+- Pruebas: `pruebas/boletin.js`.
 
 ### El envío gratis es solo del pago anticipado
 
@@ -373,7 +396,7 @@ Para que despliegue solo en cada push, se conecta este repo en *Site configurati
 
 ## Medición
 
-Meta Pixel `2005297310144764` (dataset «Zephora web», desde el 2026-11-10). Eventos que dispara la página:
+Meta Pixel `2130673404542988` (dataset "zephora charms pixel 1"). Eventos que dispara la página:
 
 | Evento | Cuándo |
 |---|---|
