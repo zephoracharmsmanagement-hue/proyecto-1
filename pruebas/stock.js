@@ -16,7 +16,9 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
      llamada que garantiza el estado abierto sin depender de cómo empiece. */
   await p.evaluate(() => { const f = document.querySelector('#full-cat');
-    if (f && f.hidden) document.querySelector('#more-btn').click(); });
+    if (f && f.hidden) document.querySelector('#more-btn').click();
+    /* Desde el 2026-11-02 la portada arranca en «Favoritos»: «Todos» para ver cada pieza. */
+    const t = document.querySelector('#filters [data-f="todos"]'); if (t) t.click(); });
   await p.waitForTimeout(200);
 
   const tallasDe = async id => {
@@ -93,7 +95,9 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
      llamada que garantiza el estado abierto sin depender de cómo empiece. */
   await p.evaluate(() => { const f = document.querySelector('#full-cat');
-    if (f && f.hidden) document.querySelector('#more-btn').click(); });
+    if (f && f.hidden) document.querySelector('#more-btn').click();
+    /* Desde el 2026-11-02 la portada arranca en «Favoritos»: «Todos» para ver cada pieza. */
+    const t = document.querySelector('#filters [data-f="todos"]'); if (t) t.click(); });
   await p.click('.pc[data-id="pulsera-corazon-liso"] .pc-add');
   await p.click('.tbtn[data-para="pulsera-corazon-liso"][data-talla="18"]');
   for (const id of ['mickey-mouse', 'ariel', 'hulk']) await p.click(`.pc[data-id="${id}"] .pc-add`);
@@ -222,7 +226,9 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
      llamada que garantiza el estado abierto sin depender de cómo empiece. */
   await p.evaluate(() => { const f = document.querySelector('#full-cat');
-    if (f && f.hidden) document.querySelector('#more-btn').click(); });
+    if (f && f.hidden) document.querySelector('#more-btn').click();
+    /* Desde el 2026-11-02 la portada arranca en «Favoritos»: «Todos» para ver cada pieza. */
+    const t = document.querySelector('#filters [data-f="todos"]'); if (t) t.click(); });
   await p.waitForTimeout(300);
 
   console.log('7 · tope por unidades');

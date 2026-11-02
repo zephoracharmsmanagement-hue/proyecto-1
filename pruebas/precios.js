@@ -36,7 +36,9 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
   /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
      llamada que garantiza el estado abierto sin depender de cómo empiece. */
   await p.evaluate(() => { const f = document.querySelector('#full-cat');
-    if (f && f.hidden) document.querySelector('#more-btn').click(); });
+    if (f && f.hidden) document.querySelector('#more-btn').click();
+    /* Desde el 2026-11-02 la portada arranca en «Favoritos»: «Todos» para ver cada pieza. */
+    const t = document.querySelector('#filters [data-f="todos"]'); if (t) t.click(); });
   await p.waitForTimeout(300);
 
   /* Cuántas unidades admite cada pieza. La página bloquea el botón al llegar al

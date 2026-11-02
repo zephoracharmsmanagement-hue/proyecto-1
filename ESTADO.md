@@ -5,6 +5,39 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Portada limpia: círculos de categoría, sin pasos, menú lateral — rama `claude/portada-limpia` (vista previa, sin desplegar)
+
+Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»).
+
+- **Guía de tallas fuera de la vista**: la sección `#talla` sigue en el HTML
+  (los generadores la copian a cada página), pero `tienda.css` la esconde y
+  `tienda.js` la abre como ventana con cualquier enlace a `#talla`
+  («¿Qué talla es la mía?», «Tallas», `index.html#talla` de las preguntas
+  frecuentes). Vale igual en fichas, kits y colecciones, sin regenerarlas.
+- **Círculos de categoría** (`.cats`) debajo del banner: Charms, Brazaletes,
+  Anillos, Kits, Marvel, Disney, Pixar, Letras, Zodiaco, Símbolos, Muranos.
+  Los de charms llevan `data-cat` (filtran con `verCategoria`). Kits usa
+  `assets/cats/kits.webp` (recorte de la foto de Azul Mar, sin el texto).
+- **Orden**: brazaletes → charms → anillos. Sin «Paso uno / Paso dos».
+- **«Los charms favoritos» ya no es un bloque**: el catálogo está abierto (sin
+  «Ver el catálogo completo» ni «Ver todos») y arranca en el filtro
+  **Favoritos**, al lado de «Personajes», con descripción nueva. `#rail-top`
+  sigue en el HTML, oculto y DESPUÉS del catálogo (así `.pc[data-id]` halla
+  primero la tarjeta visible): define los favoritos, `ordenarPorVentas` lo
+  rehace con el inventario y lo leen extraer_catalogo.py y el píxel. Con ese
+  filtro las piezas salen en el orden de los favoritos; escribir en el
+  buscador pasa solo a «Todos».
+- **Menú ☰**: panel lateral blanco a la derecha (84% del ancho, tope 380 px),
+  con la página desenfocada detrás; la X y el velo los crea `tienda.js`, así
+  que también sale en las páginas ya generadas.
+- **Arreglo de paso**: la tira «Te puede interesar» alterna entre las
+  categorías del carrito (antes, seis de la primera por orden de página) y
+  actualiza «parecidos a …» aunque no cambien las piezas.
+- Pruebas: regresion, stock, dudas, precios y suscripcion en verde. En
+  `paginas` queda un 404 de `media/bloque-diario-v1.mp4` en
+  coleccion-mas-vendidos que solo pasa en el servidor local (el video vive en
+  Blobs; sin la guía de tallas el bloque queda más arriba y empieza a cargar).
+
 ## Piezas nuevas de noviembre y anillos con talla — PR #39 (vista previa, sin desplegar)
 
 Zip «Charms nuevos» (1-nov), «Anillos y faltantes» y el inventario

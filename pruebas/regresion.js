@@ -38,18 +38,27 @@ const U = BASE + '/index.html';
   p.on('pageerror', e => errores.push(e.message));
   await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
 
-  /* Desde la poda del 2026-09-11 el catálogo completo nace CERRADO (son 86
-     piezas). Esta sección exigía lo contrario y reventaba antes de su primera
-     comprobación, en cualquier máquina. */
-  const cerradoAlCargar = !(await p.locator('#full-cat').isVisible());
-  const rotuloInicial = (await p.locator('#more-btn').textContent()).trim();
-  await p.click('#more-btn');
-  await p.waitForTimeout(150);
-  const abiertoTrasClic = await p.locator('#full-cat').isVisible();
-  out.push('\nCatálogo cerrado de entrada'
-    + `\n  oculto al cargar: ${cerradoAlCargar ? 'sí ✓' : 'NO ✗'}`
-    + `\n  el botón ofrece verlo: ${/ver el cat/i.test(rotuloInicial) ? 'sí ✓' : 'NO ✗'} — "${rotuloInicial}"`
-    + `\n  y al tocarlo se abre: ${abiertoTrasClic ? 'sí ✓' : 'NO ✗'}`);
+  /* Desde el 2026-11-02 (pedido del propietario) «Los charms favoritos» ya
+     no es un bloque aparte: el catálogo está abierto, sin botón para
+     desplegarlo, y arranca en el filtro «Favoritos». */
+  const ini = await p.evaluate(() => ({
+    abierto: !document.getElementById('full-cat').hidden,
+    sinBoton: !document.getElementById('more-btn') && !document.getElementById('ver-todos'),
+    on: (document.querySelector('#filters .fbtn.is-on') || {}).dataset?.f,
+    vis: [...document.querySelectorAll('#resto-grid > .pc:not([hidden])')].map(c => c.dataset.id).sort().join(),
+    favs: [...document.querySelectorAll('#rail-top > .pc')].map(c => c.dataset.id).sort().join(),
+    favOculto: getComputedStyle(document.getElementById('rail-top')).display === 'none',
+    tallaOculta: getComputedStyle(document.getElementById('talla')).display === 'none',
+    pasos: /Paso (uno|dos)/i.test(document.body.innerText),
+    orden: [...document.querySelectorAll('main section[id]')].map(s => s.id).filter(i => ['brazaletes', 'charms', 'anillos'].includes(i)).join(),
+  }));
+  out.push('\nPortada limpia (2026-11-02)'
+    + `\n  catálogo abierto y sin botón para desplegarlo: ${ini.abierto && ini.sinBoton ? 'sí ✓' : 'NO ✗'}`
+    + `\n  arranca en «Favoritos» y muestra justo los favoritos: ${ini.on === 'Favoritos' && ini.vis && ini.vis === ini.favs ? 'sí ✓' : 'NO ✗ (' + ini.on + ')'}`
+    + `\n  sin el bloque aparte de favoritos: ${ini.favOculto ? 'sí ✓' : 'NO ✗'}`
+    + `\n  guía de tallas fuera de la vista: ${ini.tallaOculta ? 'sí ✓' : 'NO ✗'}`
+    + `\n  sin «Paso uno / Paso dos»: ${!ini.pasos ? 'sí ✓' : 'NO ✗'}`
+    + `\n  orden brazaletes → charms → anillos: ${ini.orden === 'brazaletes,charms,anillos' ? 'sí ✓' : 'NO ✗ (' + ini.orden + ')'}`);
 
   await p.click('#filters .fbtn[data-f="Disney"]');
   await p.waitForTimeout(200);
@@ -65,9 +74,7 @@ const U = BASE + '/index.html';
   await p.click('#filters .fbtn[data-f="todos"]');
   const revelados = await p.locator('#full-cat .pc').count();
   const destacados = await p.locator('#rail-top .pc').count();
-  const rotulo = await p.locator('#more-btn').textContent();
-  out.push(`\nCatálogo\n  favoritos: ${destacados}\n  en el catálogo completo (los incluye): ${revelados}` +
-    `\n  rótulo actual del botón: "${rotulo.trim()}"`);
+  out.push(`\nCatálogo\n  favoritos: ${destacados}\n  en el catálogo completo (los incluye): ${revelados}`);
 
   // ---- 4. Categorías ----
   /* Las tarjetas grandes de «Compra por categoría» se quitaron de la portada
@@ -76,14 +83,19 @@ const U = BASE + '/index.html';
      primera que todavía filtra: no se clava el nombre, porque una categoría
      que gana página propia pierde su data-cat —Marvel el 2026-09-19—. El clic
      va por evaluate porque el menú vive plegado en el celular. */
-  const sinTarjetas = (await p.locator('#categorias, .cats').count()) === 0;
+  /* Desde el 2026-11-02 hay círculos de categoría (.cats, «como Pandora»):
+     filtran con el mismo data-cat que el menú. */
+  const sinTarjetas = (await p.locator('#categorias').count()) === 0;
+  const circulo = await p.evaluate(() => { const a = document.querySelector('.cats [data-cat="Disney"]'); if (!a) return null; a.click();
+    return (document.querySelector('#filters .fbtn.is-on') || {}).dataset?.f; });
   const cat = await p.getAttribute('#cat-menu [data-cat]', 'data-cat');
   await p.evaluate(c => document.querySelector(`#cat-menu [data-cat="${c}"]`).click(), cat);
   await p.waitForTimeout(400);
   const catOn = await p.locator(`#filters .fbtn[data-f="${cat}"].is-on`).count();
   const cuentaCat = await p.locator('#count').textContent();
   out.push(`\nCategoría "${cat}" desde el menú de la cabecera\n  filtro aplicado: ${catOn === 1 ? 'sí ✓' : 'NO ✗'}\n  contador: "${cuentaCat}"`
-    + `\n  sin las tarjetas de «Compra por categoría» en la portada: ${sinTarjetas ? 'sí ✓' : 'NO ✗'}`);
+    + `\n  sin las tarjetas de «Compra por categoría» en la portada: ${sinTarjetas ? 'sí ✓' : 'NO ✗'}`
+    + `\n  el círculo «Disney» filtra el catálogo: ${circulo === 'Disney' ? 'sí ✓' : 'NO ✗ (' + circulo + ')'}`);
 
   // ---- 5. Eventos del pixel en clic a WhatsApp ----
   await p.evaluate(() => { window.__ev = []; window.fbq = (a, b, c) => window.__ev.push([a, b, c]); });
@@ -501,7 +513,8 @@ const U = BASE + '/index.html';
         top: document.querySelector('#rail-top .pc').dataset.id,
         /* El primero en el orden y también a la vista: al insertar por delante,
            Chrome corría el carrusel para seguir mostrando el que ya se veía. */
-        aLaVista: [...document.querySelectorAll('#rail-top .pc')].find(c => c.getBoundingClientRect().right > 0).dataset.id,
+        aLaVista: ([...document.querySelectorAll('#resto-grid > .pc:not([hidden])')]
+          .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top || a.getBoundingClientRect().left - b.getBoundingClientRect().left)[0] || {}).dataset?.id,
         enFav: document.querySelectorAll(`#rail-top .pc[data-id="${ch}"]`).length,
         enCat: document.querySelectorAll(`#resto-grid .pc[data-id="${ch}"]`).length,
         favs: [...document.querySelectorAll('#rail-top .pc')].map(c => c.dataset.id),
@@ -516,7 +529,7 @@ const U = BASE + '/index.html';
         contacto: (document.querySelector('#menu-panel .menu-contacto') || {}).textContent || '',
         nivelesVisibles: [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length,
         verMas: (document.getElementById('b-mas') || {}).textContent || '',
-        topForma: getComputedStyle(document.getElementById('rail-top')).display + ' ' + (document.getElementById('rail-top').scrollWidth <= document.getElementById('rail-top').clientWidth + 1 ? 'sin-deslizar' : 'desliza'),
+        favVis: [...document.querySelectorAll('#resto-grid > .pc:not([hidden])')].map(c => c.dataset.id).sort().join(),
         inyectado: !!document.querySelector('#tst-rail img[src="x"]'),
         puntos: document.querySelectorAll('#tst-pts i').length,
         prom: document.getElementById('tst-prom').hidden ? '' : document.getElementById('tst-prom').textContent,
@@ -525,8 +538,8 @@ const U = BASE + '/index.html';
     }, [brz, ch]);
     out.push('\nPortada: lo más vendido primero y reseñas en carrusel'
       + `\n  el brazalete más vendido abre su nivel: ${r.brz === brz ? 'sí ✓' : 'NO ✗ (' + r.brz + ')'}`
-      + `\n  el charm con más unidades libres abre «Los charms favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
-      + `\n  y es el que se ve primero: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
+      + `\n  el charm con más unidades libres encabeza «Favoritos»: ${r.top === ch ? 'sí ✓' : 'NO ✗ (' + r.top + ')'}`
+      + `\n  y es el que se ve primero en el catálogo con ese filtro: ${r.aLaVista === ch ? 'sí ✓' : 'NO ✗ (' + r.aLaVista + ')'}`
       + `\n  favoritos = los charms con 3 o más, por unidades y, en empate, el que más vendió (deadpool antes que iron-man): ${r.favs.join(',') === 'wolverine,deadpool,iron-man,stitch,atrapasuenos-azul' ? 'sí ✓' : 'NO ✗ (' + r.favs.join(',') + ')'}`
       + `\n  y está en favoritos y también en el catálogo completo, una vez en cada uno: ${r.enFav === 1 && r.enCat === 1 && r.catSinTop === 0 ? 'sí ✓' : 'NO ✗ (' + r.enFav + ' / ' + r.enCat + ' / ' + r.catSinTop + ')'}`
       + `\n  carrusel con todas las reseñas: 3 fijas + 4 = ${r.tarjetas}, en el orden del servidor, texto con recuadro y foto sin cita: ${r.tarjetas === 7 && r.formas === 'fffftff' && r.soloFotoSinCita ? 'sí ✓' : 'NO ✗ (' + r.formas + ')'}`
@@ -536,7 +549,7 @@ const U = BASE + '/index.html';
       + `\n  sin botón flotante de WhatsApp: ${r.wa === 0 ? 'sí ✓' : 'NO ✗'}`
       + `\n  el menú ☰ trae Contacto con el WhatsApp y el correo: ${/301 899 0672/.test(r.contacto) && /zephoracharms@gmail\.com/.test(r.contacto) ? 'sí ✓' : 'NO ✗ (' + r.contacto.trim() + ')'}`
       + `\n  brazaletes: solo el primer nivel a la vista y «${r.verMas}»: ${r.nivelesVisibles === 1 && /Ver más brazaletes · \d+ modelos/.test(r.verMas) ? 'sí ✓' : 'NO ✗ (' + r.nivelesVisibles + ' niveles)'}`
-      + `\n  «Los charms favoritos» en cuadrícula, sin deslizar: ${r.topForma === 'grid sin-deslizar' ? 'sí ✓' : 'NO ✗ (' + r.topForma + ')'}`);
+      + `\n  el filtro «Favoritos» muestra los favoritos rehechos con el inventario: ${r.favVis === [...r.favs].sort().join() ? 'sí ✓' : 'NO ✗ (' + r.favVis + ')'}`);
     const niveles = () => q.evaluate(() => [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length);
     const total = await q.evaluate(() => document.querySelectorAll('#brazaletes .tier').length);
     await q.evaluate(() => document.querySelector('#b-filters [data-cf="corazon"]').click());
@@ -550,13 +563,12 @@ const U = BASE + '/index.html';
     /* Lo que vio el propietario: abrir «Ver todos», buscar un favorito y no
        encontrarlo. Ahora la tarjeta aparece en la cuadrícula y el contador
        dice lo que se ve. */
-    await q.evaluate(() => document.getElementById('ver-todos').click());
+    /* Desde el 2026-11-02 se busca desde «Favoritos»: escribir pasa solo a «Todos». */
     await q.fill('#q', 'wolverine');
     await q.waitForTimeout(350);
     const busq = await q.evaluate(() => ({
       vis: [...document.querySelectorAll('#resto-grid .pc:not([hidden])')].map(c => c.dataset.id),
       cuenta: document.getElementById('count').textContent,
-      rotulo: document.getElementById('more-btn').textContent,
     }));
     out.push(`  buscar un favorito en el catálogo completo lo muestra ahí («${busq.cuenta}»): ${busq.vis.join(',') === 'wolverine' && /^1 charm/.test(busq.cuenta) ? 'sí ✓' : 'NO ✗ (' + busq.vis.join(',') + ' · ' + busq.cuenta + ')'}`);
     await q.close();

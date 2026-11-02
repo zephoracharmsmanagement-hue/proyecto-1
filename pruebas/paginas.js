@@ -323,10 +323,10 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !/^anillo-.+-t\d+$/.test(i) && !cat.pulseras.includes(i)).length + ANILLOS.length && sinEnlace === 0,
       `${enlazadas} piezas con su nombre enlazado a su página${sinEnlace ? ` — ${sinEnlace} sin enlace` : ''}`);
     const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
-    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
+    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`#resto-grid .pc[data-id="${id}"] .pc-img`)]);
     ok(true, `tocar la foto de ${id} en la portada lleva a ${archivoDe(id)}`);
     await p.goBack({ waitUntil: 'networkidle' });
-    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-name a`)]);
+    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`#resto-grid .pc[data-id="${id}"] .pc-name a`)]);
     ok(true, 'y tocar su nombre, también');
     await p.goBack({ waitUntil: 'networkidle' });
     const conBoton = await p.evaluate(() => {
