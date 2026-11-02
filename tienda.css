@@ -1802,7 +1802,7 @@ p,li,dd,.pp-acc-in{line-height:1.55}
 
 /* Categorías en círculos, «como lo tiene Pandora»: foto de la pieza sobre un
    círculo gris claro y el nombre debajo. Se desliza de lado en el celular. */
-.cats{background:var(--white);padding:18px 0 8px;border-bottom:1px solid var(--line)}
+.cats{background:var(--white);padding:18px 0 8px;border-top:1px solid var(--line)}
 .cats-in{max-width:var(--w);margin:0 auto;display:flex;gap:14px;overflow-x:auto;
   padding:0 16px 10px;scrollbar-width:none;scroll-snap-type:x proximity;scroll-padding-inline:16px;overscroll-behavior-x:contain}
 .cats-in::-webkit-scrollbar{display:none}

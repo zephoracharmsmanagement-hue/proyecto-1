@@ -14,7 +14,7 @@ Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»
   `tienda.js` la abre como ventana con cualquier enlace a `#talla`
   («¿Qué talla es la mía?», «Tallas», `index.html#talla` de las preguntas
   frecuentes). Vale igual en fichas, kits y colecciones, sin regenerarlas.
-- **Círculos de categoría** (`.cats`) debajo del banner: Charms, Brazaletes,
+- **Círculos de categoría** (`.cats`) debajo del recuadro de Addi y encima de los brazaletes (el propietario los movió ahí el mismo día): Charms, Brazaletes,
   Anillos, Kits, Marvel, Disney, Pixar, Letras, Zodiaco, Símbolos, Muranos.
   Los de charms llevan `data-cat` (filtran con `verCategoria`). Kits usa
   `assets/cats/kits.webp` (recorte de la foto de Azul Mar, sin el texto).
