@@ -23,12 +23,13 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   // ---- 1 · calculadora, con las reglas del negocio ----
   console.log('1 · Calculadora de talla');
-  /* La calculadora vive en un <details> cerrado desde el 2026-09-11. */
-  const des = await p.evaluate(() => {
-    const d = document.getElementById('talla-des');
-    const antes = d.open; d.open = true; return antes;
-  });
-  ok(des === false, 'la calculadora nace plegada');
+  /* Desde el 2026-11-02 la calculadora no se ve en la portada: un enlace a
+     #talla la abre como ventana. */
+  const oculta = await p.evaluate(() => getComputedStyle(document.getElementById('talla')).display === 'none');
+  await p.evaluate(() => { const a = document.createElement('a'); a.href = '#talla'; document.body.append(a); a.click(); a.remove(); });
+  await p.waitForTimeout(150);
+  const abierta = await p.evaluate(() => document.getElementById('talla').classList.contains('is-open') && document.getElementById('talla-des').open);
+  ok(oculta && abierta, 'la calculadora no se ve en la portada y «¿Qué talla es la mía?» la abre como ventana');
   const calc = async v => {
     await p.fill('#muneca', String(v));
     await p.waitForTimeout(280);
@@ -98,7 +99,9 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   /* El catálogo completo ya nace abierto; este clic lo cerraría. Se deja una
      llamada que garantiza el estado abierto sin depender de cómo empiece. */
   await p.evaluate(() => { const f = document.querySelector('#full-cat');
-    if (f && f.hidden) document.querySelector('#more-btn').click(); });
+    if (f && f.hidden) document.querySelector('#more-btn').click();
+    /* Desde el 2026-11-02 la portada arranca en «Favoritos»: «Todos» para ver cada pieza. */
+    const t = document.querySelector('#filters [data-f="todos"]'); if (t) t.click(); });
   await p.waitForTimeout(200);
   /* Cuántas tarjetas hay sin buscar nada. Se mide en vez de clavarla: el
      catálogo cambia —el día que se retiraron tres duplicados esta prueba se

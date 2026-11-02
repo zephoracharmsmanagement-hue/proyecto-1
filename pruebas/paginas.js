@@ -170,7 +170,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     const errs = [], rotos = [];
     p.on('pageerror', e => errs.push(e.message));
     p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE)) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
+    /* Los videos de /media/ viven en Netlify Blobs (los sirve una regla de
+       netlify.toml): un servidor local no los tiene; contra producción sí
+       cuentan. Salió el 2026-11-02, cuando la guía de tallas dejó de ocupar
+       espacio y el video de «Más vendidos» empezó a cargar en la prueba. */
+    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE) && !(/\/\/(localhost|127\.0\.0\.1)[:/]/.test(BASE) && /\/media\//.test(r.url()))) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
     await p.goto(BASE + '/' + encodeURIComponent(archivoDe(id)), { waitUntil: 'networkidle' });
     /* La disponibilidad de la página sale del dato real, no del conteo: hay
        que esperar a que llegue ese, o la primera página en frío la lee vacía. */
@@ -323,10 +327,10 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !/^anillo-.+-t\d+$/.test(i) && !cat.pulseras.includes(i)).length + ANILLOS.length && sinEnlace === 0,
       `${enlazadas} piezas con su nombre enlazado a su página${sinEnlace ? ` — ${sinEnlace} sin enlace` : ''}`);
     const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
-    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
+    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`#resto-grid .pc[data-id="${id}"] .pc-img`)]);
     ok(true, `tocar la foto de ${id} en la portada lleva a ${archivoDe(id)}`);
     await p.goBack({ waitUntil: 'networkidle' });
-    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-name a`)]);
+    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`#resto-grid .pc[data-id="${id}"] .pc-name a`)]);
     ok(true, 'y tocar su nombre, también');
     await p.goBack({ waitUntil: 'networkidle' });
     const conBoton = await p.evaluate(() => {
@@ -446,7 +450,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     const p = await ctxC.newPage();
     const errs = [], rotos = [];
     p.on('pageerror', e => errs.push(e.message));
-    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE)) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
+    /* Los videos de /media/ viven en Netlify Blobs (los sirve una regla de
+       netlify.toml): un servidor local no los tiene; contra producción sí
+       cuentan. Salió el 2026-11-02, cuando la guía de tallas dejó de ocupar
+       espacio y el video de «Más vendidos» empezó a cargar en la prueba. */
+    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE) && !(/\/\/(localhost|127\.0\.0\.1)[:/]/.test(BASE) && /\/media\//.test(r.url()))) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
     await p.goto(BASE + '/' + f, { waitUntil: 'networkidle' });
     const des = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     const entra = htmlRaiz.filter(o => o !== f && leer(o).includes(`href="${f}"`)).length;

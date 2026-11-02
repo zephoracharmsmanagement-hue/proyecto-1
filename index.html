@@ -272,7 +272,31 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   </div>
 </section>
 
-<!-- 4b · CALCULADORA DE TALLA -->
+<!-- 4a · CATEGORÍAS EN CÍRCULOS (pedido del propietario, 2026-11-02, «como lo
+     tiene Pandora»; debajo de Addi y encima de los brazaletes, donde él los pidió): un toque y la clienta cae en lo que busca. Los de charms
+     llevan data-cat y filtran el catálogo ahí mismo (verCategoria en
+     tienda.js); Brazaletes, Anillos y Kits son enlaces. -->
+<nav class="cats" aria-label="Comprar por categoría">
+  <div class="cats-in">
+    <a class="cats-i" href="index.html#charms" data-cat="todos"><span class="cats-f"><img src="assets/mickey-mouse.webp?v=20261009" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Charms</span></a>
+    <a class="cats-i" href="#brazaletes"><span class="cats-f"><img src="assets/pulsera-corazon-pave.webp" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Brazaletes</span></a>
+    <a class="cats-i" href="#anillos"><span class="cats-f"><img src="assets/anillo-doble-corazon.webp?v=20261101" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Anillos</span></a>
+    <a class="cats-i cats-i--foto" href="kits.html"><span class="cats-f"><img src="assets/cats/kits.webp" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Kits</span></a>
+    <a class="cats-i" href="index.html?cat=Marvel#charms" data-cat="Marvel"><span class="cats-f"><img src="assets/iron-man.webp?v=20261009" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Marvel</span></a>
+    <a class="cats-i" href="index.html?cat=Disney#charms" data-cat="Disney"><span class="cats-f"><img src="assets/stitch.webp?v=20261009" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Disney</span></a>
+    <a class="cats-i" href="index.html?cat=Pixar#charms" data-cat="Pixar"><span class="cats-f"><img src="assets/buzz-lightyear.webp?v=20261009" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Pixar</span></a>
+    <a class="cats-i" href="index.html?cat=Letras#charms" data-cat="Letras"><span class="cats-f"><img src="assets/letra-a.webp?v=20261009" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Letras</span></a>
+    <a class="cats-i" href="index.html?cat=Zodiaco#charms" data-cat="Zodiaco"><span class="cats-f"><img src="assets/leo.webp?v=20261009" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Zodiaco</span></a>
+    <a class="cats-i" href="index.html?cat=S%C3%ADmbolos#charms" data-cat="Símbolos"><span class="cats-f"><img src="assets/angel-guardian.webp?v=20261009" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Símbolos</span></a>
+    <a class="cats-i" href="index.html?cat=Muranos#charms" data-cat="Muranos"><span class="cats-f"><img src="assets/bola-rosa-con-flores.webp?v=20261009" alt="" width="96" height="96" loading="lazy" decoding="async"></span><span class="cats-n">Muranos</span></a>
+  </div>
+</nav>
+
+<!-- 4b · CALCULADORA DE TALLA — fuera de la vista desde el 2026-11-02 (pedido
+     del propietario: «limpiar la vista del cliente»). El bloque sigue aquí
+     porque gen_colecciones/gen_productos lo copian a cada página, pero
+     tienda.css lo esconde y tienda.js lo abre como ventana cuando se toca un
+     enlace a #talla («¿Qué talla es la mía?», «Tallas»). -->
 <section class="talla-sec" id="talla">
   <div class="wrap">
     <div class="sec-head sec-head--c">
@@ -317,7 +341,6 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
 <section class="sec" id="brazaletes">
   <div class="wrap">
     <div class="sec-head">
-      <span class="eyebrow">Paso uno</span>
       <h2>El brazalete</h2>
       <p>Con baño de plata de alta calidad sobre base de latón de joyería y capa protectora e-coating. Cuenta como una pieza más de tu set: con 4 piezas la de menor valor te sale gratis.</p>
     </div>
@@ -416,101 +439,24 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
   </div>
 </section>
 
-<!-- 5a · ANILLOS (2026-11-01): una tarjeta por modelo, cada talla es una pieza
-     propia (anillo-<modelo>-t<talla>) para el carrito y el inventario. -->
-<section class="sec" id="anillos">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="eyebrow">Nuevo</span>
-      <h2>Anillos</h2>
-      <p>Para acompañar tu pulsera. Tallas 5, 6, 7 y 8: elige la tuya y se suma a tu pedido como una pieza más.</p>
-    </div>
-    <div class="rail-wrap anillos-rail">
-<button class="rail-btn rail-btn--prev" type="button" aria-label="Anillos anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-<button class="rail-btn rail-btn--next" type="button" aria-label="Más anillos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
-<div class="rail"><article class="pc pc--anillo" data-id="anillo-corazon-elevado-blanco">
-<div class="pc-img"><img src="assets/anillo-corazon-elevado-blanco.webp?v=20261101" alt="Anillo Corazón Elevado Blanco" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-anillo-corazon-elevado-blanco.html">Anillo Corazón Elevado Blanco</a></h3><p class="pc-meta">Corazón de circón con halo</p>
-<div class="pc-foot"><span class="pc-price">$115.000</span></div>
-<p class="letras-ayuda">Elige tu talla · talla fija, no ajustable:</p>
-<div class="anillo-tallas" role="group" aria-label="Talla de Anillo Corazón Elevado Blanco"><button type="button" class="abtn" data-add="anillo-corazon-elevado-blanco-t5" aria-label="Talla 5">5</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-blanco-t6" aria-label="Talla 6">6</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-blanco-t7" aria-label="Talla 7">7</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-blanco-t8" aria-label="Talla 8">8</button></div><a class="anillo-guia" href="producto-anillo-corazon-elevado-blanco.html#guia-talla">¿Cuál es mi talla?</a></div></article>
-<article class="pc pc--anillo" data-id="anillo-corazon-elevado-rojo">
-<div class="pc-img"><img src="assets/anillo-corazon-elevado-rojo.webp?v=20261101" alt="Anillo Corazón Elevado Rojo" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-anillo-corazon-elevado-rojo.html">Anillo Corazón Elevado Rojo</a></h3><p class="pc-meta">Corazón rojo con halo</p>
-<div class="pc-foot"><span class="pc-price">$115.000</span></div>
-<p class="letras-ayuda">Elige tu talla · talla fija, no ajustable:</p>
-<div class="anillo-tallas" role="group" aria-label="Talla de Anillo Corazón Elevado Rojo"><button type="button" class="abtn" data-add="anillo-corazon-elevado-rojo-t5" aria-label="Talla 5">5</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-rojo-t6" aria-label="Talla 6">6</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-rojo-t7" aria-label="Talla 7">7</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-rojo-t8" aria-label="Talla 8">8</button></div><a class="anillo-guia" href="producto-anillo-corazon-elevado-rojo.html#guia-talla">¿Cuál es mi talla?</a></div></article>
-<article class="pc pc--anillo" data-id="anillo-doble-corazon">
-<div class="pc-img"><img src="assets/anillo-doble-corazon.webp?v=20261101" alt="Anillo Doble Corazón" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-anillo-doble-corazon.html">Anillo Doble Corazón</a></h3><p class="pc-meta">Dos corazones de circón</p>
-<div class="pc-foot"><span class="pc-price">$115.000</span></div>
-<p class="letras-ayuda">Elige tu talla · talla fija, no ajustable:</p>
-<div class="anillo-tallas" role="group" aria-label="Talla de Anillo Doble Corazón"><button type="button" class="abtn" data-add="anillo-doble-corazon-t5" aria-label="Talla 5">5</button><button type="button" class="abtn" data-add="anillo-doble-corazon-t6" aria-label="Talla 6">6</button><button type="button" class="abtn" data-add="anillo-doble-corazon-t7" aria-label="Talla 7">7</button><button type="button" class="abtn" data-add="anillo-doble-corazon-t8" aria-label="Talla 8">8</button></div><a class="anillo-guia" href="producto-anillo-doble-corazon.html#guia-talla">¿Cuál es mi talla?</a></div></article></div></div>
-    <p class="rail-hint">Desliza para ver más &rarr;</p>
-  </div>
-</section>
-
 <!-- 5b · CHARMS DESTACADOS -->
 <section class="sec" id="charms">
   <div class="wrap">
     <div class="sec-top">
       <div class="sec-head">
-        <span class="eyebrow">Paso dos</span>
-        <h2>Los charms favoritos</h2>
-        <p>Elaborados en Plata Esterlina 925 verificada. Estos tienen unidades listas para despacho inmediato — y si buscas algo específico, el catálogo completo, con todos ellos incluidos, está a un toque.</p>
+        <h2>Charms</h2>
+        <p>Cada charm es un recuerdo en Plata Esterlina 925 con sello grabado. Empieza por los favoritos, que tienen unidades listas para despacho inmediato, o busca a tus personajes, tu signo o tu inicial.</p>
       </div>
-      <button class="link-all" type="button" id="ver-todos">Ver todos</button>
     </div>
     <!-- Cuadrícula y no carrusel (pedido del propietario, 2026-10-02): se ven
          todas hacia abajo, sin deslizar. -->
-    <div class="grid grid--top" id="rail-top"><article class="pc pc--top" data-id="mickey-mouse" data-g="Disney">
-<div class="pc-img"><img src="assets/mickey-mouse.webp?v=20261009" alt="Mickey Mouse" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-mickey-mouse.html">Mickey Mouse</a></h3><p class="pc-meta">Disney Clásico</p>
-<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="mickey-mouse" aria-label="Agregar Mickey Mouse">Agregar</button></div></div></article>
-<article class="pc pc--top" data-id="stitch" data-g="Disney">
-<div class="pc-img"><img src="assets/stitch.webp?v=20261009" alt="Stitch" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-stitch.html">Stitch</a></h3><p class="pc-meta">Lilo &amp; Stitch</p>
-<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="stitch" aria-label="Agregar Stitch">Agregar</button></div></div></article>
-<article class="pc pc--top" data-id="guantelete-del-infinito" data-g="Marvel">
-<div class="pc-img"><img src="assets/guantelete-del-infinito.webp?v=20261009" alt="Guantelete del Infinito" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-guantelete-del-infinito.html">Guantelete del Infinito</a></h3><p class="pc-meta">Marvel</p>
-<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="guantelete-del-infinito" aria-label="Agregar Guantelete del Infinito">Agregar</button></div></div></article>
-<article class="pc pc--top" data-id="angel-guardian" data-g="Símbolos">
-<div class="pc-img"><img src="assets/angel-guardian.webp?v=20261009" alt="Ángel Guardián" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-angel-guardian.html">Ángel Guardián</a></h3><p class="pc-meta">Dije colgante</p>
-<div class="pc-foot"><span class="pc-price">$86.000</span><button class="pc-add" type="button" data-add="angel-guardian" aria-label="Agregar Ángel Guardián">Agregar</button></div></div></article>
-<article class="pc pc--top" data-id="atrapasuenos-azul" data-g="Símbolos">
-<div class="pc-img"><img src="assets/atrapasuenos-azul.webp?v=20261009" alt="Atrapasueños Azul" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-atrapasuenos-azul.html">Atrapasueños Azul</a></h3><p class="pc-meta">S925</p>
-<div class="pc-foot"><span class="pc-price">$82.000</span><button class="pc-add" type="button" data-add="atrapasuenos-azul" aria-label="Agregar Atrapasueños Azul">Agregar</button></div></div></article>
-<article class="pc pc--top" data-id="bola-rosa-con-flores" data-g="Muranos">
-<div class="pc-img"><img src="assets/bola-rosa-con-flores.webp?v=20261009" alt="Murano Rosa con Flores" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-bola-rosa-con-flores.html">Murano Rosa con Flores</a></h3><p class="pc-meta">Cristal Murano</p>
-<div class="pc-foot"><span class="pc-price">$82.000</span><button class="pc-add" type="button" data-add="bola-rosa-con-flores" aria-label="Agregar Murano Rosa con Flores">Agregar</button></div></div></article>
-<article class="pc pc--top" data-id="torre-eiffel-y-camara" data-g="Símbolos">
-<div class="pc-img"><img src="assets/torre-eiffel-y-camara.webp?v=20261009" alt="Torre Eiffel y Cámara" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-torre-eiffel-y-camara.html">Torre Eiffel y Cámara</a></h3><p class="pc-meta">Dije viajero</p>
-<div class="pc-foot"><span class="pc-price">$82.000</span><button class="pc-add" type="button" data-add="torre-eiffel-y-camara" aria-label="Agregar Torre Eiffel y Cámara">Agregar</button></div></div></article>
-<article class="pc pc--top" data-id="osito-pave-con-corazon" data-g="Símbolos">
-<div class="pc-img"><img src="assets/osito-pave-con-corazon.webp?v=20261009" alt="Osito Pavé con Corazón" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
-<div class="pc-body"><h3 class="pc-name"><a href="producto-osito-pave-con-corazon.html">Osito Pavé con Corazón</a></h3><p class="pc-meta">Dije colgante</p>
-<div class="pc-foot"><span class="pc-price">$90.000</span><button class="pc-add" type="button" data-add="osito-pave-con-corazon" aria-label="Agregar Osito Pavé con Corazón">Agregar</button></div></div></article></div>
-    <!-- El catálogo completo arranca cerrado: son 125 piezas y desplegadas de
-         entrada convertían la página en una parrilla interminable. El carrusel
-         de destacados de arriba y las tarjetas de categoría son la puerta de
-         entrada; quien quiera verlo todo lo abre acá. El texto del botón y el
-         aria-expanded tienen que arrancar coherentes con hidden, o el lector
-         de pantalla anuncia lo contrario de lo que se ve. -->
-    <div class="more-wrap">
-      <button class="btn btn--ghost" type="button" id="more-btn" aria-expanded="false">Ver el catálogo completo · 117 charms</button>
-    </div>
-    <div id="full-cat" hidden>
+    <div id="full-cat">
       <div class="buscar">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
         <input type="search" id="q" placeholder="Buscar un charm por nombre…" aria-label="Buscar un charm por nombre" autocomplete="off">
         <button class="buscar-x" type="button" id="q-x" aria-label="Borrar búsqueda" hidden>✕</button>
       </div>
-      <div class="filters" id="filters"><button class="fbtn is-on" type="button" data-f="todos">Todos</button><span class="fgroup">Personajes</span><button class="fbtn" type="button" data-f="Disney">Disney</button><button class="fbtn" type="button" data-f="Pixar">Pixar</button><button class="fbtn" type="button" data-f="Marvel">Marvel</button><span class="fgroup">Clásicos</span><button class="fbtn" type="button" data-f="Zodiaco">Zodiaco</button><button class="fbtn" type="button" data-f="Símbolos">Símbolos</button><button class="fbtn" type="button" data-f="Profesiones">Profesiones</button><button class="fbtn" type="button" data-f="Muranos">Muranos</button><button class="fbtn" type="button" data-f="Clips">Clips</button><button class="fbtn" type="button" data-f="Cadenas">Cadenas</button><button class="fbtn" type="button" data-f="Letras">Letras</button><span class="fgroup">Stock</span><button class="fbtn fbtn--disp" type="button" id="solo-disp" aria-pressed="false">Solo disponibles</button></div>
+      <div class="filters" id="filters"><button class="fbtn is-on" type="button" data-f="Favoritos">Favoritos</button><button class="fbtn" type="button" data-f="todos">Todos</button><span class="fgroup">Personajes</span><button class="fbtn" type="button" data-f="Disney">Disney</button><button class="fbtn" type="button" data-f="Pixar">Pixar</button><button class="fbtn" type="button" data-f="Marvel">Marvel</button><span class="fgroup">Clásicos</span><button class="fbtn" type="button" data-f="Zodiaco">Zodiaco</button><button class="fbtn" type="button" data-f="Símbolos">Símbolos</button><button class="fbtn" type="button" data-f="Profesiones">Profesiones</button><button class="fbtn" type="button" data-f="Muranos">Muranos</button><button class="fbtn" type="button" data-f="Clips">Clips</button><button class="fbtn" type="button" data-f="Cadenas">Cadenas</button><button class="fbtn" type="button" data-f="Letras">Letras</button><span class="fgroup">Stock</span><button class="fbtn fbtn--disp" type="button" id="solo-disp" aria-pressed="false">Solo disponibles</button></div>
       <div class="grid" id="resto-grid"><article class="pc" data-id="minnie-mouse" data-g="Disney">
 <div class="pc-img"><img src="assets/minnie-mouse.webp?v=20261009" alt="Minnie Mouse" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
 <div class="pc-body"><h3 class="pc-name"><a href="producto-minnie-mouse.html">Minnie Mouse</a></h3><p class="pc-meta">Disney Clásico</p>
@@ -881,6 +827,78 @@ src="https://www.facebook.com/tr?id=2130673404542988&ev=PageView&noscript=1"/></
 <div class="pc-foot"><span class="pc-price">$86.000</span><button class="pc-add" type="button" data-add="piscis" aria-label="Agregar Piscis">Agregar</button></div></div></article></div>
       <p class="eyebrow" id="count" style="margin-top:20px"></p>
     </div>
+    <!-- «Los charms favoritos» ya no es un bloque aparte (pedido del
+         propietario, 2026-11-02): es el filtro «Favoritos» del catálogo. Esta
+         lista oculta sigue diciendo cuáles son —tienda.js la rehace con el
+         inventario— y la leen extraer_catalogo.py y el píxel.
+         Va DESPUÉS del catálogo a propósito: así `.pc[data-id=…]` encuentra
+         primero la tarjeta que se ve y no esta copia oculta. -->
+    <div class="grid grid--top" id="rail-top" hidden><article class="pc pc--top" data-id="mickey-mouse" data-g="Disney">
+<div class="pc-img"><img src="assets/mickey-mouse.webp?v=20261009" alt="Mickey Mouse" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-mickey-mouse.html">Mickey Mouse</a></h3><p class="pc-meta">Disney Clásico</p>
+<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="mickey-mouse" aria-label="Agregar Mickey Mouse">Agregar</button></div></div></article>
+<article class="pc pc--top" data-id="stitch" data-g="Disney">
+<div class="pc-img"><img src="assets/stitch.webp?v=20261009" alt="Stitch" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-stitch.html">Stitch</a></h3><p class="pc-meta">Lilo &amp; Stitch</p>
+<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="stitch" aria-label="Agregar Stitch">Agregar</button></div></div></article>
+<article class="pc pc--top" data-id="guantelete-del-infinito" data-g="Marvel">
+<div class="pc-img"><img src="assets/guantelete-del-infinito.webp?v=20261009" alt="Guantelete del Infinito" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-guantelete-del-infinito.html">Guantelete del Infinito</a></h3><p class="pc-meta">Marvel</p>
+<div class="pc-foot"><span class="pc-price">$95.000</span><button class="pc-add" type="button" data-add="guantelete-del-infinito" aria-label="Agregar Guantelete del Infinito">Agregar</button></div></div></article>
+<article class="pc pc--top" data-id="angel-guardian" data-g="Símbolos">
+<div class="pc-img"><img src="assets/angel-guardian.webp?v=20261009" alt="Ángel Guardián" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-angel-guardian.html">Ángel Guardián</a></h3><p class="pc-meta">Dije colgante</p>
+<div class="pc-foot"><span class="pc-price">$86.000</span><button class="pc-add" type="button" data-add="angel-guardian" aria-label="Agregar Ángel Guardián">Agregar</button></div></div></article>
+<article class="pc pc--top" data-id="atrapasuenos-azul" data-g="Símbolos">
+<div class="pc-img"><img src="assets/atrapasuenos-azul.webp?v=20261009" alt="Atrapasueños Azul" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-atrapasuenos-azul.html">Atrapasueños Azul</a></h3><p class="pc-meta">S925</p>
+<div class="pc-foot"><span class="pc-price">$82.000</span><button class="pc-add" type="button" data-add="atrapasuenos-azul" aria-label="Agregar Atrapasueños Azul">Agregar</button></div></div></article>
+<article class="pc pc--top" data-id="bola-rosa-con-flores" data-g="Muranos">
+<div class="pc-img"><img src="assets/bola-rosa-con-flores.webp?v=20261009" alt="Murano Rosa con Flores" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-bola-rosa-con-flores.html">Murano Rosa con Flores</a></h3><p class="pc-meta">Cristal Murano</p>
+<div class="pc-foot"><span class="pc-price">$82.000</span><button class="pc-add" type="button" data-add="bola-rosa-con-flores" aria-label="Agregar Murano Rosa con Flores">Agregar</button></div></div></article>
+<article class="pc pc--top" data-id="torre-eiffel-y-camara" data-g="Símbolos">
+<div class="pc-img"><img src="assets/torre-eiffel-y-camara.webp?v=20261009" alt="Torre Eiffel y Cámara" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-torre-eiffel-y-camara.html">Torre Eiffel y Cámara</a></h3><p class="pc-meta">Dije viajero</p>
+<div class="pc-foot"><span class="pc-price">$82.000</span><button class="pc-add" type="button" data-add="torre-eiffel-y-camara" aria-label="Agregar Torre Eiffel y Cámara">Agregar</button></div></div></article>
+<article class="pc pc--top" data-id="osito-pave-con-corazon" data-g="Símbolos">
+<div class="pc-img"><img src="assets/osito-pave-con-corazon.webp?v=20261009" alt="Osito Pavé con Corazón" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-osito-pave-con-corazon.html">Osito Pavé con Corazón</a></h3><p class="pc-meta">Dije colgante</p>
+<div class="pc-foot"><span class="pc-price">$90.000</span><button class="pc-add" type="button" data-add="osito-pave-con-corazon" aria-label="Agregar Osito Pavé con Corazón">Agregar</button></div></div></article></div>
+  </div>
+</section>
+
+<!-- 5c · ANILLOS (debajo de los charms desde el 2026-11-02) (2026-11-01): una tarjeta por modelo, cada talla es una pieza
+     propia (anillo-<modelo>-t<talla>) para el carrito y el inventario. -->
+<section class="sec" id="anillos">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Nuevo</span>
+      <h2>Anillos</h2>
+      <p>Para acompañar tu pulsera. Tallas 5, 6, 7 y 8: elige la tuya y se suma a tu pedido como una pieza más.</p>
+    </div>
+    <div class="rail-wrap anillos-rail">
+<button class="rail-btn rail-btn--prev" type="button" aria-label="Anillos anteriores"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="rail-btn rail-btn--next" type="button" aria-label="Más anillos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+<div class="rail"><article class="pc pc--anillo" data-id="anillo-corazon-elevado-blanco">
+<div class="pc-img"><img src="assets/anillo-corazon-elevado-blanco.webp?v=20261101" alt="Anillo Corazón Elevado Blanco" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-anillo-corazon-elevado-blanco.html">Anillo Corazón Elevado Blanco</a></h3><p class="pc-meta">Corazón de circón con halo</p>
+<div class="pc-foot"><span class="pc-price">$115.000</span></div>
+<p class="letras-ayuda">Elige tu talla · talla fija, no ajustable:</p>
+<div class="anillo-tallas" role="group" aria-label="Talla de Anillo Corazón Elevado Blanco"><button type="button" class="abtn" data-add="anillo-corazon-elevado-blanco-t5" aria-label="Talla 5">5</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-blanco-t6" aria-label="Talla 6">6</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-blanco-t7" aria-label="Talla 7">7</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-blanco-t8" aria-label="Talla 8">8</button></div><a class="anillo-guia" href="producto-anillo-corazon-elevado-blanco.html#guia-talla">¿Cuál es mi talla?</a></div></article>
+<article class="pc pc--anillo" data-id="anillo-corazon-elevado-rojo">
+<div class="pc-img"><img src="assets/anillo-corazon-elevado-rojo.webp?v=20261101" alt="Anillo Corazón Elevado Rojo" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-anillo-corazon-elevado-rojo.html">Anillo Corazón Elevado Rojo</a></h3><p class="pc-meta">Corazón rojo con halo</p>
+<div class="pc-foot"><span class="pc-price">$115.000</span></div>
+<p class="letras-ayuda">Elige tu talla · talla fija, no ajustable:</p>
+<div class="anillo-tallas" role="group" aria-label="Talla de Anillo Corazón Elevado Rojo"><button type="button" class="abtn" data-add="anillo-corazon-elevado-rojo-t5" aria-label="Talla 5">5</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-rojo-t6" aria-label="Talla 6">6</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-rojo-t7" aria-label="Talla 7">7</button><button type="button" class="abtn" data-add="anillo-corazon-elevado-rojo-t8" aria-label="Talla 8">8</button></div><a class="anillo-guia" href="producto-anillo-corazon-elevado-rojo.html#guia-talla">¿Cuál es mi talla?</a></div></article>
+<article class="pc pc--anillo" data-id="anillo-doble-corazon">
+<div class="pc-img"><img src="assets/anillo-doble-corazon.webp?v=20261101" alt="Anillo Doble Corazón" width="440" height="440" loading="lazy" decoding="async"><span class="pc-mark">Plata 925</span></div>
+<div class="pc-body"><h3 class="pc-name"><a href="producto-anillo-doble-corazon.html">Anillo Doble Corazón</a></h3><p class="pc-meta">Dos corazones de circón</p>
+<div class="pc-foot"><span class="pc-price">$115.000</span></div>
+<p class="letras-ayuda">Elige tu talla · talla fija, no ajustable:</p>
+<div class="anillo-tallas" role="group" aria-label="Talla de Anillo Doble Corazón"><button type="button" class="abtn" data-add="anillo-doble-corazon-t5" aria-label="Talla 5">5</button><button type="button" class="abtn" data-add="anillo-doble-corazon-t6" aria-label="Talla 6">6</button><button type="button" class="abtn" data-add="anillo-doble-corazon-t7" aria-label="Talla 7">7</button><button type="button" class="abtn" data-add="anillo-doble-corazon-t8" aria-label="Talla 8">8</button></div><a class="anillo-guia" href="producto-anillo-doble-corazon.html#guia-talla">¿Cuál es mi talla?</a></div></article></div></div>
+    <p class="rail-hint">Desliza para ver más &rarr;</p>
   </div>
 </section>
 

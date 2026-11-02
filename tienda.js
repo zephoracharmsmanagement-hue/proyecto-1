@@ -187,13 +187,51 @@ if (quietoPorPreferencia) {
   ugcVideos.forEach(v => { cerca.observe(v); ojo.observe(v); });
 }
 
-/* La calculadora de talla esta plegada, pero el menu superior y dos enlaces
-   mas apuntan a #talla. Caer ahi y encontrarla cerrada, justo despues de pedir
-   "Tallas", seria peor que no tener el enlace: se abre sola al llegar. */
-const tallaDes=$('#talla-des');
-const abrirTalla=()=>{ if(location.hash==='#talla') tallaDes.open=true; };
-abrirTalla();
-addEventListener('hashchange',abrirTalla);
+/* Guía de tallas como ventana (pedido del propietario, 2026-11-02: fuera de
+   la vista de la portada para que todo se vea más limpio). La sección #talla
+   sigue en cada página —los generadores la copian— pero tienda.css la
+   esconde; cualquier enlace a #talla («¿Qué talla es la mía?», «Tallas», las
+   preguntas frecuentes que llegan con index.html#talla) la abre encima de lo
+   que haya, también encima de la ficha o del panel de tallas. */
+const tallaSec=$('#talla'), tallaDes=$('#talla-des');
+let tallaVolver=null;
+function abrirTalla(v){
+  if(!tallaSec) return;
+  tallaSec.classList.toggle('is-open',v);
+  document.documentElement.classList.toggle('talla-on',v);
+  if(v){
+    tallaVolver=document.activeElement;
+    if(tallaDes) tallaDes.open=true;
+    const x=tallaSec.querySelector('.talla-x'); if(x) x.focus({preventScroll:true});
+  }else{
+    if(location.hash==='#talla') history.replaceState(null,'',location.pathname+location.search);
+    if(tallaVolver&&tallaVolver.focus) tallaVolver.focus({preventScroll:true});
+  }
+}
+if(tallaSec){
+  tallaSec.setAttribute('role','dialog');
+  tallaSec.setAttribute('aria-modal','true');
+  tallaSec.setAttribute('aria-label','Guía de tallas');
+  const caja=tallaSec.querySelector('.wrap');
+  if(caja){
+    const x=document.createElement('button');
+    x.type='button'; x.className='talla-x'; x.setAttribute('aria-label','Cerrar guía de tallas');
+    x.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    caja.prepend(x);
+  }
+  tallaSec.addEventListener('click',e=>{ if(e.target===tallaSec||e.target.closest('.talla-x')) abrirTalla(false); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&tallaSec.classList.contains('is-open')) abrirTalla(false); });
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href]'); if(!a) return;
+    const u=new URL(a.getAttribute('href'),location.href);
+    const ruta=s=>s.replace(/\/index\.html$/,'/');
+    if(u.hash!=='#talla'||ruta(u.pathname)!==ruta(location.pathname)) return;
+    e.preventDefault();
+    abrirTalla(true);
+  },true);
+  if(location.hash==='#talla') abrirTalla(true);
+  addEventListener('hashchange',()=>{ if(location.hash==='#talla') abrirTalla(true); });
+}
 
 /* Vistas adicionales por pieza, en orden: la principal es la de la tarjeta y
  * estas van detrás. Se declara a mano y no por convención de nombres porque el
@@ -1521,7 +1559,10 @@ function sugeridos(){
      probablemente quiera otro—, luego los destacados y, de último recurso,
      cualquiera con categoría, para que no salga a medias en una hoja que solo
      tiene brazalete. */
-  orden.filter(id=>mios.has(GRUPO[id])).forEach(meter);
+  /* Alternando entre sus categorías: con Mickey, Ariel y Hulk, la tira trae
+     de Disney y de Marvel, no seis de Disney por ir primero en la página. */
+  const porCat=[...mios].map(c=>orden.filter(id=>GRUPO[id]===c));
+  for(let i=0;porCat.some(l=>i<l.length);i++) porCat.forEach(l=>{ if(i<l.length) meter(l[i]); });
   DEST.forEach(meter);
   orden.forEach(meter);
   return { ids: out, categorias: [...mios] };
@@ -1538,14 +1579,15 @@ function pintarSug(){
   const { ids, categorias } = sugeridos();
   if(ids.length<3){ caja.hidden=true; return; }
   caja.hidden=false;
+  /* El «por qué» se escribe siempre, antes de la salida de abajo: puede
+     cambiar (sumó un charm de otra categoría) sin que cambien las piezas. */
+  $('#sug-por').textContent = categorias.length
+    ? '· parecidos a '+categorias.slice(0,2).join(' y ')
+    : '· los favoritos de las clientas';
   /* render() corre en cada cambio —también al elegir forma de pago—. Si la
      lista no cambió, no se toca: repintar reiniciaría el
      desplazamiento de la tira justo mientras la clienta la recorre. */
   if(tira.dataset.ids===ids.join(',')) return;
-
-  $('#sug-por').textContent = categorias.length
-    ? '· parecidos a '+categorias.slice(0,2).join(' y ')
-    : '· los favoritos de las clientas';
 
   /* Se arma con nodos y no con innerHTML: hay nombres con comillas dentro
      —«Luciérnaga "You Are My Light"»— y concatenarlos rompería el atributo. */
@@ -2042,15 +2084,19 @@ if(grid&&destacados){
    «86» que llevaba escrito el botón llevaba semanas sin coincidir. */
 const nCatalogo=grid?[...grid.querySelectorAll(':scope > .pc')]
   .reduce((n,p)=>n+(p.dataset.id==='letras'?LETRAS.length:1),0):0;
-const CERRADO=nCatalogo?'Ver el catálogo completo · '+nCatalogo+' charms':moreBtn.textContent;
-if(full.hidden) moreBtn.textContent=CERRADO;
+/* Desde el 2026-11-02 la portada ya no tiene botón para abrir el catálogo:
+   está abierto y arranca en «Favoritos». Las páginas generadas traen un
+   #more-btn y un #ver-todos vacíos y ocultos; si existen, siguen igual. */
+const CERRADO=moreBtn?(nCatalogo?'Ver el catálogo completo · '+nCatalogo+' charms':moreBtn.textContent):'';
+if(moreBtn&&full.hidden) moreBtn.textContent=CERRADO;
 function abrirCat(v){
   full.hidden=!v;
+  if(!moreBtn) return;
   moreBtn.textContent=v?'Ocultar catálogo completo':CERRADO;
   moreBtn.setAttribute('aria-expanded',v?'true':'false');
 }
-moreBtn.addEventListener('click',()=>abrirCat(full.hidden));
-$('#ver-todos').addEventListener('click',()=>{
+if(moreBtn) moreBtn.addEventListener('click',()=>abrirCat(full.hidden));
+if($('#ver-todos')) $('#ver-todos').addEventListener('click',()=>{
   abrirCat(true);
   full.scrollIntoView({behavior:'smooth',block:'start'});
 });
@@ -2060,7 +2106,11 @@ $('#ver-todos').addEventListener('click',()=>{
    favoritos» (ver arriba): el conteo es lo que se ve en la cuadrícula. Antes
    sumaba aparte los destacados del carrusel, que no estaban en ella. */
 const cuenta=document.getElementById('count');
-let filtroActual='todos', soloDisp=false, busqueda='';
+/* «Favoritos» = las piezas de la lista oculta #rail-top, que
+   ordenarPorVentas rehace con el inventario (las de más unidades libres). */
+const HAY_FAV=!!document.querySelector('#filters [data-f="Favoritos"]');
+let filtroActual=HAY_FAV?'Favoritos':'todos', soloDisp=false, busqueda='';
+const favIds=()=>new Set([...document.querySelectorAll('#rail-top > .pc')].map(e=>e.dataset.id));
 /* Sin tildes y en minúscula: quien busca "angel" debe encontrar "Ángel Guardián". */
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 /* El bloque de letras cuenta por las iniciales que ofrece, no como una tarjeta. */
@@ -2072,15 +2122,27 @@ function aplicarFiltro(f){
   document.querySelectorAll('#filters .fbtn:not(.fbtn--disp)').forEach(x=>{
     x.classList.toggle('is-on',x.dataset.f===f);
   });
+  /* La fila de filtros se desliza de lado: el elegido —sobre todo si llegó
+     desde un círculo de la portada— tiene que quedar a la vista. */
+  const fila=document.getElementById('filters'), on=fila&&fila.querySelector('.fbtn.is-on');
+  if(on&&fila.scrollWidth>fila.clientWidth){
+    const r=on.getBoundingClientRect(), fr=fila.getBoundingClientRect();
+    fila.scrollTo({left:fila.scrollLeft+(r.left-fr.left)-(fr.width-r.width)/2,behavior:'smooth'});
+  }
   const q=norm(busqueda.trim());
+  const favs=f==='Favoritos'?favIds():null;
+  /* Con «Favoritos» se ven en su propio orden (las de más unidades libres
+     primero), no en el del catálogo, que va por ventas. */
+  const favOrden=favs?[...favs]:null;
   let v=0;
   grid.querySelectorAll('.pc').forEach(p=>{
     const id=p.dataset.id;
+    p.style.order=favOrden&&favOrden.includes(id)?String(favOrden.indexOf(id)):'';
     const esLetras=id==='letras';
     const nombre=norm(p.querySelector('.pc-name').textContent);
     const casa = !q || nombre.indexOf(q)>=0 ||
       (esLetras && LETRAS.some(L=>norm('letra '+L).indexOf(q)>=0));
-    const ok = casa && (f==='todos'||p.dataset.g===f) &&
+    const ok = casa && (f==='todos'||(favs?favs.has(id):p.dataset.g===f)) &&
                (esLetras ? (!soloDisp||cuentaLetras()>0) : (!soloDisp||!agotado(id)));
     p.hidden=!ok;
     if(ok) v+= esLetras ? cuentaLetras() : 1;
@@ -2101,9 +2163,10 @@ function aplicarFiltro(f){
       'Prueba con otra palabra o quita algún filtro.';
   }else if(vacio) vacio.remove();
 
-  cuenta.textContent = f==='todos' && !soloDisp && !q ? ''
+  cuenta.textContent = (f==='todos'||f==='Favoritos') && !soloDisp && !q ? ''
     : v+(v===1?' charm':' charms')+(q?(v===1?' encontrado':' encontrados'):(soloDisp?(v===1?' disponible':' disponibles'):' en esta colección'));
 }
+if(HAY_FAV) aplicarFiltro('Favoritos');
 document.getElementById('filters').addEventListener('click',e=>{
   const d=e.target.closest('.fbtn--disp');
   if(d){
@@ -2123,7 +2186,11 @@ document.getElementById('filters').addEventListener('click',e=>{
   q.addEventListener('input',()=>{
     x.hidden=!q.value;
     clearTimeout(t);
-    t=setTimeout(()=>{ busqueda=q.value; aplicarFiltro(filtroActual); },140);
+    t=setTimeout(()=>{
+      busqueda=q.value;
+      if(filtroActual==='Favoritos'&&busqueda.trim()) filtroActual='todos';
+      aplicarFiltro(filtroActual);
+    },140);
   });
   x.addEventListener('click',()=>{
     q.value=''; x.hidden=true; busqueda=''; aplicarFiltro(filtroActual); q.focus();
@@ -2221,6 +2288,7 @@ function ordenarPorVentas(d){
       top.replaceChildren(...fav.map(x=>{ const c=x.el.cloneNode(true); c.classList.add('pc--top'); c.hidden=false; return c; }));
     }
     if(Object.keys(u).length) reordenar(resto);
+    if(filtroActual==='Favoritos') aplicarFiltro('Favoritos');
   }
   dispatchEvent(new Event('resize'));
 }
@@ -2350,13 +2418,28 @@ function buscarPiezas(q) {
    Marvel · Brazaletes · Charms), ahora vive en la cabecera compartida y
    alcanza también a kits.html y las colecciones. Mismo patrón abrir/cerrar
    que la lupa, sin buscador porque son 5 enlaces fijos. */
+/* Desde el 2026-11-02 es un panel lateral, a la derecha y sin ocupar todo el
+   ancho, con la página desenfocada detrás (pedido del propietario, «como
+   Pandora»: el panel a todo lo ancho se confundía con el fondo). El velo y la
+   X se crean aquí para que valgan también en las páginas ya generadas. */
 const menuBtn = $('#menu-btn'), menuPanel = $('#menu-panel');
+let menuVelo = null;
 function abrirMenu(v) {
   menuPanel.hidden = !v;
   menuBtn.setAttribute('aria-expanded', v ? 'true' : 'false');
+  document.documentElement.classList.toggle('menu-on', v);
+  if (menuVelo) menuVelo.hidden = !v;
   if (v && busq && !busq.hidden) abrirBusqueda(false);
 }
 if (menuBtn && menuPanel) {
+  menuVelo = document.createElement('div');
+  menuVelo.className = 'menu-velo'; menuVelo.hidden = true;
+  menuPanel.before(menuVelo);
+  const mx = document.createElement('button');
+  mx.type = 'button'; mx.className = 'menu-x'; mx.setAttribute('aria-label', 'Cerrar menú');
+  mx.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  mx.addEventListener('click', () => abrirMenu(false));
+  menuPanel.prepend(mx);
   menuBtn.addEventListener('click', () => abrirMenu(menuPanel.hidden));
   menuPanel.addEventListener('click', e => { if (e.target.closest('a')) abrirMenu(false); });
   document.addEventListener('click', e => {
@@ -2495,7 +2578,7 @@ render();
 if(kitSug.length && full){
   abrirCat(true);
   const catsSug=[...new Set(kitSug.map(id=>GRUPO[id]).filter(Boolean))];
-  if(catsSug.length===1) aplicarFiltro(catsSug[0]);
+  aplicarFiltro(catsSug.length===1?catsSug[0]:'todos');
   mostrarBannerKit();
   requestAnimationFrame(()=>full.scrollIntoView({behavior:'smooth',block:'start'}));
 }
