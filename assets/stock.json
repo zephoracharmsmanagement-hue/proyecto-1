@@ -982,6 +982,56 @@
       "tipo": "charm",
       "precio": 115000,
       "stock": 2
+    },
+    "corazon-liso-plateado": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 3,
+      "familia": "pasador"
+    },
+    "corazon-liso-rojo": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 2,
+      "familia": "pasador"
+    },
+    "estetoscopio-con-corazon": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "paleta-de-pintor": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 1,
+      "familia": "colgante"
+    },
+    "corazon-mom-rosa": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "pesa-rosa-con-corazon": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "avion-globo-y-maleta": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 4,
+      "familia": "colgante"
+    },
+    "pulsera-barril-pandora": {
+      "tipo": "pulsera",
+      "precio": 82000,
+      "tallas": {
+        "20": 2,
+        "21": 2
+      }
     }
   }
 }
