@@ -48,6 +48,28 @@ Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»
   coleccion-mas-vendidos que solo pasa en el servidor local (el video vive en
   Blobs; sin la guía de tallas el bloque queda más arriba y empieza a cargar).
 
+## Piezas nuevas del 6-nov y videos que faltaban — PR (vista previa, sin desplegar)
+
+Conteo del 5/6-nov del propietario y zips «Faltantes video y foto», «2» e
+IMG_2476. Precios suyos: los 7 charms nuevos **$92.000**, Barril Pandora
+**$82.000**.
+
+- **Charms nuevos** (Plata 925, foto 600/1200 de `fotos-nuevas`, video
+  vertical en Blobs, página propia): Corazón Liso Plateado (3) y Corazón Liso
+  Rojo (2) —pasadores—, Estetoscopio con Corazón (2) y Paleta de Pintor (1) en
+  Profesiones, Corazón Mom Rosa (2), Pesa Rosa con Corazón (2) y Avión, Globo y
+  Maleta (4) en Símbolos.
+- **Pulsera Barril Pandora** (tallas 20: 2, 21: 2), tarjeta «Baño de plata»
+  como las demás de $82.000. Foto de catálogo de la marca (permiso de Pandora),
+  recentrada al 90 %; el video es de la pieza real.
+- **Videos de piezas que ya existían**: WALL·E, Tortuga Marina, Angel, Piscis,
+  Acuario, Cáncer, Avión Globo y Pasaporte y Torre Eiffel. Clips en
+  `originales/Videos pagina web/N6_<id>.MOV`.
+- Siguen sin video: Clip Orquídeas Moradas y Clip Mariposas de Colores.
+- Pulsera Copo de Nieve: defectuosa, sacada de la venta en vivo (3 «dañada»
+  el 6-nov); sigue en el catálogo como agotada.
+- stock.json: solo entradas nuevas; «generado» no se toca.
+
 ## Piezas nuevas de noviembre y anillos con talla — PR #39 (vista previa, sin desplegar)
 
 Zip «Charms nuevos» (1-nov), «Anillos y faltantes» y el inventario
