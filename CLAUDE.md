@@ -36,18 +36,102 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
 - **`VENTAS · ESCALA · IC`** (`120247398773240534`, antes "Nueva campaña de
   Ventas") — **ACTIVA, $24.000 COP/día**, un solo conjunto
   (`120247398773250534`). Optimiza por `InitiateCheckout`, **no por
-  `Purchase`**: es la limitación de fondo, no un descuido. 7 anuncios activos
-  desde el 2026-10-03: Spider-Man · 5 textos en uno, novio superhéroes
-  (evergreen), Colección Avengers, Video Inicial y mascota, y tres traídos de la
-  prueba con su misma publicación (Regalo · Dedicatoria, Pareja · Luciérnaga,
-  Empieza con uno · Atrapasueños).
+  `Purchase`**: es la limitación de fondo, no un descuido. Desde el 2026-10-28
+  hay 6 activos: Elige 4 paga 3, Demo, Regalo, Luciérnaga, Cuotas · Addi v2 y
+  Clienta real v2 (detalle abajo). **29 oct: se pausa Pareja · Luciérnaga**
+  (`120248382866980534`) por inventario (queda 1); quedan 5 activos. Cuotas v2
+  y el Demo también enseñan la Luciérnaga: revisar cuando llegue a cero. Historia: 7 anuncios activos
+  desde el 2026-10-03 y **6 desde el 2026-10-06**, cuando se pausó Spider-Man:
+  novio superhéroes (evergreen), Colección Avengers, Video Inicial y mascota, y
+  tres traídos de la prueba con su misma publicación (Regalo · Dedicatoria,
+  Pareja · Luciérnaga, Empieza con uno · Atrapasueños).
 
-  **Primera lectura: 2026-10-10**, con 7 días completos. Con el conteo nuevo,
-  la meta es bajar de ~$4.600 a ~$3.500 o menos por checkout (el costo
-  comparable de la primera mitad de septiembre). Del 3 al 6 de octubre: 18
-  checkouts, $4.333 cada uno.
+  **Primera lectura, 2026-10-10 (7 días completos, 3–9 oct): $168.404
+  gastados, 52 checkouts, $3.238 cada uno.** La meta era ~$3.500 o menos y se
+  cumplió, contra $5.485 de ESCALA en la semana anterior (27 sep–2 oct) y 36
+  checkouts por semana. **Con una salvedad:** el 6 de octubre hubo 17
+  checkouts, un tercio de la semana; sin ese día salen ~41 por semana a
+  $3.992. Desde que se pausó Spider-Man (7–9 oct): 20 checkouts, $3.499.
+  La mediana diaria es de 5 checkouts. No se sabe cuánto se debe a la
+  consolidación, a pausar Spider-Man o a la promo del 4 de octubre: los tres
+  cambios fueron seguidos.
 
-  **Spider-Man · 5 textos en uno es el anuncio que cuesta.** Del 3 al 6 de
+  **Subida del 15% y vuelta atrás (14–17 oct).** El propietario subió el
+  presupuesto a $27.600 el 14 de octubre (07:44) tras un buen 11–13 ($2.600 por
+  checkout, puente festivo del 12). Del 14 al 16 salió a ~$9.600 por checkout
+  (8 en tres días) y la semana 10–16 dio 38 checkouts a $4.479, contra 52 a
+  $3.238 la anterior con el mismo gasto. Por la regla de la skill (si el gasto
+  sube y los checkouts no, se devuelve), **el 17 de octubre volvió a $24.000**.
+  La causa no está probada: cayó la tasa de carrito por visita en todos los
+  anuncios a la vez (46% → 30%), sin cambios en el sitio esos días, y
+  coincidió con el fin del puente y con Avengers gastándose ($6.492 por
+  checkout el 16–17). El martillo de Thor está agotado; los cuatro héroes del
+  texto de Avengers todavía tienen unidades (el propietario avisa cuando uno
+  llegue a cero, y ahí se pausa Avengers y entra el relevo, ad29 con la promo
+  vigente).
+
+  **Cambios del 11 al 16 de octubre:** entraron VIDEO · Demo · Arma la suya ·
+  Paga 3 lleva 1 (`120248491836370534`) y VIDEO · Testimonio · Muro de reseñas
+  (`120248493108720534`); salió Atrapasueños; se pausó novio superhéroes el 16
+  ($4.128 sin un carrito). Inicial y mascota fue rechazado el 15 por «enlace
+  engañoso» (falso positivo del revisor automático), se aprobó en revisión y
+  volvió sin gasto: Meta lo reaprende.
+
+  **Con $24.000 otra vez (17–21 oct): $98.619, 27 checkouts, $3.653 cada uno**
+  (mediana de anunciantes parecidos, según Meta: $5.165). Demo es el mejor
+  ($1.431 por checkout); Avengers estable pero caro ($3.901, calidad «por
+  debajo del promedio»). **Inicial y mascota se pausó el 21 de octubre**:
+  $17.496 por 2 checkouts ($8.748) desde que volvió del rechazo. Quedan 5
+  activos: Avengers, Demo, Regalo, Luciérnaga y Testimonio (este último casi
+  sin gasto).
+
+  **21 oct: entran FOTO · Cuotas · Addi y Sistecrédito
+  (`120248625626570534`) y FOTO · Clienta real · Arma una igual
+  (`120248625632590534`); se pausa el Testimonio.** Imágenes del lote de
+  octubre (V2 y V5, en `assets/ads/lote-octubre/`, solo en la rama de pauta),
+  precios verificados con `calcular()`: $250.000 (3 × $83.334 con Addi) y
+  $270.000 (3 × $90.000). El Testimonio se perdía en 2 segundos (14% llegaba
+  al 25% del video, 0 checkouts en $7.639). Quedan 6 activos.
+  **Cómo se crean anuncios por API en esta cuenta:** `ads_get_ig_accounts`
+  devuelve vacío, pero `ads_create_ad` con `object_story_spec` inline (solo
+  `page_id`) sí sale con Instagram (`effective_instagram_media_id` presente).
+  Las imágenes se suben con `ads_creative_upload_media` desde una URL raw de
+  GitHub; la subida local está bloqueada por la red de la sesión.
+
+  **Semana 18–24 oct: $167.933, 53 checkouts a $3.169, 5 compras** — la mejor
+  desde la consolidación, y la primera con $24.000 que pasa de 50. **25 oct:**
+  se pausa Cuotas v1 porque prometía Sistecrédito, que está **en pausa en el
+  checkout desde el 23** (ver `ESTADO.md`); entra **FOTO · Cuotas · Addi · v2**
+  (`120248681086610534`), imagen editada sin Sistecrédito. Clienta real v1 (20
+  clics, 0 carritos: aterrizaba en la portada) se reemplaza por **v2**
+  (`120248681086990534`). Las dos v2 enlazan con `?p=<brazalete>&sug=<dijes>`
+  —el brazalete al carrito y los dijes de la foto resaltados, como los kits—
+  en vez de la portada. **Cuando vuelva Sistecrédito**, la Cuotas v1
+  (`120248625626570534`) se puede reactivar tal cual.
+
+  **28 oct: se pausa Avengers** (`120248365237010534`): la foto enseña piezas
+  agotadas (Iron Man, Deadpool, Spider-Man, Escudo y Mjolnir en 0 según la hoja
+  *Existencias*). Llevaba el 70% del gasto del 25 al 28 a $3.640 por checkout.
+  Entra **FOTO · Promo · Elige 4 paga 3 · v1 HD** (`120248721652630534`): la
+  imagen V1 del lote de octubre con los cuatro recuadros cambiados por las
+  fotos HD de la tienda (`assets/hd/`), porque los originales eran cuadros de
+  video y se veían borrosos; la v1 sin HD (`120248720676220534`) se pausó a las
+  pocas horas. Corona Pavé + atrapasueños azul, esfera azul y flor
+  azul, $328.000 → $246.000 con `calcular()`, enlace `?p=&sug=` al kit. El
+  relevo Marvel (Pulsera Avengers + Spider-Man Pavé + Esfera Telaraña + Máscara
+  Spider-Man Roja, $363.000 → $285.000) espera una foto real del kit. **Ojo:**
+  la Luciérnaga queda en 1 unidad y sale en tres anuncios (Luciérnaga, Cuotas
+  v2 y Demo); al agotarse, pausar el de Luciérnaga y revisar los otros dos.
+
+  **Dos anuncios llevan toda la campaña.** Del 8 al 10 de octubre, el Video ·
+  Inicial y mascota se llevó el 59% del gasto ($4.478 por checkout) y
+  Colección Avengers el 37% ($2.853); los otros cuatro, juntos, el 4%. En los 8
+  días: Avengers $2.293 (30 checkouts), Video $3.846 (13).
+  Regalo, Luciérnaga, Atrapasueños y novio superhéroes casi no entregan. Por
+  eso la diversidad real es de dos anuncios, aunque haya seis activos.
+
+  **Spider-Man · 5 textos en uno (`120248222251280534`) se pausó el
+  2026-10-06 porque era el anuncio que costaba.** Del 3 al 6 de
   octubre gastó $30.486 (39% del gasto de la campaña) y trajo 3 checkouts,
   **$10.162**, contra $2.258–4.053 de los otros cuatro anuncios con datos, que
   corren a la vez y con el mismo conteo. Sus 60+ likes no cambian eso, y se
