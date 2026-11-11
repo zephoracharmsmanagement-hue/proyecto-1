@@ -34,8 +34,8 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
 
   console.log('1 · Portada');
   const inits = ev.filter(e => e.a[0] === 'init').map(e => e.a[1]);
-  ok(inits.includes('2130673404542988') && inits.includes('1029982529813994'),
-    `los dos píxeles inicializados (${inits.join(', ')})`);
+  ok(inits.length === 1 && inits[0] === '2005297310144764',
+    `solo el píxel nuevo inicializado (${inits.join(', ')})`);
   const vcG = de('ViewContent');
   ok(vcG.length === 1 && vcG[0].a[2].content_type === 'product_group',
     `un ViewContent de grupo al cargar (${vcG.length})`);
@@ -88,8 +88,8 @@ const ok = (c, t) => console.log((c ? '  ✓ ' : '  ✗ FALLA ') + t);
   ok(c && JSON.stringify(c.contents) === JSON.stringify([{ id, quantity: 1 }]), 'y contents con cantidades');
   ok(c && c.value > 0 && c.num_items === 1, `value ${c && c.value}, num_items ${c && c.num_items}`);
   ok(ic[0] && ic[0].a[3] && /^zc-/.test(ic[0].a[3].eventID), 'con eventID');
-  const initsCk = ev.filter(e => e.a[0] === 'init' && e.pagina.endsWith('checkout.html')).length;
-  ok(initsCk === 2, `checkout inicializa los dos píxeles (${initsCk})`);
+  const initsCk = ev.filter(e => e.a[0] === 'init' && e.pagina.endsWith('checkout.html')).map(e => e.a[1]);
+  ok(initsCk.length === 1 && initsCk[0] === '2005297310144764', `checkout inicializa solo el píxel nuevo (${initsCk.join(', ')})`);
 
   console.log('errores JS: ' + (errs.length ? errs.join(' | ') : 'ninguno ✓'));
   if (errs.length) console.log('  ✗ FALLA hubo errores de JavaScript');

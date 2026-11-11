@@ -235,7 +235,7 @@ En *Site configuration → Environment variables*. **Ninguna va al repo.**
 | `CORREO_DESDE` | `Zephora Charms <pedidos@zephoracharms.com>` | Remitente |
 | `CORREO_TIENDA` | `zephoracharms@gmail.com` | Copia interna de cada pedido |
 | `PEDIDOS_WEBHOOK` | opcional | A dónde avisar de cada pedido y cada pago |
-| `META_CAPI_TOKEN` | Events Manager → dataset `2130673404542988` → Configuración → Conversions API → *Generar token de acceso* | Mandar `Purchase` a Meta desde el servidor. Sin él no se manda y no se rompe nada |
+| `META_CAPI_TOKEN` | Events Manager → dataset `2005297310144764` («Zephora web») → Configuración → Conversions API → *Generar token de acceso* | Mandar `Purchase` a Meta desde el servidor. Sin él no se manda y no se rompe nada |
 | `META_PIXEL_ID` | opcional | Solo para apuntar a un dataset de pruebas; por defecto usa el de producción |
 | `META_TEST_EVENT_CODE` | opcional | Mientras se prueba: manda los eventos a *Probar eventos* sin que entren en la optimización. **Quitarla al terminar** |
 
@@ -373,7 +373,7 @@ Para que despliegue solo en cada push, se conecta este repo en *Site configurati
 
 ## Medición
 
-Meta Pixel `2130673404542988` (dataset "zephora charms pixel 1"). Eventos que dispara la página:
+Meta Pixel `2005297310144764` (dataset «Zephora web», desde el 2026-11-10). Eventos que dispara la página:
 
 | Evento | Cuándo |
 |---|---|
