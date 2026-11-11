@@ -5,6 +5,29 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — rama `claude/pixel-nuevo` (2026-11-10)
+
+Todo lo de Meta (página, cuenta `1583713932705268`, portafolio
+`1499356148452488` y los píxeles `2130673404542988` y `1029982529813994`)
+colgaba de un perfil de Facebook con nombre de marca, «Zephora Charms». Meta
+pidió verificarlo, rechazó la cédula y soporte no pudo ayudar. Se rehízo
+desde el perfil personal del dueño: portafolio `1157598043799973`, página
+`1434133013118298` (con @zephora_charms conectado), cuenta «Zephora -
+Principal» `1683479286750530` y píxel «Zephora web» `2005297310144764`.
+
+- Las 174 páginas inician **solo** el píxel nuevo (antes, dos). Los
+  generadores exigen 1 `fbq('init')`. Las pruebas `pixel` y `paginas` pasan.
+- `_meta.js` usa el nuevo por defecto.
+- **Al desplegar, en el mismo momento:** en Netlify, `META_PIXEL_ID=2005297310144764`
+  y `META_CAPI_TOKEN` con el token generado en el dataset nuevo. Si se
+  despliega sin cambiar las variables, la CAPI sigue mandando al píxel viejo.
+- **Pendiente en n8n:** el flujo «Purchase a Meta (CAPI)» todavía llama a
+  `/2130673404542988/events`. Cambiarlo a `2005297310144764` y ponerle la
+  credencial del token nuevo (antes tampoco la tenía).
+- Los anuncios viejos quedaron pausados. Los ID de su prueba social están en
+  `anuncios-zephora/prueba-social-anuncios-2026-11-10.md` (fuera del repo).
+  Solo sirven si se recupera la página vieja.
+
 ## Filtro «Religiosos» en el catálogo — rama `claude/filtro-religiosos`
 
 Pedido del propietario del 2-nov: una sección de solo religiosos, aparte de

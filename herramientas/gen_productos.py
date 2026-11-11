@@ -32,7 +32,7 @@ maneja igual que en la portada sin una línea nueva de lógica de carrito.
     python herramientas/gen_productos.py --escribir           # escribe las 135
     python herramientas/gen_productos.py --solo a,b --escribir   # solo esas
 
-Se para con error, sin escribir nada, si a alguna página le faltan los dos
+Se para con error, sin escribir nada, si a alguna página no tiene exactamente un
 fbq('init'), zcEvId, algún id que tienda.js usa sin comprobar, si repite un id,
 o si el precio que muestra la tarjeta no es el de catalogo.json.
 """
@@ -786,8 +786,8 @@ def comprobar(pid, pagina, exigidos):
     medir, sin dar error en el navegador."""
     errores = []
     n_init = len(re.findall(r"fbq\('init',\s*'\d+'\)", pagina))
-    if n_init != 2:
-        errores.append("%d fbq('init') en vez de 2" % n_init)
+    if n_init != 1:   # un solo píxel desde el 2026-11-10 (2005297310144764)
+        errores.append("%d fbq('init') en vez de 1" % n_init)
     if 'window.zcEvId' not in pagina:
         errores.append('sin zcEvId (se pierde el eventID de deduplicación)')
     ids = re.findall(r'\sid="([^"]+)"', pagina)

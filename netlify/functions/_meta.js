@@ -41,16 +41,13 @@ const crypto = require('crypto');
 
 /* El píxel al que va la CAPI. En producción lo fija `META_PIXEL_ID` en Netlify.
  *
- * El de reserva es `1029982529813994`, no el original `2130673404542988`: ese
- * corre en una cuenta publicitaria sin portafolio comercial dueño, así que
- * **no se le puede generar un token de Conversions API**. Dejarlo como valor
- * por defecto sería dejar puesta la única opción que no puede funcionar, y el
- * fallo saldría como un 400 en el log en vez de como algo evidente.
- *
- * Las páginas inicializan los dos píxeles mientras dure el bloqueo de Meta —el
- * viejo para no dejar la campaña activa sin señal, el nuevo para medir
- * completo—. Detalle en ESTADO.md. No es un secreto: viaja al navegador. */
-const PIXEL = process.env.META_PIXEL_ID || '1029982529813994';
+ * Desde el 2026-11-10 es `2005297310144764` («Zephora web»), del portafolio
+ * nuevo del dueño (1157598043799973), conectado a la cuenta «Zephora -
+ * Principal» (1683479286750530). Los dos de antes (`2130673404542988` y
+ * `1029982529813994`) quedaron atados a un perfil de Facebook al que ya no hay
+ * acceso: no se usan más. Las páginas inicializan SOLO este. No es un
+ * secreto: viaja al navegador. */
+const PIXEL = process.env.META_PIXEL_ID || '2005297310144764';
 
 /* v19.0 —el default de antes— expiró el 2026-05-21. */
 const API = 'https://graph.facebook.com/v25.0';

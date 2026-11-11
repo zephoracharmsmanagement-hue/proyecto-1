@@ -2,7 +2,7 @@
 // Diagnóstico de un pixel: qué eventos llegan, cuántos, y qué falta.
 //
 //   node meta/pixel.mjs                 # usa META_PIXEL_ID del .env
-//   node meta/pixel.mjs 2130673404542988
+//   node meta/pixel.mjs 2005297310144764
 //
 // Solo lectura.
 
