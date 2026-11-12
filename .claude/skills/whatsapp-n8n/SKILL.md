@@ -574,6 +574,11 @@ en la credencial de n8n y nada más.
 | Workflow | `Zephora · Asesora de WhatsApp` (`74TjEtDnn940jh9k`) |
 | Usuario del sistema | `Conversions API System User` |
 
+Todo lo de arriba vive en el portafolio **viejo** `1499356148452488`, no en el
+del perfil personal (`1157598043799973`). Desde el 2026-11-11 el perfil
+personal del dueño es admin de los dos. Antes de mover o recrear cualquier
+cosa de esta tabla, leer `automatizaciones/whatsapp/MIGRACION-WABA.md`.
+
 El mismo usuario del sistema sostiene el `Purchase` de servidor del píxel
 nuevo. Si le quitas activos, apagas la medición de compras sin que nada dé
 error.

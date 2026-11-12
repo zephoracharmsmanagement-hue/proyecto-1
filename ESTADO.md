@@ -5,6 +5,38 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## WhatsApp: el portafolio viejo vuelve a tener admin — 2026-11-12
+
+Responde al *P1 · WhatsApp* de la sección «Migración a la cuenta personal»
+(rama `claude/lucid-feynman-rf9khm`, sin fusionar al escribir esto; al
+mezclarla, marcar ese P1 como resuelto en su parte de acceso). Plan completo:
+[`automatizaciones/whatsapp/MIGRACION-WABA.md`](automatizaciones/whatsapp/MIGRACION-WABA.md).
+
+- **No se migra el número.** El perfil «Zephora Charms 1» todavía es admin
+  del portafolio viejo `1499356148452488`. Desde ahí, el 11-nov, se invitó
+  al perfil personal «Martin Daza» con **acceso total**, y ya aceptó. Tiene
+  la WABA «Zephora Charms» (`1868981540432885`), la de pruebas, la página
+  vieja, «cuenta publicitaria 1 ZC» y dos catálogos («WhatsApp Product
+  Catalog» y «Products from zephoracharms.com»). Cero tiempo caído: el bot
+  `74TjEtDnn940jh9k` no se tocó.
+- **Falta, en este orden** (todo del propietario):
+  1. Registrar a «Martin Daza» como desarrollador. **Quedó frenado por
+     exceso de intentos de SMS:** un solo intento después de 12–24 h, o
+     verificar con tarjeta.
+  2. Asignarle la app `AGENTE CLAUDE`.
+  3. Un segundo admin de respaldo.
+  4. Revisar el medio de pago de la WABA.
+  5. Ligar el número a la Página nueva `1434133013118298` para anuncios a
+     WhatsApp. El código de confirmación llega **al bot**: buscarlo en las
+     ejecuciones de n8n.
+- **No sacar a «Zephora Charms 1»** hasta que «Martin Daza» entre solo a todo,
+  developers incluido. Tampoco tocar los usuarios del sistema del portafolio
+  viejo: firman el token del bot y la CAPI.
+- **Migrar (Fase C del plan) queda como plan B**, con disparadores escritos.
+  Implica app nueva, token nuevo, plantillas rehechas y 1–2 h de bot caído.
+- n8n: `BH · 4 WhatsApp entrante` sigue con la credencial de trigger de
+  Zephora. **Si se publica así, le roba el webhook al bot de Zephora.**
+
 ## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — rama `claude/pixel-nuevo` (2026-11-10)
 
 Todo lo de Meta (página, cuenta `1583713932705268`, portafolio
