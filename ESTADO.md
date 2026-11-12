@@ -40,6 +40,18 @@ lo exige (antes pedía dos y estaba en rojo en `main`).
 | #33 | `portada-estilo` | `35eed4a` (28-oct) | verde | Cerrar: la portada limpia del 2-nov (#42), «como Pandora», la reemplazó. Pisa `.talla-sec`, que ahora es ventana. Choca en ESTADO.md |
 | #17 | `bot-propio` | `0871739` (2-oct) | verde (no tiene pruebas propias) | Cerrar o rehacer: `conocimiento_bot.py` se cae con `KeyError: 'lleva'`, porque la promo pasó a `tramos` y escribe la promo cíclica, que ya no existe |
 
+## Catálogo de Meta conectado al píxel nuevo — desplegado el 2026-11-12 (PR #47)
+
+`/feeds/meta-catalogo.csv` (función `catalogo-meta.mjs`): ids de
+`catalogo.json` = los del píxel, precio de `calcular()`, disponibilidad =
+conteo − apartado (503 si Blobs falla). Catálogo `1450803473847516`, feed
+`1920555588925923` cada hora, píxel `2005297310144764` conectado.
+**Pendiente del dueño:** aceptar los términos de públicos personalizados de
+`1683479286750530` (bloquea el público «IC + AddToCart sin compra, 180 d») y
+crear `Lead` (solo suscripciones) como conversión en Events Manager. Detalle
+en [`automatizaciones/meta-ads/CATALOGO.md`](automatizaciones/meta-ads/CATALOGO.md).
+Pieza nueva → aparece sola en el feed; no hay que tocar Meta.
+
 ## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — en `main` desde el 2026-11-10 (PR #45)
 
 Todo lo de Meta (página, cuenta `1583713932705268`, portafolio
@@ -3700,12 +3712,12 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **37 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **38 functions**
 —las mismas que archivos hay en `netlify/functions/` (`ls netlify/functions | wc -l`)—:
 `_addi`, `_atribucion`, `_carrito`, `_cierre`, `_correo`, `_envios`, `_hoja`,
 `_inventario`, `_meta`, `_pedidos`, `_precios`, `_rango`, `_sistecredito`,
 `_suscriptores`, `_boletin`, `addi-callback`, `ajustar-inventario`,
-`armar-carrito`, `boletin`, `crear-pago`, `descuento-suscripcion`, `disponibilidad`, `envio-estado`, `estado-pedido`,
+`armar-carrito`, `boletin`, `catalogo-meta`, `crear-pago`, `descuento-suscripcion`, `disponibilidad`, `envio-estado`, `estado-pedido`,
 `mas-vendidos`, `media`, `posventa`, `reanudar`, `registrar-venta`, `rescate`,
 `resenas`, `sistecredito-aviso`, `sistecredito-enlace`, `suscribir`,
 `suscriptores-export`, `vendidas`, `wompi-webhook`;
@@ -3718,7 +3730,7 @@ anterior.
 > —el despliegue `6a88fa3a` reportó 11—, 14 desde que la fundación de
 > conversión trajo `reanudar.mjs`, `armar-carrito.mjs` y `_carrito.mjs`, 31 en
 > el despliegue de posventa (2026-10-13), 34 desde Sistecrédito, 35 con
-> `descuento-suscripcion` (nadie la anotó aquí) y **37 desde el boletín** (2026-11-12)
+> `descuento-suscripcion` (nadie la anotó aquí) 37 con el boletín y **38 con `catalogo-meta`** (2026-11-12)
 > (2026-10-16, despliegue `6ad2532973b503b1b66ee35c`). Entre el 14 y el 31 nadie
 > la actualizó durante semanas.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
