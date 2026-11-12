@@ -29,14 +29,17 @@ const SANS = 'Arial,Helvetica,sans-serif', SERIF = 'Georgia,serif';
 export const CAMPANAS = {
   'novedades-2026-11-01': {
     asunto: 'Llegaron los anillos 💍',
-    previa: 'Plata 925 con sello S925, tallas 5 a 8. Y 8 charms nuevas.',
+    previa: 'Plata 925 con sello S925, tallas 5 a 8. Y charms nuevas.',
     titulo: 'Hoy estrenamos anillos',
     entrada: 'Hola. Hoy estrenamos anillos en la tienda, y con ellos llegaron charms nuevas y brazaletes con cierre de corazón. Aquí te contamos todo.',
     /* Lo que el texto de abajo promete de la promo y el envío. */
     reglas: { tramos: [[4, 1], [6, 2]], envioGratisSoloAnticipado: true },
     anillos: ['anillo-corazon-elevado-blanco', 'anillo-corazon-elevado-rojo', 'anillo-doble-corazon'],
     charms: ['black-panther', 'virgen-de-fatima', 'virgen-aparecida', 'simbolo-de-la-medicina', 'maquina-de-coser',
-      'graduacion-diploma-y-flores', 'brindis-cheers', 'mano-rock-y-guitarra'],
+      'graduacion-diploma-y-flores', 'brindis-cheers', 'mano-rock-y-guitarra',
+      /* Las del 6-nov (2026-11-12). La Pulsera Barril Pandora no va: nombra a la marca. */
+      'corazon-liso-plateado', 'corazon-liso-rojo', 'estetoscopio-con-corazon', 'paleta-de-pintor',
+      'corazon-mom-rosa', 'pesa-rosa-con-corazon', 'avion-globo-y-maleta'],
     brazaletes: ['pulsera-corazon-abierto', 'pulsera-corazon-infinito', 'pulsera-corazon-arbol-de-la-vida'],
     volvieron: ['minnie-mouse', 'walle', 'avion-globo-y-pasaporte', 'torre-eiffel-y-camara'],
     signos: ['aries', 'tauro', 'geminis', 'cancer', 'leo', 'virgo', 'libra', 'escorpio', 'sagitario', 'capricornio', 'acuario', 'piscis'],
@@ -152,7 +155,7 @@ export function armar(campana, sel, { baja, descuento = false }) {
   }
 
   if (sel.charms.length) {
-    bloques.push(seccion(sel.charms.length === 8 ? '8 charms nuevas' : 'Charms nuevas', 'En Plata Esterlina 925.',
+    bloques.push(seccion(`${sel.charms.length} charms nuevas`, 'En Plata Esterlina 925.',
       rejilla(sel.charms.map(c => tarjeta(c, [esc(cop(c.precio)), quedan(c.quedan)].filter(Boolean))))
       + boton('Ver las novedades', `${SITIO}/index.html#charms`)));
   }
