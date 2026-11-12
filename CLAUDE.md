@@ -83,20 +83,19 @@ tabla corregida y lo que sí se puede afirmar están en la skill § *Estructura*
   `operation_status_code: 433`**. La semilla es demasiado chica para construir
   un lookalike. No sirve hasta que crezca el público de origen.
 
-### Píxeles — hay dos a propósito
+### Píxel — uno solo desde el 2026-11-10
 
-- **`2130673404542988`** ("zephora charms pixel 1") — el viejo. Vive en la
-  cuenta sin portafolio, así que **nunca podrá tener CAPI** (`server_last_fired_time`
-  en época cero). Es el que las campañas y los públicos pueden usar.
-- **`1029982529813994`** ("zephora charms pixel web") — el nuevo, dentro del
-  portafolio "Zephora Charms". Sí recibe `Purchase` de servidor desde
-  `wompi-webhook.mjs`. **La cuenta publicitaria no lo tiene compartido**, así
-  que Meta no puede optimizar con él hasta que el portafolio cumpla antigüedad
-  (semanas). Detalle y plan de migración en `ESTADO.md` § 4a.
-
-Consecuencia práctica: durante estas semanas el píxel nuevo **acumula la
-verdad** mientras las campañas **siguen optimizando a ciegas** sobre
-`InitiateCheckout` del viejo. No hay atajo; es restricción de cuenta.
+- **`2005297310144764`** («Zephora web»), del portafolio nuevo del dueño
+  (`1157598043799973`), conectado a la cuenta publicitaria **«Zephora -
+  Principal» (`1683479286750530`, COP)**. Página nueva `1434133013118298`, con
+  @zephora_charms conectado. Es el único que inician las páginas y al que va
+  la CAPI.
+- **Los de antes ya no se usan:** `2130673404542988` («zephora charms pixel
+  1», cuenta `1583713932705268`) y `1029982529813994` («pixel web», portafolio
+  `1499356148452488`). Todo eso quedó atado al perfil de Facebook «Zephora
+  Charms», con nombre de marca; Meta pidió verificarlo y no se pudo entrar ni
+  con soporte. Se rehizo todo desde el perfil personal del dueño. El historial
+  y los públicos de los píxeles viejos se pierden.
 
 ### Economía unitaria (del inventario, agosto 2026)
 
@@ -118,9 +117,11 @@ nombra a Pandora — riesgo de marca.
 
 ### Píxel del sitio
 
-- **Pixel `2130673404542988`** ("zephora charms pixel 1"), en producción.
+- **Pixel `2005297310144764`** («Zephora web», desde el 2026-11-10), en producción.
   Dispara `PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`, `Lead`
-  (conversión real del sitio — el pago ocurre fuera, ver abajo) y `Contact`.
+  (**solo suscripción al correo**; los clics a WhatsApp van como `Contact`) y `Contact`.
+  Catálogo `1450803473847516` conectado desde el 2026-11-12, con feed
+  `/feeds/meta-catalogo.csv` (ver `automatizaciones/meta-ads/CATALOGO.md`).
   Detalle completo en `README.md` § Medición.
 - **`meta/` — scripts de solo lectura** (`verificar.mjs`, `pixel.mjs`,
   `metricas.mjs`), corren en la máquina del usuario con su token en `.env`.

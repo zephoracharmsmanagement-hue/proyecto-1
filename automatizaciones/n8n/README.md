@@ -123,7 +123,7 @@ nadie.
 Formulario para registrar ventas cerradas por WhatsApp. Normaliza el teléfono a
 `57XXXXXXXXXX`, hashea con SHA-256, arma el evento `Purchase` con
 `action_source: chat` y un `order_id` determinista, lo manda a
-`graph.facebook.com/v25.0/2130673404542988/events` y guarda todo en la Data
+`graph.facebook.com/v25.0/2005297310144764/events` y guarda todo en la Data
 Table **Pedidos Zephora** (`tmDPVx97PUPX4OzT`).
 
 Le falta la credential del token CAPI (Bearer Auth, nombre `Meta CAPI Zephora`)

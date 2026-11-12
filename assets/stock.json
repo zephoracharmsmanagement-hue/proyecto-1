@@ -83,61 +83,61 @@
     "aries": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "tauro": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "geminis": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 1,
+      "stock": 3,
       "familia": "pasador"
     },
     "leo": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "virgo": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "libra": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "escorpio": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "sagitario": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "capricornio": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 1,
+      "stock": 3,
       "familia": "pasador"
     },
     "piscis": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 2,
+      "stock": 3,
       "familia": "pasador"
     },
     "charm-medicina": {
@@ -197,7 +197,7 @@
     "minnie-mouse": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 1,
+      "stock": 2,
       "familia": "pasador"
     },
     "stitch": {
@@ -401,13 +401,13 @@
     "torre-eiffel-y-camara": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 0,
+      "stock": 3,
       "familia": "colgante"
     },
     "avion-globo-y-pasaporte": {
       "tipo": "charm",
       "precio": 82000,
-      "stock": 0,
+      "stock": 2,
       "familia": "colgante"
     },
     "carrusel-rosado": {
@@ -601,7 +601,9 @@
       "tipo": "pulsera",
       "precio": 88000,
       "tallas": {
+        "18": 1,
         "19": 1,
+        "20": 1,
         "21": 1
       }
     },
@@ -690,7 +692,8 @@
       "tipo": "pulsera",
       "precio": 88000,
       "tallas": {
-        "20": 1
+        "18": 1,
+        "20": 2
       }
     },
     "angel": {
@@ -708,7 +711,7 @@
     "walle": {
       "tipo": "charm",
       "precio": 95000,
-      "stock": 0,
+      "stock": 2,
       "familia": "colgante"
     },
     "tortuga-marina-cristal": {
@@ -732,13 +735,13 @@
     "cancer": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 0,
+      "stock": 3,
       "familia": "pasador"
     },
     "acuario": {
       "tipo": "charm",
       "precio": 86000,
-      "stock": 0,
+      "stock": 3,
       "familia": "pasador"
     },
     "letra-f": {
@@ -846,6 +849,189 @@
       "precio": 78000,
       "stock": 1,
       "familia": "colgante"
+    },
+    "black-panther": {
+      "tipo": "charm",
+      "precio": 95000,
+      "stock": 3,
+      "familia": "pasador"
+    },
+    "virgen-de-fatima": {
+      "tipo": "charm",
+      "precio": 94000,
+      "stock": 1,
+      "familia": "colgante"
+    },
+    "virgen-aparecida": {
+      "tipo": "charm",
+      "precio": 94000,
+      "stock": 3,
+      "familia": "colgante"
+    },
+    "simbolo-de-la-medicina": {
+      "tipo": "charm",
+      "precio": 94000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "maquina-de-coser": {
+      "tipo": "charm",
+      "precio": 94000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "graduacion-diploma-y-flores": {
+      "tipo": "charm",
+      "precio": 94000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "brindis-cheers": {
+      "tipo": "charm",
+      "precio": 94000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "mano-rock-y-guitarra": {
+      "tipo": "charm",
+      "precio": 94000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "pulsera-corazon-abierto": {
+      "tipo": "pulsera",
+      "precio": 82000,
+      "tallas": {
+        "19": 1,
+        "20": 1
+      }
+    },
+    "pulsera-corazon-infinito": {
+      "tipo": "pulsera",
+      "precio": 82000,
+      "tallas": {
+        "19": 1,
+        "20": 1
+      }
+    },
+    "pulsera-corazon-arbol-de-la-vida": {
+      "tipo": "pulsera",
+      "precio": 82000,
+      "tallas": {
+        "18": 1,
+        "19": 1,
+        "20": 1
+      }
+    },
+    "anillo-corazon-elevado-blanco-t5": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 1
+    },
+    "anillo-corazon-elevado-blanco-t6": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 2
+    },
+    "anillo-corazon-elevado-blanco-t7": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 2
+    },
+    "anillo-corazon-elevado-blanco-t8": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 2
+    },
+    "anillo-corazon-elevado-rojo-t5": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 1
+    },
+    "anillo-corazon-elevado-rojo-t6": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 2
+    },
+    "anillo-corazon-elevado-rojo-t7": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 2
+    },
+    "anillo-corazon-elevado-rojo-t8": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 2
+    },
+    "anillo-doble-corazon-t5": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 1
+    },
+    "anillo-doble-corazon-t6": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 2
+    },
+    "anillo-doble-corazon-t7": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 1
+    },
+    "anillo-doble-corazon-t8": {
+      "tipo": "charm",
+      "precio": 115000,
+      "stock": 2
+    },
+    "corazon-liso-plateado": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 3,
+      "familia": "pasador"
+    },
+    "corazon-liso-rojo": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 2,
+      "familia": "pasador"
+    },
+    "estetoscopio-con-corazon": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "paleta-de-pintor": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 1,
+      "familia": "colgante"
+    },
+    "corazon-mom-rosa": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "pesa-rosa-con-corazon": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 2,
+      "familia": "colgante"
+    },
+    "avion-globo-y-maleta": {
+      "tipo": "charm",
+      "precio": 92000,
+      "stock": 4,
+      "familia": "colgante"
+    },
+    "pulsera-barril-pandora": {
+      "tipo": "pulsera",
+      "precio": 82000,
+      "tallas": {
+        "20": 2,
+        "21": 2
+      }
     }
   }
 }

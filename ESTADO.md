@@ -5,6 +5,169 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
+
+Pedido del propietario (2026-11-01): contar los anillos, las charms nuevas, los
+brazaletes nuevos y lo que volvió. Eligió una función en el sitio (no Broadcasts de
+Resend, para no tener dos listas de bajas), remitente `novedades@`, prueba a
+`zephoracharms@gmail.com` y los $15.000 solo a quien no los usó.
+**No se manda a la lista hasta que el propietario diga «enviar».** Cómo se usa:
+README § «Correos de novedades a las suscriptoras». Falta crear `BOLETIN_KEY`
+en Netlify si no está.
+
+*2026-11-12:* la campaña `novedades-2026-11-01` (se dejó la clave) trae ahora
+también los 7 charms del 6-nov. La Pulsera Barril Pandora **no** va en el correo:
+nombra a la marca, el mismo riesgo por el que `assets/ads/` deja fuera la
+variante con Pandora.
+
+## PR abiertos al 2026-11-12 — revisión y lo que decidió el propietario
+
+Cada rama se fusionó de prueba sobre `main` (`636b791`) y se corrió
+`./pruebas/correr.sh` completo. En ninguna el resultado inicia otro píxel:
+172 páginas con un solo `fbq('init','2005297310144764')`. `paginas.js` ahora
+lo exige (antes pedía dos y estaba en rojo en `main`).
+
+**Decisión del propietario (2026-11-12): aplicar la tabla.** #36, #38, #40 y
+#41 (rebasado) entran juntos en un solo despliegue, a través de la rama
+`claude/exciting-feynman-xb99sd`; #33 y #17 se cierran con su razón.
+
+| PR | Rama | Sale de | Pruebas | Recomendación |
+|---|---|---|---|---|
+| #36 | `motivo-reposicion` | `caccc2a` (30-oct) | verde | Fusionar: limpio, chico, con prueba |
+| #38 | `carga-fotos-videos` | `768572a` (31-oct) | verde | Fusionar: limpio; el generador reproduce los kits idénticos |
+| #40 | `prompt-asesora-anillos` | `f8c05c7` (1-nov) | **5 rojas en `prompt-bot`** | Fusionar: la copia es idéntica al prompt en vivo (`06924ea1`). Las rojas son del prompt **publicado**, no de la rama (promete «ya le avisé al equipo», sin `[VERIFICAR DESCUENTO]`, $15.000 que no cuadra con catalogo.json). `main` da verde porque su copia es vieja. Arreglarlo es tocar n8n. Corregir también el encabezado «Versión publicada» (dice `3beca3e2`) |
+| #41 | `boletin-novedades-nov` | `f8c05c7` (1-nov) | verde | Rebasar y fusionar: choca solo en ESTADO.md. El texto es del 1-nov y no incluye las piezas del 6-nov. Hace falta `BOLETIN_KEY` en Netlify; no se envía sin «enviar». Suma 2 funciones (35 → 37) |
+| #33 | `portada-estilo` | `35eed4a` (28-oct) | verde | Cerrar: la portada limpia del 2-nov (#42), «como Pandora», la reemplazó. Pisa `.talla-sec`, que ahora es ventana. Choca en ESTADO.md |
+| #17 | `bot-propio` | `0871739` (2-oct) | verde (no tiene pruebas propias) | Cerrar o rehacer: `conocimiento_bot.py` se cae con `KeyError: 'lleva'`, porque la promo pasó a `tramos` y escribe la promo cíclica, que ya no existe |
+
+## Catálogo de Meta conectado al píxel nuevo — desplegado el 2026-11-12 (PR #47)
+
+`/feeds/meta-catalogo.csv` (función `catalogo-meta.mjs`): ids de
+`catalogo.json` = los del píxel, precio de `calcular()`, disponibilidad =
+conteo − apartado (503 si Blobs falla). Catálogo `1450803473847516`, feed
+`1920555588925923` cada hora, píxel `2005297310144764` conectado.
+**Pendiente del dueño:** aceptar los términos de públicos personalizados de
+`1683479286750530` (bloquea el público «IC + AddToCart sin compra, 180 d») y
+crear `Lead` (solo suscripciones) como conversión en Events Manager. Detalle
+en [`automatizaciones/meta-ads/CATALOGO.md`](automatizaciones/meta-ads/CATALOGO.md).
+Pieza nueva → aparece sola en el feed; no hay que tocar Meta.
+
+## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — en `main` desde el 2026-11-10 (PR #45)
+
+Todo lo de Meta (página, cuenta `1583713932705268`, portafolio
+`1499356148452488` y los píxeles `2130673404542988` y `1029982529813994`)
+colgaba de un perfil de Facebook con nombre de marca, «Zephora Charms». Meta
+pidió verificarlo, rechazó la cédula y soporte no pudo ayudar. Se rehízo
+desde el perfil personal del dueño: portafolio `1157598043799973`, página
+`1434133013118298` (con @zephora_charms conectado), cuenta «Zephora -
+Principal» `1683479286750530` y píxel «Zephora web» `2005297310144764`.
+
+- Las 174 páginas inician **solo** el píxel nuevo (antes, dos). Los
+  generadores exigen 1 `fbq('init')`. *Corrección del 2026-11-12:* `paginas`
+  **no** pasaba — seguía exigiendo dos `init` y quedó en rojo en `main`. Ahora
+  exige uno y que sea `2005297310144764`, así que una rama vieja que traiga de
+  vuelta un píxel viejo la pone en rojo.
+- `_meta.js` usa el nuevo por defecto.
+- **Al desplegar, en el mismo momento:** en Netlify, `META_PIXEL_ID=2005297310144764`
+  y `META_CAPI_TOKEN` con el token generado en el dataset nuevo. Si se
+  despliega sin cambiar las variables, la CAPI sigue mandando al píxel viejo.
+- **Pendiente en n8n:** el flujo «Purchase a Meta (CAPI)» todavía llama a
+  `/2130673404542988/events`. Cambiarlo a `2005297310144764` y ponerle la
+  credencial del token nuevo (antes tampoco la tenía).
+- Los anuncios viejos quedaron pausados. Los ID de su prueba social están en
+  `anuncios-zephora/prueba-social-anuncios-2026-11-10.md` (fuera del repo).
+  Solo sirven si se recupera la página vieja.
+
+## Filtro «Religiosos» en el catálogo — en `main` desde el 2026-11-02 (PR #43)
+
+Pedido del propietario del 2-nov: una sección de solo religiosos, aparte de
+Símbolos. Botón «Religiosos» después de «Símbolos» con Virgen María, Virgen de
+Fátima, Virgen Aparecida, Manos Orando con Cruz y Ángel Guardián. Es un tema
+(`data-tema="Religiosos"` en la tarjeta), NO una categoría: `data-g` sigue en
+Símbolos porque de ahí leen el checkout, disponibilidad.mjs, la colección
+Símbolos y la hoja de la asesora. Funciona también `index.html?cat=Religiosos`.
+Pieza religiosa nueva → ponerle `data-tema="Religiosos"` a su tarjeta.
+
+## Portada limpia: círculos de categoría, sin pasos, menú lateral — en `main` desde el 2026-11-02 (PR #42)
+
+Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»).
+
+- **Guía de tallas fuera de la vista**: la sección `#talla` sigue en el HTML
+  (los generadores la copian a cada página), pero `tienda.css` la esconde y
+  `tienda.js` la abre como ventana con cualquier enlace a `#talla`
+  («¿Qué talla es la mía?», «Tallas», `index.html#talla` de las preguntas
+  frecuentes). Vale igual en fichas, kits y colecciones, sin regenerarlas.
+- **Círculos de categoría** (`.cats`) debajo del recuadro de Addi y encima de los brazaletes (el propietario los movió ahí el mismo día): Charms, Brazaletes,
+  Anillos, Kits, Marvel, Disney, Pixar, Letras, Zodiaco, Símbolos, Muranos.
+  Los de charms llevan `data-cat` (filtran con `verCategoria`). Kits usa
+  `assets/cats/kits.webp` (recorte de la foto de Azul Mar, sin el texto).
+- **Orden**: brazaletes → charms → anillos. Sin «Paso uno / Paso dos».
+- **«Los charms favoritos» ya no es un bloque**: el catálogo está abierto (sin
+  «Ver el catálogo completo» ni «Ver todos») y arranca en el filtro
+  **Favoritos**, al lado de «Personajes», con descripción nueva. `#rail-top`
+  sigue en el HTML, oculto y DESPUÉS del catálogo (así `.pc[data-id]` halla
+  primero la tarjeta visible): define los favoritos, `ordenarPorVentas` lo
+  rehace con el inventario y lo leen extraer_catalogo.py y el píxel. Con ese
+  filtro las piezas salen en el orden de los favoritos; escribir en el
+  buscador pasa solo a «Todos».
+- **Menú ☰**: panel lateral blanco a la derecha (84% del ancho, tope 380 px),
+  con la página desenfocada detrás; la X y el velo los crea `tienda.js`, así
+  que también sale en las páginas ya generadas.
+- **Arreglo de paso**: la tira «Te puede interesar» alterna entre las
+  categorías del carrito (antes, seis de la primera por orden de página) y
+  actualiza «parecidos a …» aunque no cambien las piezas.
+- Pruebas: regresion, stock, dudas, precios y suscripcion en verde. En
+  `paginas` queda un 404 de `media/bloque-diario-v1.mp4` en
+  coleccion-mas-vendidos que solo pasa en el servidor local (el video vive en
+  Blobs; sin la guía de tallas el bloque queda más arriba y empieza a cargar).
+
+## Piezas nuevas del 6-nov y videos que faltaban — en `main` desde el 2026-11-06 (PR #44)
+
+Conteo del 5/6-nov del propietario y zips «Faltantes video y foto», «2» e
+IMG_2476. Precios suyos: los 7 charms nuevos **$92.000**, Barril Pandora
+**$82.000**.
+
+- **Charms nuevos** (Plata 925, foto 600/1200 de `fotos-nuevas`, video
+  vertical en Blobs, página propia): Corazón Liso Plateado (3) y Corazón Liso
+  Rojo (2) —pasadores—, Estetoscopio con Corazón (2) y Paleta de Pintor (1) en
+  Profesiones, Corazón Mom Rosa (2), Pesa Rosa con Corazón (2) y Avión, Globo y
+  Maleta (4) en Símbolos.
+- **Pulsera Barril Pandora** (tallas 20: 2, 21: 2), tarjeta «Baño de plata»
+  como las demás de $82.000. Foto de catálogo de la marca (permiso de Pandora),
+  recentrada al 90 %; el video es de la pieza real.
+- **Videos de piezas que ya existían**: WALL·E, Tortuga Marina, Angel, Piscis,
+  Acuario, Cáncer, Avión Globo y Pasaporte y Torre Eiffel. Clips en
+  `originales/Videos pagina web/N6_<id>.MOV`.
+- Siguen sin video: Clip Orquídeas Moradas y Clip Mariposas de Colores.
+- Pulsera Copo de Nieve: defectuosa, sacada de la venta en vivo (3 «dañada»
+  el 6-nov); sigue en el catálogo como agotada.
+- stock.json: solo entradas nuevas; «generado» no se toca.
+
+## Piezas nuevas de noviembre y anillos con talla — en `main` desde el 2026-11-01 (PR #39)
+
+Zip «Charms nuevos» (1-nov), «Anillos y faltantes» y el inventario
+`Inventario_Zephora_Nuevo_v3.csv` del propietario. Precios suyos: Avengers
+$95.000, demás charms nuevos $94.000, brazaletes $82.000, anillos $115.000;
+los precios de las piezas que ya existían NO cambian.
+
+- **8 charms y 3 brazaletes nuevos** con foto 600/1200, video vertical en Blobs
+  y página propia. Mano Rock: foto que pasó el propietario (la del video era
+  borrosa). Black Panther: foto de origen pequeña, aceptable.
+- **Anillos**: cada talla es una pieza de DATA (`anillo-<modelo>-t<talla>`),
+  así carrito, cobro y reserva no cambian. El modelo (`ANI` en tienda.js) tiene
+  tarjeta en el carrusel `#anillos` de la portada, página `producto-anillo-*`
+  (gen_productos con un catálogo prestado), guía de talla `#guia-talla`
+  (contorno en cm; tabla de numeración 5–8, el propietario la dejó así) y
+  «talla fija, no ajustable». Galería: foto + video del plato; los videos en la
+  mano y de regalo van en los bloques de abajo. Vitrina «Relacionados» = otros
+  anillos + Marvel y las de más unidades; venta cruzada con charms, nunca con
+  brazalete. Doble Corazón: foto sin el grabado «PANDORA» (pedido del
+  propietario; «S925 ALE» se dejó).
+- **stock.json**: entradas nuevas y las unidades que llegaron de piezas que ya
+  existían (Minnie, Wall-E, Avión, Torre Eiffel, signos, Candado Rosa y
+  Corazón Rosado con cadena) SUMADAS al conteo, sin tocar `generado`: lo vendido
+  desde el 22-sep se sigue restando (cambiar `generado` lo reiniciaría).
+
 ## Una página por kit, manilla en la colección, agotados a la vista y X visible — desplegado el 2026-10-31 (PR #37)
 
 Pedidos del propietario del 30 y 31-oct para que los anuncios aterricen en una
@@ -924,7 +1087,12 @@ se puede verificar desde aquí: eso lo hace el propietario.
 - **Franja de atajos** en la portada: Kits · Marvel · Brazaletes · Charms.
 - **El bot de WhatsApp** al día en material y sin precios escritos a mano.
 
-### Hecho, sin fusionar todavía — beneficios gratis, Addi y promo (2026-09-21)
+### Beneficios gratis, Addi y promo (2026-09-21) — ya en `main`
+
+> *2026-11-12:* esta rama y `claude/charming-sagan-l4q2eq` ya están enteras
+> en `main` (`git merge-base --is-ancestor`); el aviso de «sin fusionar» de
+> abajo es historia. La promo que se nombra aquí tampoco es la vigente: ver
+> CLAUDE.md § *El tercer dije*.
 
 Rama `claude/beneficios-gratis-addi-promo`, sobre `main` en `503cd3a`. A pedido
 directo del propietario: explotar en la página lo que ya se regala con la
@@ -3544,12 +3712,12 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **34 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **38 functions**
 —las mismas que archivos hay en `netlify/functions/` (`ls netlify/functions | wc -l`)—:
 `_addi`, `_atribucion`, `_carrito`, `_cierre`, `_correo`, `_envios`, `_hoja`,
 `_inventario`, `_meta`, `_pedidos`, `_precios`, `_rango`, `_sistecredito`,
-`_suscriptores`, `addi-callback`, `ajustar-inventario`, `armar-carrito`,
-`crear-pago`, `disponibilidad`, `envio-estado`, `estado-pedido`,
+`_suscriptores`, `_boletin`, `addi-callback`, `ajustar-inventario`,
+`armar-carrito`, `boletin`, `catalogo-meta`, `crear-pago`, `descuento-suscripcion`, `disponibilidad`, `envio-estado`, `estado-pedido`,
 `mas-vendidos`, `media`, `posventa`, `reanudar`, `registrar-venta`, `rescate`,
 `resenas`, `sistecredito-aviso`, `sistecredito-enlace`, `suscribir`,
 `suscriptores-export`, `vendidas`, `wompi-webhook`;
@@ -3561,7 +3729,8 @@ anterior.
 > 9 hasta que la consolidación trajo `_atribucion.mjs` y `disponibilidad.mjs`
 > —el despliegue `6a88fa3a` reportó 11—, 14 desde que la fundación de
 > conversión trajo `reanudar.mjs`, `armar-carrito.mjs` y `_carrito.mjs`, 31 en
-> el despliegue de posventa (2026-10-13) y **34 desde Sistecrédito**
+> el despliegue de posventa (2026-10-13), 34 desde Sistecrédito, 35 con
+> `descuento-suscripcion` (nadie la anotó aquí) 37 con el boletín y **38 con `catalogo-meta`** (2026-11-12)
 > (2026-10-16, despliegue `6ad2532973b503b1b66ee35c`). Entre el 14 y el 31 nadie
 > la actualizó durante semanas.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima

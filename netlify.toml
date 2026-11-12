@@ -300,3 +300,19 @@
   for = "/assets/*.webp"
   [headers.values]
     Cache-Control = "public, max-age=604800"
+
+# Videos y fotos .jpg de assets (historia-*.mp4, las fotos de la sección de
+# clientas): iban con la cabecera por defecto de Netlify (max-age=0), así que el
+# celular los volvía a pedir en cada visita (2026-10-31, «fotos y videos
+# demorando en cargar»). Una semana, igual que las .webp de arriba. OJO, lo
+# mismo que allí: al reemplazar uno de estos archivos hay que cambiarle el
+# nombre o ponerle `?v=`, o quien ya lo tenía lo sigue viendo una semana.
+[[headers]]
+  for = "/assets/*.mp4"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/assets/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

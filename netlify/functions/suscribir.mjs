@@ -104,6 +104,19 @@ export default async (req) => {
   }
   if (req.method !== 'POST') return json(405, { error: 'Solo POST' });
 
+  /* Baja con un clic (RFC 8058): Gmail y Apple Mail muestran «Cancelar
+     suscripción» junto al remitente a partir de la cabecera List-Unsubscribe de
+     los correos de novedades (boletin.mjs) y hacen POST a ese mismo enlace,
+     sin abrir la página. */
+  const tbPost = url.searchParams.get('baja');
+  if (tbPost) {
+    const correo = verificar('baja', tbPost);
+    if (!correo) return json(400, { error: 'Enlace de baja no válido' });
+    await darDeBaja(correo);
+    console.log(JSON.stringify({ evento: 'suscripcion_baja', via: 'un-clic' }));
+    return json(200, { ok: true });
+  }
+
   let d;
   try { d = JSON.parse((await req.text()) || '{}'); } catch (_) { return json(400, { error: 'JSON inválido' }); }
   if (d.web) return json(200, { ok: true, mensaje: MENSAJE });           // trampa: bot

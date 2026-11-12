@@ -438,6 +438,26 @@ section{scroll-margin-top:64px}
 .lbtn[aria-disabled="true"]{color:#b3adb7;background:#faf8f9;cursor:not-allowed}
 .lbtn[aria-disabled="true"]:hover{border-color:var(--line)}
 .lbtn small{display:block;font-size:12px;letter-spacing:.02em;margin-top:2px;text-transform:none}
+/* anillos: selector de talla 5–8 en la tarjeta (2026-11-01) */
+.abtn{font:400 14px/1 Jost;min-height:42px;cursor:pointer;border:1px solid var(--line);
+  background:var(--white);color:var(--ink);border-radius:2px;transition:.16s;text-transform:uppercase}
+.abtn:hover{border-color:var(--plum)}
+.abtn.is-on{background:var(--plum);border-color:var(--plum);color:#fff}
+.abtn[aria-disabled="true"]{color:#b3adb7;background:#faf8f9;cursor:not-allowed}
+.abtn[aria-disabled="true"]:hover{border-color:var(--line)}
+.abtn small{display:block;font-size:12px;letter-spacing:.02em;margin-top:2px;text-transform:none}
+.anillo-tallas{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pc--anillo .pc-foot{margin-bottom:8px}
+.anillo-guia{display:inline-block;margin-top:8px;font-size:12.5px;color:var(--plum);text-decoration:underline;text-underline-offset:3px}
+.pp-tabla{border-collapse:collapse;margin:10px 0 12px;min-width:220px}
+.pp-tabla th,.pp-tabla td{border:1px solid var(--line);padding:7px 14px;text-align:left;font-size:14px}
+.pp-tabla th{font-weight:500;background:#faf8f9}
+.anillo-tallas.is-pide{animation:pide-talla .9s ease 2}
+@keyframes pide-talla{50%{box-shadow:0 0 0 3px var(--plum);border-radius:2px}}
+@media (prefers-reduced-motion:reduce){.anillo-tallas.is-pide{animation:none;outline:2px solid var(--plum)}}
+/* carrusel de anillos: columnas algo más anchas que las de brazaletes para
+   que los cuatro botones de talla se toquen bien con el dedo */
+.anillos-rail .rail{grid-auto-columns:minmax(190px,1fr)}
 
 .fbtn--disp[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:#fff}
 
@@ -1771,3 +1791,87 @@ p,li,dd,.pp-acc-in{line-height:1.55}
 .vit-it--agot img{opacity:.45;filter:grayscale(.5)}
 .vit-it--agot .vit-n,.vit-it--agot small{color:var(--gris-suave)}
 .vit-avisa{display:block;text-align:center;text-decoration:none;color:var(--wa);border-color:var(--wa);background:#fff}
+
+
+/* ================================================================
+   Portada limpia (pedido del propietario, 2026-11-02)
+   ================================================================ */
+
+/* La lista de favoritas sigue en el HTML, oculta: es el filtro «Favoritos». */
+.grid--top[hidden]{display:none}
+
+/* Categorías en círculos, «como lo tiene Pandora»: foto de la pieza sobre un
+   círculo gris claro y el nombre debajo. Se desliza de lado en el celular. */
+.cats{background:var(--white);padding:18px 0 8px;border-top:1px solid var(--line)}
+.cats-in{max-width:var(--w);margin:0 auto;display:flex;gap:14px;overflow-x:auto;
+  padding:0 16px 10px;scrollbar-width:none;scroll-snap-type:x proximity;scroll-padding-inline:16px;overscroll-behavior-x:contain}
+.cats-in::-webkit-scrollbar{display:none}
+.cats-i{flex:0 0 auto;width:74px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  text-decoration:none;color:var(--ink);scroll-snap-align:start;-webkit-tap-highlight-color:transparent}
+.cats-f{width:74px;height:74px;border-radius:50%;background:#F1EEEF;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;transition:transform .2s ease,box-shadow .2s ease}
+.cats-f img{width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
+.cats-i--foto .cats-f img{mix-blend-mode:normal}
+.cats-n{font-size:11px;letter-spacing:.13em;text-transform:uppercase;text-align:center;line-height:1.25}
+.cats-i:active .cats-f{transform:scale(.96)}
+@media(hover:hover){.cats-i:hover .cats-f{box-shadow:0 0 0 1px var(--rose)}}
+@media(min-width:900px){
+  .cats{padding:26px 0 14px}
+  /* Centrado con márgenes automáticos y no con justify-content: si un día
+     hay más círculos que ancho, así se desliza en vez de cortar el primero. */
+  .cats-in{gap:20px}
+  .cats-i:first-child{margin-left:auto}.cats-i:last-child{margin-right:auto}
+  .cats-i{width:84px}.cats-f{width:84px;height:84px}
+}
+
+/* El catálogo abre debajo de la cabecera pegajosa, no tapado por ella. */
+#full-cat{scroll-margin-top:64px}
+
+/* Guía de tallas como ventana: oculta hasta que un enlace a #talla la abre. */
+.talla-sec{position:fixed;inset:0;z-index:140;display:none;align-items:flex-end;justify-content:center;
+  padding:0;border:0;background:rgba(42,31,46,.32);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.talla-sec.is-open{display:flex}
+.talla-sec>.wrap{position:relative;background:var(--white);width:100%;max-width:640px;
+  max-height:88dvh;overflow-y:auto;overscroll-behavior:contain;margin:0;
+  border-radius:16px 16px 0 0;padding:26px 18px calc(22px + env(safe-area-inset-bottom));
+  box-shadow:0 -18px 50px rgba(20,12,24,.2);animation:talla-sube .3s cubic-bezier(.32,.72,.29,1)}
+.talla-sec .sec-head{padding-right:40px}
+.talla-sec .talla-des{border:0;padding:0;max-width:none;background:none}
+.talla-sec .talla-des>summary{display:none}
+.talla-sec .talla-des-in{border-top:0;margin-top:0;padding-top:0}
+.talla-x{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;
+  border:1px solid var(--line);background:var(--white);color:var(--ink);cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
+.talla-on,.talla-on body{overflow:hidden}
+@media(min-width:700px){
+  .talla-sec{align-items:center;padding:24px}
+  .talla-sec>.wrap{border-radius:16px;padding:30px 28px 26px}
+}
+@keyframes talla-sube{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
+
+/* Menú ☰ como panel lateral: a la derecha, sin ocupar todo el ancho, blanco
+   para que no se confunda con el fondo, y la página desenfocada detrás.
+   La cabecera pierde su backdrop-filter mientras está abierto: con él, un
+   position:fixed de adentro se mediría contra la cabecera y no la pantalla. */
+.menu-on .top{-webkit-backdrop-filter:none;backdrop-filter:none;z-index:95}
+.menu-on,.menu-on body{overflow:hidden}
+.menu-velo{position:fixed;inset:0;z-index:1;background:rgba(42,31,46,.3);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:velo-entra .25s ease}
+.menu-velo[hidden]{display:none}
+.menu-panel{position:fixed;top:0;right:0;bottom:0;left:auto;z-index:2;
+  width:min(84vw,380px);max-width:none;height:100dvh;max-height:none;margin:0;
+  background:var(--white);border:0;border-left:1px solid var(--line);
+  box-shadow:-20px 0 50px rgba(20,12,24,.18);
+  padding:64px 24px calc(24px + env(safe-area-inset-bottom));
+  animation:menu-entra .32s cubic-bezier(.32,.72,.29,1)}
+.menu-panel a{padding:15px 2px}
+.menu-panel a b,.menu-cat summary b{font-size:21px}
+.menu-x{position:absolute;top:10px;right:12px;width:44px;height:44px;border:0;border-radius:50%;
+  background:none;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+@media(hover:hover){.menu-x:hover{background:var(--bone)}}
+@keyframes menu-entra{from{transform:translateX(100%)}to{transform:none}}
+@keyframes velo-entra{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){
+  .menu-panel,.menu-velo,.talla-sec>.wrap{animation:none}
+}

@@ -42,13 +42,22 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
   console.log(`1 · Estructura de las ${paginas.length} páginas de producto`);
   ok(paginas.length > 0, `${paginas.length} páginas encontradas`);
   const idsPagina = new Set(paginas.map(f => f.slice(9, -5)));
-  const fuera = [...idsPagina].filter(i => !(i in cat.precios));
+  /* Los anillos (2026-11-01) tienen una página por modelo, con la tarjeta de la
+     portada; se cobran sus tallas (anillo-<modelo>-t<talla>). */
+  const ANILLOS = [...leer('index.html').matchAll(/<article class="pc pc--anillo" data-id="([^"]+)"/g)].map(m => m[1]);
+  ok(ANILLOS.length > 0 && ANILLOS.every(m => idsPagina.has(m) && Object.keys(cat.precios).some(t => t.startsWith(m + '-t'))),
+    `cada anillo tiene su página y sus tallas en catalogo.json (${ANILLOS.length})`);
+  const fuera = [...idsPagina].filter(i => !(i in cat.precios) && !ANILLOS.includes(i));
   ok(fuera.length === 0, 'cada página es un id de catalogo.json' + (fuera.length ? ' — sobran: ' + fuera.join(', ') : ''));
 
   const malos = { init: [], canon: [], og: [], data: [], enlaces: [], clases: new Set() };
   for (const f of paginas) {
     const h = leer(f), id = f.slice(9, -5);
-    if ((h.match(/fbq\('init',\s*'\d+'\)/g) || []).length !== 2) malos.init.push(f);
+    /* Un solo píxel desde el 2026-11-10: «Zephora web» 2005297310144764. Una
+       rama vieja que se mezcle puede traer de vuelta el init de un píxel viejo
+       sin que nada más falle; esto lo para. */
+    const inits = [...h.matchAll(/fbq\('init',\s*'(\d+)'\)/g)].map(m => m[1]);
+    if (inits.length !== 1 || inits[0] !== '2005297310144764') malos.init.push(f);
     if (!h.includes(`<link rel="canonical" href="https://zephoracharms.com/${encodeURIComponent(f)}">`)) malos.canon.push(f);
     for (const p of ['og:title', 'og:description', 'og:image', 'og:url']) if (!h.includes(`property="${p}"`)) { malos.og.push(f); break; }
     if (!h.includes(`<body data-producto="${id}">`)) malos.data.push(f);
@@ -66,7 +75,7 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     for (const c of clases(h)) if (!conEstilo(c) && !sinEstiloPortada.has(c)) malos.clases.add(c);
   }
   const lista = a => a.length ? ' — ' + a.slice(0, 6).join(', ') + (a.length > 6 ? ` y ${a.length - 6} más` : '') : '';
-  ok(!malos.init.length, 'los dos fbq(\'init\') en todas' + lista(malos.init));
+  ok(!malos.init.length, 'un solo fbq(\'init\'), el del píxel 2005297310144764, en todas' + lista(malos.init));
   ok(!malos.canon.length, 'canonical a su propia URL en todas' + lista(malos.canon));
   ok(!malos.og.length, 'og:title/description/image/url en todas' + lista(malos.og));
   ok(!malos.data.length, '<body data-producto> con su id en todas' + lista(malos.data));
@@ -142,6 +151,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await ctx.route(/\/resenas\?medio=/, r => r.fulfill({ status: 200, contentType: 'image/png',
       body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
     await ctx.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: { ventasRegistradas: 0, tope: 12, minimoLibres: 3, vendidas: [], disponibles: {} } }));
+    /* Los videos viven en Netlify Blobs (/media/…) y el servidor local no los
+       tiene. Desde el 2026-10-31 se piden antes —el de la joya al cargar la
+       página, los de bloque a 1.500 px—, así que sin esto salían como 404 aquí
+       aunque en producción existen. Que estén de verdad lo mira paginas.js §1
+       (nombre en /media/) y, en la vista previa, la revisión a mano. */
+    await ctx.route(/\/media\/[^/]+\.mp4$/, r => r.fulfill({ status: 200, contentType: 'video/mp4', body: Buffer.alloc(0) }));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
@@ -165,7 +180,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     const errs = [], rotos = [];
     p.on('pageerror', e => errs.push(e.message));
     p.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
-    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE)) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
+    /* Los videos de /media/ viven en Netlify Blobs (los sirve una regla de
+       netlify.toml): un servidor local no los tiene; contra producción sí
+       cuentan. Salió el 2026-11-02, cuando la guía de tallas dejó de ocupar
+       espacio y el video de «Más vendidos» empezó a cargar en la prueba. */
+    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE) && !(/\/\/(localhost|127\.0\.0\.1)[:/]/.test(BASE) && /\/media\//.test(r.url()))) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
     await p.goto(BASE + '/' + encodeURIComponent(archivoDe(id)), { waitUntil: 'networkidle' });
     /* La disponibilidad de la página sale del dato real, no del conteo: hay
        que esperar a que llegue ese, o la primera página en frío la lee vacía. */
@@ -315,13 +334,13 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       enlazadas: new Set(hs.filter(h => h.querySelector('a')).map(h => h.closest('.pc').dataset.id)).size,
       sinEnlace: hs.filter(h => !h.querySelector('a') && h.closest('.pc').dataset.id !== 'letras').length,
     }));
-    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !cat.pulseras.includes(i)).length && sinEnlace === 0,
+    ok(enlazadas === cat.pulseras.length + Object.keys(cat.precios).filter(i => !i.startsWith('letra-') && !/^anillo-.+-t\d+$/.test(i) && !cat.pulseras.includes(i)).length + ANILLOS.length && sinEnlace === 0,
       `${enlazadas} piezas con su nombre enlazado a su página${sinEnlace ? ` — ${sinEnlace} sin enlace` : ''}`);
     const id = await p.$eval('.pc--top[data-id]', e => e.dataset.id);
-    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-img`)]);
+    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`#resto-grid .pc[data-id="${id}"] .pc-img`)]);
     ok(true, `tocar la foto de ${id} en la portada lleva a ${archivoDe(id)}`);
     await p.goBack({ waitUntil: 'networkidle' });
-    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`.pc[data-id="${id}"] .pc-name a`)]);
+    await Promise.all([p.waitForURL(llegaA(archivoDe(id))), p.click(`#resto-grid .pc[data-id="${id}"] .pc-name a`)]);
     ok(true, 'y tocar su nombre, también');
     await p.goBack({ waitUntil: 'networkidle' });
     const conBoton = await p.evaluate(() => {
@@ -375,7 +394,8 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     ok(!sinSalida.length, 'ninguna ficha tiene «Ver todo el catálogo»' + lista(sinSalida));
     const sinVit = paginas.filter(f => !leer(f).includes('class="vit"'));
     ok(!sinVit.length, `las ${paginas.length} fichas traen la vitrina` + lista(sinVit));
-    const grupos = [...new Set(Object.entries(cat.grupos).filter(([i]) => cat.precios[i]).map(([, g]) => g))];
+    /* «Anillos» no es pestaña de la vitrina: la talla se elige en su tarjeta. */
+    const grupos = [...new Set(Object.entries(cat.grupos).filter(([i]) => cat.precios[i]).map(([, g]) => g))].filter(g => g !== 'Anillos');
 
     const charm = tipos.find(t => t[0] === 'charm con unidades')[1];
     await p.goto(BASE + '/' + archivoDe(charm), { waitUntil: 'networkidle' });
@@ -440,7 +460,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     const p = await ctxC.newPage();
     const errs = [], rotos = [];
     p.on('pageerror', e => errs.push(e.message));
-    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE)) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
+    /* Los videos de /media/ viven en Netlify Blobs (los sirve una regla de
+       netlify.toml): un servidor local no los tiene; contra producción sí
+       cuentan. Salió el 2026-11-02, cuando la guía de tallas dejó de ocupar
+       espacio y el video de «Más vendidos» empezó a cargar en la prueba. */
+    p.on('response', r => { if (r.status() >= 400 && r.url().startsWith(BASE) && !(/\/\/(localhost|127\.0\.0\.1)[:/]/.test(BASE) && /\/media\//.test(r.url()))) rotos.push(r.status() + ' ' + r.url().slice(BASE.length)); });
     await p.goto(BASE + '/' + f, { waitUntil: 'networkidle' });
     const des = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     const entra = htmlRaiz.filter(o => o !== f && leer(o).includes(`href="${f}"`)).length;

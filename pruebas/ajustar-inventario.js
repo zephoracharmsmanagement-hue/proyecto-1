@@ -263,6 +263,33 @@ async function main() {
     comprobar(sinTalla.r.status === 400, 'sobrante de brazalete sin talla → 400');
   }
 
+  console.log('\n7b · Reposición: suma igual que sobrante, con su propia etiqueta');
+  {
+    salidas.length = 0;
+    const antes = await libres(charm);
+    const { r, d } = await pedir({ motivo: 'Reposición', charms: [charm, charm, charm], nota: 'llegada pedido proveedor' });
+    comprobar(r.status === 200 && d.motivo === 'reposicion' && d.signo === 1 && /^AJ-/.test(d.referencia),
+      '«Reposición» (con tilde y mayúscula) → 200, motivo reposicion, signo +1', JSON.stringify({ m: d.motivo, s: d.signo }));
+    comprobar(await libres(charm) === antes + 3, `suma 3 al contador de la tienda (${antes} → ${await libres(charm)})`);
+    comprobar(d.restante && d.restante[charm] === antes + 3, 'devuelve lo que queda, del propio CAS');
+    comprobar(!salidas.some(s => /facebook|graph\./.test(s.url)), 'no manda nada a Meta');
+    const sh = filasHoja();
+    comprobar(sh.length === 1 && sh[0].tipo === 'ajuste' && sh[0].unidades === 3 && sh[0].motivo === 'reposición'
+      && sh[0].quedan === d.restante[charm], 'a la hoja: ajuste «reposición» con +3, distinto de «sobrante»', JSON.stringify(sh));
+    const reg = await ped.leer(d.referencia);
+    comprobar(reg && reg.estado === 'ajuste' && reg.motivo === 'reposicion' && reg.signo === 1,
+      'queda como ajuste con motivo reposicion y signo +1');
+    const ventas = await contar();
+    comprobar(!(charm in ventas) || ventas[charm] === undefined, 'no aparece en «vendidas»');
+
+    salidas.length = 0;
+    const rv = await pedir({ anular: d.referencia });
+    comprobar(rv.r.status === 200 && await libres(charm) === antes, 'revertir quita las 3 unidades sumadas');
+    const srh = filasHoja();
+    comprobar(srh.length === 1 && srh[0].unidades === -3 && srh[0].motivo === 'reversión: reposición',
+      'y a la hoja va su reversión con −3', JSON.stringify(srh.map(f => [f.referencia, f.unidades, f.motivo])));
+  }
+
   console.log('\n8 · Reclasificar un «regalo» como ajuste');
   {
     /* Un bloqueo hecho como regalo, como los del conteo del 10-oct: el
@@ -288,6 +315,8 @@ async function main() {
       'una venta cobrada no se reclasifica (409) y queda igual');
     const sumando = await pedir({ reclasificar: 'MAN-REGALO-1', motivo: 'sobrante' });
     comprobar(sumando.r.status === 400, 'reclasificar como «sobrante» → 400 (un regalo quitó unidades)');
+    const reponiendo = await pedir({ reclasificar: 'MAN-REGALO-1', motivo: 'reposición' });
+    comprobar(reponiendo.r.status === 400, 'ni como «reposición» → 400');
     const noHay = await pedir({ reclasificar: 'MAN-260101-00000000', motivo: 'faltante' });
     comprobar(noHay.r.status === 404, 'un MAN- que no existe → 404');
     const ventaMan = await pedir({ anular: 'MAN-COBRADA-0' });
