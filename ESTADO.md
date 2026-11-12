@@ -5,7 +5,7 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — rama `claude/pixel-nuevo` (2026-11-10)
+## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — en `main` desde el 2026-11-10 (PR #45)
 
 Todo lo de Meta (página, cuenta `1583713932705268`, portafolio
 `1499356148452488` y los píxeles `2130673404542988` y `1029982529813994`)
@@ -16,7 +16,10 @@ desde el perfil personal del dueño: portafolio `1157598043799973`, página
 Principal» `1683479286750530` y píxel «Zephora web» `2005297310144764`.
 
 - Las 174 páginas inician **solo** el píxel nuevo (antes, dos). Los
-  generadores exigen 1 `fbq('init')`. Las pruebas `pixel` y `paginas` pasan.
+  generadores exigen 1 `fbq('init')`. *Corrección del 2026-11-12:* `paginas`
+  **no** pasaba — seguía exigiendo dos `init` y quedó en rojo en `main`. Ahora
+  exige uno y que sea `2005297310144764`, así que una rama vieja que traiga de
+  vuelta un píxel viejo la pone en rojo.
 - `_meta.js` usa el nuevo por defecto.
 - **Al desplegar, en el mismo momento:** en Netlify, `META_PIXEL_ID=2005297310144764`
   y `META_CAPI_TOKEN` con el token generado en el dataset nuevo. Si se
@@ -28,7 +31,7 @@ Principal» `1683479286750530` y píxel «Zephora web» `2005297310144764`.
   `anuncios-zephora/prueba-social-anuncios-2026-11-10.md` (fuera del repo).
   Solo sirven si se recupera la página vieja.
 
-## Filtro «Religiosos» en el catálogo — rama `claude/filtro-religiosos`
+## Filtro «Religiosos» en el catálogo — en `main` desde el 2026-11-02 (PR #43)
 
 Pedido del propietario del 2-nov: una sección de solo religiosos, aparte de
 Símbolos. Botón «Religiosos» después de «Símbolos» con Virgen María, Virgen de
@@ -38,7 +41,7 @@ Símbolos porque de ahí leen el checkout, disponibilidad.mjs, la colección
 Símbolos y la hoja de la asesora. Funciona también `index.html?cat=Religiosos`.
 Pieza religiosa nueva → ponerle `data-tema="Religiosos"` a su tarjeta.
 
-## Portada limpia: círculos de categoría, sin pasos, menú lateral — rama `claude/portada-limpia` (vista previa, sin desplegar)
+## Portada limpia: círculos de categoría, sin pasos, menú lateral — en `main` desde el 2026-11-02 (PR #42)
 
 Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»).
 
@@ -71,7 +74,7 @@ Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»
   coleccion-mas-vendidos que solo pasa en el servidor local (el video vive en
   Blobs; sin la guía de tallas el bloque queda más arriba y empieza a cargar).
 
-## Piezas nuevas del 6-nov y videos que faltaban — PR (vista previa, sin desplegar)
+## Piezas nuevas del 6-nov y videos que faltaban — en `main` desde el 2026-11-06 (PR #44)
 
 Conteo del 5/6-nov del propietario y zips «Faltantes video y foto», «2» e
 IMG_2476. Precios suyos: los 7 charms nuevos **$92.000**, Barril Pandora
@@ -93,7 +96,7 @@ IMG_2476. Precios suyos: los 7 charms nuevos **$92.000**, Barril Pandora
   el 6-nov); sigue en el catálogo como agotada.
 - stock.json: solo entradas nuevas; «generado» no se toca.
 
-## Piezas nuevas de noviembre y anillos con talla — PR #39 (vista previa, sin desplegar)
+## Piezas nuevas de noviembre y anillos con talla — en `main` desde el 2026-11-01 (PR #39)
 
 Zip «Charms nuevos» (1-nov), «Anillos y faltantes» y el inventario
 `Inventario_Zephora_Nuevo_v3.csv` del propietario. Precios suyos: Avengers
@@ -1037,7 +1040,12 @@ se puede verificar desde aquí: eso lo hace el propietario.
 - **Franja de atajos** en la portada: Kits · Marvel · Brazaletes · Charms.
 - **El bot de WhatsApp** al día en material y sin precios escritos a mano.
 
-### Hecho, sin fusionar todavía — beneficios gratis, Addi y promo (2026-09-21)
+### Beneficios gratis, Addi y promo (2026-09-21) — ya en `main`
+
+> *2026-11-12:* esta rama y `claude/charming-sagan-l4q2eq` ya están enteras
+> en `main` (`git merge-base --is-ancestor`); el aviso de «sin fusionar» de
+> abajo es historia. La promo que se nombra aquí tampoco es la vigente: ver
+> CLAUDE.md § *El tercer dije*.
 
 Rama `claude/beneficios-gratis-addi-promo`, sobre `main` en `503cd3a`. A pedido
 directo del propietario: explotar en la página lo que ya se regala con la
