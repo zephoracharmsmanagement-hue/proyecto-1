@@ -119,7 +119,9 @@ nombra a Pandora — riesgo de marca.
 
 - **Pixel `2005297310144764`** («Zephora web», desde el 2026-11-10), en producción.
   Dispara `PageView`, `ViewContent`, `AddToCart`, `InitiateCheckout`, `Lead`
-  (conversión real del sitio — el pago ocurre fuera, ver abajo) y `Contact`.
+  (**solo suscripción al correo**; los clics a WhatsApp van como `Contact`) y `Contact`.
+  Catálogo `1450803473847516` conectado desde el 2026-11-12, con feed
+  `/feeds/meta-catalogo.csv` (ver `automatizaciones/meta-ads/CATALOGO.md`).
   Detalle completo en `README.md` § Medición.
 - **`meta/` — scripts de solo lectura** (`verificar.mjs`, `pixel.mjs`,
   `metricas.mjs`), corren en la máquina del usuario con su token en `.env`.
