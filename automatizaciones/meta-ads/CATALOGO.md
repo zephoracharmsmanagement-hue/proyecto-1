@@ -1,8 +1,19 @@
 # Catálogo de Meta, feed del sitio y públicos del píxel nuevo
 
-Estado al 2026-11-12. Rama `claude/tender-pascal-s3tu2h`. Nada de esto está
-creado en Meta todavía: los cuatro pasos de abajo esperan la aprobación del
-dueño (regla de la cuenta, ver CLAUDE.md § *Modo de operación acordado*).
+Estado al 2026-11-12. Feed en producción desde el PR #47 (`b7610cc`).
+
+**Hecho en Meta el 2026-11-12, con aprobación del dueño:**
+
+| Qué | ID | Estado |
+|---|---|---|
+| Catálogo «Zephora · Catálogo web» (portafolio `1157598043799973`) | `1450803473847516` | creado |
+| Feed «Sitio · catalogo-meta» → `/feeds/meta-catalogo.csv` | `1920555588925923` | descarga **cada hora**, America/Bogota. La programación falló al crear y se puso después con `replace_schedule` |
+| Píxel `2005297310144764` conectado al catálogo | — | conectado |
+| Público «IC + AddToCart sin compra (180d)» | — | **bloqueado**: la cuenta no ha aceptado los términos de públicos personalizados (error 2663). El dueño los acepta en `facebook.com/customaudiences/app/tos/?act=1683479286750530` y se reintenta el paso C tal cual |
+| `Lead` como conversión personalizada | — | pendiente, a mano (paso D). Decisión del dueño: **solo suscripciones** |
+
+Primera carga: 166 artículos detectados, 0 inválidos. Única advertencia:
+«WALL·E» en mayúsculas — es el nombre real, no se aplica la regla de Meta.
 
 Comprobado por API el 2026-11-12, antes de proponer nada:
 
@@ -74,8 +85,7 @@ paso 2 con `ads_catalog_event_source_get_health` → `match_rate`.
 
 ## 2 · Payloads para aprobar
 
-**Requisito previo:** el feed tiene que estar en producción (merge a `main`, un
-despliegue). Si el catálogo se crea antes, la primera descarga da 404.
+*(Registro de lo aprobado y ejecutado. Arriba, el estado.)*
 
 ### Paso A — crear el catálogo con el feed programado
 
