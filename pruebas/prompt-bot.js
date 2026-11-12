@@ -204,7 +204,7 @@ function main() {
   const [[p1, g1], [p2, g2]] = [reglas.promo.tramos[0], reglas.promo.tramos[reglas.promo.tramos.length - 1]];
   comprobar(new RegExp(`paga ${p1 - g1} y llevate ${g1} gratis`, 'i').test(prompt) && new RegExp(`paga ${p2 - g2} y llevate ${g2} gratis`, 'i').test(prompt),
     `anuncia «paga ${p1 - g1}, lleva ${g1} gratis» y «paga ${p2 - g2}, lleva ${g2}»`);
-  comprobar(/charms y brazaletes cuentan igual/i.test(prompt),
+  comprobar(/charms(, anillos)? y brazaletes cuentan igual/i.test(prompt),
     'dice que el brazalete cuenta como una pieza más');
   comprobar(/MENOR valor sale gratis/i.test(prompt),
     'dice que la gratis es la de menor valor');
