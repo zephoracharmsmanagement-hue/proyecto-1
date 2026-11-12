@@ -5,13 +5,31 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## PR abiertos al 2026-11-12 — revisión, esperando decisión del propietario
+## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
+
+Pedido del propietario (2026-11-01): contar los anillos, las charms nuevas, los
+brazaletes nuevos y lo que volvió. Eligió una función en el sitio (no Broadcasts de
+Resend, para no tener dos listas de bajas), remitente `novedades@`, prueba a
+`zephoracharms@gmail.com` y los $15.000 solo a quien no los usó.
+**No se manda a la lista hasta que el propietario diga «enviar».** Cómo se usa:
+README § «Correos de novedades a las suscriptoras». Falta crear `BOLETIN_KEY`
+en Netlify si no está.
+
+*2026-11-12:* la campaña `novedades-2026-11-01` (se dejó la clave) trae ahora
+también los 7 charms del 6-nov. La Pulsera Barril Pandora **no** va en el correo:
+nombra a la marca, el mismo riesgo por el que `assets/ads/` deja fuera la
+variante con Pandora.
+
+## PR abiertos al 2026-11-12 — revisión y lo que decidió el propietario
 
 Cada rama se fusionó de prueba sobre `main` (`636b791`) y se corrió
 `./pruebas/correr.sh` completo. En ninguna el resultado inicia otro píxel:
 172 páginas con un solo `fbq('init','2005297310144764')`. `paginas.js` ahora
-lo exige (antes pedía dos y estaba en rojo en `main`). **Nada se fusionó ni se
-cerró: espera la respuesta del propietario.**
+lo exige (antes pedía dos y estaba en rojo en `main`).
+
+**Decisión del propietario (2026-11-12): aplicar la tabla.** #36, #38, #40 y
+#41 (rebasado) entran juntos en un solo despliegue, a través de la rama
+`claude/exciting-feynman-xb99sd`; #33 y #17 se cierran con su razón.
 
 | PR | Rama | Sale de | Pruebas | Recomendación |
 |---|---|---|---|---|
