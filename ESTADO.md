@@ -5,6 +5,23 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## PR abiertos al 2026-11-12 — revisión, esperando decisión del propietario
+
+Cada rama se fusionó de prueba sobre `main` (`636b791`) y se corrió
+`./pruebas/correr.sh` completo. En ninguna el resultado inicia otro píxel:
+172 páginas con un solo `fbq('init','2005297310144764')`. `paginas.js` ahora
+lo exige (antes pedía dos y estaba en rojo en `main`). **Nada se fusionó ni se
+cerró: espera la respuesta del propietario.**
+
+| PR | Rama | Sale de | Pruebas | Recomendación |
+|---|---|---|---|---|
+| #36 | `motivo-reposicion` | `caccc2a` (30-oct) | verde | Fusionar: limpio, chico, con prueba |
+| #38 | `carga-fotos-videos` | `768572a` (31-oct) | verde | Fusionar: limpio; el generador reproduce los kits idénticos |
+| #40 | `prompt-asesora-anillos` | `f8c05c7` (1-nov) | **5 rojas en `prompt-bot`** | Fusionar: la copia es idéntica al prompt en vivo (`06924ea1`). Las rojas son del prompt **publicado**, no de la rama (promete «ya le avisé al equipo», sin `[VERIFICAR DESCUENTO]`, $15.000 que no cuadra con catalogo.json). `main` da verde porque su copia es vieja. Arreglarlo es tocar n8n. Corregir también el encabezado «Versión publicada» (dice `3beca3e2`) |
+| #41 | `boletin-novedades-nov` | `f8c05c7` (1-nov) | verde | Rebasar y fusionar: choca solo en ESTADO.md. El texto es del 1-nov y no incluye las piezas del 6-nov. Hace falta `BOLETIN_KEY` en Netlify; no se envía sin «enviar». Suma 2 funciones (35 → 37) |
+| #33 | `portada-estilo` | `35eed4a` (28-oct) | verde | Cerrar: la portada limpia del 2-nov (#42), «como Pandora», la reemplazó. Pisa `.talla-sec`, que ahora es ventana. Choca en ESTADO.md |
+| #17 | `bot-propio` | `0871739` (2-oct) | verde (no tiene pruebas propias) | Cerrar o rehacer: `conocimiento_bot.py` se cae con `KeyError: 'lleva'`, porque la promo pasó a `tramos` y escribe la promo cíclica, que ya no existe |
+
 ## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — en `main` desde el 2026-11-10 (PR #45)
 
 Todo lo de Meta (página, cuenta `1583713932705268`, portafolio
