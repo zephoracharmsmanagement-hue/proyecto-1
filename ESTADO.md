@@ -5,6 +5,17 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Catálogo de Meta: feed del sitio listo, nada creado en Meta todavía — rama `claude/tender-pascal-s3tu2h` (2026-11-12)
+
+Función nueva `netlify/functions/catalogo-meta.mjs` → `/feeds/meta-catalogo.csv`:
+una fila por id de `catalogo.json` (el mismo que manda el píxel), precio de
+`calcular()`, disponibilidad = conteo − apartado (Blobs; 503 si no responde),
+brazaletes por suma de tallas, anillos como variantes. Prueba
+`pruebas/catalogo-meta.js`. **Catálogo, conexión al píxel, público 180 d y
+`Lead` como conversión esperan aprobación del dueño**; payloads exactos en
+[`automatizaciones/meta-ads/CATALOGO.md`](automatizaciones/meta-ads/CATALOGO.md).
+El catálogo se crea **después** de desplegar, o la primera descarga da 404.
+
 ## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — rama `claude/pixel-nuevo` (2026-11-10)
 
 Todo lo de Meta (página, cuenta `1583713932705268`, portafolio
