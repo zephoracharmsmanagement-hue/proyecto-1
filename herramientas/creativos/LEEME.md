@@ -11,6 +11,7 @@ python3 herramientas/creativos/lote_final.py      # 5 anuncios × 3 formatos (1:
 python3 herramientas/creativos/historia_avengers_v2.py   # historia «Paga 4, lleva 2 gratis», estilo estudio
 python3 herramientas/creativos/historia_talla.py         # historia «¿Qué talla es la mía?»
 python3 herramientas/creativos/historias_31oct.py        # 3 historias del 31-oct (quincena, encuesta, clienta)
+python3 herramientas/creativos/historias_estudio.py      # 6 historias del día en estilo estudio (revisión del 12-nov en su cabecera)
 ```
 
 Necesitan, en `material-sin-publicar/creativos/` (fuera de git):
