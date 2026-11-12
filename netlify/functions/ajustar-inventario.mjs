@@ -37,6 +37,10 @@
  * se borra sola, porque el conteo nuevo ya trae esas unidades. Pedido del
  * propietario tras el conteo del 10-oct.
  *
+ * «reposición» suma exactamente igual que «sobrante»; solo cambia la etiqueta
+ * en la hoja: mercancía nueva del proveedor, no un error de conteo. Pedido del
+ * propietario tras la llegada del 30-oct, que entró como «sobrante».
+ *
  * ── Reclasificar un «regalo» ──
  *
  * Antes de que existiera esto, los faltantes se registraban en registrar-venta
@@ -52,7 +56,7 @@
  * secreto nuevo.
  *
  *   Ajustar: { motivo, charms:[ids], base:{id,talla}, nota }
- *            motivo: faltante | sobrante | dañada | error de conteo | bloqueo temporal
+ *            motivo: faltante | sobrante | reposición | dañada | error de conteo | bloqueo temporal
  *            (acepta mayúsculas, tildes y espacios: sirve tal cual la etiqueta
  *            de un desplegable). base es opcional; un brazalete pide talla.
  *            Una unidad por pieza nombrada (repetir el id = más unidades).
@@ -70,9 +74,9 @@ import { reservar, confirmar, anular, sumar, quitarSuma, _interno as INV_INTERNO
 import { guardar, leer, marcar } from './_pedidos.mjs';
 import { anotarAjuste } from './_hoja.mjs';
 
-const MOTIVOS = ['faltante', 'sobrante', 'danada', 'error-de-conteo', 'bloqueo-temporal'];
+const MOTIVOS = ['faltante', 'sobrante', 'reposicion', 'danada', 'error-de-conteo', 'bloqueo-temporal'];
 /* Los que suman unidades; el resto las quita. */
-const SUMAN = new Set(['sobrante']);
+const SUMAN = new Set(['sobrante', 'reposicion']);
 const CABECERAS = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const responder = (codigo, cuerpo) =>
   new Response(JSON.stringify(cuerpo), { status: codigo, headers: CABECERAS });
@@ -106,7 +110,7 @@ const texto = (v, max) => String(v == null ? '' : v).trim().slice(0, max);
 const sku = (id, talla) => (talla ? `${id}|${talla}` : id);
 
 /* En la hoja el motivo va como lo lee una persona, no en forma canónica. */
-const ETIQUETAS = { faltante: 'faltante', sobrante: 'sobrante', danada: 'dañada',
+const ETIQUETAS = { faltante: 'faltante', sobrante: 'sobrante', reposicion: 'reposición', danada: 'dañada',
   'error-de-conteo': 'error de conteo', 'bloqueo-temporal': 'bloqueo temporal' };
 const etiqueta = m => ETIQUETAS[m] || m || '';
 
@@ -129,7 +133,7 @@ async function revertir(ref) {
     const s = sku(l.id, l.talla);
     items[s] = (items[s] || 0) + (l.unidades || 1);
   });
-  /* Un sobrante se deshace quitando su suma; el resto, devolviendo lo quitado. */
+  /* Un sobrante o una reposición se deshace quitando su suma; el resto, devolviendo lo quitado. */
   const r = SUMAN.has(registro.motivo) ? await quitarSuma(ref) : await anular(ref, items);
   if (!r || (r.modo !== 'anulada' && r.modo !== 'ya-anulada')) {
     return responder(503, { error: 'El inventario no respondió; no se revirtió nada', modo: r && r.modo });
@@ -169,7 +173,7 @@ export default async (req) => {
 
   const motivo = normalizarMotivo(cuerpo.motivo);
   if (!MOTIVOS.includes(motivo)) {
-    return responder(400, { error: 'motivo debe ser uno de: faltante, sobrante, dañada, error de conteo, bloqueo temporal' });
+    return responder(400, { error: 'motivo debe ser uno de: faltante, sobrante, reposición, dañada, error de conteo, bloqueo temporal' });
   }
 
   if (cuerpo.reclasificar) return reclasificar(String(cuerpo.reclasificar), motivo, texto(cuerpo.nota, 500));

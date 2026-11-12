@@ -5,6 +5,41 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
+
+Pedido del propietario (2026-11-01): contar los anillos, las charms nuevas, los
+brazaletes nuevos y lo que volvió. Eligió una función en el sitio (no Broadcasts de
+Resend, para no tener dos listas de bajas), remitente `novedades@`, prueba a
+`zephoracharms@gmail.com` y los $15.000 solo a quien no los usó.
+**No se manda a la lista hasta que el propietario diga «enviar».** Cómo se usa:
+README § «Correos de novedades a las suscriptoras». Falta crear `BOLETIN_KEY`
+en Netlify si no está.
+
+*2026-11-12:* la campaña `novedades-2026-11-01` (se dejó la clave) trae ahora
+también los 7 charms del 6-nov. La Pulsera Barril Pandora **no** va en el correo:
+nombra a la marca, el mismo riesgo por el que `assets/ads/` deja fuera la
+variante con Pandora.
+
+## PR abiertos al 2026-11-12 — revisión y lo que decidió el propietario
+
+Cada rama se fusionó de prueba sobre `main` (`636b791`) y se corrió
+`./pruebas/correr.sh` completo. En ninguna el resultado inicia otro píxel:
+172 páginas con un solo `fbq('init','2005297310144764')`. `paginas.js` ahora
+lo exige (antes pedía dos y estaba en rojo en `main`).
+
+**Decisión del propietario (2026-11-12): aplicar la tabla.** #36, #38, #40 y
+#41 (rebasado) entran juntos en un solo despliegue, a través de la rama
+`claude/exciting-feynman-xb99sd`; #33 y #17 se cierran con su razón.
+
+| PR | Rama | Sale de | Pruebas | Recomendación |
+|---|---|---|---|---|
+| #36 | `motivo-reposicion` | `caccc2a` (30-oct) | verde | Fusionar: limpio, chico, con prueba |
+| #38 | `carga-fotos-videos` | `768572a` (31-oct) | verde | Fusionar: limpio; el generador reproduce los kits idénticos |
+| #40 | `prompt-asesora-anillos` | `f8c05c7` (1-nov) | **5 rojas en `prompt-bot`** | Fusionar: la copia es idéntica al prompt en vivo (`06924ea1`). Las rojas son del prompt **publicado**, no de la rama (promete «ya le avisé al equipo», sin `[VERIFICAR DESCUENTO]`, $15.000 que no cuadra con catalogo.json). `main` da verde porque su copia es vieja. Arreglarlo es tocar n8n. Corregir también el encabezado «Versión publicada» (dice `3beca3e2`) |
+| #41 | `boletin-novedades-nov` | `f8c05c7` (1-nov) | verde | Rebasar y fusionar: choca solo en ESTADO.md. El texto es del 1-nov y no incluye las piezas del 6-nov. Hace falta `BOLETIN_KEY` en Netlify; no se envía sin «enviar». Suma 2 funciones (35 → 37) |
+| #33 | `portada-estilo` | `35eed4a` (28-oct) | verde | Cerrar: la portada limpia del 2-nov (#42), «como Pandora», la reemplazó. Pisa `.talla-sec`, que ahora es ventana. Choca en ESTADO.md |
+| #17 | `bot-propio` | `0871739` (2-oct) | verde (no tiene pruebas propias) | Cerrar o rehacer: `conocimiento_bot.py` se cae con `KeyError: 'lleva'`, porque la promo pasó a `tramos` y escribe la promo cíclica, que ya no existe |
+
 ## Catálogo de Meta conectado al píxel nuevo — desplegado el 2026-11-12 (PR #47)
 
 `/feeds/meta-catalogo.csv` (función `catalogo-meta.mjs`): ids de
@@ -17,7 +52,7 @@ crear `Lead` (solo suscripciones) como conversión en Events Manager. Detalle
 en [`automatizaciones/meta-ads/CATALOGO.md`](automatizaciones/meta-ads/CATALOGO.md).
 Pieza nueva → aparece sola en el feed; no hay que tocar Meta.
 
-## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — rama `claude/pixel-nuevo` (2026-11-10)
+## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — en `main` desde el 2026-11-10 (PR #45)
 
 Todo lo de Meta (página, cuenta `1583713932705268`, portafolio
 `1499356148452488` y los píxeles `2130673404542988` y `1029982529813994`)
@@ -28,7 +63,10 @@ desde el perfil personal del dueño: portafolio `1157598043799973`, página
 Principal» `1683479286750530` y píxel «Zephora web» `2005297310144764`.
 
 - Las 174 páginas inician **solo** el píxel nuevo (antes, dos). Los
-  generadores exigen 1 `fbq('init')`. Las pruebas `pixel` y `paginas` pasan.
+  generadores exigen 1 `fbq('init')`. *Corrección del 2026-11-12:* `paginas`
+  **no** pasaba — seguía exigiendo dos `init` y quedó en rojo en `main`. Ahora
+  exige uno y que sea `2005297310144764`, así que una rama vieja que traiga de
+  vuelta un píxel viejo la pone en rojo.
 - `_meta.js` usa el nuevo por defecto.
 - **Al desplegar, en el mismo momento:** en Netlify, `META_PIXEL_ID=2005297310144764`
   y `META_CAPI_TOKEN` con el token generado en el dataset nuevo. Si se
@@ -40,7 +78,7 @@ Principal» `1683479286750530` y píxel «Zephora web» `2005297310144764`.
   `anuncios-zephora/prueba-social-anuncios-2026-11-10.md` (fuera del repo).
   Solo sirven si se recupera la página vieja.
 
-## Filtro «Religiosos» en el catálogo — rama `claude/filtro-religiosos`
+## Filtro «Religiosos» en el catálogo — en `main` desde el 2026-11-02 (PR #43)
 
 Pedido del propietario del 2-nov: una sección de solo religiosos, aparte de
 Símbolos. Botón «Religiosos» después de «Símbolos» con Virgen María, Virgen de
@@ -50,7 +88,7 @@ Símbolos porque de ahí leen el checkout, disponibilidad.mjs, la colección
 Símbolos y la hoja de la asesora. Funciona también `index.html?cat=Religiosos`.
 Pieza religiosa nueva → ponerle `data-tema="Religiosos"` a su tarjeta.
 
-## Portada limpia: círculos de categoría, sin pasos, menú lateral — rama `claude/portada-limpia` (vista previa, sin desplegar)
+## Portada limpia: círculos de categoría, sin pasos, menú lateral — en `main` desde el 2026-11-02 (PR #42)
 
 Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»).
 
@@ -83,7 +121,7 @@ Pedido del propietario del 2-nov («limpiar la vista del cliente, como Pandora»
   coleccion-mas-vendidos que solo pasa en el servidor local (el video vive en
   Blobs; sin la guía de tallas el bloque queda más arriba y empieza a cargar).
 
-## Piezas nuevas del 6-nov y videos que faltaban — PR (vista previa, sin desplegar)
+## Piezas nuevas del 6-nov y videos que faltaban — en `main` desde el 2026-11-06 (PR #44)
 
 Conteo del 5/6-nov del propietario y zips «Faltantes video y foto», «2» e
 IMG_2476. Precios suyos: los 7 charms nuevos **$92.000**, Barril Pandora
@@ -105,7 +143,7 @@ IMG_2476. Precios suyos: los 7 charms nuevos **$92.000**, Barril Pandora
   el 6-nov); sigue en el catálogo como agotada.
 - stock.json: solo entradas nuevas; «generado» no se toca.
 
-## Piezas nuevas de noviembre y anillos con talla — PR #39 (vista previa, sin desplegar)
+## Piezas nuevas de noviembre y anillos con talla — en `main` desde el 2026-11-01 (PR #39)
 
 Zip «Charms nuevos» (1-nov), «Anillos y faltantes» y el inventario
 `Inventario_Zephora_Nuevo_v3.csv` del propietario. Precios suyos: Avengers
@@ -1049,7 +1087,12 @@ se puede verificar desde aquí: eso lo hace el propietario.
 - **Franja de atajos** en la portada: Kits · Marvel · Brazaletes · Charms.
 - **El bot de WhatsApp** al día en material y sin precios escritos a mano.
 
-### Hecho, sin fusionar todavía — beneficios gratis, Addi y promo (2026-09-21)
+### Beneficios gratis, Addi y promo (2026-09-21) — ya en `main`
+
+> *2026-11-12:* esta rama y `claude/charming-sagan-l4q2eq` ya están enteras
+> en `main` (`git merge-base --is-ancestor`); el aviso de «sin fusionar» de
+> abajo es historia. La promo que se nombra aquí tampoco es la vigente: ver
+> CLAUDE.md § *El tercer dije*.
 
 Rama `claude/beneficios-gratis-addi-promo`, sobre `main` en `503cd3a`. A pedido
 directo del propietario: explotar en la página lo que ya se regala con la
@@ -3669,12 +3712,12 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **34 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **38 functions**
 —las mismas que archivos hay en `netlify/functions/` (`ls netlify/functions | wc -l`)—:
 `_addi`, `_atribucion`, `_carrito`, `_cierre`, `_correo`, `_envios`, `_hoja`,
 `_inventario`, `_meta`, `_pedidos`, `_precios`, `_rango`, `_sistecredito`,
-`_suscriptores`, `addi-callback`, `ajustar-inventario`, `armar-carrito`,
-`crear-pago`, `disponibilidad`, `envio-estado`, `estado-pedido`,
+`_suscriptores`, `_boletin`, `addi-callback`, `ajustar-inventario`,
+`armar-carrito`, `boletin`, `catalogo-meta`, `crear-pago`, `descuento-suscripcion`, `disponibilidad`, `envio-estado`, `estado-pedido`,
 `mas-vendidos`, `media`, `posventa`, `reanudar`, `registrar-venta`, `rescate`,
 `resenas`, `sistecredito-aviso`, `sistecredito-enlace`, `suscribir`,
 `suscriptores-export`, `vendidas`, `wompi-webhook`;
@@ -3686,7 +3729,8 @@ anterior.
 > 9 hasta que la consolidación trajo `_atribucion.mjs` y `disponibilidad.mjs`
 > —el despliegue `6a88fa3a` reportó 11—, 14 desde que la fundación de
 > conversión trajo `reanudar.mjs`, `armar-carrito.mjs` y `_carrito.mjs`, 31 en
-> el despliegue de posventa (2026-10-13) y **34 desde Sistecrédito**
+> el despliegue de posventa (2026-10-13), 34 desde Sistecrédito, 35 con
+> `descuento-suscripcion` (nadie la anotó aquí) 37 con el boletín y **38 con `catalogo-meta`** (2026-11-12)
 > (2026-10-16, despliegue `6ad2532973b503b1b66ee35c`). Entre el 14 y el 31 nadie
 > la actualizó durante semanas.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima

@@ -53,7 +53,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
   const malos = { init: [], canon: [], og: [], data: [], enlaces: [], clases: new Set() };
   for (const f of paginas) {
     const h = leer(f), id = f.slice(9, -5);
-    if ((h.match(/fbq\('init',\s*'\d+'\)/g) || []).length !== 2) malos.init.push(f);
+    /* Un solo píxel desde el 2026-11-10: «Zephora web» 2005297310144764. Una
+       rama vieja que se mezcle puede traer de vuelta el init de un píxel viejo
+       sin que nada más falle; esto lo para. */
+    const inits = [...h.matchAll(/fbq\('init',\s*'(\d+)'\)/g)].map(m => m[1]);
+    if (inits.length !== 1 || inits[0] !== '2005297310144764') malos.init.push(f);
     if (!h.includes(`<link rel="canonical" href="https://zephoracharms.com/${encodeURIComponent(f)}">`)) malos.canon.push(f);
     for (const p of ['og:title', 'og:description', 'og:image', 'og:url']) if (!h.includes(`property="${p}"`)) { malos.og.push(f); break; }
     if (!h.includes(`<body data-producto="${id}">`)) malos.data.push(f);
@@ -71,7 +75,7 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     for (const c of clases(h)) if (!conEstilo(c) && !sinEstiloPortada.has(c)) malos.clases.add(c);
   }
   const lista = a => a.length ? ' — ' + a.slice(0, 6).join(', ') + (a.length > 6 ? ` y ${a.length - 6} más` : '') : '';
-  ok(!malos.init.length, 'los dos fbq(\'init\') en todas' + lista(malos.init));
+  ok(!malos.init.length, 'un solo fbq(\'init\'), el del píxel 2005297310144764, en todas' + lista(malos.init));
   ok(!malos.canon.length, 'canonical a su propia URL en todas' + lista(malos.canon));
   ok(!malos.og.length, 'og:title/description/image/url en todas' + lista(malos.og));
   ok(!malos.data.length, '<body data-producto> con su id en todas' + lista(malos.data));
@@ -147,6 +151,12 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
     await ctx.route(/\/resenas\?medio=/, r => r.fulfill({ status: 200, contentType: 'image/png',
       body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64') }));
     await ctx.route('**/.netlify/functions/mas-vendidos', r => r.fulfill({ json: { ventasRegistradas: 0, tope: 12, minimoLibres: 3, vendidas: [], disponibles: {} } }));
+    /* Los videos viven en Netlify Blobs (/media/…) y el servidor local no los
+       tiene. Desde el 2026-10-31 se piden antes —el de la joya al cargar la
+       página, los de bloque a 1.500 px—, así que sin esto salían como 404 aquí
+       aunque en producción existen. Que estén de verdad lo mira paginas.js §1
+       (nombre en /media/) y, en la vista previa, la revisión a mano. */
+    await ctx.route(/\/media\/[^/]+\.mp4$/, r => r.fulfill({ status: 200, contentType: 'video/mp4', body: Buffer.alloc(0) }));
     // Todas las de la tienda, sin ?producto= (ENCARGO-FICHA-2 § 3).
     await ctx.route(/\/\.netlify\/functions\/resenas(\?.*)?$/, r => r.fulfill({ json: resenas || { total: 0, promedio: 0, resenas: [] } }));
   };
