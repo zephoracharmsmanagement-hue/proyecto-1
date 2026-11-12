@@ -1,0 +1,48 @@
+{
+  "_": "Lo que creador_ads.py necesita saber de cada foto de assets/hd/. Se edita a mano, después de MIRAR la foto.",
+  "no_usar": {
+    "hulk": "render del proveedor con «PANDORA» grabado",
+    "esfera-telarana-spider-man": "render del proveedor con «PANDORA» grabado",
+    "pulsera-barril-pandora": "la pieza nombra la marca; no va en pauta"
+  },
+  "revisadas": [
+    "pulsera-avengers",
+    "pulsera-corazon-abierto",
+    "capitan-america",
+    "iron-man",
+    "groot-bebe",
+    "mjolnir-martillo-de-thor",
+    "escudo-capitan-america",
+    "wolverine",
+    "deadpool",
+    "spider-man-pave",
+    "aries",
+    "tauro",
+    "geminis",
+    "cancer",
+    "leo",
+    "virgo",
+    "libra",
+    "escorpio",
+    "sagitario",
+    "capricornio",
+    "acuario",
+    "piscis",
+    "virgen-aparecida",
+    "virgen-de-fatima",
+    "corazon-arbol-de-la-vida",
+    "sulley",
+    "mike-wazowski"
+  ],
+  "recorte": {
+    "_": "Solo para las piezas que lo necesiten; la sombra de estudio se quita sola. semillas = puntos [x, y], en fracción de la foto, dentro de un hueco cerrado que debe quedar transparente (el interior de un corazón abierto). sin_piso = false si el quitado de la sombra se lleva parte de la pieza.",
+    "pulsera-corazon-abierto": {
+      "semillas": [
+        [
+          0.31,
+          0.66
+        ]
+      ]
+    }
+  }
+}

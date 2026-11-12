@@ -111,6 +111,11 @@ El dato de costo **no está en el repo**: vive en `Inventario_Zephora_v3.xlsx`
 
 ### Creativos
 
+**Para crear un anuncio, la skill es [`creador-ads`](.claude/skills/creador-ads/SKILL.md)**
+(desde el 2026-11-12): receta JSON → validación de existencias y textos → imagen en
+tres formatos → payload para aprobar. Los precios entran por marcadores que rellena
+`calcular()`; no se escriben a mano.
+
 `assets/ads/` tiene 10 imágenes alojadas para usar como imagen de anuncio
 (la CAPI necesita URL pública). Queda fuera a propósito la variante que
 nombra a Pandora — riesgo de marca.

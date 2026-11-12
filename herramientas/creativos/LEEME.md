@@ -3,6 +3,29 @@
 Historias de Instagram y anuncios de foto de Meta, compuestos con Pillow a partir
 de fotos reales. Traspaso de la sesión web del 2026-10-16 → 2026-11-01.
 
+## Creador de ads — por aquí se empieza (2026-11-12)
+
+`creador_ads.py` hace un anuncio completo desde una receta JSON de `ads/`: valida existencias en vivo
+(3 o más), saca los precios de `calcular()`, revisa los textos contra las reglas de abajo, compone el
+estilo estudio en 1:1, 4:5 y 9:16 y deja `ficha.md` y `payload.json` para aprobar. No sube nada a Meta.
+Cómo se usa, paso a paso: skill [`creador-ads`](../../.claude/skills/creador-ads/SKILL.md).
+
+```bash
+python3 herramientas/creativos/creador_ads.py --elegibles
+python3 herramientas/creativos/creador_ads.py herramientas/creativos/ads/fe-regalale-su-virgen.json
+```
+
+- Los textos no llevan cifras: llevan marcadores (`{total}`, `{lista}`, `{cuota_addi}`…). Una cifra
+  que no sea la de `calcular()` detiene la generación.
+- La sombra y el reflejo de estudio bajo la pieza se quitan solos (`sin_piso`), sin franja a mano por
+  pieza. `recortes.json` guarda las fotos vetadas, las ya revisadas y los pocos ajustes de recorte.
+- Reusa `recortar()` y las tipografías de `historias_estudio.py`: si ese archivo cambia de nombre o
+  esas funciones de firma, `creador_ads.py` se rompe.
+- **Para los guiones de historias:** `brazalete()` con `reflejo_cierre=True` se come medio cierre en
+  Pulsera Corazón Abierto (el corazón cuelga justo en la zona que borra) y deja en blanco su interior.
+  Se ve en la historia «Regálale su Virgen». Aquí se resolvió con una semilla dentro del corazón.
+- Pruebas: `node pruebas/creador-ads.js` (sin Pillow ni red).
+
 ## Cómo correrlos
 
 ```bash
@@ -32,6 +55,8 @@ Salida en `material-sin-publicar/creativos/salida/`.
 2. **Existencias = hoja «Inventario de movimientos» → pestaña Existencias** (Google Sheets
    `1P-iZeFJDkPGSws_imPS_k_TaUYZrQMJGSPhBNWbNE-Y`), no `assets/stock.json` (conteo del 22-sep, desactualizado).
    Solo piezas con **3 o más**. Al 31-oct: **Luciérnaga en 1** → V2, V4 y la historia de la caja ya no deben salir.
+   *2026-11-12:* la función `disponibilidad` del sitio (conteo − apartado − vendido) da hoy los mismos
+   números que la hoja, pieza por pieza, y se puede leer sin credenciales. Es la que usa `creador_ads.py`.
 3. **Addi**: «sin interés» solo de $50.000 a $600.000. **Sistecrédito**: nunca prometer cuotas ni interés
    (`ESTADO.md`); su primera venta real sigue sin probarse.
 4. **Fotos de catálogo (`assets/hd/`)**: buena calidad, pero algunas son renders de proveedor con

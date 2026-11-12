@@ -5,6 +5,25 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Creador de ads — rama `claude/friendly-wright-urcb2z`, sin mezclar a `main` (2026-11-12)
+
+`herramientas/creativos/creador_ads.py` + skill `creador-ads`: de una receta JSON
+(`herramientas/creativos/ads/`) a un anuncio de foto en estilo estudio, en 1:1, 4:5
+y 9:16, con `ficha.md` y `payload.json` para aprobar. Existencias en vivo de
+`disponibilidad` (3 o más), precios de `calcular()` por marcadores, y los textos
+revisados contra las reglas de la skill `meta-ads`. **No sube nada a Meta.**
+Batería `creador-ads` en `pruebas/correr.sh`.
+
+- Trae mezclada `claude/creativos-pauta-contenido` (los guiones de historias y
+  `lote_final.py`), porque reusa su `recortar()`. Esa rama sigue viva en otra
+  sesión: si cambia `historias_estudio.py`, revisar que `creador_ads.py` siga
+  corriendo.
+- Dos recetas de ejemplo generadas y **sin subir**: «Regálale su Virgen» (Fe) y
+  «¿Sulley o Mike?» (Pixar). La cuenta tiene 5 anuncios activos desde el 11-nov
+  (Regalo · Dedicatoria, Avengers B y C, Inicial y signo A y B); caben hasta 3
+  más antes del techo de 8. Falta el sí del propietario.
+- No toca la tienda: nada en `netlify/functions/` ni en las páginas.
+
 ## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
 
 Pedido del propietario (2026-11-01): contar los anillos, las charms nuevas, los

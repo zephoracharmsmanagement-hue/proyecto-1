@@ -1,0 +1,29 @@
+{
+  "slug": "pixar-sulley-o-mike",
+  "angulo": "Pixar",
+  "nombre": "¿Sulley o Mike?",
+
+  "charms": ["sulley", "mike-wazowski"],
+  "etiquetas": { "sulley": "Sulley", "mike-wazowski": "Mike" },
+
+  "imagen": {
+    "antetitulo": "¿Equipo Sulley",
+    "titulo": "o equipo Mike?",
+    "subtitulo": "Charms en Plata 925 con sello",
+    "precio": "ninguno",
+    "pildora": "{precio_charm} cada uno",
+    "pie": "Paga 3 y lleva 1 gratis · paga 4 y lleva 2"
+  },
+
+  "texto": {
+    "principal": "¿Equipo Sulley o equipo Mike? 👀 Los dos, en charms de Plata 925 con sello, para la pulsera de quien creció con ellos.\nCada uno {precio_charm}. Y si armas el set: paga 3 y lleva 1 gratis · paga 4 y lleva 2 🎁\nHipoalergénicos y libres de níquel. Llegan en caja con dedicatoria escrita a mano.",
+    "titular": "¿Sulley o Mike?",
+    "descripcion": "Envío gratis pagando en línea · ⭐ {estrellas} ({resenas} reseñas)"
+  },
+
+  "destino": "index.html?cat=Pixar",
+  "cta": "SHOP_NOW",
+
+  "por_que": "ningún anuncio activo muestra Pixar; Sulley tiene 6 unidades y Mike 4",
+  "hipotesis": "un anuncio de producto con pregunta (sin set ni precio de conjunto) trae checkouts a un costo igual o menor que el promedio del conjunto; leer a los 7 días de activarlo"
+}

@@ -1,0 +1,30 @@
+{
+  "slug": "fe-regalale-su-virgen",
+  "angulo": "Fe",
+  "nombre": "Regálale su Virgen",
+
+  "base": "pulsera-corazon-abierto",
+  "charms": ["virgen-aparecida", "virgen-de-fatima", "corazon-arbol-de-la-vida"],
+  "etiquetas": { "corazon-arbol-de-la-vida": "Árbol de la Vida" },
+  "exige_gratis": ["pulsera-corazon-abierto"],
+
+  "imagen": {
+    "antetitulo": "Regálale",
+    "titulo": "su Virgen",
+    "subtitulo": "Fe que la acompaña todos los días",
+    "tachado": "Brazalete + 3 charms: {lista}",
+    "pie": "o 3 cuotas de {cuota_addi} sin interés con Addi"
+  },
+
+  "texto": {
+    "principal": "Para la mamá, la abuela o la madrina que no sale sin su Virgen 🙏 La Virgen Aparecida, la Virgen de Fátima y el Árbol de la Vida, en charms de Plata 925 con sello, sobre un brazalete en baño de plata.\nPaga 3, lleva 4 🎁 Así como en la foto, los 4 por {total} en vez de {lista}.\nLlega en su caja, con paño para la plata y la dedicatoria que tú quieras, escrita a mano.",
+    "titular": "Su fe, en su muñeca",
+    "descripcion": "Envío gratis pagando en línea · Hasta 3 cuotas sin interés con Addi"
+  },
+
+  "destino": "index.html?cat=Religiosos",
+  "cta": "SHOP_NOW",
+
+  "por_que": "ningún anuncio activo habla de fe; las Vírgenes tienen 5 y 3 unidades y el sitio ya tiene el filtro «Religiosos»",
+  "hipotesis": "un ángulo de regalo religioso trae checkouts a un costo igual o menor que el promedio del conjunto; leer a los 7 días de activarlo"
+}
