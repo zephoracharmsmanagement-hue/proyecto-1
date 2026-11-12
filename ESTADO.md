@@ -5,6 +5,89 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Migración a la cuenta personal — qué quedó colgando y en qué orden (revisado 2026-11-12)
+
+Sesión «hub»: de aquí salen las tareas de las demás. Todo lo de abajo se
+comprobó contra Meta, Netlify y n8n el 2026-11-12, no se supuso.
+
+**Lo que ya está bien:** sitio en producción (`636b791`, 35 functions) con un
+solo píxel, `2005297310144764`; campaña nueva activa en `1683479286750530`
+(ver CLAUDE.md); el píxel recibe navegador (PageView, ViewContent, AddToCart,
+InitiateCheckout, AddPaymentInfo).
+
+### P0 · El `Purchase` de servidor no está llegando al píxel nuevo
+
+`server_last_fired_time` del píxel `2005297310144764` = **nunca**, y el 10-nov
+hubo un `Purchase` de navegador sin su par de servidor. El código manda al
+nuevo por defecto (`_meta.js`), así que lo más probable es que en Netlify
+`META_PIXEL_ID` siga apuntando a un píxel viejo y/o `META_CAPI_TOKEN` sea el
+del dataset viejo. **Propietario, en Netlify → fanciful-trifle-64ca74 →
+Variables:** `META_PIXEL_ID=2005297310144764` y `META_CAPI_TOKEN` generado en
+Events Manager del píxel nuevo (Configuración → API de conversiones → Generar
+token). Luego redeploy, una compra de prueba con `META_TEST_EVENT_CODE`,
+confirmar **un** solo `Purchase` deduplicado, y quitar la variable de prueba.
+Mientras no se haga, la campaña nueva aprende sin una sola compra de servidor.
+
+### P1 · WhatsApp sigue entero en el portafolio viejo
+
+App `AGENTE CLAUDE` (`1910139459666391`), WABA `1868981540432885`, número
++57 301 899 0672 (`990934840764558`) y el usuario del sistema que firma el
+token: todo cuelga del portafolio `1499356148452488`, el del perfil al que ya
+no se entra. **Hoy funciona** porque el token de usuario del sistema no caduca.
+Lo que eso deja al aire:
+
+- **Nadie puede administrar la WABA**: plantillas nuevas (rescate,
+  `actualizacion_envio`), el **medio de pago de WhatsApp** (desde el 1-oct se
+  cobra también el servicio; si la tarjeta falla, no hay quien la cambie),
+  rotar el token si se filtra.
+- **Si Meta restringe el portafolio viejo, se apagan juntos** el bot
+  (`74TjEtDnn940jh9k`), el rescate por WhatsApp y los avisos de envío, sin
+  camino para arreglarlo.
+- **La Página nueva (`1434133013118298`) no tiene el número ligado**: sin eso
+  no hay anuncios a WhatsApp (CTWA) ni botón de WhatsApp en la Página desde la
+  cuenta nueva.
+- Ojo n8n: `BH · 4 WhatsApp entrante` tomó sola la credencial de Zephora; si
+  se cambian credenciales, revisar que Bendito Hogar no quede pegado a ellas.
+
+**Primera pregunta, antes de planear nada:** ¿el dueño puede todavía entrar al
+portafolio `1499356148452488` con *algún* perfil? Si sí → agregar ahí su
+perfil personal como admin y la WABA deja de estar huérfana. Si no → migrar el
+número a una WABA nueva en `1157598043799973` (Meta permite migrar un número
+entre WABA conservando número y calificación; las plantillas se rehacen o se
+migran — **verificar el procedimiento vigente antes de tocar nada**: el bot
+queda caído durante la ventana de migración). Sesión aparte, con la skill
+`whatsapp-n8n`.
+
+### P1 · n8n apuntando a lo viejo
+
+| Workflow | Qué tiene | Qué hacer |
+|---|---|---|
+| `Zephora · Pauta diaria` (`7t1cDPKlqDZYjRta`, apagado desde 1-nov) | `act_1583713932705268`, credencial «Meta Ads lectura (Zephora)» del portafolio viejo | Cambiar a `act_1683479286750530` con un token `ads_read` de un usuario del sistema del portafolio nuevo |
+| `Zephora · Purchase a Meta (CAPI)` (`h5U0fGHrW4hekjtp`, nunca publicado) | `/2130673404542988/events`, sin credencial | Lo reemplazó `Registrar venta manual` (va por `registrar-venta` → `_meta.js`). **Archivar**, no arreglar |
+| `Zephora · Registrar venta manual` (`VQAVkcNCZqVdP566`, apagado desde 5-nov) | Ventas de WhatsApp/Addi | Republicar **después** del P0, o las ventas por chat no llegan a Meta |
+
+### P2 · Lo que la cuenta nueva desbloquea o pide de cero
+
+- **Catálogo y anuncios dinámicos**: el bloqueo era `has no owning business`;
+  la cuenta nueva sí tiene portafolio. Crear catálogo desde el feed del sitio.
+- **Públicos**: los del píxel viejo se perdieron. Crear ya «IC + AddToCart sin
+  compra, 180 d» sobre el píxel nuevo para que acumule (todavía no para pautar).
+- `Lead` como conversión personalizada en el píxel nuevo.
+- Confirmar en el portafolio nuevo que el dominio quedó **verificado** (PR #46).
+- Contenido Fase 4 (`automatizaciones/contenido/BRIEF.md`): la Página ligada a
+  Instagram ahora es `1434133013118298`, no `1096237716904526`.
+- Revocar el token que se pegó en un chat (pendiente 6 de CLAUDE.md) y, si se
+  puede entrar al portafolio viejo, el usuario del sistema de allá.
+- **Pendientes de CLAUDE.md que ya no aplican:** reclamar `1583713932705268` y
+  mudar a `2021753038744595` (n.º 5) quedan obsoletos; el «segundo
+  `fbq('init')`» ya se quitó.
+
+### Otros frentes abiertos, no de la migración
+
+6 PR abiertos sin fusionar (#17, #33, #36, #38, #40, #41) y varias secciones
+de abajo marcadas «vista previa, sin desplegar». Antes de construir encima,
+una sesión que los revise contra `main` y decida fusionar o cerrar.
+
 ## Meta rehecho desde el perfil del dueño: píxel nuevo `2005297310144764` — rama `claude/pixel-nuevo` (2026-11-10)
 
 Todo lo de Meta (página, cuenta `1583713932705268`, portafolio

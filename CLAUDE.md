@@ -18,7 +18,21 @@ el método de Felipe Vergara aplicado a esta cuenta. Esta sección cuenta el
 **estado** de la cuenta; la skill dice **qué hacer** con él. Costos y márgenes no
 van en ninguna de las dos: el repo es público.
 
-### Campañas en producción (cuenta `1583713932705268`)
+### ⚠️ Desde el 2026-11-10 todo esto vive en la cuenta nueva
+
+La pauta corre en **«Zephora - Principal» (`1683479286750530`, portafolio
+`1157598043799973`, del perfil personal del dueño)**: campaña
+`VENTAS · ESCALA · IC` (`120255196549790022`), $20.000/día, conjunto
+`AMPLIO · CO · 18+`, 5 anuncios FOTO creados el 2026-11-11, optimizando
+`InitiateCheckout` sobre el píxel `2005297310144764`. **La cuenta
+`1583713932705268` ya ni aparece entre las accesibles por el conector.** Lo que
+sigue de aquí hasta *Píxel — uno solo* es la historia de esa cuenta vieja: vale
+por sus lecciones (costo por resultado sobre CTR, volumen antes de separar),
+no por sus ID. **Lo que quedó colgando del portafolio viejo —WhatsApp sobre
+todo— y el checklist de la migración están en `ESTADO.md` § *Migración a la
+cuenta personal*.**
+
+### Campañas en producción (cuenta `1583713932705268`, histórico hasta 2026-11-10)
 
 Esa cuenta **no pertenece a ningún portafolio comercial** — de ahí sale casi
 todo lo raro de esta sección (ver `ESTADO.md` § 4a). La otra cuenta,
