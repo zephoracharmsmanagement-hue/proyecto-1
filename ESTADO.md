@@ -3700,12 +3700,12 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **34 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **37 functions**
 —las mismas que archivos hay en `netlify/functions/` (`ls netlify/functions | wc -l`)—:
 `_addi`, `_atribucion`, `_carrito`, `_cierre`, `_correo`, `_envios`, `_hoja`,
 `_inventario`, `_meta`, `_pedidos`, `_precios`, `_rango`, `_sistecredito`,
-`_suscriptores`, `addi-callback`, `ajustar-inventario`, `armar-carrito`,
-`crear-pago`, `disponibilidad`, `envio-estado`, `estado-pedido`,
+`_suscriptores`, `_boletin`, `addi-callback`, `ajustar-inventario`,
+`armar-carrito`, `boletin`, `crear-pago`, `descuento-suscripcion`, `disponibilidad`, `envio-estado`, `estado-pedido`,
 `mas-vendidos`, `media`, `posventa`, `reanudar`, `registrar-venta`, `rescate`,
 `resenas`, `sistecredito-aviso`, `sistecredito-enlace`, `suscribir`,
 `suscriptores-export`, `vendidas`, `wompi-webhook`;
@@ -3717,7 +3717,8 @@ anterior.
 > 9 hasta que la consolidación trajo `_atribucion.mjs` y `disponibilidad.mjs`
 > —el despliegue `6a88fa3a` reportó 11—, 14 desde que la fundación de
 > conversión trajo `reanudar.mjs`, `armar-carrito.mjs` y `_carrito.mjs`, 31 en
-> el despliegue de posventa (2026-10-13) y **34 desde Sistecrédito**
+> el despliegue de posventa (2026-10-13), 34 desde Sistecrédito, 35 con
+> `descuento-suscripcion` (nadie la anotó aquí) y **37 desde el boletín** (2026-11-12)
 > (2026-10-16, despliegue `6ad2532973b503b1b66ee35c`). Entre el 14 y el 31 nadie
 > la actualizó durante semanas.
 > Una cifra vieja en esta comprobación es peor que no tenerla: la próxima
