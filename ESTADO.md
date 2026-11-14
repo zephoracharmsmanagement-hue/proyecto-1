@@ -35,7 +35,7 @@ lo exige (antes pedía dos y estaba en rojo en `main`).
 |---|---|---|---|---|
 | #36 | `motivo-reposicion` | `caccc2a` (30-oct) | verde | Fusionar: limpio, chico, con prueba |
 | #38 | `carga-fotos-videos` | `768572a` (31-oct) | verde | Fusionar: limpio; el generador reproduce los kits idénticos |
-| #40 | `prompt-asesora-anillos` | `f8c05c7` (1-nov) | **5 rojas en `prompt-bot`** | Fusionar: la copia es idéntica al prompt en vivo (`06924ea1`). Las rojas son del prompt **publicado**, no de la rama (promete «ya le avisé al equipo», sin `[VERIFICAR DESCUENTO]`, $15.000 que no cuadra con catalogo.json). `main` da verde porque su copia es vieja. Arreglarlo es tocar n8n. Corregir también el encabezado «Versión publicada» (dice `3beca3e2`) |
+| #40 | `prompt-asesora-anillos` | `f8c05c7` (1-nov) | 5 rojas en `prompt-bot`, **que eran de la prueba** | Fusionar: la copia es idéntica al prompt en vivo (`06924ea1`). *Corrección posterior:* el prompt estaba bien. Desde `06924ea1` el bot tiene `avisar_equipo` conectado en n8n («ya le avisé» solo si la herramienta respondió), la etiqueta `[VERIFICAR DESCUENTO]` se cambió por esa herramienta y los $15.000 son el descuento de suscriptora. Se corrigió `pruebas/prompt-bot.js` sin aflojarla: una mutación de cada caso la vuelve a poner en rojo |
 | #41 | `boletin-novedades-nov` | `f8c05c7` (1-nov) | verde | Rebasar y fusionar: choca solo en ESTADO.md. El texto es del 1-nov y no incluye las piezas del 6-nov. Hace falta `BOLETIN_KEY` en Netlify; no se envía sin «enviar». Suma 2 funciones (35 → 37) |
 | #33 | `portada-estilo` | `35eed4a` (28-oct) | verde | Cerrar: la portada limpia del 2-nov (#42), «como Pandora», la reemplazó. Pisa `.talla-sec`, que ahora es ventana. Choca en ESTADO.md |
 | #17 | `bot-propio` | `0871739` (2-oct) | verde (no tiene pruebas propias) | Cerrar o rehacer: `conocimiento_bot.py` se cae con `KeyError: 'lleva'`, porque la promo pasó a `tramos` y escribe la promo cíclica, que ya no existe |
@@ -71,9 +71,14 @@ Principal» `1683479286750530` y píxel «Zephora web» `2005297310144764`.
 - **Al desplegar, en el mismo momento:** en Netlify, `META_PIXEL_ID=2005297310144764`
   y `META_CAPI_TOKEN` con el token generado en el dataset nuevo. Si se
   despliega sin cambiar las variables, la CAPI sigue mandando al píxel viejo.
-- **Pendiente en n8n:** el flujo «Purchase a Meta (CAPI)» todavía llama a
-  `/2130673404542988/events`. Cambiarlo a `2005297310144764` y ponerle la
-  credencial del token nuevo (antes tampoco la tenía).
+- ~~Pendiente en n8n: el flujo «Purchase a Meta (CAPI)» llama a
+  `/2130673404542988/events`.~~ *Resuelto (comprobado el 2026-11-12):* ese
+  flujo (`h5U0fGHrW4hekjtp`) está **archivado**. Lo reemplaza «Zephora ·
+  Registrar venta manual» (`VQAVkcNCZqVdP566`, sin publicar), que no habla con
+  Meta directamente: llama a `registrar-venta`, y el `Purchase` sale de
+  `_meta.js` con el píxel de `META_PIXEL_ID`. Ningún ID de píxel está fijo en
+  n8n. Ojo: sus desplegables de piezas son de octubre (no traen anillos ni lo
+  del 6-nov); hay que regenerarlos antes de publicarlo.
 - Los anuncios viejos quedaron pausados. Los ID de su prueba social están en
   `anuncios-zephora/prueba-social-anuncios-2026-11-10.md` (fuera del repo).
   Solo sirven si se recupera la página vieja.

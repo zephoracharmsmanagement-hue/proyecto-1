@@ -157,7 +157,7 @@ function main() {
      líneas se apartan de esta cuenta y su monto se comprueba en la sección del
      descuento contra _suscriptores.mjs; cualquier otro $15.000 sigue en rojo. */
   const enElPrompt = platas(prompt.split('\n')
-    .filter(l => !/DESCUENTO POR SUSCRIBIRSE|de descuento en su primera compra/i.test(l)).join('\n'));
+    .filter(l => !/DESCUENTO POR SUSCRIBIRSE|de descuento en su primera compra|se descuentan los 15\.000|los 15\.000 los resta el checkout/i.test(l)).join('\n'));
   /* Lo único que la tienda cobra hoy por envío. El anticipado es gratis
      (envioGratisDesde 0 y solo para anticipado), así que su tarifa NO debe
      aparecer: nombrarla es cobrarla de palabra. */
@@ -345,9 +345,14 @@ function main() {
 
   console.log('\n9 · No promete un aviso o un silencio que no puede cumplir');
 
-  /* El bot le puede ofrecer a la clienta hablar con una persona, pero solo
-     tiene tres herramientas conectadas —disponibilidad, armar_carrito,
-     enviar_foto— y ninguna le avisa a nadie ni pausa la conversación. Esas dos
+  /* Desde la versión 06924ea1 (2026-11-01) el bot SÍ tiene cómo avisar:
+     la herramienta avisar_equipo, conectada en n8n (le manda un WhatsApp al
+     equipo). Así que «ya le avisé» es verdad, pero solo si la herramienta
+     respondió: el prompt tiene que condicionarlo. Lo que sigue sin existir es
+     dejar de responder.
+
+     Historia (antes de avisar_equipo): el bot solo tenía disponibilidad,
+     armar_carrito y enviar_foto, y ninguna le avisaba a nadie ni pausaba la conversación. Esas dos
      cosas existen en el workflow (aviso al propietario, marcar chat como
      humano) pero se disparan solas por otros caminos —un envío fallido, que el
      propietario escriba a mano—, nunca porque la IA lo decida. Si el prompt le
@@ -357,17 +362,20 @@ function main() {
   const prometeSilencio = /no (te )?volver[eé] a responder|no enviar[eé] m[aá]s respuestas|me quedar[eé] (en silencio|callad)/i;
 
   const lineasAviso = prompt.split('\n').filter(l => prometeAviso.test(l));
-  comprobar(lineasAviso.length === 0,
-    'no hay ninguna frase de «ya avisé», que el bot no puede cumplir',
-    lineasAviso.length ? lineasAviso[0].trim().slice(0, 90) : undefined);
+  const avisoCondicionado = /avisar_equipo/.test(prompt) &&
+    /Solo di «ya le avise» si la herramienta respondio sin error/i.test(prompt);
+  comprobar(lineasAviso.length === 0 || avisoCondicionado,
+    'solo dice «ya avisé» si avisar_equipo respondió sin error',
+    lineasAviso.length && !avisoCondicionado ? lineasAviso[0].trim().slice(0, 90) : undefined);
 
   const lineasSilencio = prompt.split('\n').filter(l => prometeSilencio.test(l));
   comprobar(lineasSilencio.length === 0,
     'no hay ninguna promesa de silencio, que el bot tampoco puede cumplir',
     lineasSilencio.length ? lineasSilencio[0].trim().slice(0, 90) : undefined);
 
-  comprobar(/no tienes forma de avisarle a nadie|no es una herramienta que tengas/i.test(prompt),
-    'el propio prompt le explica a la IA por qué no debe prometerlo');
+  comprobar(/no tienes forma de avisarle a nadie|no es una herramienta que tengas/i.test(prompt) ||
+    (avisoCondicionado && /no te calles ni dejes de responder/i.test(prompt)),
+    'el propio prompt le explica a la IA qué puede prometer y qué no');
 
   comprobar(/en breve (te )?escribe|en breve te escriben/i.test(prompt),
     'ofrece la alternativa honesta: el equipo revisa el chat y escribe en breve');
@@ -469,8 +477,12 @@ function main() {
   }
   comprobar(!/se lleva de regalo el charm de su inicial|elige la letra/i.test(prompt),
     'ya no promete el charm de la inicial de regalo');
-  comprobar(/VERIFICAR DESCUENTO/.test(prompt),
-    'deja la etiqueta [VERIFICAR DESCUENTO] para pedidos de suscriptora por WhatsApp');
+  /* Antes: etiqueta [VERIFICAR DESCUENTO] en el mensaje. La clienta la veía,
+     así que desde 06924ea1 el pedido de suscriptora por WhatsApp va por
+     avisar_equipo y el prompt prohíbe las etiquetas entre corchetes. */
+  comprobar(/suscrita[^\n]*avisar_equipo/i.test(prompt) &&
+    /NO escribas ninguna etiqueta entre corchetes/i.test(prompt),
+    'el pedido de suscriptora por WhatsApp va a avisar_equipo, sin etiqueta visible');
 
   // 6 · Enlaces directos por producto: el patrón tiene que ser el real.
   comprobar(prompt.includes('producto-{id}.html'),
