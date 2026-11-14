@@ -5,6 +5,29 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## 🚧 Trabajo en curso — avisos por WhatsApp de cada pedido (Sesión 2, desde el 2026-11-14)
+
+**Reclamado por la Sesión 2 (tienda).** Solo hay diseño; no hay código de
+funciones. Documento:
+[`docs/superpowers/specs/2026-11-14-avisos-whatsapp-pedidos-design.md`](docs/superpowers/specs/2026-11-14-avisos-whatsapp-pedidos-design.md),
+en la rama `claude/avisos-whatsapp-diseno`, sin fusionar.
+
+- **Por qué:** el pedido ZC-261107-28AEB010 estuvo 8 días sin despachar. Su
+  correo de tienda **sí salió y sí llegó** (7-nov, «PAGADO · … — despachar»);
+  nadie lo vio porque `zephoracharms@gmail.com` no se revisa a diario. No es
+  un fallo de código.
+- **Qué se va a construir, cuando el propietario apruebe:** aviso por WhatsApp
+  al propietario y a la clienta en el mismo punto donde hoy se avisa a la hoja
+  (`crear-pago`, `_cierre`, `registrar-venta`), confirmación de dirección con
+  botones en contraentrega, cotización de Skydropx sin comprar la guía y un
+  resumen diario a las 8:00 a. m. de lo confirmado sin despachar.
+- **Reparto:** la Sesión 3 entrega lo de n8n, WhatsApp y Skydropx; la tienda
+  solo la toca la Sesión 2.
+- **Falta del propietario:** aprobar el diseño, su número de WhatsApp, peso y
+  medidas del paquete, un correo de respaldo que sí lea, y someter las
+  plantillas en WhatsApp Manager.
+- Esta sección se borra al terminar.
+
 ## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
 
 Pedido del propietario (2026-11-01): contar los anillos, las charms nuevas, los
