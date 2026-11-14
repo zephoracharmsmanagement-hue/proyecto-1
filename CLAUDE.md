@@ -128,24 +128,15 @@ nombra a Pandora — riesgo de marca.
   Graph API **v25.0** (v19.0, el default anterior, expiró 2026-05-21).
   Nunca se han corrido contra la API real — si truenan, el error más
   probable es un nombre de campo distinto entre versiones.
-- **n8n autohospedado** en `n8n.srv1888488.hstgr.cloud`. Workflow construido:
-  **"Zephora · Purchase a Meta (CAPI)"** (id `h5U0fGHrW4hekjtp`) — formulario
-  para registrar ventas cerradas por WhatsApp, normaliza teléfono a
-  `57XXXXXXXXXX`, hashea SHA-256 (teléfono/email/nombre/apellido/país), arma
-  el evento `Purchase` con `action_source: chat` y `order_id` determinista
-  (dedup nativo de Meta, ventana 7 días), lo manda a
-  `graph.facebook.com/v25.0/2130673404542988/events`, guarda todo en la
-  Data Table **"Pedidos Zephora"** (id `tmDPVx97PUPX4OzT`). **Sin publicar
-  todavía** — falta credential del token CAPI y una prueba con
-  `test_event_code`.
-
-  > **Ojo, 2026-09-25: el workflow apunta al píxel que no puede recibirlo.**
-  > `2130673404542988` es el píxel viejo, y `ESTADO.md` § 4a documenta que para
-  > él nadie puede generar un token de API de conversiones (la cuenta no tiene
-  > portafolio). Antes de publicarlo, cambiar el destino a
-  > `1029982529813994`, el píxel nuevo, que es donde vive el token de
-  > `Netlify CAPI` y donde ya llega el `Purchase` de Wompi. Así las ventas de
-  > WhatsApp y las web quedan en el mismo píxel.
+- **n8n autohospedado** en `n8n.srv1888488.hstgr.cloud`. Las ventas cerradas
+  por WhatsApp se registran con **«Zephora · Registrar venta manual»**
+  (`VQAVkcNCZqVdP566`, sin publicar todavía): es un formulario que llama a
+  `registrar-venta` en la tienda, y el `Purchase` sale de `_meta.js` con el
+  píxel de `META_PIXEL_ID`. En n8n no hay ningún ID de píxel fijo. Antes de
+  publicarlo faltan sus dos credenciales (ver la nota del flujo) y regenerar
+  los desplegables de piezas, que son de octubre.
+  El flujo viejo «Purchase a Meta (CAPI)» (`h5U0fGHrW4hekjtp`, que mandaba
+  directo a `2130673404542988`) está **archivado** (comprobado el 2026-11-12).
 
   Nota: **el sitio ya cobra de verdad por Wompi** (ver `ESTADO.md` § 4).
   Cuando ese flujo esté estable, lo correcto es que el webhook de Wompi
@@ -196,11 +187,11 @@ Por orden de impacto sobre el dinero:
    portafolio (Business Settings → Cuentas publicitarias → Reclamar). En agosto
    lo frenaba la antigüedad del portafolio; al 2026-10-03 ya tenía ~7 semanas
    y se intentó, y **el 2026-10-06 todavía no se había podido reclamar**: sigue
-   abierta la vía de soporte de Meta. Si entra: asignarle el píxel `1029982529813994` y cambiar el píxel del
-   conjunto en un solo movimiento. Si sigue bloqueado: mudar la campaña única a
-   `2021753038744595` (ya en el portafolio, con medio de pago), reutilizando
-   las mismas publicaciones. En cualquier caso, después sacar el segundo
-   `fbq('init', …)` de los tres HTML.
+   abierta la vía de soporte de Meta.
+   *Superado el 2026-11-10:* se rehizo todo desde el perfil del dueño (cuenta
+   `1683479286750530`, píxel `2005297310144764`; ver § *Píxel*). Ya no hay que
+   reclamar esa cuenta ni sacar un segundo `fbq('init')`: las páginas inician
+   uno solo, y `pruebas/paginas.js` lo exige.
    *Matiz (2026-09-25):* migrar a `Purchase` solo si el volumen alcanza. Meta
    necesita del orden de 50 eventos semanales por conjunto; con el volumen de
    ventas actual un conjunto optimizado por compra se queda en aprendizaje
