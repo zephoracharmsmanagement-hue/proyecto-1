@@ -590,10 +590,21 @@ const U = BASE + '/index.html';
     await m.goto(BASE + '/coleccion-marvel.html', { waitUntil: 'networkidle' });
     await m.waitForTimeout(400);
     const orden = await m.evaluate(() => [...document.querySelectorAll('#piezas .grid > .pc')].map(c => c.dataset.id));
+    /* Ni la cuenta ni «la última» van escritas a mano: al entrar las 6 piezas
+       Marvel del 14-nov (sin unidades todavía) esto se puso rojo con la página
+       en lo cierto —esperaba 16 piezas y que Iron Man fuera la única agotada—.
+       La cuenta sale de catalogo.json y la regla es la que importa: todas las
+       que no tienen unidades van juntas al final, Iron Man entre ellas. */
+    const cat = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'assets', 'catalogo.json'), 'utf8'));
+    const esperadas = Object.values(cat.grupos).filter(g => g === 'Marvel').length;
+    const sinUnidades = id => !(st.items[id] && st.items[id].stock > 0);
+    const primera = orden.findIndex(sinUnidades);
+    const cola = primera < 0 ? [] : orden.slice(primera);
+    const agotadasAlFinal = cola.includes('iron-man') && cola.every(sinUnidades);
     out.push('\nColección Marvel: lo más vendido primero'
       + `\n  abre con las más vendidas que hay (hulk, deadpool): ${orden[0] === 'hulk' && orden[1] === 'deadpool' ? 'sí ✓' : 'NO ✗ (' + orden.slice(0, 3).join(',') + ')'}`
-      + `\n  la agotada va al final aunque haya vendido más: ${orden[orden.length - 1] === 'iron-man' ? 'sí ✓' : 'NO ✗ (' + orden[orden.length - 1] + ')'}`
-      + `\n  ninguna pieza se pierde ni se repite (${orden.length}): ${orden.length === 16 && new Set(orden).size === 16 ? 'sí ✓' : 'NO ✗'}`);
+      + `\n  la agotada va al final aunque haya vendido más: ${agotadasAlFinal ? 'sí ✓' : 'NO ✗ (' + cola.join(',') + ')'}`
+      + `\n  ninguna pieza se pierde ni se repite (${orden.length}): ${orden.length === esperadas && new Set(orden).size === esperadas ? 'sí ✓' : 'NO ✗ (esperadas ' + esperadas + ')'}`);
     await m.close();
   }
 
