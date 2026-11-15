@@ -1,24 +1,80 @@
-# Avisos por WhatsApp de cada pedido y guía de Skydropx precargada — diseño
+# Avisos por WhatsApp de cada pedido y guías de Skydropx — diseño
 
-**Fecha:** 2026-11-14. **Rama:** `claude/avisos-whatsapp-diseno`. **Estado:** diseño
-para aprobación del propietario. No hay código de funciones en esta rama.
+**Fecha:** 2026-11-15 (tercera versión). **Rama:** `claude/avisos-whatsapp-diseno`.
+**Estado:** diseño para aprobación del propietario. No hay código de funciones
+en esta rama.
 
-Las partes marcadas **«pendiente de la Sesión 3»** dependen de su nota
-`sesion3-avisos-whatsapp-insumos-2026-11-14.md` (n8n, WhatsApp y Skydropx), que
-no había llegado al escribir esto.
+Lo de n8n, WhatsApp y Skydropx sale de la investigación y del avance de la
+Sesión 3 (14 y 15-nov). **Empezar por el § A:** el propietario simplificó el
+alcance el 15-nov y parte de este documento quedó aparcada.
+
+## A · Dónde estamos al 15-nov: el alcance simplificado
+
+El propietario, a la Sesión 3: «de momento solo quiero que de alguna manera se
+me avise a mi celular cuando se haga alguna compra, ya sea pagada o
+contraentrega. lo de crear las guias por skydropx si me interesa».
+
+### Etapa 1 · Aviso a su celular — la resuelve n8n sola
+
+**No necesita código de la tienda ni despliegue.** La tienda ya le avisa a la
+hoja de inventario en el momento exacto de cada venta (`anotarVenta`), y ese
+aviso trae referencia, medio de pago, total, clienta, ciudad y piezas. n8n se
+cuelga de ahí.
+
+Lo que armó la Sesión 3, todo **sin publicar**:
+
+- Plantilla `pedido_nuevo_aviso` (utilidad, 6 variables), en revisión en Meta.
+- Flujo «Zephora · Aviso de compra al propietario» (`VRtLgnQXj9dIiKC2`).
+- Un borrador de «Zephora · Hoja de Inventario» con un nodo que llama a ese
+  flujo sin esperar.
+- La cuenta de WhatsApp ya tiene medio de pago.
+
+| | ¿Lo cubre la etapa 1? |
+|---|---|
+| Compras web: contraentrega al confirmar; Wompi, Addi y Sistecrédito al aprobarse | Sí |
+| Ventas manuales `MAN-` | No: el flujo solo deja pasar las `ZC-` |
+| Celular y dirección dentro del WhatsApp | No: siguen en el correo de tienda |
+| Aviso de que el WhatsApp falló | No: con n8n caído no llegan ni la hoja ni el WhatsApp. El correo de tienda sí sale siempre |
+| Recordatorio diario de lo no despachado | No (aparcado) |
+
+Tres cuidados antes de publicar (para la Sesión 3):
+
+1. **Avisos repetidos.** `wompi-webhook` no comprueba si el pedido ya estaba
+   pagado: si Wompi reenvía un evento aprobado, `anotarVenta` se llama otra
+   vez. La hoja lo absorbe porque casa por referencia; el WhatsApp saldría dos
+   veces. El flujo del aviso debe recordar las referencias ya avisadas.
+2. **La hoja primero.** El nodo nuevo no puede frenar ni tumbar la escritura
+   de la hoja.
+3. **Lo que no pasa por la hoja no avisa.** Por eso conviene además el paso
+   sin código del § 0: que el correo de pedidos le suene en el celular.
+
+### Etapa 2 · Guías de Skydropx — sí necesita código de la tienda
+
+Está en el § 7. n8n no puede armar una guía con el aviso de la hoja, porque no
+trae celular ni dirección.
+
+### Aparcado hasta que el propietario lo pida
+
+Mensajes a la clienta, botones de contraentrega, «Corregir datos», resumen
+diario de las 8:00 a. m., botón «Ya lo despaché» y correo de respaldo. Los
+§§ 2 a 6, 8 y 10 a 12 describen ese diseño completo y quedan como referencia.
+Todo eso sí necesita código de la tienda.
+
+Lo que se pierde al aparcar el resumen diario: si un día el WhatsApp tampoco
+se ve, nada vuelve a recordar ese pedido.
 
 ## 0 · Qué pasó con el pedido ZC-261107-28AEB010
 
-**El correo de tienda sí salió y sí llegó.** En la bandeja de
-`zephoracharms@gmail.com` están, del 7-nov y en Recibidos:
+**El correo de tienda sí salió y sí llegó.** En Recibidos de
+`zephoracharms@gmail.com` están, del 7-nov:
 
 - «Pedido ZC-261107-28AEB010 · $240.000 · en línea · ✎ DEDICATORIA»
 - «PAGADO · ZC-261107-28AEB010 · $240.000 — despachar · ✎ DEDICATORIA»
 - «Transacción APROBADA en Zephora Charms» (el de Wompi)
 
 No es un fallo de código: el aviso existió y nadie lo vio, porque ese buzón no
-se revisa a diario. El arreglo es de canal, que es lo que pide el encargo.
-(El correo dice $240.000; el encargo, $255.000. Conviene confirmar la cifra.)
+se revisa a diario. El arreglo es de canal. (El correo dice $240.000; el
+encargo, $255.000.)
 
 En la misma bandeja hay más pedidos pagados del 5 al 13-nov. Vale la pena
 revisar que todos estén despachados.
@@ -33,288 +89,569 @@ asunto «PAGADO» y «CONTRAENTREGA» a su correo personal.
 |---|---|---|
 | `_hoja.mjs` → `anotarVenta()` | El momento exacto de «venta confirmada» en los tres caminos | No lleva celular ni dirección |
 | `_correo.js` → `textoTienda()` | La hoja de despacho en texto plano | — (es el contenido del aviso) |
-| `_pedidos.mjs` | El pedido completo guardado por referencia (`leer`, `marcar`, `listar`) | No tiene ningún campo de «despachado» |
-| `envio-estado.mjs` + `_envios.mjs` | Avisos de estado de envío a la clienta, con clave y anti-duplicados | Sin activar; la tabla guía → referencia se llena a mano |
-| `rescate.mjs`, `posventa.mjs` | El patrón de función diaria (`config.schedule`) | — |
+| `_pedidos.mjs` | El pedido completo por referencia (`leer`, `marcar`, `listar`) | No tiene ningún campo de «despachado» |
+| `envio-estado.mjs` + `_envios.mjs` | Avisos de estado de envío, con clave y anti-duplicados | Sin activar |
+| Flujo n8n `ze4dI8GW96yfKGyd` | Estados de Skydropx → plantilla `actualizacion_envio` | Sin publicar; nunca recibió un evento real; su aviso a la tienda usa un correo que n8n no puede enviar |
+| Tabla n8n «Guías Zephora» | Relación guía → referencia | Se llena a mano |
+| Bot `74TjEtDnn940jh9k` | La marca `humano_hasta`, que lo calla 12 h en un chat | No lee los botones de plantilla |
+| `rescate.mjs`, `posventa.mjs` | El patrón de función diaria | — |
 
 Los tres puntos de disparo, que son los mismos de la hoja:
 
 1. **Contraentrega:** `crear-pago.mjs`, bloque `pedido.pago === 'contraentrega'`, después de `anotarVenta`.
-2. **Pago en línea, Addi y Sistecrédito:** `_cierre.mjs` → `cerrarPago()`, rama aprobada, junto a `anotarVenta` y `pagoTienda`. Nunca antes de la aprobación.
+2. **Pago en línea, Addi y Sistecrédito:** `_cierre.mjs` → `cerrarPago()`, rama aprobada. Nunca antes de la aprobación.
 3. **Venta manual `MAN-`:** `registrar-venta.mjs`, después de `anotarVenta`.
 
 ## 2 · Reparto: qué hace la tienda y qué hace n8n
 
-La misma regla de la spec del 18-sep: **el repo decide cuándo, a quién y con qué
-texto; n8n hace la plomería con Meta y Skydropx.**
+**El repo decide cuándo, a quién y con qué texto; n8n hace la plomería con
+Meta y Skydropx.** Es la regla de la spec del 18-sep.
 
 ```
 Venta confirmada (3 caminos)
    ↓
 [Netlify · _avisos.mjs · avisarPedido()]
-   arma las variables de cada plantilla, normaliza el celular,
-   anota el intento en el pedido y en el log
-   ↓  POST a AVISOS_WEBHOOK (cabecera X-Zephora-Token, 4 s de espera)
-[n8n · «Zephora · Avisos de pedido»]
-   ├─ plantilla al PROPIETARIO (hoja de despacho)
-   ├─ plantilla a la CLIENTA (confirmación; con botones si es contraentrega)
-   ├─ si es pago aprobado: cotización en Skydropx → tarifas al propietario
-   └─ por cada envío, bien o mal: POST a /pedido-aviso (resultado)
-   ↓
-[Netlify · pedido-aviso.mjs]  deja en el pedido si salió o no cada mensaje
+   arma las variables, normaliza el celular, anota el intento
+   ↓  POST a AVISOS_WEBHOOK (cabecera X-Zephora-Token, espera 4 s)
+[n8n · «Zephora · Avisos de pedido»]  responde 200 al recibir y luego trabaja
+   1. plantilla al PROPIETARIO     ← primero, no espera a nada
+   2. plantilla a la CLIENTA       ← fase 2
+   3. orden + tarifas de Skydropx  ← fase 3
+   y por cada envío, bien o mal: POST a /pedido-aviso (resultado)
 
-Clienta toca un botón → entra al número de la tienda
-   ↓
-[n8n · filtro ANTES del bot]  reconoce el botón por su código (ZC_OK / ZC_CORREGIR)
-   ├─ «Sí, todo está bien» → /pedido-aviso (confirmar) → cotización Skydropx
-   └─ «Corregir datos»     → /pedido-aviso (corregir)  → aviso al propietario
+Sin respuesta de n8n en 4 s → la tienda manda el correo de respaldo
 ```
 
 **Netlify (código, en este repo):**
 
-- `_avisos.mjs` (nuevo): `avisarPedido({ referencia, evento, pedido })`. Se llama
-  en los tres puntos. Nunca lanza.
-- `pedido-aviso.mjs` (nuevo, con clave): lo llama n8n para dejar el resultado de
-  cada envío, la respuesta de los botones y el «despachado».
-- `resumen-despachos.mjs` (nuevo, diario): el resumen de las 8:00 a. m.
-- Cambios de una línea en `crear-pago.mjs`, `_cierre.mjs` y `registrar-venta.mjs`.
-- `envio-estado.mjs`: al primer evento de Skydropx marca `despachadoEn`.
+| Archivo | Qué hace | Fase |
+|---|---|---|
+| `_avisos.mjs` (nuevo) | `avisarPedido()`: arma y manda el aviso. Nunca lanza | 1 |
+| `despachado.mjs` (nuevo) | La página del botón «Ya lo despaché» | 1 |
+| `resumen-despachos.mjs` (nuevo, diario) | El resumen de las 8:00 a. m. | 1 |
+| `pedido-aviso.mjs` (nuevo, con clave) | n8n deja aquí el resultado de cada envío y las respuestas de los botones | 1 (resultado) · 2 (botones) |
+| `crear-pago.mjs`, `_cierre.mjs`, `registrar-venta.mjs` | Una llamada a `avisarPedido()` en cada uno | 1 |
+| `envio-estado.mjs` | Al primer evento de la guía marca `despachadoEn` | 3 |
 
-**n8n (pendiente de la Sesión 3 en el cómo):** enviar las plantillas, atajar los
-botones antes del bot `74TjEtDnn940jh9k`, llamar a Skydropx y llenar sola la
-tabla guía → referencia que hoy se llena a mano.
+**n8n (lo construye la Sesión 3 cuando se apruebe):**
+
+- Flujo nuevo «Zephora · Avisos de pedido», aparte del de la hoja.
+- Flujo nuevo «Zephora · Botones de pedido», sin disparador propio.
+- Un solo nodo nuevo dentro del bot (fase 2).
+- Flujo «Zephora · Vigía» para los errores: hoy ningún flujo de Zephora lo tiene.
+- **Nunca un segundo disparador de WhatsApp:** reescribe el webhook de la app
+  y el bot deja de recibir, sin error. Los flujos nuevos solo envían.
 
 ## 3 · Qué datos viajan
 
-Un solo POST por venta, con la referencia como llave para descartar duplicados:
+Un solo POST por venta:
 
 ```json
 {
   "evento": "pago_aprobado | contraentrega_confirmada | venta_manual",
   "referencia": "ZC-261107-28AEB010",
   "cuando": "2026-11-07T15:02:11Z",
-  "propietario": { "para": "57…", "plantilla": "pedido_nuevo_tienda", "variables": ["…"] },
+  "propietario": { "para": "57…", "plantilla": "pedido_nuevo_tienda", "variables": ["…"],
+                   "enlaceDespachado": "ZC-….firma", "detalle": null },
   "clienta":     { "para": "57…", "plantilla": "pedido_confirmado", "variables": ["…"],
                    "botones": { "ok": "ZC_OK:ZC-…", "corregir": "ZC_CORREGIR:ZC-…" } },
-  "envio": { "cotizar": true, "recaudo": 0, "destino": { "nombre": "…", "celular": "…",
-             "direccion": "…", "adicional": "…", "barrio": "…", "ciudad": "…", "depto": "…" },
-             "paquete": { "peso": 0, "largo": 0, "ancho": 0, "alto": 0 } }
+  "envio": { "crearOrden": true, "pagado": true, "total": 240000,
+             "destino": { "nombre": "…", "celular": "…", "correo": "…", "direccion": "…",
+                          "adicional": "…", "barrio": "…", "ciudad": "…", "depto": "…" },
+             "paquete": { "peso": 1, "largo": 19, "ancho": 19, "alto": 5, "contenido": "…", "declarado": 0 } }
 }
 ```
 
-- **Celular y dirección sí viajan aquí** (la hoja no los lleva). Salen del
-  pedido guardado, igual que en el correo de tienda.
-- **El número del propietario** sale de `WHATSAPP_PROPIETARIO`, nunca del código.
-- **Celular de la clienta:** el checkout ya exige 10 dígitos que empiecen por 3;
-  se le antepone 57. En ventas manuales el teléfono es texto libre: se limpia y
-  se acepta `3XXXXXXXXX` o `573XXXXXXXXX`. Si no es válido, `clienta.para` va
-  vacío y el aviso al propietario dice «⚠ celular no válido: no se le escribió
-  a la clienta».
-- **Las variables las arma el repo**, no n8n. Meta no admite saltos de línea,
-  tabulaciones ni variables vacías: cada variable es una sola línea y lo que
-  falte va como «—». Un pedido con muchas piezas se corta con «… y N más (ver
-  correo)» para no pasar del límite del cuerpo.
-- **Datos personales en n8n:** el flujo no debe guardar las ejecuciones
-  correctas, o debe purgarlas en pocos días (ajuste del flujo; pendiente de la
-  Sesión 3).
+- **Celular y dirección sí viajan** (la hoja no los lleva). Salen del pedido
+  guardado, igual que en el correo de tienda.
+- **El número del propietario** sale de `WHATSAPP_PROPIETARIO`. El bot ya tiene
+  escrito un número en dos nodos; debe quedar en un solo sitio.
+- **Celular de la clienta:** el checkout exige 10 dígitos que empiecen por 3;
+  se le antepone 57. En ventas manuales el teléfono es texto libre: se acepta
+  `3XXXXXXXXX` o `573XXXXXXXXX`. Si no es válido, `clienta.para` va vacío y el
+  aviso al propietario lo dice.
+- **Las variables las arma el repo.** Cada una es una sola línea, sin
+  tabulaciones, y lo que falte va como «—». Cada una tiene su tope (§ 4).
+- **La dedicatoria nunca se recorta:** se escribe a mano tal cual. Si la
+  dedicatoria, las indicaciones o las piezas no caben, esa variable dice
+  «sigue en el mensaje siguiente» y sale además `pedido_nuevo_detalle`.
+- **`clienta` solo va si el pedido tiene la marca de aceptación** del § 10.
+  Una venta manual no la tiene: a esa clienta no se le escribe.
+- **Datos personales en n8n:** el flujo de avisos no guarda las ejecuciones
+  correctas, solo las fallidas. Zona horaria `America/Bogota`.
 
-## 4 · Los mensajes (borrador; texto final pendiente de la Sesión 3)
+## 4 · Las plantillas
 
-Todas son plantillas de **utilidad**, en español. El propietario las somete en
-WhatsApp Manager. Sin plantillas aprobadas, nada sale.
+**Para la etapa 1 se usa `pedido_nuevo_aviso`** (6 variables, ya en revisión
+en Meta), no `pedido_nuevo_tienda`. Las de abajo son las del diseño completo,
+y `actualizacion_envio` todavía no existe en la cuenta real.
 
-**`pedido_nuevo_tienda` — al propietario.** La hoja de despacho de
-`textoTienda()`, en campos fijos:
+Ocho, todas de categoría **Utilidad** e idioma **Español (`es`)**. Las somete
+el propietario con el perfil «Martin Daza» en el Administrador de WhatsApp del
+portafolio viejo → Plantillas de mensajes. Meta tarda hasta 24 horas. Los
+ejemplos de cada variable (obligatorios al someter) están en el § 14.
+
+| Plantilla | Para quién | Fase |
+|---|---|---|
+| `pedido_nuevo_tienda` | Propietario | 1 |
+| `pedido_nuevo_detalle` | Propietario, solo si no cabe | 1 |
+| `pendientes_despacho` | Propietario, 8:00 a. m. | 1 |
+| `pedido_confirmado` | Clienta, pago aprobado | 2 |
+| `pedido_contraentrega` | Clienta, contraentrega | 2 |
+| `pedido_corregir_datos` | Propietario | 2 |
+| `tarifas_envio` | Propietario | 3 |
+| `actualizacion_envio` | Clienta (ya aprobada desde el 18-sep) | 3 |
+
+**`pedido_nuevo_tienda`** — la hoja de despacho de `textoTienda()`:
 
 ```
-Pedido nuevo {{1}} · {{2}} · {{3}}
+Pedido nuevo {{1}} · {{2}} · Total {{3}}
+
 Empacar: {{4}}
+
 Para: {{5}} · Cel. {{6}}
 Dirección: {{7}}
-Ciudad: {{8}}
-Indicaciones: {{9}}
-Dedicatoria: {{10}}
-Revísalo y despáchalo.            [Ya lo despaché]
+Barrio: {{8}}
+Ciudad: {{9}}
+Indicaciones: {{10}}
+Dedicatoria (va a mano): {{11}}
+
+Revisa el pedido y despáchalo hoy.
 ```
 
 `{{2}}` es «PAGADO en línea», «ADDI aprobado», «SISTECRÉDITO aprobado» o
-«CONTRAENTREGA: COBRAR $135.000».
+«CONTRAENTREGA: COBRAR $135.000». Botón de **enlace** «Ya lo despaché» (§ 5).
+Si Meta la rechaza por tener 11 variables, se unen barrio con dirección y
+total con estado.
 
-**`pedido_confirmado` — a la clienta, pago aprobado.** El texto del encargo:
-«¡Hola {{1}}! ✨ Gracias por tu compra en Zephora Charms 💖 Tu pedido {{2}} ya
-está confirmado y en preparación. En cuanto lo despachemos te enviamos la guía
-por este mismo chat ✨».
+**`pedido_nuevo_detalle`:**
 
-**`pedido_contraentrega` — a la clienta, contraentrega.** Lo anterior más:
-«Para despacharlo, confirma por favor tus datos: {{3}}, {{4}}. Pagarás {{5}} al
-recibir (incluye el envío contraentrega).» Botones: **[Sí, todo está bien]**
-**[Corregir datos]**.
+```
+Continuación del pedido {{1}}.
 
-**`tarifas_envio` — al propietario.** Las tarifas de Skydropx (transportadora,
-precio, días) y cómo terminar la guía. Pendiente de la Sesión 3.
+Piezas que faltaban: {{2}}
+Indicaciones completas: {{3}}
+Dedicatoria completa (va escrita a mano): {{4}}
 
-**`pendientes_despacho` — al propietario, 8:00 a. m.** Ver § 7.
+Fin del pedido.
+```
 
-**Venta manual `MAN-`:** solo aviso al propietario. A la clienta no se le
-escribe: ya está hablando con la tienda en ese chat y el registro no guarda su
-dirección. (Pregunta 6.)
+**`pendientes_despacho`:**
 
-**Costo por pedido:** 2 mensajes en pago en línea (propietario + clienta) y
-hasta 3 con las tarifas; en contraentrega, uno más si hay corrección. Precio
-por mensaje en Colombia: pendiente de la Sesión 3.
+```
+Buenos días. Pedidos confirmados sin despachar hace más de 24 horas: {{1}}
 
-## 5 · Botones de la contraentrega
+{{2}}
 
-- Cada botón lleva un código con la referencia (`ZC_OK:<ref>`,
-  `ZC_CORREGIR:<ref>`), así la respuesta se reconoce sin leer el texto.
-- **Se atajan antes del bot:** el primer nodo del flujo del bot desvía todo
-  mensaje de tipo botón cuyo código empiece por `ZC_`. El bot no los ve.
-  (El cómo exacto: pendiente de la Sesión 3.)
-- **«Sí, todo está bien»:** n8n llama a `/pedido-aviso` con `confirmar`; el
-  pedido queda con `datosConfirmadosEn`; se responde «¡Listo! Ya lo
-  preparamos» y arranca la cotización de Skydropx.
-- **«Corregir datos»:** el pedido queda con `datosPorCorregir`; se le dice a la
-  clienta que una persona le escribe, y al propietario le llega «{nombre}
-  quiere corregir los datos de {ref}». Lo que ella escriba después no puede
-  contestarlo el bot como si fuera una venta (pendiente de la Sesión 3).
-- **Sin respuesta:** el pedido aparece en el resumen de las 8:00 a. m. como
+Contraentregas sin confirmar: {{3}}
+Avisos que no salieron: {{4}}
+
+Revísalos hoy.
+```
+
+**`pedido_confirmado`** (el texto del propietario, sin cambios):
+
+```
+¡Hola {{1}}! ✨ Gracias por tu compra en Zephora Charms 💖 Tu pedido {{2}} ya está confirmado y en preparación. En cuanto lo despachemos te enviamos la guía por este mismo chat ✨
+```
+
+**`pedido_contraentrega`**, con botones de respuesta rápida **[Sí, todo está
+bien]** y **[Corregir datos]**:
+
+```
+¡Hola {{1}}! ✨ Gracias por tu compra en Zephora Charms 💖 Tu pedido {{2}} ya está confirmado y en preparación. Para despacharlo, confirma por favor tus datos: {{3}}, {{4}}. Pagarás {{5}} al recibir (incluye el envío contraentrega). En cuanto lo despachemos te enviamos la guía por este mismo chat ✨
+```
+
+El barrio va dentro de `{{3}}`, para que una clienta sin barrio no lea «…, —,
+Bogotá». Sugerencia: «ya está **registrado**» en vez de «confirmado», porque
+la misma frase le pide confirmar (pregunta 9).
+
+**`pedido_corregir_datos`:**
+
+```
+La clienta {{1}} quiere corregir los datos del pedido {{2}}. Su celular es {{3}}. Escríbele por WhatsApp y ajusta la dirección antes de despachar.
+```
+
+**`tarifas_envio`**, con botón de enlace «Abrir Skydropx»:
+
+```
+Orden lista en Skydropx para el pedido {{1}} ({{2}}).
+
+Tarifas de hoy: {{3}}
+
+Valor a recaudar: {{4}}
+
+Entra a Skydropx, abre Preparar órdenes, elige la transportadora y paga la guía.
+```
+
+## 5 · El botón «Ya lo despaché»: enlace, no respuesta rápida
+
+**Decisión de diseño: botón de enlace.** Una respuesta rápida entra por el
+único webhook del número, que es el del bot, y obligaría a tocar el bot desde
+la primera fase. Con enlace, la fase 1 no toca el bot. Se decide antes de
+someter la plantilla, porque el tipo de botón no se cambia después.
+
+- La dirección es `https://zephoracharms.com/despachado/<referencia>.<firma>`.
+  La firma la genera la tienda con `AVISOS_KEY`; sin ella la página no abre.
+- **Abrir el enlace no marca nada.** Muestra la referencia, el nombre y la
+  ciudad, y un botón «Sí, ya lo despaché». Solo ese botón marca el pedido.
+  Así una vista previa del enlace no lo da por despachado.
+- Tocarlo dos veces no cambia nada.
+- Si el propietario prefiere la respuesta rápida (pregunta 3): el código sería
+  `ZC_DESP:<ref>` y la fase 1 pasaría a incluir el cambio del § 6 en el bot,
+  con sus condiciones.
+
+## 6 · Los botones de la contraentrega y el bot (fase 2)
+
+**Qué llega.** Al tocar un botón de plantilla llega un mensaje de tipo
+`button` con el código que se puso al enviar: `ZC_OK:<ref>` o
+`ZC_CORREGIR:<ref>`. Hoy el bot no lo lee: lo trata como una nota de voz.
+
+**Dónde se ataja.** Un solo nodo nuevo en el bot, justo después de «Solo
+mensajes de clientas» y antes del buffer, de la espera de 30 s y de «Atiende
+un humano?»:
+
+```
+«Solo mensajes de clientas»
+        ↓
+NUEVO «Es boton de pedido?»   (tipo button y código que empieza por ZC_)
+   ├─ sí → flujo «Zephora · Botones de pedido»
+   └─ no → «Es imagen?»  (todo lo de hoy, igual)
+```
+
+| Botón | Qué pasa |
+|---|---|
+| «Sí, todo está bien» | `/pedido-aviso` (confirmar) → el pedido queda con `datosConfirmadosEn` → se le responde «¡Listo! Ya estamos preparando tu pedido 💖» → arranca Skydropx (fase 3) |
+| «Corregir datos» | `/pedido-aviso` (corregir) → `datosPorCorregir` → se le pide que cuente qué dato corregir → **el bot se calla 12 h en ese chat** (`humano_hasta`) → al propietario le llega `pedido_corregir_datos` |
+
+- **`/pedido-aviso` comprueba quién tocó:** tiene que ser el celular de ese
+  pedido. Un código con la referencia de otra persona no hace nada.
+- Un botón tocado dos veces no se responde otra vez.
+- Las respuestas a la clienta son texto libre: ella acaba de escribir, la
+  ventana de 24 h está abierta y no cuestan.
+- **Corrige una persona.** El propietario lee el chat en la app de WhatsApp
+  Business, responde ahí y ajusta la dirección al completar la orden en
+  Skydropx. En esta versión la dirección guardada en la tienda queda con la
+  vieja y una nota. Una página para corregirla en la tienda queda para después.
+- **Sin respuesta:** el pedido sale en el resumen de las 8:00 a. m. como
   «contraentrega sin confirmar».
-- Una referencia que no existe, o un botón tocado dos veces, no hace nada
-  nuevo y no rompe nada.
 
-## 6 · Skydropx: cotización, no compra
+**Condiciones para tocar el bot** (son de la Sesión 3):
 
-- **Cuándo:** pago en línea, al aprobarse. Contraentrega, solo tras «Sí, todo
-  está bien» o cuando el propietario corrigió los datos.
-- **Qué:** cotización con origen (la tienda), destino (datos del pedido),
-  paquete estándar y, en contraentrega, el valor a recaudar.
-- **Hasta dónde:** nunca se compra la guía. Al propietario le llegan las
-  tarifas y él elige y paga en Skydropx.
-- **Relación con el pedido:** la referencia `ZC-`/`MAN-` viaja en la
-  cotización, y n8n guarda sola la fila guía → referencia. Así los avisos de
-  estado de la spec del 18-sep le llegan a la clienta correcta sin el paso
-  manual.
-- **Pendiente de la Sesión 3:** qué llamada de la API sirve (cotización o
-  envío sin etiqueta), si conserva la referencia cuando el propietario termina
-  en el panel, y cómo se declara el recaudo contraentrega.
+- Publicar el bot puede alterar el webhook en Meta, y para repararlo hay que
+  entrar a la app `AGENTE CLAUDE`. Por eso antes hace falta el **registro de
+  desarrollador** del propietario (o tener a mano el perfil «Zephora Charms 1»).
+- Se publica en una hora tranquila, con el propietario presente, y se prueba
+  con un WhatsApp real.
+- `BH · 4 WhatsApp entrante` sigue con la credencial de disparo de Zephora: si
+  alguien lo publica así, se lleva el webhook. Le toca a Bendito Hogar.
 
-## 7 · Red de seguridad
+## 7 · Skydropx (etapa 2)
 
-**Fallar hacia adelante.** `avisarPedido()` nunca lanza y espera como máximo
-4 segundos. Sin `AVISOS_WEBHOOK` no manda nada y la tienda vende igual. Una
-venta jamás se cae por WhatsApp, n8n o Skydropx.
+**Lo que dijo el propietario el 15-nov:** todo sale por Skydropx, también la
+contraentrega con su recaudo; la contraentrega va con Coordinadora y lo pagado
+con Inter Rapidísimo; y acepta que la guía se cree sola cuando las reglas
+estén claras.
+
+### 7.1 · Lo que necesita de la tienda
+
+El aviso de la hoja no trae celular ni dirección, y no debe traerlos: es un
+espejo de inventario y ese flujo guarda sus ejecuciones. La propuesta más
+pequeña:
+
+- **`pedido-envio.mjs` (nuevo, con clave).** n8n recibe la referencia por el
+  aviso de la hoja y le pide a la tienda los datos del envío. Es el patrón de
+  `envio-estado`. Responde el destino, el paquete y las reglas ya resueltas:
+  valor declarado, si lleva recaudo y si lleva protección. Los números los
+  pone el repo, no n8n.
+- **El mismo endpoint guarda** en el pedido el id de la orden y de la guía.
+  Con eso el pedido queda marcado como despachado.
+- **No se toca el camino del cobro:** `crear-pago` y `_cierre` no cambian.
+- Solo entrega datos de un pedido confirmado. Uno pendiente de pago, anulado o
+  de prueba responde que no. Una venta manual sin dirección lo dice.
+- Variable nueva: `PEDIDO_ENVIO_KEY`. Funciones: 38 → 39.
+- Pruebas (`pruebas/pedido-envio.js`): sin clave, 401; referencia inexistente,
+  404; todo dato de entrega que escribió la clienta viaja; el valor declarado
+  sale según el medio de pago; un pedido sin confirmar no entrega nada.
+
+La alternativa es que la tienda empuje los datos (`_avisos.mjs`, § 2). Queda
+para cuando se retomen los mensajes a la clienta.
+
+### 7.2 · Paso A: orden precargada; el propietario elige y paga
+
+- `POST /api/v1/orders` deja la orden en «Preparar órdenes» con la referencia
+  `ZC-…`. No compra nada.
+- `POST /api/v1/quotations`, atada a la orden, trae las tarifas. Al
+  propietario le llega `tarifas_envio` con la transportadora habitual primero
+  y, al lado, la más barata con la diferencia en pesos.
+- En este paso el flujo **nunca** llama a las cuatro rutas que compran la
+  guía (`/api/v1/shipments`, `/api/v2/shipments`, `/api/v1/rate/shipments`,
+  `/api/v2/rate/shipments`).
+- La contraentrega también se precarga: él confirma la dirección con la
+  clienta, como hoy, antes de pagar la guía.
+
+### 7.3 · Paso B: la guía se crea sola, con sus reglas
+
+Reglas dichas por el propietario el 15-nov:
+
+| Regla | Valor |
+|---|---|
+| Transportadora habitual | Contraentrega → Coordinadora · pagado → Inter Rapidísimo |
+| Cambiar de transportadora | Solo si la otra sale $5.000 o más barata |
+| Valor declarado, pedido pagado | $46.000 |
+| Contraentrega | «Contra entrega» encendido e «Incluir costo del envío» marcado |
+| Valor declarado, contraentrega | El que haga que declarado + flete quede igual o un poco por debajo del total del checkout |
+| Protección Plus | Solo en contraentrega |
+| Tope de precio por guía | $25.000. Por encima no se compra sola |
+| Indicaciones de entrega | Van en «Detalles de la dirección» o en «Referencia» |
+| Saldo | Siempre habrá |
+
+Cálculo de la contraentrega, con su ejemplo: total del checkout $61.000 y
+flete $13.825 → declara $47.000 → recauda $60.825. Para automatizarlo: se
+cotiza, se pone declarado = total − flete redondeado hacia abajo, se vuelve a
+cotizar y se sigue solo si el recaudo no pasa del total. **Nunca se le cobra a
+la clienta más de lo que vio en el checkout.**
+
+**Cuándo NO se compra sola** y le llega el aviso para decidir:
+
+- El flete pasa de $25.000.
+- La ciudad es un «Otro municipio» escrito a mano, o no hay código postal.
+- La transportadora habitual no cotiza.
+- El recaudo calculado pasa del total.
+- Es una contraentrega: se compra sola solo cuando conste que la dirección
+  quedó confirmada. Hoy esa confirmación es a mano, así que al principio el
+  paso B aplica solo a pedidos pagados.
+
+Después de comprar, n8n revisa si Skydropx rechazó la Protección Plus y, si la
+rechazó, le avisa.
+
+### 7.4 · Verificaciones previas
+
+- **Que no haya activa ninguna automatización «Crear guía automática» en
+  Skydropx.** Aplica también a las órdenes creadas por API: comprarían dos
+  sistemas.
+- Que la credencial de la API siga vigente, y qué servidor usa la cuenta (el
+  panel abre en `app.skydropx.com`; el flujo viejo solo acepta `pro.`).
+- Dirección de origen verificada para cotizar Inter Rapidísimo por API (unos
+  2 días hábiles).
+- **`actualizacion_envio` solo existe en la cuenta de prueba de WhatsApp.**
+  Para avisarle a la clienta el estado del envío hay que crearla en la real.
+  Esos avisos son mensajes a clientas: dependen del texto de aceptación del
+  § 10.
+- Un envío real de prueba, para confirmar que la guía queda atada a la orden.
+
+### 7.5 · Decisión abierta: joyas y contraentrega
+
+Las condiciones de contraentrega de Skydropx excluyen «Metales como oro,
+plata, platino» y «Dinero, joyas y elementos lujosos». Hoy le funciona, pero
+si un paquete se pierde o lo retienen, esas condiciones pueden dejarlo sin
+reclamo. Es decisión del propietario.
+
+## 8 · Red de seguridad
+
+**Fallar hacia adelante.** `avisarPedido()` nunca lanza y espera 4 segundos
+como máximo. Sin `AVISOS_WEBHOOK` no manda nada y la tienda vende igual.
 
 **Nunca en silencio.**
 
-- Cada intento deja una línea en el log (`evento: aviso_whatsapp`, referencia,
-  resultado) y un campo `avisos` en el pedido.
-- **Si n8n no responde:** la tienda manda en el acto un correo «⚠ NO SALIÓ EL
-  WHATSAPP · {ref}» con la hoja de despacho, a `CORREO_TIENDA` y a
-  `CORREO_ALERTAS` (un buzón que el propietario sí lea).
-- **Si n8n recibe pero Meta rechaza** (plantilla pausada, número inválido): n8n
-  lo reporta a `/pedido-aviso` y además escribe una fila en la hoja «Avisos
-  fallidos».
-- **No se repite:** los reintentos de Wompi no mandan dos avisos; el pedido
-  recuerda que ya se avisó.
+- Cada intento deja una línea en el log y un campo `avisos` en el pedido.
+- **n8n no responde en 4 s:** la tienda manda en el acto un correo «⚠ NO SALIÓ
+  EL WHATSAPP · {ref}» con la hoja de despacho, a `CORREO_TIENDA` y a
+  `CORREO_ALERTAS`. El respaldo lo manda la tienda porque n8n no tiene
+  credencial de correo.
+- **n8n recibe pero Meta rechaza:** n8n lo reporta a `/pedido-aviso` y escribe
+  una fila en la pestaña «Avisos fallidos» de la hoja.
+- **Meta acepta y falla después** (número sin WhatsApp): ese fallo llega al
+  bot. En la fase 2 su rama de fallos lo reporta también a `/pedido-aviso`.
+- **Skydropx no responde:** el pedido ya quedó avisado. Tras dos reintentos se
+  reporta, y el propietario arma la guía a mano.
+- **No se repite:** el pedido recuerda que ya se avisó, y n8n lleva la tabla
+  «Avisos Zephora» (`referencia|evento|destino`).
 - El correo de tienda de hoy **se mantiene** tal cual.
 
-**Resumen diario, 8:00 a. m.** (`resumen-despachos.mjs`, `0 13 * * *` UTC).
-Recorre los pedidos confirmados sin `despachadoEn` y con más de 24 horas, y le
-manda al propietario la lista: referencia, nombre, ciudad, total y días de
-espera; aparte, las contraentregas sin confirmar y los pedidos cuyo aviso no
-salió. Va también por correo. No depende de que el aviso del momento haya
-funcionado: es lo que habría mostrado el pedido de Yuly el 8-nov.
+**Resumen diario, 8:00 a. m.** (`resumen-despachos.mjs`, `0 13 * * *` UTC). Lo
+arma la tienda: pedidos confirmados sin `despachadoEn` y con más de 24 horas,
+con referencia, nombre, ciudad, total y días; aparte, las contraentregas sin
+confirmar y los avisos que no salieron. Va por WhatsApp y **también por
+correo**, para no depender de WhatsApp ni de n8n. Es lo que habría mostrado el
+pedido de Yuly el 8-nov.
 
-Un pedido pasa a «despachado» de dos formas: el propietario toca **[Ya lo
-despaché]** en el aviso, o Skydropx reporta el primer evento de su guía.
-Para no listar todo el historial el primer día, solo cuentan los pedidos desde
-`AVISOS_DESDE`.
+Un pedido pasa a «despachado» cuando el propietario toca «Ya lo despaché» o
+cuando Skydropx reporta el primer evento de su guía. Solo cuentan los pedidos
+desde `AVISOS_DESDE`, para no listar todo el historial el primer día.
 
-## 8 · Variables nuevas
+## 9 · Costo
+
+**Etapa 1:** una plantilla por compra, unos $3. Con 30 a 40 pedidos al mes,
+entre $90 y $120 al mes. Lo de abajo es el costo del diseño completo.
+
+Tarifas de Meta para Colombia, leídas el 14-nov-2026: **$2,95 por plantilla de
+utilidad** (USD 0,0008). Marketing cuesta $46,02.
+
+| Caso | Mensajes pagos | Costo |
+|---|---|---|
+| Pedido pagado en línea | 2, o 3 con tarifas | $6 a $9 |
+| Pedido contraentrega | 3, o 4 si pide corregir | $9 a $12 |
+| Avisos de estado del envío | hasta 6 más | hasta $18 |
+| Resumen diario | 1 al día | unos $90 al mes |
+
+**Con 30 a 40 pedidos al mes: entre $450 y $1.150 al mes.** Las respuestas de
+texto libre a los botones caben en los 1.000 mensajes gratis del número. Si
+Meta clasificara como marketing las plantillas del propietario, serían unos
+$3.200 más al mes; se sabe al someterlas.
+
+**Lo que sí puede frenar todo es el medio de pago de la cuenta de WhatsApp:**
+las plantillas se cobran una por una y hasta hoy el número casi solo envía
+respuestas gratis del bot.
+
+## 10 · Permiso de la clienta, privacidad y checkout
+
+**Dejar el celular no basta.** La política de WhatsApp Business exige que la
+persona haya aceptado recibir mensajes del negocio, nombrándolo, y no hay
+excepción para los mensajes de utilidad. La política de privacidad y el
+checkout ya mencionan el WhatsApp, pero como aviso, no como aceptación.
+
+**Textos propuestos** (reemplazan los de la primera versión):
+
+- Checkout, bajo el campo del celular: «Al hacer tu pedido aceptas que Zephora
+  Charms te escriba por WhatsApp a este número para confirmarlo y avisarte del
+  envío.»
+- Checkout, nota de contraentrega: «Pagas en efectivo al mensajero. Antes de
+  despachar, Zephora Charms te escribe por WhatsApp para confirmar tu
+  dirección.»
+- Política (`gen_paginas.py`), en «Gestionar tu pedido»: «Al hacer un pedido
+  aceptas que Zephora Charms te escriba por WhatsApp al celular que nos dejas:
+  la confirmación del pedido y de tus datos de entrega, y los avisos del
+  envío. Son mensajes sobre tu compra, no publicidad.»
+- Política, en transportadoras: agregar «y Skydropx, la plataforma con la que
+  generamos las guías».
+
+**Cómo se respeta en el código:** el pedido que se crea con ese texto ya
+publicado queda con una marca de aceptación. `avisarPedido()` solo le escribe
+a la clienta si el pedido la tiene. Así no se le escribe a quien compró antes
+del cambio ni a una venta manual. Es independiente de la casilla de novedades
+(`optin`), que es para publicidad.
+
+## 11 · Variables nuevas
 
 | Variable (Netlify) | Para qué |
 |---|---|
 | `AVISOS_WEBHOOK` | URL del flujo de n8n. Sin ella, nada sale |
 | `AVISOS_TOKEN` | Cabecera `X-Zephora-Token` hacia n8n |
-| `AVISOS_KEY` | Clave con que n8n llama a `/pedido-aviso` |
+| `AVISOS_KEY` | Clave con que n8n llama a `/pedido-aviso` y con que se firma el enlace de despacho |
 | `WHATSAPP_PROPIETARIO` | Número del propietario, `57XXXXXXXXXX` |
-| `AVISOS_CLIENTAS` | Interruptor: los mensajes a clientas salen solo con `on` |
 | `CORREO_ALERTAS` | Buzón de respaldo que el propietario sí lea |
 | `AVISOS_DESDE` | Fecha desde la que cuenta el resumen diario |
+| `AVISOS_CLIENTAS` | Interruptor de la fase 2: mensajes a clientas solo con `on` |
+| `AVISOS_SKYDROPX` | Interruptor de la fase 3: orden y tarifas solo con `on` |
 
-En n8n, como credenciales (ya existen): «WhatsApp Zephora (Envío)»,
-«WhatsApp Zephora (Trigger)», «Skydropx API» y «Skydropx Webhook (entrada)».
-Las medidas del paquete y la dirección de origen no son secretas: van en el
-código, cuando el propietario las dé.
+En n8n faltan dos credenciales de cabecera, que crea el propietario: la del
+webhook de entrada (`AVISOS_TOKEN`) y la de `/pedido-aviso` (`AVISOS_KEY`). Las
+de WhatsApp y Skydropx ya existen. Las medidas del paquete no son secretas:
+van en el código.
 
-## 9 · Pruebas que se escribirían
+## 12 · Pruebas que se escribirían
 
-`pruebas/avisos.js`, `pruebas/pedido-aviso.js` y `pruebas/resumen-despachos.js`,
-al estilo de `hoja.js` y `envio-estado.js`, sumadas a `correr.sh`:
+`pruebas/avisos.js`, `pedido-aviso.js`, `despachado.js` y
+`resumen-despachos.js`, al estilo de `hoja.js` y `envio-estado.js`, sumadas a
+`correr.sh`:
 
 - Se avisa una vez en cada camino, y **no** con pago pendiente o rechazado.
 - Un reintento de la pasarela no manda un segundo aviso.
-- **Todo dato que la clienta escribió viaja:** la prueba saca los campos de lo
-  que acepta `crear-pago`, como `correo-tienda.js`, sin nombrarlos a mano.
+- **Todo dato que la clienta escribió viaja:** los campos salen de lo que
+  acepta `crear-pago`, como en `correo-tienda.js`, sin nombrarlos a mano.
 - Contraentrega dice «COBRAR $total»; pago aprobado dice «PAGADO».
-- Celular a `57XXXXXXXXXX`; uno inválido deja a la clienta sin mensaje y avisa
-  al propietario.
-- Ninguna variable trae salto de línea ni va vacía; un pedido largo se corta.
+- Celular a `57XXXXXXXXXX`; uno inválido deja a la clienta sin mensaje y lo
+  dice en el aviso al propietario.
+- Ninguna variable trae salto de línea ni va vacía, y ninguna pasa su tope.
+- La dedicatoria larga no se recorta: sale `pedido_nuevo_detalle`.
+- Sin la marca de aceptación no hay mensaje a la clienta; una `MAN-` tampoco.
 - n8n caído, lento o con error: la venta termina bien, queda la línea en el
   log y sale el correo de respaldo.
 - Sin `AVISOS_WEBHOOK` no se manda nada. Sin `AVISOS_CLIENTAS=on` solo sale el
-  aviso del propietario.
-- `/pedido-aviso`: 401 sin clave; confirmar, corregir y despachado marcan el
-  pedido; repetir no cambia nada; referencia inexistente da 404.
+  aviso del propietario. Sin `AVISOS_SKYDROPX=on` no se pide orden.
+- `/pedido-aviso`: 401 sin clave; confirmar y corregir solo si quien tocó es
+  el celular del pedido; repetir no cambia nada; referencia inexistente, 404.
+- `/despachado`: sin firma válida no abre; abrir no marca; confirmar marca una
+  sola vez.
 - Resumen: lista lo de más de 24 h sin despachar; deja fuera lo despachado, lo
-  anulado, las pruebas y lo anterior a `AVISOS_DESDE`; sin pendientes no envía.
-- `ESTADO.md` § Al desplegar: 38 → 40 funciones (41 con el resumen).
+  anulado, las pruebas y lo anterior a `AVISOS_DESDE`.
+- `ESTADO.md` § Al desplegar: 38 → 42 funciones.
 
-## 10 · Privacidad y checkout
+## 13 · Lo que no se pudo confirmar
 
-**Ya lo dicen, en lo esencial.** La política incluye entre las finalidades
-«Gestionar tu pedido: confirmarlo, prepararlo, despacharlo y hacerle
-seguimiento» y «Coordinar la entrega con la transportadora y, si aplica, el
-pago contraentrega», y nombra a Meta (WhatsApp Business), n8n, Resend y las
-transportadoras. El checkout dice «Por WhatsApp y correo te llega el número de
-guía» y, en contraentrega, «Confirmamos disponibilidad por WhatsApp antes de
-despachar».
+| Dato | Cómo se confirma |
+|---|---|
+| Que una variable no admita saltos de línea, y su largo máximo | Con la primera prueba de envío |
+| Que Meta acepte 11 variables en `pedido_nuevo_tienda` | Al someterla |
+| Que Meta acepte como utilidad un resumen al número del propietario | Al someter `pendientes_despacho` |
+| Que el medio de pago sea obligatorio para plantillas | En la configuración de pagos de la cuenta de WhatsApp |
+| Que el nodo de WhatsApp de n8n admita el código del botón | Al construir; el plan B es un nodo HTTP |
+| Servidor de la API de Skydropx y vigencia de su credencial | Una llamada de prueba |
+| Formato del código postal en la cotización | Ambiente de pruebas de Skydropx |
+| Que el envío conserve la relación con la orden al terminarlo en el panel | Un envío real de prueba; de esto depende el aviso de estado |
+| Contraentrega por API, comisiones y la exclusión de joyas | El propietario y soporte de Skydropx |
+| Webhooks de Skydropx activos en la cuenta | Conexiones → Webhooks |
 
-**Texto propuesto, para que quede explícito:**
+## 14 · Ejemplos para someter las plantillas
 
-- Checkout, bajo el campo del celular: «Te escribiremos por WhatsApp a este
-  número para confirmar tu pedido y avisarte del envío.»
-- Checkout, nota de contraentrega: «Pagas en efectivo al mensajero. Antes de
-  despachar te pedimos confirmar tu dirección por WhatsApp.»
-- Política (`gen_paginas.py`), en «Gestionar tu pedido»: «Para eso te
-  escribimos por WhatsApp al celular que nos dejas: la confirmación del pedido
-  y de tus datos de entrega, y los avisos del envío. Son mensajes sobre tu
-  compra, no publicidad.»
-- Política, en transportadoras: agregar «y Skydropx, la plataforma con la que
-  generamos las guías».
+| Plantilla | Variables, en orden |
+|---|---|
+| `pedido_nuevo_tienda` | `ZC-261107-28AEB010` · `PAGADO en línea` · `$240.000` · `Torre Eiffel y Cámara · Groot Bebé · Clip Infinito con Corazón` · `Yuly González` · `3001234567` · `Cra 12 # 34-56, apto 301` · `Cañaveral` · `Floridablanca, Santander` · `Dejar en portería` · `Para mi mamá, con todo mi amor` |
+| `pedido_nuevo_detalle` | `ZC-261107-28AEB010` · `Letra V · Sol y Luna con Cristales` · `Entregar en el local 12 del centro comercial, preguntar por Marta` · `Feliz cumpleaños, mi amor. Que cada dije te recuerde un momento nuestro.` |
+| `pendientes_despacho` | `2` · `ZC-261107-28AEB010 · Yuly González · Floridablanca · $240.000 · 8 días` · `ZC-261110-DC8E9386` · `ninguno` |
+| `pedido_confirmado` | `Valentina` · `ZC-261112-E8029B81` |
+| `pedido_contraentrega` | `Kaleth` · `ZC-261110-DC8E9386` · `Calle 45 # 12-30, apto 502, barrio Chapinero` · `Bogotá D.C.` · `$135.000` |
+| `pedido_corregir_datos` | `Kaleth Abril` · `ZC-261110-DC8E9386` · `3001234567` |
+| `tarifas_envio` | `ZC-261112-B19F5179` · `Bogotá D.C.` · `Inter Rapidísimo $8.806 (2 días) · Coordinadora $11.200 (3 días)` · `no aplica, ya está pagado` |
 
-Son mensajes de la propia compra: no dependen de la casilla de novedades
-(`optin`), igual que el aviso de envío de la spec del 18-sep.
+Topes por variable de `pedido_nuevo_tienda`: referencia 20, cobro 45, total 9,
+piezas 330, nombre 45, celular 12, dirección 110, barrio 40, ciudad 45,
+indicaciones 90, dedicatoria 90. Con todo al tope, el cuerpo queda apenas por
+debajo de los 1024 caracteres de Meta.
 
-## 11 · Orden propuesto
+## 15 · Etapas
 
-1. **Aviso al propietario + resumen diario + respaldo.** Dos plantillas, sin
-   tocar el bot. Es lo que resuelve el caso de Yuly.
-2. **Mensajes a la clienta y botones.** Exige el filtro antes del bot.
-3. **Cotización de Skydropx y avisos de estado.**
+1. **Aviso al celular del propietario por cada compra.** Lo hace n8n sola,
+   sin código de la tienda y sin despliegue. Falta que Meta apruebe la
+   plantilla, una compra simulada y publicar los dos flujos.
+2. **Skydropx, paso A:** orden precargada y tarifas. Código de la tienda
+   (`pedido-envio`) y flujo de n8n.
+3. **Skydropx, paso B:** la guía se crea sola con las reglas del § 7.3,
+   primero solo en pedidos pagados.
+4. **Aparcado:** mensajes a la clienta, botones, resumen diario, botón de
+   despacho y correo de respaldo.
 
-Cada fase se prueba primero al número del propietario; `AVISOS_CLIENTAS` queda
-apagado hasta que él lo apruebe. Nada se despliega sin su «deploy».
+Nada de la tienda se despliega sin el «deploy» del propietario, y ningún
+flujo que escriba a clientas se activa sin su aprobación.
 
-## 12 · Preguntas para el propietario
+## 16 · Lo que falta del propietario
 
-1. Número de WhatsApp donde quiere recibir los avisos.
-2. Peso y medidas del paquete estándar (o si sirve el «paquete habitual» que ya
-   tiene en Skydropx), y la dirección de origen.
-3. Un correo que sí lea a diario, para el respaldo.
-4. ¿El total del pedido de Yuly fue $240.000 (lo que dice el correo) o $255.000?
-5. ¿Aprueba el orden por fases, empezando por su aviso y el resumen diario?
-6. Ventas manuales `MAN-`: ¿solo aviso a usted, o también mensaje a la clienta?
-   ¿Y entran en el resumen de pendientes?
-7. Cuando no haya nada pendiente, ¿prefiere silencio o un «todo al día»?
-8. ¿Desde qué fecha cuenta el resumen (para no listar pedidos viejos)?
+**Para la etapa 1 (su aviso)**
+
+1. Ver en el Administrador de WhatsApp si Meta ya aprobó `pedido_nuevo_aviso`.
+2. Recibir la compra simulada en su celular y aprobar que se publiquen los dos
+   flujos de n8n.
+3. Hacer «Verificar cuenta» en la facturación de WhatsApp, que Meta lo pide.
+4. Hoy, sin construir nada: que el correo de pedidos le suene en el celular.
+5. Revisar que los pedidos pagados del 5 al 13-nov estén despachados.
+6. ¿Quiere que las ventas manuales `MAN-` también le avisen?
+
+**Para la etapa 2 (Skydropx)**
+
+7. Aprobar la etapa 2 y su orden: primero la orden precargada, después la
+   guía sola. Lleva código de la tienda y su «deploy».
+8. Confirmar el paquete: 19 × 19 × 5 cm, 1 kg, contenido «brazalete», origen
+   «Autoenvio Fontibon».
+9. Confirmar el redondeo del valor declarado en contraentrega (a miles hacia
+   abajo, como en su ejemplo de $47.000).
+10. En Skydropx: confirmar que no hay ninguna automatización «Crear guía
+    automática» activa y pedir la verificación de la dirección de origen.
+11. Decidir sobre la exclusión de joyas en la contraentrega (§ 7.5).
+12. Si quiere avisos de estado del envío a la clienta: crear
+    `actualizacion_envio` en la cuenta real y aprobar el texto de aceptación
+    del § 10.
+
+Ya resuelto con la Sesión 3: el número de los avisos, el medio de pago de
+WhatsApp, cómo despacha la contraentrega, el valor declarado, el umbral de
+$5.000 y el tope de $25.000.

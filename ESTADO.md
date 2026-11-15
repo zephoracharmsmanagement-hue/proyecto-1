@@ -16,16 +16,20 @@ en la rama `claude/avisos-whatsapp-diseno`, sin fusionar.
   correo de tienda **sí salió y sí llegó** (7-nov, «PAGADO · … — despachar»);
   nadie lo vio porque `zephoracharms@gmail.com` no se revisa a diario. No es
   un fallo de código.
-- **Qué se va a construir, cuando el propietario apruebe:** aviso por WhatsApp
-  al propietario y a la clienta en el mismo punto donde hoy se avisa a la hoja
-  (`crear-pago`, `_cierre`, `registrar-venta`), confirmación de dirección con
-  botones en contraentrega, cotización de Skydropx sin comprar la guía y un
-  resumen diario a las 8:00 a. m. de lo confirmado sin despachar.
-- **Reparto:** la Sesión 3 entrega lo de n8n, WhatsApp y Skydropx; la tienda
-  solo la toca la Sesión 2.
-- **Falta del propietario:** aprobar el diseño, su número de WhatsApp, peso y
-  medidas del paquete, un correo de respaldo que sí lea, y someter las
-  plantillas en WhatsApp Manager.
+- **Alcance, simplificado por el propietario el 15-nov:** (1) un aviso a su
+  celular por cada compra; (2) las guías de Skydropx. Lo demás del diseño
+  (mensajes a la clienta, botones de contraentrega, resumen diario) quedó
+  aparcado.
+- **Etapa 1, el aviso: no lleva código de la tienda.** La arma la Sesión 3 en
+  n8n, colgada del aviso que la tienda ya le manda a la hoja (`anotarVenta`).
+  Al 15-nov la plantilla `pedido_nuevo_aviso` está en revisión en Meta y los
+  flujos de n8n están sin publicar.
+- **Etapa 2, Skydropx: sí lleva código de la tienda** (un endpoint con clave,
+  `pedido-envio`, que le entrega a n8n dirección y celular del pedido). No se
+  escribe hasta que el propietario apruebe el diseño.
+- **Reparto:** n8n, WhatsApp y Skydropx son de la Sesión 3; la tienda solo la
+  toca la Sesión 2.
+- **Falta del propietario:** la lista del § 16 del documento.
 - Esta sección se borra al terminar.
 
 ## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
