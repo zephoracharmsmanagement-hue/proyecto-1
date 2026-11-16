@@ -1,6 +1,6 @@
 # Avisos por WhatsApp de cada pedido y guías de Skydropx — diseño
 
-**Fecha:** 2026-11-15 (quinta versión). **Rama:** `claude/avisos-whatsapp-diseno`.
+**Fecha:** 2026-11-15 (sexta versión). **Rama:** `claude/avisos-whatsapp-diseno`.
 **Estado:** la etapa 1 está **en producción en n8n** desde el 15-nov; la
 etapa 2 es diseño para aprobación del propietario. No hay código de funciones
 en esta rama.
@@ -73,6 +73,10 @@ Los tres cuidados que se le pasaron a la Sesión 3 antes de publicar:
    paso sin código del § 0, que el correo de pedidos le suene en el celular.
 
 ### Etapa 2 · Guías de Skydropx — sí necesita código de la tienda
+
+**Aprobada el 15-nov** (primero la orden precargada, después la guía sola,
+solo en pedidos pagados). El código de la tienda espera el resultado del
+código postal (§ 7.6) y, para publicarse, el «deploy» del propietario.
 
 Está en el § 7. n8n no puede armar una guía con el aviso de la hoja, porque no
 trae celular ni dirección.
@@ -296,7 +300,8 @@ la misma frase le pide confirmar (pregunta 9).
 La clienta {{1}} quiere corregir los datos del pedido {{2}}. Su celular es {{3}}. Escríbele por WhatsApp y ajusta la dirección antes de despachar.
 ```
 
-**`tarifas_envio`**, con botón de enlace «Abrir Skydropx»:
+**`tarifas_envio`** — **descartada el 15-nov**: el propietario no quiere las
+tarifas por WhatsApp (§ 7.2). Queda solo como referencia:
 
 ```
 Orden lista en Skydropx para el pedido {{1}} ({{2}}).
@@ -437,18 +442,25 @@ y lo demás queda en el paso A.
 La alternativa es que la tienda empuje los datos (`_avisos.mjs`, § 2). Queda
 para cuando se retomen los mensajes a la clienta.
 
+**Aprobada por el propietario el 15-nov**, en el chat de la Sesión 3: «Sí,
+empecemos así». El orden es primero la orden precargada y después la guía
+sola, y la guía sola al principio solo en pedidos pagados. El código de la
+tienda necesita aparte su «deploy».
+
 ### 7.2 · Paso A: orden precargada; el propietario elige y paga
 
 - `POST /api/v1/orders` deja la orden en «Preparar órdenes» con la referencia
   `ZC-…`. No compra nada.
-- `POST /api/v1/quotations`, atada a la orden, trae las tarifas. Al
-  propietario le llega `tarifas_envio` con la transportadora habitual primero
-  y, al lado, la más barata con la diferencia en pesos.
+- **Las tarifas no le llegan por WhatsApp** (el propietario, 15-nov: «No
+  quiero que lleguen a WhatsApp las tarifas»). No hay plantilla
+  `tarifas_envio`. Él entra a «Preparar órdenes», ve la orden lista y elige la
+  transportadora allí. El aviso de compra que ya le llega le dice que hay
+  pedido.
 - En este paso el flujo **nunca** llama a las cuatro rutas que compran la
   guía (`/api/v1/shipments`, `/api/v2/shipments`, `/api/v1/rate/shipments`,
   `/api/v2/rate/shipments`).
-- La contraentrega también se precarga: él confirma la dirección con la
-  clienta, como hoy, antes de pagar la guía.
+- La contraentrega también se precarga y sigue saliendo por Skydropx. Él
+  confirma la dirección con la clienta, como hoy, antes de pagar la guía.
 
 ### 7.3 · Paso B: la guía se crea sola, con sus reglas
 
@@ -460,17 +472,20 @@ Reglas dichas por el propietario el 15-nov:
 | Cambiar de transportadora | Solo si la otra sale $5.000 o más barata |
 | Valor declarado, pedido pagado | $46.000 |
 | Contraentrega | «Contra entrega» encendido e «Incluir costo del envío» marcado |
-| Valor declarado, contraentrega | El que haga que declarado + flete quede igual o un poco por debajo del total del checkout |
-| Protección Plus | Solo en contraentrega. **Hoy el panel la tiene en «Automáticamente para todos los envíos»** (lo vio la Sesión 3 el 15-nov): hay que pasarla a «Tomando la decisión en cada envío», o se cobra también en los pagados |
+| Valor declarado, contraentrega | El que haga que el recaudo (declarado + flete) sea **el total del checkout o apenas menos**. Sin redondear a miles (el propietario, 15-nov: «puede que el total sea 60.000, la idea es que queden 60.000 o 59.800») |
+| Protección Plus | Solo en contraentrega. El panel quedó en «Tomando la decisión en cada envío» (lo cambió la Sesión 3 el 15-nov, con el sí del propietario), así que **cada guía de contraentrega la pide explícita** (`proteccion: true`) y las pagadas van sin ella |
 | Tope de precio por guía | $25.000. Por encima no se compra sola |
 | Indicaciones de entrega | Van en «Detalles de la dirección» o en «Referencia» |
 | Saldo | Siempre habrá |
 
-Cálculo de la contraentrega, con su ejemplo: total del checkout $61.000 y
-flete $13.825 → declara $47.000 → recauda $60.825. Para automatizarlo: se
-cotiza, se pone declarado = total − flete redondeado hacia abajo, se vuelve a
-cotizar y se sigue solo si el recaudo no pasa del total. **Nunca se le cobra a
-la clienta más de lo que vio en el checkout.**
+Cálculo de la contraentrega: se cotiza, se pone declarado = total − flete, en
+pesos y sin redondear a miles, y se vuelve a cotizar. Se sigue solo si el
+recaudo queda entre el total y $1.000 por debajo. Con su ejemplo: total
+$60.000 y flete $13.825 → declara $46.175 → recauda $60.000. Si Skydropx
+redondea o suma algo y el recaudo pasa del total, se baja el declarado y se
+cotiza otra vez. **Nunca se le cobra a la clienta más de lo que vio en el
+checkout.** Los $1.000 de margen son una propuesta: él habló de «60.000 o
+59.800».
 
 **Cuándo NO se compra sola** y le llega el aviso para decidir:
 
@@ -478,7 +493,7 @@ la clienta más de lo que vio en el checkout.**
 - La ciudad es un «Otro municipio» escrito a mano, o no hay código postal.
 - Las indicaciones de entrega pasan de 70 caracteres.
 - La transportadora habitual no cotiza.
-- El recaudo calculado pasa del total.
+- El recaudo calculado pasa del total, o queda más de $1.000 por debajo.
 - Es una contraentrega: se compra sola solo cuando conste que la dirección
   quedó confirmada. Hoy esa confirmación es a mano, así que al principio el
   paso B aplica solo a pedidos pagados.
@@ -499,8 +514,9 @@ Revisadas por la Sesión 3 en el panel el 15-nov, solo leyendo:
   sucursal de Inter 225905. ✓
 - **Paquete:** «paquete habitual» de 19 × 19 × 5 cm y 1 kg, contenido
   «brazalete». ✓
-- **Protección Plus en automático para todos los envíos** ✗: choca con la
-  regla del propietario (§ 7.3).
+- **Protección Plus:** estaba en automático para todos los envíos; la Sesión 3
+  la pasó a «Tomando la decisión en cada envío» el 15-nov, con el sí del
+  propietario, y lo comprobó. ✓
 - **El webhook «Zephora envio-estado» de Skydropx marca «Falla de
   notificación»**, porque el flujo `ze4dI8GW96yfKGyd` está apagado desde
   septiembre. No hace daño; se decide si se borra o se reactiva cuando se
@@ -511,12 +527,22 @@ Revisadas por la Sesión 3 en el panel el 15-nov, solo leyendo:
   § 10.
 - Un envío real de prueba, para confirmar que la guía queda atada a la orden.
 
-### 7.5 · Decisión abierta: joyas y contraentrega
+### 7.5 · Joyas y contraentrega — decidido
 
 Las condiciones de contraentrega de Skydropx excluyen «Metales como oro,
-plata, platino» y «Dinero, joyas y elementos lujosos». Hoy le funciona, pero
-si un paquete se pierde o lo retienen, esas condiciones pueden dejarlo sin
-reclamo. Es decisión del propietario.
+plata, platino» y «Dinero, joyas y elementos lujosos». Si un paquete se pierde
+o lo retienen, esas condiciones pueden dejarlo sin reclamo. El propietario lo
+sabe y decidió el 15-nov que **la contraentrega sigue por Skydropx** («Y igual
+vamos a manejar contraentrega por Skydrops»).
+
+### 7.6 · Código postal: lo que se está probando
+
+La documentación de cotización de Skydropx Colombia pone de ejemplo «76001»
+(Cali) y «05001» (Medellín), que son códigos DANE de municipio. La Sesión 3
+va a cotizar, sin comprar, el mismo envío con tres códigos: el DANE, el
+principal de 4-72 y el del barrio. Si el DANE da la misma tarifa, la tabla
+`assets/codigos-postales.json` sale del DANE de los 314 municipios. La tabla
+y `pedido-envio` se escriben cuando llegue ese resultado.
 
 ## 8 · Red de seguridad
 
@@ -686,8 +712,9 @@ debajo de los 1024 caracteres de Meta.
 1. **Aviso al celular del propietario por cada compra.** En producción desde
    el 15-nov, solo n8n, sin código de la tienda y sin despliegue. Falta que
    la primera compra real confirme el recorrido completo.
-2. **Skydropx, paso A:** orden precargada y tarifas. Código de la tienda
-   (`pedido-envio`) y flujo de n8n.
+2. **Skydropx, paso A** (aprobado el 15-nov): orden precargada, sin tarifas
+   por WhatsApp. Código de la tienda (`pedido-envio` y la tabla de códigos
+   postales) y flujo de n8n.
 3. **Skydropx, paso B:** la guía se crea sola con las reglas del § 7.3,
    primero solo en pedidos pagados.
 4. **Aparcado:** mensajes a la clienta, botones, resumen diario, botón de
@@ -709,19 +736,19 @@ flujo que escriba a clientas se activa sin su aprobación.
 
 **Etapa 2 (Skydropx)**
 
-6. Aprobar la etapa 2 y su orden: primero la orden precargada, después la
-   guía sola, al principio solo en pedidos pagados. Lleva código de la
-   tienda (`pedido-envio` y la tabla de códigos postales) y su «deploy».
-7. Confirmar el redondeo del valor declarado en contraentrega (a miles hacia
-   abajo, como en su ejemplo de $47.000).
-8. Protección Plus: aprobar pasarla a «Tomando la decisión en cada envío»
-   (hoy está en automático para todos).
-9. Aprobar el texto de `tarifas_envio`, la plantilla que le avisa las
-   tarifas en el paso A.
-10. Decidir sobre la exclusión de joyas en la contraentrega (§ 7.5).
-11. Si quiere avisos de estado del envío a la clienta: crear
-    `actualizacion_envio` en la cuenta real y aprobar el texto de aceptación
-    del § 10.
+6. Dar el «deploy» del código de la tienda (`pedido-envio` y la tabla de
+   códigos postales) cuando esté escrito y probado.
+7. Confirmar el margen del recaudo en contraentrega: hasta $1.000 por debajo
+   del total (propuesta, § 7.3).
+8. Si quiere avisos de estado del envío a la clienta: crear
+   `actualizacion_envio` en la cuenta real y aprobar el texto de aceptación
+   del § 10.
+
+Decidido el 15-nov: la etapa 2 y su orden (primero la orden precargada,
+después la guía sola, solo en pagados), sin tarifas por WhatsApp, recaudo en
+contraentrega igual al total o apenas menos y sin redondear a miles,
+Protección Plus solo en contraentrega (el panel ya quedó en «decidir en cada
+envío»), y la contraentrega sigue por Skydropx sabiendo lo de las joyas.
 
 Ya resuelto con la Sesión 3: la plantilla aprobada, la prueba en su celular,
 la publicación de los dos flujos, el número de los avisos, el medio de pago de
