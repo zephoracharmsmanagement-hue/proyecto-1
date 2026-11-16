@@ -58,7 +58,9 @@
   # el inventario para no cobrar lo que no hay—. esbuild los mete en el paquete,
   # pero se declaran igualmente: si un cambio de bundler los dejara fuera, las
   # funciones se caerían al arrancar y el sitio dejaría de cobrar.
-  included_files = ["assets/catalogo.json", "assets/stock.json"]
+  # _dane.js carga igual assets/codigos-dane.json (el código DANE de cada ciudad,
+  # para la guía de Skydropx): misma precaución.
+  included_files = ["assets/catalogo.json", "assets/stock.json", "assets/codigos-dane.json"]
 
 # Las páginas se piden sin .html
 [[redirects]]
