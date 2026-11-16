@@ -5,11 +5,12 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## Datos de envío para la guía de Skydropx — función `pedido-envio` (rama `claude/pedido-envio-skydropx`, SIN fusionar)
+## Datos de envío para la guía de Skydropx — función `pedido-envio` (desplegada el 2026-11-16, PR #52)
 
-Etapa 2 de los avisos, aprobada por el propietario el 2026-11-15 (diseño en la
-rama `claude/avisos-whatsapp-diseno`, § 7). **No se fusiona ni se despliega sin
-su «deploy».** El flujo de n8n es de la Sesión 3; la tienda solo la toca la
+Etapa 2 de los avisos, aprobada por el propietario el 2026-11-15 y desplegada con
+su «deploy» el 2026-11-16 (diseño en la
+rama `claude/avisos-whatsapp-diseno`, § 7). **Mientras `PEDIDO_ENVIO_KEY` no
+exista en Netlify, responde 401 a todo.** El flujo de n8n es de la Sesión 3; la tienda solo la toca la
 Sesión 2.
 
 - **Qué es:** `netlify/functions/pedido-envio.mjs`. n8n recibe la referencia por
