@@ -1,6 +1,6 @@
 # Avisos por WhatsApp de cada pedido y guías de Skydropx — diseño
 
-**Fecha:** 2026-11-15 (cuarta versión). **Rama:** `claude/avisos-whatsapp-diseno`.
+**Fecha:** 2026-11-15 (quinta versión). **Rama:** `claude/avisos-whatsapp-diseno`.
 **Estado:** la etapa 1 está **en producción en n8n** desde el 15-nov; la
 etapa 2 es diseño para aprobación del propietario. No hay código de funciones
 en esta rama.
@@ -398,6 +398,42 @@ pequeña:
   404; todo dato de entrega que escribió la clienta viaja; el valor declarado
   sale según el medio de pago; un pedido sin confirmar no entrega nada.
 
+**Contrato de la respuesta** (lista de la Sesión 3 del 15-nov, contrastada con
+`POST /api/v1/orders` de Colombia y con lo que hoy pide `checkout.html`):
+
+| Campo | De dónde sale hoy |
+|---|---|
+| `referencia`, `estado` (confirmado / pendiente / anulado / prueba), `pago` (`wompi` / `contraentrega` / `addi` / `sistecredito` / `manual`), `total` | El pedido guardado (`_pedidos.mjs`) |
+| `nombre` (nombre + apellido), `celular` (10 dígitos), `correo` | Checkout; los tres son obligatorios |
+| `direccion`, `detalles` (= `adicional`), `barrio`, `ciudad`, `departamento` | Checkout; `barrio` y `adicional` son opcionales |
+| `indicaciones` | `notas` del checkout (hasta 400 caracteres) |
+| `codigo_postal` | **El checkout no lo pide.** Ver abajo |
+| `piezas` (nombre, cantidad, precio) | El pedido; van como `products` de la orden |
+| `declarado`, `recaudo`, `proteccion` | Reglas del repo: 46000 si es pagado; en contraentrega `declarado` va vacío y lo calcula n8n después de cotizar, porque depende del flete |
+| `direccion_confirmada` | Nuevo campo del pedido, `false` por defecto. Hoy nadie lo marca, así que la contraentrega queda a mano |
+
+El mismo endpoint, con `POST`, guarda `skydropx_orden_id` y
+`skydropx_guia_id` en el pedido (`marcar()` de `_pedidos.mjs`).
+
+**Indicaciones:** Skydropx imprime 70 caracteres. La respuesta trae el texto
+completo y un `indicaciones_cortas` de hasta 70. Si la clienta escribió más,
+también trae `indicaciones_recortadas: true`, y la guía no se compra sola: el
+propietario ve el texto entero en el correo de tienda.
+
+**Código postal, el punto delicado.** Skydropx Colombia cotiza por código
+postal, y el checkout no lo pide. Pedírselo a la clienta es un campo más
+donde se cae la compra: casi nadie se lo sabe. Por eso la propuesta es una
+tabla del repo, `assets/codigos-postales.json`, con el código principal de
+cada uno de los 314 municipios que ya ofrece `assets/colombia.json`, sacado del
+listado oficial de 4-72. `pedido-envio` responde ese código y
+`codigo_postal_origen: "municipio"`. Si la clienta eligió «Otro municipio»
+escrito a mano, responde `codigo_postal: null` y la guía no se compra sola.
+**Falta comprobar** (Sesión 3, con una cotización de solo lectura) que
+Skydropx da la misma tarifa con el código principal del municipio que con el
+del barrio exacto, al menos en Bogotá, Medellín y una ciudad intermedia. Si
+la tarifa cambia, el paso B solo compra sola cuando el código salga del barrio,
+y lo demás queda en el paso A.
+
 La alternativa es que la tienda empuje los datos (`_avisos.mjs`, § 2). Queda
 para cuando se retomen los mensajes a la clienta.
 
@@ -425,7 +461,7 @@ Reglas dichas por el propietario el 15-nov:
 | Valor declarado, pedido pagado | $46.000 |
 | Contraentrega | «Contra entrega» encendido e «Incluir costo del envío» marcado |
 | Valor declarado, contraentrega | El que haga que declarado + flete quede igual o un poco por debajo del total del checkout |
-| Protección Plus | Solo en contraentrega |
+| Protección Plus | Solo en contraentrega. **Hoy el panel la tiene en «Automáticamente para todos los envíos»** (lo vio la Sesión 3 el 15-nov): hay que pasarla a «Tomando la decisión en cada envío», o se cobra también en los pagados |
 | Tope de precio por guía | $25.000. Por encima no se compra sola |
 | Indicaciones de entrega | Van en «Detalles de la dirección» o en «Referencia» |
 | Saldo | Siempre habrá |
@@ -440,6 +476,7 @@ la clienta más de lo que vio en el checkout.**
 
 - El flete pasa de $25.000.
 - La ciudad es un «Otro municipio» escrito a mano, o no hay código postal.
+- Las indicaciones de entrega pasan de 70 caracteres.
 - La transportadora habitual no cotiza.
 - El recaudo calculado pasa del total.
 - Es una contraentrega: se compra sola solo cuando conste que la dirección
@@ -451,13 +488,23 @@ rechazó, le avisa.
 
 ### 7.4 · Verificaciones previas
 
-- **Que no haya activa ninguna automatización «Crear guía automática» en
-  Skydropx.** Aplica también a las órdenes creadas por API: comprarían dos
-  sistemas.
-- Que la credencial de la API siga vigente, y qué servidor usa la cuenta (el
-  panel abre en `app.skydropx.com`; el flujo viejo solo acepta `pro.`).
-- Dirección de origen verificada para cotizar Inter Rapidísimo por API (unos
-  2 días hábiles).
+Revisadas por la Sesión 3 en el panel el 15-nov, solo leyendo:
+
+- **Automatización «Crear guía automática»: no hay ninguna.** ✓
+- **Credencial de la API:** «Public API · Producción», vigente y sin
+  vencimiento; el panel abre en `pro.skydropx.com`. ✓ En n8n existe «Skydropx
+  API»; falta una llamada de solo lectura que confirme que es esa y que
+  responde.
+- **Dirección de origen:** «Autoenvio Fontibon», predeterminada y activa, con
+  sucursal de Inter 225905. ✓
+- **Paquete:** «paquete habitual» de 19 × 19 × 5 cm y 1 kg, contenido
+  «brazalete». ✓
+- **Protección Plus en automático para todos los envíos** ✗: choca con la
+  regla del propietario (§ 7.3).
+- **El webhook «Zephora envio-estado» de Skydropx marca «Falla de
+  notificación»**, porque el flujo `ze4dI8GW96yfKGyd` está apagado desde
+  septiembre. No hace daño; se decide si se borra o se reactiva cuando se
+  retomen los avisos a la clienta.
 - **`actualizacion_envio` solo existe en la cuenta de prueba de WhatsApp.**
   Para avisarle a la clienta el estado del envío hay que crearla en la real.
   Esos avisos son mensajes a clientas: dependen del texto de aceptación del
@@ -663,13 +710,14 @@ flujo que escriba a clientas se activa sin su aprobación.
 **Etapa 2 (Skydropx)**
 
 6. Aprobar la etapa 2 y su orden: primero la orden precargada, después la
-   guía sola. Lleva código de la tienda y su «deploy».
-7. Confirmar el paquete: 19 × 19 × 5 cm, 1 kg, contenido «brazalete», origen
-   «Autoenvio Fontibon».
-8. Confirmar el redondeo del valor declarado en contraentrega (a miles hacia
+   guía sola, al principio solo en pedidos pagados. Lleva código de la
+   tienda (`pedido-envio` y la tabla de códigos postales) y su «deploy».
+7. Confirmar el redondeo del valor declarado en contraentrega (a miles hacia
    abajo, como en su ejemplo de $47.000).
-9. En Skydropx: confirmar que no hay ninguna automatización «Crear guía
-   automática» activa y pedir la verificación de la dirección de origen.
+8. Protección Plus: aprobar pasarla a «Tomando la decisión en cada envío»
+   (hoy está en automático para todos).
+9. Aprobar el texto de `tarifas_envio`, la plantilla que le avisa las
+   tarifas en el paso A.
 10. Decidir sobre la exclusión de joyas en la contraentrega (§ 7.5).
 11. Si quiere avisos de estado del envío a la clienta: crear
     `actualizacion_envio` en la cuenta real y aprobar el texto de aceptación
@@ -678,4 +726,6 @@ flujo que escriba a clientas se activa sin su aprobación.
 Ya resuelto con la Sesión 3: la plantilla aprobada, la prueba en su celular,
 la publicación de los dos flujos, el número de los avisos, el medio de pago de
 WhatsApp, cómo despacha la contraentrega, el valor declarado, el umbral de
-$5.000 y el tope de $25.000.
+$5.000 y el tope de $25.000. En el panel de Skydropx (15-nov): no hay
+automatizaciones, la credencial está vigente, el origen «Autoenvio Fontibon»
+está activo y el paquete es 19 × 19 × 5 cm, 1 kg.
