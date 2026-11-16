@@ -7,7 +7,7 @@ deshacer sin querer**.
 
 ## 🚧 Trabajo en curso — avisos por WhatsApp de cada pedido (Sesión 2, desde el 2026-11-14)
 
-**Reclamado por la Sesión 2 (tienda).** Solo hay diseño; no hay código de
+**Reclamado por la Sesión 2 (tienda).** En esta rama no hay código de
 funciones. Documento:
 [`docs/superpowers/specs/2026-11-14-avisos-whatsapp-pedidos-design.md`](docs/superpowers/specs/2026-11-14-avisos-whatsapp-pedidos-design.md),
 en la rama `claude/avisos-whatsapp-diseno`, sin fusionar.
@@ -20,13 +20,25 @@ en la rama `claude/avisos-whatsapp-diseno`, sin fusionar.
   celular por cada compra; (2) las guías de Skydropx. Lo demás del diseño
   (mensajes a la clienta, botones de contraentrega, resumen diario) quedó
   aparcado.
-- **Etapa 1, el aviso: no lleva código de la tienda.** La arma la Sesión 3 en
-  n8n, colgada del aviso que la tienda ya le manda a la hoja (`anotarVenta`).
-  Al 15-nov la plantilla `pedido_nuevo_aviso` está en revisión en Meta y los
-  flujos de n8n están sin publicar.
+- **Etapa 1, el aviso: EN PRODUCCIÓN desde el 15-nov, sin código de la
+  tienda.** Cada compra `ZC-` (pagada o contraentrega) le manda un WhatsApp al
+  propietario con la plantilla `pedido_nuevo_aviso` (Utilidad, aprobada).
+  Vive en n8n: «Zephora · Hoja de Inventario» (`K1J4pHYfvd6QuAq8`, versión
+  `ec3e16f9`; la anterior, para volver, es `e5f7dcb1`) llama sin esperar a
+  «Zephora · Aviso de compra al propietario» (`VRtLgnQXj9dIiKC2`, versión
+  `0baec109`). La tabla «Avisos de compra Zephora» evita el aviso doble si
+  Wompi reenvía el pago. Las ventas `MAN-` no avisan, y el WhatsApp no trae
+  celular ni dirección: siguen en el correo de tienda.
+- **Cómo se comprueba:** con cada compra real, una ejecución por webhook en la
+  hoja y otra (no manual) en verde en el flujo del aviso, con la referencia
+  anotada en la tabla. Si el aviso falla, la hoja igual queda escrita. Al
+  15-nov no había pasado todavía ninguna compra real por todo el camino.
 - **Etapa 2, Skydropx: sí lleva código de la tienda** (un endpoint con clave,
   `pedido-envio`, que le entrega a n8n dirección y celular del pedido). No se
   escribe hasta que el propietario apruebe el diseño.
+- **Aparcado** hasta que el propietario lo pida: mensajes a la clienta,
+  botones de contraentrega, «Corregir datos», resumen diario de las 8:00,
+  botón «Ya lo despaché» y correo de respaldo.
 - **Reparto:** n8n, WhatsApp y Skydropx son de la Sesión 3; la tienda solo la
   toca la Sesión 2.
 - **Falta del propietario:** la lista del § 16 del documento.

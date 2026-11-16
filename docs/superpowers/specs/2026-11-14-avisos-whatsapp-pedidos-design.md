@@ -1,7 +1,8 @@
 # Avisos por WhatsApp de cada pedido y guías de Skydropx — diseño
 
-**Fecha:** 2026-11-15 (tercera versión). **Rama:** `claude/avisos-whatsapp-diseno`.
-**Estado:** diseño para aprobación del propietario. No hay código de funciones
+**Fecha:** 2026-11-15 (cuarta versión). **Rama:** `claude/avisos-whatsapp-diseno`.
+**Estado:** la etapa 1 está **en producción en n8n** desde el 15-nov; la
+etapa 2 es diseño para aprobación del propietario. No hay código de funciones
 en esta rama.
 
 Lo de n8n, WhatsApp y Skydropx sale de la investigación y del avance de la
@@ -14,20 +15,44 @@ El propietario, a la Sesión 3: «de momento solo quiero que de alguna manera se
 me avise a mi celular cuando se haga alguna compra, ya sea pagada o
 contraentrega. lo de crear las guias por skydropx si me interesa».
 
-### Etapa 1 · Aviso a su celular — la resuelve n8n sola
+### Etapa 1 · Aviso a su celular — EN PRODUCCIÓN desde el 15-nov, solo n8n
 
-**No necesita código de la tienda ni despliegue.** La tienda ya le avisa a la
+**No necesitó código de la tienda ni despliegue.** La tienda ya le avisa a la
 hoja de inventario en el momento exacto de cada venta (`anotarVenta`), y ese
 aviso trae referencia, medio de pago, total, clienta, ciudad y piezas. n8n se
 cuelga de ahí.
 
-Lo que armó la Sesión 3, todo **sin publicar**:
+Lo que quedó vivo (lo publicó la Sesión 3 el 15-nov, con el sí del
+propietario, «Sí, llegó: publica»):
 
-- Plantilla `pedido_nuevo_aviso` (utilidad, 6 variables), en revisión en Meta.
-- Flujo «Zephora · Aviso de compra al propietario» (`VRtLgnQXj9dIiKC2`).
-- Un borrador de «Zephora · Hoja de Inventario» con un nodo que llama a ese
-  flujo sin esperar.
-- La cuenta de WhatsApp ya tiene medio de pago.
+- Plantilla `pedido_nuevo_aviso` (Utilidad, 6 variables), **aprobada por Meta**
+  en la cuenta real.
+- Flujo «Zephora · Aviso de compra al propietario» (`VRtLgnQXj9dIiKC2`),
+  publicado (versión `0baec109`). Deja pasar solo compras `ZC-` y manda la
+  plantilla al celular del propietario.
+- «Zephora · Hoja de Inventario» (`K1J4pHYfvd6QuAq8`), publicada con el nodo
+  «Avisar compra al propietario» (versión `ec3e16f9`), que llama al flujo del
+  aviso sin esperar y con el error tolerado. **Para volver atrás:** la versión
+  anterior es `e5f7dcb1`.
+- Contra repetidos: la tabla de datos «Avisos de compra Zephora»
+  (`wTqQTkGYgjnbAnlN`) guarda cada referencia avisada; si Wompi reenvía el
+  pago, no sale un segundo WhatsApp.
+- Prueba: ejecución 7801 (`ZC-PRUEBA-AVISO-01`, contraentrega $61.000), que le
+  llegó al propietario.
+
+**Falta confirmar el recorrido completo con una compra real** (tienda → hoja
+→ aviso). Al 15-nov, 23:30 h, no había entrado ninguna desde la publicación:
+la última venta que llegó a la hoja fue del 13-nov (ejecución 6304).
+
+**Cómo se comprueba**, con la primera compra real:
+
+1. En n8n, «Zephora · Hoja de Inventario» tiene una ejecución nueva por webhook
+   con esa referencia.
+2. «Zephora · Aviso de compra al propietario» tiene una ejecución nueva (no
+   manual) en verde, y esa referencia aparece en «Avisos de compra Zephora».
+3. Al propietario le llegó el WhatsApp. Si no llegó y la ejecución del aviso
+   está en error, la hoja igual quedó escrita: eso es lo que se buscaba con el
+   error tolerado.
 
 | | ¿Lo cubre la etapa 1? |
 |---|---|
@@ -37,16 +62,15 @@ Lo que armó la Sesión 3, todo **sin publicar**:
 | Aviso de que el WhatsApp falló | No: con n8n caído no llegan ni la hoja ni el WhatsApp. El correo de tienda sí sale siempre |
 | Recordatorio diario de lo no despachado | No (aparcado) |
 
-Tres cuidados antes de publicar (para la Sesión 3):
+Los tres cuidados que se le pasaron a la Sesión 3 antes de publicar:
 
-1. **Avisos repetidos.** `wompi-webhook` no comprueba si el pedido ya estaba
-   pagado: si Wompi reenvía un evento aprobado, `anotarVenta` se llama otra
-   vez. La hoja lo absorbe porque casa por referencia; el WhatsApp saldría dos
-   veces. El flujo del aviso debe recordar las referencias ya avisadas.
-2. **La hoja primero.** El nodo nuevo no puede frenar ni tumbar la escritura
-   de la hoja.
-3. **Lo que no pasa por la hoja no avisa.** Por eso conviene además el paso
-   sin código del § 0: que el correo de pedidos le suene en el celular.
+1. **Avisos repetidos** (`wompi-webhook` no comprueba si el pedido ya estaba
+   pagado). Resuelto con la tabla «Avisos de compra Zephora», probado con la
+   misma referencia dos veces (ejecuciones 7623 y 7624).
+2. **La hoja primero.** Resuelto: el nodo llama sin esperar y con el error
+   tolerado.
+3. **Lo que no pasa por la hoja no avisa.** Sigue igual: por eso conviene el
+   paso sin código del § 0, que el correo de pedidos le suene en el celular.
 
 ### Etapa 2 · Guías de Skydropx — sí necesita código de la tienda
 
@@ -612,9 +636,9 @@ debajo de los 1024 caracteres de Meta.
 
 ## 15 · Etapas
 
-1. **Aviso al celular del propietario por cada compra.** Lo hace n8n sola,
-   sin código de la tienda y sin despliegue. Falta que Meta apruebe la
-   plantilla, una compra simulada y publicar los dos flujos.
+1. **Aviso al celular del propietario por cada compra.** En producción desde
+   el 15-nov, solo n8n, sin código de la tienda y sin despliegue. Falta que
+   la primera compra real confirme el recorrido completo.
 2. **Skydropx, paso A:** orden precargada y tarifas. Código de la tienda
    (`pedido-envio`) y flujo de n8n.
 3. **Skydropx, paso B:** la guía se crea sola con las reglas del § 7.3,
@@ -627,31 +651,31 @@ flujo que escriba a clientas se activa sin su aprobación.
 
 ## 16 · Lo que falta del propietario
 
-**Para la etapa 1 (su aviso)**
+**Etapa 1 (su aviso, ya en producción)**
 
-1. Ver en el Administrador de WhatsApp si Meta ya aprobó `pedido_nuevo_aviso`.
-2. Recibir la compra simulada en su celular y aprobar que se publiquen los dos
-   flujos de n8n.
-3. Hacer «Verificar cuenta» en la facturación de WhatsApp, que Meta lo pide.
-4. Hoy, sin construir nada: que el correo de pedidos le suene en el celular.
-5. Revisar que los pedidos pagados del 5 al 13-nov estén despachados.
-6. ¿Quiere que las ventas manuales `MAN-` también le avisen?
+1. Con la primera compra real: decir si le llegó el WhatsApp.
+2. Hacer «Verificar cuenta» en la facturación de WhatsApp, que Meta lo pide.
+3. Sin construir nada: que el correo de pedidos le suene en el celular, para
+   lo que no pasa por la hoja.
+4. Revisar que los pedidos pagados del 5 al 13-nov estén despachados.
+5. ¿Quiere que las ventas manuales `MAN-` también le avisen?
 
-**Para la etapa 2 (Skydropx)**
+**Etapa 2 (Skydropx)**
 
-7. Aprobar la etapa 2 y su orden: primero la orden precargada, después la
+6. Aprobar la etapa 2 y su orden: primero la orden precargada, después la
    guía sola. Lleva código de la tienda y su «deploy».
-8. Confirmar el paquete: 19 × 19 × 5 cm, 1 kg, contenido «brazalete», origen
+7. Confirmar el paquete: 19 × 19 × 5 cm, 1 kg, contenido «brazalete», origen
    «Autoenvio Fontibon».
-9. Confirmar el redondeo del valor declarado en contraentrega (a miles hacia
+8. Confirmar el redondeo del valor declarado en contraentrega (a miles hacia
    abajo, como en su ejemplo de $47.000).
-10. En Skydropx: confirmar que no hay ninguna automatización «Crear guía
-    automática» activa y pedir la verificación de la dirección de origen.
-11. Decidir sobre la exclusión de joyas en la contraentrega (§ 7.5).
-12. Si quiere avisos de estado del envío a la clienta: crear
+9. En Skydropx: confirmar que no hay ninguna automatización «Crear guía
+   automática» activa y pedir la verificación de la dirección de origen.
+10. Decidir sobre la exclusión de joyas en la contraentrega (§ 7.5).
+11. Si quiere avisos de estado del envío a la clienta: crear
     `actualizacion_envio` en la cuenta real y aprobar el texto de aceptación
     del § 10.
 
-Ya resuelto con la Sesión 3: el número de los avisos, el medio de pago de
+Ya resuelto con la Sesión 3: la plantilla aprobada, la prueba en su celular,
+la publicación de los dos flujos, el número de los avisos, el medio de pago de
 WhatsApp, cómo despacha la contraentrega, el valor declarado, el umbral de
 $5.000 y el tope de $25.000.
