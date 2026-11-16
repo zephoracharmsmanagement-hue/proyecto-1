@@ -297,6 +297,16 @@ async function main() {
       && typeof g.skydropx.ordenEn === 'string' && typeof g.skydropx.guiaEn === 'string',
       'y queda con la orden, la guía, la transportadora y sus fechas', JSON.stringify(g.skydropx));
 
+    /* n8n manda en null lo que todavía no tiene (la guía, al crear la orden).
+       Un null es «no viene»: no borra nada ni es un error. */
+    const { r: rn, d: dn } = await pedir({ referencia: REF_PAGADO,
+      anotar: { orden_id: 'ord-8f3a', guia_id: null, transportadora: null } });
+    comprobar(rn.status === 200 && dn.skydropx.guia_id === 'guia-771'
+      && a.datos[REF_PAGADO].skydropx.guia_id === 'guia-771' && a.datos[REF_PAGADO].skydropx.transportadora === 'Inter Rapidísimo',
+      'un campo en null se toma como «no viene»: ni falla ni borra la guía ya anotada', rn.status + ' ' + JSON.stringify(dn && dn.skydropx));
+    const { r: rnn } = await pedir({ referencia: REF_PAGADO, anotar: { orden_id: null, guia_id: null } });
+    comprobar(rnn.status === 400, 'pero si todo viene en null no hay nada que anotar: 400', String(rnn.status));
+
     const { r: r3 } = await pedir({ referencia: REF_PAGADO, anotar: { guia_id: 'guia-771' } });
     comprobar(r3.status === 200, 'repetir la misma guía no es un error', String(r3.status));
     const { r: r4, d: d4 } = await pedir({ referencia: REF_PAGADO, anotar: { guia_id: 'guia-OTRA' } });

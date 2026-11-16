@@ -181,14 +181,17 @@ function leerAnotacion(a) {
   if (!a || typeof a !== 'object' || Array.isArray(a)) return null;
   const permitidas = ['orden_id', 'guia_id', 'transportadora'];
   if (Object.keys(a).some(k => !permitidas.includes(k))) return null;
+  /* Un campo en null es «no viene» (n8n manda así la guía que aún no existe):
+     no se anota y, sobre todo, no borra lo que ya estaba. */
+  const viene = k => a[k] !== undefined && a[k] !== null;
   const out = {};
   for (const k of ['orden_id', 'guia_id']) {
-    if (a[k] === undefined) continue;
+    if (!viene(k)) continue;
     if (typeof a[k] !== 'string' || !ID_SKYDROPX.test(a[k])) return null;
     out[k] = a[k];
   }
   if (!out.orden_id && !out.guia_id) return null;
-  if (a.transportadora !== undefined) {
+  if (viene('transportadora')) {
     if (typeof a.transportadora !== 'string' || !TRANSPORTADORA.test(a.transportadora)) return null;
     out.transportadora = a.transportadora;
   }
