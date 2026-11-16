@@ -55,20 +55,25 @@ COLECCIONES = [
         'eyebrow': 'Colección',
         'lema': 'Los héroes, en plata 925',
         'entrada': (
-            'Quince piezas de Marvel en Plata Esterlina 925 verificada, montadas '
+            'Los héroes de Marvel en Plata Esterlina 925 verificada, montados '
             'sobre la Pulsera Avengers. Cada charm cuenta algo: el escudo, el '
             'martillo, la telaraña. Se arma pieza por pieza y se paga en línea o '
             'contraentrega.'
         ),
         'base': 'pulsera-avengers',
         'og': 'assets/pulsera-armada-con-muranos-camaleon-verde-y-atrapa.jpg',
-        # La misma foto del banner de la portada. Quien llega de un anuncio de
-        # esta coleccion tiene que ver la pieza antes que ningun texto: sin
-        # imagen sobre el pliegue, el anuncio ensena algo y la pagina no se lo
-        # confirma.
-        'foto': 'assets/avengers-marmol.webp',
-        'foto_alt': 'Pulsera Zephora con charms de la coleccion Avengers sobre marmol negro',
-        'foto_w': 1600, 'foto_h': 893,
+        # Quien llega de un anuncio de esta coleccion tiene que ver la pieza
+        # antes que ningun texto: sin imagen sobre el pliegue, el anuncio
+        # ensena algo y la pagina no se lo confirma.
+        # 2026-11-15: era assets/avengers-marmol.webp, con Iron Man, Escudo y
+        # Guantelete, los tres agotados. Esta es la foto del anuncio 4 «Tus
+        # heroes, en tu muneca» (aprobado por el propietario), con las fotos
+        # reales de piezas que si hay: Pulsera Avengers, Mjolnir, Capitan,
+        # Wolverine, Deadpool y Spider-Man Pave. Si alguna se agota, cambiarla.
+        'foto': 'assets/marvel-heroes-disponibles.webp',
+        'foto_alt': 'Pulsera Avengers con los charms Mjolnir, Capitan America, Wolverine, Deadpool y Spider-Man Pave',
+        'foto_w': 720, 'foto_h': 900,
+        'foto_clase': ' col-foto--vertical',
     },
     {
         'archivo': 'coleccion-simbolos.html',

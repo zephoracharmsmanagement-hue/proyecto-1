@@ -73,8 +73,18 @@ const unidades = id => { const r=real(id); if(r&&typeof r.disponible==='number')
 const tallasDe = id => { const r=real(id); if(r&&r.tallas) return r.tallas;
   const s=inv(id); return s&&s.tallas ? s.tallas : null; };
 const tallasLibres = id => { const t=tallasDe(id); return t ? Object.keys(t).filter(k=>t[k]>0) : null; };
-/* Sin inventario nada está agotado: ante la duda, no bloqueamos la venta. */
+/* Piezas anunciadas que todavía no llegan (pedido del propietario,
+   2026-11-15: «fichas Marvel, ponerlas como próximamente»). No se venden, como
+   una agotada, pero dicen «Próximamente» y van al final de todo. Cuando lleguen
+   y se carguen sus unidades, se quita el id de aquí. */
+const PRONTO=new Set(['doctor-doom','loki','casco-loki','viuda-negra','miles-morales','arana']);
+const pronto = id => PRONTO.has(id);
+/* La palabra para lo que no se puede comprar hoy. */
+const fueraTxt = id => pronto(id)?'Próximamente':'Agotado';
+/* Sin inventario nada está agotado: ante la duda, no bloqueamos la venta.
+   Lo que viene en camino sí: sin inventario se vendería algo que no existe. */
 const agotado = id => {
+  if(pronto(id)) return true;
   if(!STOCK&&!DISP) return false;
   if(ANI[id]) return ANI[id].tallas.every(agotado);
   const t=tallasLibres(id); if(t) return t.length===0;
@@ -378,12 +388,12 @@ function itemVit(id){
   const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id], fuera=agotado(id);
   /* Urgencia con el dato real, el mismo texto de la ficha (estadoDe): «Agotado»,
      «Queda 1 unidad», «Quedan 2 unidades». Sin dato real no se pone nada. */
-  const e=estadoDe(id), marca=fuera?'Agotado':(e.k==='few'?(unidades(id)===1?'Última unidad':'Quedan '+unidades(id)):'');
+  const e=estadoDe(id), marca=fuera?fueraTxt(id):(e.k==='few'?(unidades(id)===1?'Última unidad':'Quedan '+unidades(id)):'');
   return '<div class="vit-it'+(fuera?' vit-it--agot':'')+'" data-vid="'+id+'" role="listitem">'
     +(marca?'<span class="vit-marca'+(fuera?'':' vit-marca--pocas')+'">'+marca+'</span>':'')
     +(f?'<img src="assets/'+f+VFOTO+'" alt="" width="96" height="96" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'">':'<span class="vit-nof"></span>')
     +'<span class="vit-n">'+escHTML(d.n)+'</span><small>'+cop(d.p)+'</small>'
-    +(fuera?'<a class="vit-add vit-avisa" href="'+escHTML(waEncargo(d.n))+'" target="_blank" rel="noopener">Avísame</a>'
+    +(fuera?'<a class="vit-add vit-avisa" href="'+escHTML(waEncargo(d.n,id))+'" target="_blank" rel="noopener">Avísame</a>'
      :esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
          +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
          :'<button type="button" class="vit-add" data-add="'+id+'">Agregar</button>')
@@ -681,17 +691,26 @@ function pintarCalculadora(){
   });
 }
 
-/* Enlace a WhatsApp para pedir por encargo algo agotado. */
-function waEncargo(nombre){
-  return 'https://wa.me/'+WA+'?text='+encodeURIComponent(
-    'Hola, Zephora Charms. Vi en la página que «'+nombre+'» está agotado. '+
-    '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?');
+/* Enlace a WhatsApp para pedir por encargo algo agotado. Con el id de una
+   pieza que viene en camino, pide el aviso de llegada. */
+function waEncargo(nombre,id){
+  return 'https://wa.me/'+WA+'?text='+encodeURIComponent(id&&pronto(id)
+    ? 'Hola, Zephora Charms. Vi en la página que «'+nombre+'» llega pronto. ¿Me avisan cuando llegue?'
+    : 'Hola, Zephora Charms. Vi en la página que «'+nombre+'» está agotado. '+
+      '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?');
 }
 
 /* Etiqueta de disponibilidad. Solo dice "últimas unidades" cuando de verdad
    quedan 1 o 2: no se inventa urgencia donde no la hay. */
 function etiquetaStock(p,id){
   let vieja=p.querySelector('.pc-stock'); if(vieja) vieja.remove();
+  const pie0=p.querySelector('.pc-foot');
+  if(pronto(id)&&pie0){
+    const e=document.createElement('p');
+    e.className='pc-stock pc-stock--0'; e.textContent='Próximamente';
+    pie0.parentNode.insertBefore(e,pie0);
+    return;
+  }
   /* Solo con la disponibilidad real de esta pieza. Mientras no llega —o si
      vino sin números— no se dice nada: mejor ninguna etiqueta que una
      «Última unidad» sobre algo agotado. El botón sí puede caer al conteo,
@@ -841,14 +860,14 @@ function pintarTarjetas(){
     let enc=pie.querySelector('.pc-encargo');
     if(sinStock){
       b.setAttribute('aria-disabled','true');
-      b.textContent='Agotado';
+      b.textContent=fueraTxt(id);
       if(!enc){
         enc=document.createElement('a');
         enc.className='pc-encargo'; enc.dataset.wa='encargo';
-        enc.textContent='Pedir por encargo';
         pie.appendChild(enc);
       }
-      enc.href=waEncargo((esBrazalete?PU[id]:CH[id]).n);
+      enc.textContent=pronto(id)?'Avísame cuando llegue':'Pedir por encargo';
+      enc.href=waEncargo((esBrazalete?PU[id]:CH[id]).n,id);
     }else{
       b.removeAttribute('aria-disabled');
       if(enc) enc.remove();
@@ -1028,6 +1047,7 @@ function estadoDe(id){
     if(agotado(id)) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
     return {t:'Disponible en talla '+ANI[id].tallas.filter(t=>!agotado(t)).map(t=>t.replace(/^.*-t/,'')).join(', '),k:'ok'};
   }
+  if(pronto(id)) return {t:'Próximamente — escríbenos y te avisamos cuando llegue',k:'out'};
   if(!real(id)) return {t:'',k:''};
   if(agotado(id)) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
   if(PU[id]) return {t:'Disponible en talla '+(tallasLibres(id)||[]).join(', ')+' cm',k:'ok'};
@@ -1077,7 +1097,13 @@ function pintarPagina(){
   const compra=$('#pp-compra'), sin=$('#pp-agotado'), enc=$('#pp-encargo');
   if(compra) compra.hidden=fuera;
   if(sin) sin.hidden=!fuera;
-  if(enc) enc.href=waEncargo((PU[id]||CH[id]||ANI[id]).n);
+  if(enc) enc.href=waEncargo((PU[id]||CH[id]||ANI[id]).n,id);
+  /* El texto de la página lo escribe gen_productos.py para una agotada; si
+     viene en camino, se dice eso. */
+  if(sin&&enc&&pronto(id)){
+    if(sin.firstChild&&sin.firstChild.nodeType===3) sin.firstChild.textContent='Esta pieza llega pronto. ';
+    enc.textContent='Escríbenos y te avisamos cuando llegue';
+  }
   /* En la página de un brazalete, la talla es lo primero que hay que elegir:
      el panel sale abierto en vez de esconderse tras «Elegir». */
   const t=tarjetaDe(id), tallas=t&&t.querySelector('.tallas');
@@ -1274,7 +1300,7 @@ function abrirFicha(id, lamina){
   add.hidden=esB;
   if(!esB){
     const lleno=sel.filter(x=>x===id).length>=tope(id);
-    add.textContent = sinStock ? 'Agotado' : (lleno?'Sin más unidades':'Agregar a mi pulsera');
+    add.textContent = sinStock ? fueraTxt(id) : (lleno?'Sin más unidades':'Agregar a mi pulsera');
     if(sinStock||lleno) add.setAttribute('aria-disabled','true'); else add.removeAttribute('aria-disabled');
   }
   const pag=$('#fx-pag');
@@ -1282,7 +1308,7 @@ function abrirFicha(id, lamina){
   pag.hidden = id===document.body.dataset.producto;
   const fw=$('#fx-wa');
   fw.hidden=!sinStock;
-  if(sinStock) fw.href=waEncargo(p.n);
+  if(sinStock) fw.href=waEncargo(p.n,id);
 
   $('#ficha').hidden=false;
   if(ppGal) ppGal.ajustar();   /* el video de la página se pausa bajo la ficha */
@@ -2496,7 +2522,7 @@ function pintarBusqueda() {
     /* El estado se dice aquí y no al abrir la ficha: enterarse de que está
        agotado después de haber tocado es un clic perdido. */
     if (!x.letras && agotado(x.id)) {
-      const o = document.createElement('span'); o.className = 'out'; o.textContent = ' · Agotado';
+      const o = document.createElement('span'); o.className = 'out'; o.textContent = ' · ' + fueraTxt(x.id);
       meta.appendChild(o);
     }
     n.appendChild(meta);
@@ -2634,25 +2660,37 @@ const inventarioListo=fetch('assets/stock.json',{cache:'no-cache'})
  * ventas ordenadas de más a menos, sin cifras: `vendidas` solo trae las 12
  * primeras de toda la tienda y con 3 o más libres, y casi ninguna de Marvel
  * entraría. Las agotadas van al final aunque hayan vendido —abrir la colección
- * con un «Agotado» no vende—, y por eso espera también al inventario. Las que
- * no han vendido quedan en el orden de siempre. Si algo falla, no se mueve. */
+ * con un «Agotado» no vende— y, detrás de ellas, las que vienen en camino.
+ * Las que no han vendido quedan en el orden de siempre.
+ *
+ * 2026-11-15 (la Sesión 5 la vio en vivo abriendo con Iron Man, Escudo y
+ * Guantelete agotados, y el propietario aprobó el nuevo orden): se ordenaba una
+ * sola vez, con el conteo de stock.json, que no descuenta lo vendido —ahí Iron
+ * Man tenía 4—; y sin ranking no se movía nada. Ahora se vuelve a ordenar
+ * cuando llega la disponibilidad real, y sin ranking igual se mandan al final
+ * las que no hay. */
 const marvelGrid=(()=>{
   const g=$('#piezas .grid'); if(!g) return null;
   const cs=[...g.querySelectorAll(':scope > .pc')];
   return cs.length&&cs.every(el=>el.dataset.g==='Marvel')?g:null;
 })();
+let marvelRank=null;
+function ordenarMarvel(){
+  if(!marvelGrid||!marvelRank) return;
+  const pos={}; marvelRank.forEach((id,i)=>{ pos[id]=i; });
+  const clave=el=>{ const id=el.dataset.id;
+    return pronto(id) ? 3e6 : agotado(id) ? 2e6 : (id in pos ? pos[id] : 1e6); };
+  [...marvelGrid.querySelectorAll(':scope > .pc')].map((el,i)=>[el,i])
+    .sort((a,b)=>clave(a[0])-clave(b[0])||a[1]-b[1])
+    .forEach(([el])=>marvelGrid.appendChild(el));
+}
 if(marvelGrid){
   Promise.all([
     fetch('.netlify/functions/mas-vendidos').then(r=>r.ok?r.json():null).catch(()=>null),
     inventarioListo,
   ]).then(([d])=>{
-    const rank=(d&&d.ranking)||[]; if(!rank.length) return;
-    const pos={}; rank.forEach((id,i)=>{ pos[id]=i; });
-    const clave=el=>{ const id=el.dataset.id;
-      return agotado(id) ? 2e6 : (id in pos ? pos[id] : 1e6); };
-    [...marvelGrid.querySelectorAll(':scope > .pc')].map((el,i)=>[el,i])
-      .sort((a,b)=>clave(a[0])-clave(b[0])||a[1]-b[1])
-      .forEach(([el])=>marvelGrid.appendChild(el));
+    marvelRank=(d&&d.ranking)||[];
+    ordenarMarvel();
   });
 }
 
@@ -2670,6 +2708,7 @@ fetch('.netlify/functions/disponibilidad',{cache:'no-cache'})
        que volver a dibujarla, porque esconde las piezas agotadas. */
     vitConStock=false;
     alLlegarInventario();
+    ordenarMarvel();
     /* Señal de que ya manda el dato real, como `con-stock` lo es del conteo.
        Las pruebas esperan por esta y no por aquella: desde que las etiquetas
        solo salen con dato real, esperar `con-stock` pasaba por suerte de

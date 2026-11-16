@@ -8,8 +8,23 @@ deshacer sin querer**.
 ## Fichas de las 6 piezas Marvel del pedido de Black Friday — rama `claude/fichas-marvel-doomsday`, SIN fusionar
 
 Pedido del propietario (2026-11-14): «Prepara las fichas, aunque aún faltan los
-videos». La mercancía no ha llegado. **No fusionar hasta que él confirme precio,
-nombres y cómo se muestran mientras no haya unidades.**
+videos». La mercancía no ha llegado. El 15-nov eligió cómo se muestran: «ponerlas
+como próximamente». **No fusionar hasta que él lo diga.**
+
+- **«Próximamente» (15-nov):** los seis id están en `PRONTO` de tienda.js. Para
+  `agotado()` cuentan como sin unidades aunque el inventario no haya cargado (no
+  se venden nunca), pero dicen «Próximamente» en la tarjeta, la vitrina, la
+  ficha, el buscador y su página, con «Avísame cuando llegue» por WhatsApp
+  («llega pronto. ¿Me avisan cuando llegue?»). En la Colección Marvel van al
+  final de todo, detrás de las agotadas. **Al llegar la mercancía: quitar los
+  id de `PRONTO` y poner sus unidades en stock.json, en el mismo deploy.**
+- **Colección Marvel, nuevo orden (aprobado por el propietario el 15-nov):**
+  disponibles primero (por ventas), agotadas después y las que vienen en camino
+  al final. Antes se ordenaba una sola vez con stock.json, que no descuenta lo
+  vendido (Iron Man salía con 4 y en vivo tenía 0), y sin ranking no se movía;
+  ahora se reordena al llegar la disponibilidad real. Cabecera nueva
+  `assets/marvel-heroes-disponibles.webp` (la foto del anuncio 4, con piezas que
+  sí hay); la de antes mostraba Iron Man, Escudo y Guantelete, agotados.
 
 - **Piezas** (grupo Marvel, después de Black Panther): `doctor-doom`, `loki`,
   `casco-loki`, `viuda-negra`, `miles-morales` y `arana` («Araña»). Pantera
@@ -18,9 +33,9 @@ nombres y cómo se muestran mientras no haya unidades.**
   `p` en `DATA` de tienda.js, la tarjeta de index.html y `precio` en
   stock.json; luego `extraer_catalogo.py`, `gen_productos.py --escribir` y
   `gen_colecciones.py --escribir`.
-- **Unidades: 0 en stock.json** («generado» sin tocar). Tal como está, salen
-  como cualquier agotado: en gris, «Agotado» y «Pedir por encargo» / «Avísame»
-  por WhatsApp, y el feed de Meta las manda sin existencias. Al llegar: poner
+- **Unidades: 0 en stock.json** («generado» sin tocar). Salen en gris como
+  «Próximamente» (ver arriba), y el feed de Meta las manda sin existencias. Al
+  llegar: quitarlas de `PRONTO`, poner
   las unidades contadas en `stock.json` (deploy) y cargar a mano la hoja
   («Existencias» con su `clave`, y `AJ-AAMMDD-LLEGADA-NN` en «Movimientos»).
 - **Fotos:** las de catálogo de la marca que mandó el propietario (permiso de

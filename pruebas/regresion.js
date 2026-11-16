@@ -608,6 +608,63 @@ const U = BASE + '/index.html';
     await m.close();
   }
 
+  // ---- Colección Marvel con la disponibilidad real y sin ranking (2026-11-15) ----
+  /* En vivo abría con Iron Man agotado: stock.json le daba 4 (no descuenta lo
+     vendido), la página se ordenaba una sola vez con ese conteo y, sin ranking,
+     no se movía. Aquí stock.json dice 4, la disponibilidad real dice 0 y
+     mas-vendidos falla: Iron Man igual tiene que irse al final, y detrás de
+     todas las agotadas, las que vienen en camino, con «Próximamente». */
+  {
+    const PRONTO = ['doctor-doom', 'loki', 'casco-loki', 'viuda-negra', 'miles-morales', 'arana'];
+    const m = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+    m.on('pageerror', e => errores.push('marvel-disp: ' + e.message));
+    const st = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'assets', 'stock.json'), 'utf8'));
+    st.items['iron-man'].stock = 4;
+    const piezas = [], brazaletes = [];
+    Object.entries(st.items).forEach(([id, it]) => {
+      if (it.tallas) brazaletes.push({ id, tallas: it.tallas });
+      else if (typeof it.stock === 'number') piezas.push({ id, disponible: id === 'iron-man' ? 0 : it.stock });
+    });
+    await m.route(/\/assets\/stock\.json/, r => r.fulfill({ json: st }));
+    await m.route(/\/\.netlify\/functions\/mas-vendidos/, r => r.fulfill({ status: 503, body: '' }));
+    await m.route(/\/\.netlify\/functions\/disponibilidad/, async r => {
+      await new Promise(ok => setTimeout(ok, 300));   // llega después del conteo
+      r.fulfill({ json: { fuente: 'conteo-menos-apartado', piezas, brazaletes } });
+    });
+    await m.goto(BASE + '/coleccion-marvel.html', { waitUntil: 'networkidle' });
+    await m.waitForSelector('body.con-disponibilidad', { timeout: 5000 }).catch(() => {});
+    await m.waitForTimeout(300);
+    const r = await m.evaluate(() => {
+      const cs = [...document.querySelectorAll('#piezas .grid > .pc')];
+      return { orden: cs.map(c => c.dataset.id),
+               boton: (cs.find(c => c.dataset.id === 'doctor-doom')?.querySelector('.pc-add') || {}).textContent,
+               aviso: (cs.find(c => c.dataset.id === 'doctor-doom')?.querySelector('.pc-encargo') || {}).textContent };
+    });
+    const cola = r.orden.slice(-PRONTO.length);
+    const ironAntes = r.orden.indexOf('iron-man');
+    const disponiblesAntes = r.orden.slice(0, ironAntes).every(id => {
+      const p = piezas.find(x => x.id === id); return p && p.disponible > 0; });
+    out.push('\nColección Marvel con la disponibilidad real y sin ranking'
+      + `\n  la agotada según la disponibilidad real (Iron Man) baja detrás de las que sí hay: ${ironAntes > 0 && ironAntes < r.orden.length - PRONTO.length && disponiblesAntes ? 'sí ✓' : 'NO ✗ (' + r.orden.join(',') + ')'}`
+      + `\n  las que vienen en camino cierran la página: ${PRONTO.every(id => cola.includes(id)) ? 'sí ✓' : 'NO ✗ (' + cola.join(',') + ')'}`
+      + `\n  y dicen «Próximamente» con «Avísame cuando llegue»: ${r.boton === 'Próximamente' && r.aviso === 'Avísame cuando llegue' ? 'sí ✓' : 'NO ✗ (' + r.boton + ' · ' + r.aviso + ')'}`);
+    await m.close();
+
+    /* La página de producto de una pieza en camino: no se compra y lo dice. */
+    const p = await b.newPage({ viewport: { width: 390, height: 844 }, isMobile: true });
+    p.on('pageerror', e => errores.push('producto-pronto: ' + e.message));
+    await p.goto(BASE + '/producto-doctor-doom.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+    const pp = await p.evaluate(() => ({
+      compraOculta: !!document.getElementById('pp-compra')?.hidden,
+      texto: document.getElementById('pp-agotado')?.textContent.replace(/\s+/g, ' ').trim(),
+      sinOcultar: !document.getElementById('pp-agotado')?.hidden,
+      wa: decodeURIComponent(document.getElementById('pp-encargo')?.href || ''),
+    }));
+    out.push(`  su página no deja comprar y dice que llega pronto: ${pp.compraOculta && pp.sinOcultar && /llega pronto/.test(pp.texto) && /llega pronto\. ¿Me avisan cuando llegue\?/.test(pp.wa) ? 'sí ✓' : 'NO ✗ (' + JSON.stringify(pp) + ')'}`);
+    await p.close();
+  }
+
   out.push(`\nErrores JS: ${errores.length ? errores.join(' | ') : 'ninguno ✓'}`);
   console.log(out.join('\n'));
   await b.close();
