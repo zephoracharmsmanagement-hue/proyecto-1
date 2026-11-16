@@ -75,8 +75,9 @@ Los tres cuidados que se le pasaron a la Sesión 3 antes de publicar:
 ### Etapa 2 · Guías de Skydropx — sí necesita código de la tienda
 
 **Aprobada el 15-nov** (primero la orden precargada, después la guía sola,
-solo en pedidos pagados). El código de la tienda espera el resultado del
-código postal (§ 7.6) y, para publicarse, el «deploy» del propietario.
+solo en pedidos pagados). El código postal quedó resuelto (§ 7.6: código
+DANE del municipio). El código de la tienda está listo para escribirse y,
+para publicarse, necesita el «deploy» del propietario.
 
 Está en el § 7. n8n no puede armar una guía con el aviso de la hoja, porque no
 trae celular ni dirección.
@@ -427,17 +428,13 @@ propietario ve el texto entero en el correo de tienda.
 
 **Código postal, el punto delicado.** Skydropx Colombia cotiza por código
 postal, y el checkout no lo pide. Pedírselo a la clienta es un campo más
-donde se cae la compra: casi nadie se lo sabe. Por eso la propuesta es una
-tabla del repo, `assets/codigos-postales.json`, con el código principal de
-cada uno de los 314 municipios que ya ofrece `assets/colombia.json`, sacado del
-listado oficial de 4-72. `pedido-envio` responde ese código y
-`codigo_postal_origen: "municipio"`. Si la clienta eligió «Otro municipio»
-escrito a mano, responde `codigo_postal: null` y la guía no se compra sola.
-**Falta comprobar** (Sesión 3, con una cotización de solo lectura) que
-Skydropx da la misma tarifa con el código principal del municipio que con el
-del barrio exacto, al menos en Bogotá, Medellín y una ciudad intermedia. Si
-la tarifa cambia, el paso B solo compra sola cuando el código salga del barrio,
-y lo demás queda en el paso A.
+donde se cae la compra: casi nadie se lo sabe. Por eso va una tabla del repo,
+`assets/codigos-postales.json`, con el **código DANE (DIVIPOLA)** de cada uno
+de los 314 municipios que ya ofrece `assets/colombia.json` (que no trae
+códigos, solo nombres). `pedido-envio` responde ese código. Si la clienta
+eligió «Otro municipio» escrito a mano, responde `codigo_postal: null` y la
+guía no se compra sola. Comprobado el 15-nov (§ 7.6): no hace falta el código
+del barrio.
 
 La alternativa es que la tienda empuje los datos (`_avisos.mjs`, § 2). Queda
 para cuando se retomen los mensajes a la clienta.
@@ -501,15 +498,22 @@ checkout.** Los $1.000 de margen son una propuesta: él habló de «60.000 o
 Después de comprar, n8n revisa si Skydropx rechazó la Protección Plus y, si la
 rechazó, le avisa.
 
+**Ojo con el recaudo (cotización de la Sesión 3, 15-nov).** Una contraentrega
+en Bogotá con declarado de $47.000 cotizó Coordinadora a $13.825, igual que el
+ejemplo del propietario. Pero la cotización devuelve `on_delivery_amount`
+= 47000, sin el flete, aunque lleve `recipient_pays_shipping: true`. El
+recaudo real solo se ve al crear la guía: la primera contraentrega se hace a
+mano y se mira cuánto quedó cobrando antes de automatizar ese cálculo.
+
 ### 7.4 · Verificaciones previas
 
 Revisadas por la Sesión 3 en el panel el 15-nov, solo leyendo:
 
 - **Automatización «Crear guía automática»: no hay ninguna.** ✓
 - **Credencial de la API:** «Public API · Producción», vigente y sin
-  vencimiento; el panel abre en `pro.skydropx.com`. ✓ En n8n existe «Skydropx
-  API»; falta una llamada de solo lectura que confirme que es esa y que
-  responde.
+  vencimiento; el panel abre en `pro.skydropx.com`. ✓ La credencial «Skydropx
+  API» de n8n estaba en «Authorization Code»; la Sesión 3 la pasó a «Client
+  Credentials» (con el «Hazlo tú» del propietario) y ya cotiza. ✓
 - **Dirección de origen:** «Autoenvio Fontibon», predeterminada y activa, con
   sucursal de Inter 225905. ✓
 - **Paquete:** «paquete habitual» de 19 × 19 × 5 cm y 1 kg, contenido
@@ -535,14 +539,26 @@ o lo retienen, esas condiciones pueden dejarlo sin reclamo. El propietario lo
 sabe y decidió el 15-nov que **la contraentrega sigue por Skydropx** («Y igual
 vamos a manejar contraentrega por Skydrops»).
 
-### 7.6 · Código postal: lo que se está probando
+### 7.6 · Código postal: resuelto con cotizaciones de prueba (15-nov)
 
-La documentación de cotización de Skydropx Colombia pone de ejemplo «76001»
-(Cali) y «05001» (Medellín), que son códigos DANE de municipio. La Sesión 3
-va a cotizar, sin comprar, el mismo envío con tres códigos: el DANE, el
-principal de 4-72 y el del barrio. Si el DANE da la misma tarifa, la tabla
-`assets/codigos-postales.json` sale del DANE de los 314 municipios. La tabla
-y `pedido-envio` se escriben cuando llegue ese resultado.
+La Sesión 3 cotizó, sin comprar nada:
+
+- **Sirve el código DANE del municipio.** Skydropx guarda el origen como
+  `11001000` (DIVIPOLA de 8 dígitos) y acepta tanto `11001000` como `05001`.
+- **Los de 4-72 no sirven:** `110911`, `050021` y `680003` dan 422 «no
+  existe». `111611` sí existe, y da la misma tarifa que el DANE de Bogotá.
+- **La tarifa no cambia dentro de la ciudad** en Bogotá, Medellín y
+  Bucaramanga. No hace falta código de barrio, y el paso B no depende de eso.
+
+Tarifas de referencia de un pedido pagado con declarado de $46.000:
+Coordinadora, Envia y Servientrega $8.460; Inter $8.806. En Leticia, Inter
+$36.146 y Coordinadora $49.516: por encima del tope, así que no se compra
+sola.
+
+Falta para escribir la tabla: la lista DIVIPOLA oficial del DANE, para poner
+el código de cada uno de los 314 municipios de `colombia.json` por nombre y
+departamento. El formato exacto (5 u 8 dígitos) se fija con una cotización
+más, usando el mismo que Skydropx devuelve para el origen.
 
 ## 8 · Red de seguridad
 
