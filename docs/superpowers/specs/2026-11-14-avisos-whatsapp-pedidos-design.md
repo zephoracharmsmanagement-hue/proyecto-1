@@ -404,6 +404,21 @@ pequeña:
   404; todo dato de entrega que escribió la clienta viaja; el valor declarado
   sale según el medio de pago; un pedido sin confirmar no entrega nada.
 
+> **Escrito el 15-nov en el PR #52** (rama `claude/pedido-envio-skydropx`,
+> borrador). El contrato final está en ese PR y manda sobre la tabla de
+> abajo. Lo que cambió al escribirlo, por ser datos personales:
+>
+> - No entrega `correo`, `pago`, `total` de un pedido pagado ni precios de las
+>   piezas. En contraentrega sí va `reglas.recaudo_maximo` (el total del
+>   checkout), que hace falta para el recaudo.
+> - En vez de `estado` y `pago` va `tipo` (`pagado` / `contraentrega`); un
+>   pedido que no está en firme responde 409 con un motivo y sin datos.
+> - El código se llama `destino.codigo_dane` (5 dígitos).
+> - No hay `direccion_confirmada`: `compra_automatica.permitida` es `false`
+>   siempre en contraentrega.
+> - Las ids van en `skydropx.orden_id` y `skydropx.guia_id`, y se anotan con
+>   `anotar`.
+
 **Contrato de la respuesta** (lista de la Sesión 3 del 15-nov, contrastada con
 `POST /api/v1/orders` de Colombia y con lo que hoy pide `checkout.html`):
 
