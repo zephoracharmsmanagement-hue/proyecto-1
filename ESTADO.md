@@ -5,6 +5,49 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Datos de envío para la guía de Skydropx — función `pedido-envio` (desplegada el 2026-11-16, PR #52)
+
+Etapa 2 de los avisos, aprobada por el propietario el 2026-11-15 y desplegada con
+su «deploy» el 2026-11-16 (diseño en la
+rama `claude/avisos-whatsapp-diseno`, § 7). **Mientras `PEDIDO_ENVIO_KEY` no
+exista en Netlify, responde 401 a todo.** El flujo de n8n es de la Sesión 3; la tienda solo la toca la
+Sesión 2.
+
+- **Qué es:** `netlify/functions/pedido-envio.mjs`. n8n recibe la referencia por
+  el aviso de venta de la hoja y aquí pide lo que la guía necesita: nombre y
+  celular, dirección con su **código DANE**, el paquete habitual, las piezas
+  (nombre y cantidad) y las reglas del propietario ya resueltas. Con
+  `anotar` guarda en el pedido la orden y la guía de Skydropx
+  (`pedido.skydropx`). No toca el cobro, el inventario ni el estado del pedido.
+- **Qué NO entrega, a propósito:** correo, documento, dedicatoria, permiso de
+  publicidad, precios ni nada del pago. Un pedido por llamada y por referencia
+  exacta: no hay búsqueda ni listado. Solo pedidos en firme (`pagado` de pago
+  en línea, o `confirmado` de contraentrega); lo demás responde 409 sin datos.
+- **Clave:** cabecera `x-zephora-automation-key` = `PEDIDO_ENVIO_KEY`, propia
+  de esta función, de 32 caracteres o más, comparada en tiempo constante. Sin
+  la variable en Netlify la función responde 401 a todo.
+- **Reglas que pone el repo** (`REGLAS` en la función; cambiarlas ahí, con su
+  prueba): declarado $46.000 en pagados; tope de $25.000 por guía; cambio de
+  transportadora desde $5.000 de ahorro; Inter Rapidísimo en pagados y
+  Coordinadora en contraentrega; Protección Plus solo en contraentrega; en
+  contraentrega `recaudo_maximo` = el total que la clienta vio en el checkout.
+- **`compra_automatica.permitida`** dice si n8n puede comprar la guía sin que
+  nadie la mire. Es `false` siempre en contraentrega (se hace a mano: el
+  recaudo real solo se ve al crear la guía), sin código DANE («Otro municipio»
+  escrito a mano), con indicaciones de más de 70 caracteres (Skydropx las
+  recorta) o si el pedido ya tiene guía.
+- **Código DANE:** `assets/codigos-dane.json`, una entrada por cada ciudad de
+  `assets/colombia.json`. Lo arma `herramientas/codigos_dane.mjs` desde el
+  listado DIVIPOLA del DANE. **Si se agrega una ciudad a `colombia.json`, hay
+  que regenerarlo**; `pruebas/pedido-envio.js` se pone roja si falta alguna.
+  Skydropx acepta el DANE del municipio y rechaza los códigos postales de 4-72
+  (cotizaciones de la Sesión 3, 15-nov).
+- **Para ponerla a andar:** crear `PEDIDO_ENVIO_KEY` en Netlify (contexto
+  Production) y la misma clave como credencial «Header Auth» en n8n; desplegar;
+  probar con una referencia real pagada. Los pasos de la prueba de punta a
+  punta están en el PR.
+- **Funciones en el despliegue: 38 → 40** (`_dane` y `pedido-envio`).
+
 ## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
 
 Pedido del propietario (2026-11-01): contar los anillos, las charms nuevas, los
@@ -3717,13 +3760,13 @@ Por esa ruta se saltaban todos los bloqueos —`/pruebas/`, `/herramientas/`,
 `ESTADO.md`— porque las reglas apuntan a la raíz. El siguiente despliegue desde
 git lo borró solo, porque cada despliegue es una instantánea completa.
 
-En la salida de cualquier despliegue hay que confirmar que diga **38 functions**
+En la salida de cualquier despliegue hay que confirmar que diga **40 functions**
 —las mismas que archivos hay en `netlify/functions/` (`ls netlify/functions | wc -l`)—:
-`_addi`, `_atribucion`, `_carrito`, `_cierre`, `_correo`, `_envios`, `_hoja`,
+`_addi`, `_atribucion`, `_carrito`, `_cierre`, `_correo`, `_dane`, `_envios`, `_hoja`,
 `_inventario`, `_meta`, `_pedidos`, `_precios`, `_rango`, `_sistecredito`,
 `_suscriptores`, `_boletin`, `addi-callback`, `ajustar-inventario`,
 `armar-carrito`, `boletin`, `catalogo-meta`, `crear-pago`, `descuento-suscripcion`, `disponibilidad`, `envio-estado`, `estado-pedido`,
-`mas-vendidos`, `media`, `posventa`, `reanudar`, `registrar-venta`, `rescate`,
+`mas-vendidos`, `media`, `pedido-envio`, `posventa`, `reanudar`, `registrar-venta`, `rescate`,
 `resenas`, `sistecredito-aviso`, `sistecredito-enlace`, `suscribir`,
 `suscriptores-export`, `vendidas`, `wompi-webhook`;
 si no salen, el sitio queda sin cobrar y hay que restaurar el despliegue
