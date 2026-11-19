@@ -556,7 +556,7 @@ function abrirSusc(forzar){
     +'<p class="susc-cupon-pie">Desde 2 piezas · se suma a «Paga 3, lleva 1 gratis»</p></div>'
     +'<h2 id="susc-t">Suscríbete y es tuyo</h2>'
     +'<p class="susc-sub">Se aplica solo en la pantalla de pago, con el correo con que te suscribas. Y te enteras primero cuando lleguen piezas nuevas.</p>'
-    +'<form class="susc-f" novalidate>'
+    +'<form class="susc-f" novalidate data-clarity-mask="true">'
     +'<input type="email" name="correo" required autocomplete="email" placeholder="Tu correo" aria-label="Tu correo">'
     +'<input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">'
     +'<label class="susc-ok"><input type="checkbox" name="acepta"> <span>Acepto recibir correos de Zephora Charms con novedades y ofertas. Puedo darme de baja cuando quiera. <a href="politica-de-privacidad.html" target="_blank" rel="noopener">Política de datos</a></span></label>'
