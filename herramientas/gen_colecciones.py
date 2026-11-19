@@ -223,6 +223,7 @@ PAGINA = '''<!DOCTYPE html>
 <meta name="twitter:image" content="https://zephoracharms.com/{og}">
 {head}
 <link rel="stylesheet" href="tienda.css">
+<script src="/assets/clarity.js" defer></script>
 </head>
 <body>
 
@@ -557,6 +558,7 @@ PAGINA_KITS = '''<!DOCTYPE html>
 <meta name="twitter:image" content="https://zephoracharms.com/assets/avengers-marmol.webp">
 {head}
 <link rel="stylesheet" href="tienda.css">
+<script src="/assets/clarity.js" defer></script>
 </head>
 <body>
 
