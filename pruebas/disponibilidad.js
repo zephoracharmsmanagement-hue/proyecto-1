@@ -249,9 +249,14 @@ async function main() {
     comprobar(d.piezas.length + d.brazaletes.length === TOTAL, `el catálogo entero (${TOTAL})`);
     const { d: sinReq } = await pedir();
     comprobar(sinFecha(d) === sinFecha(sinReq), 'idéntica a la que sale sin petición (el camino de siempre)');
-    const { d: vacios } = await pedirCon('?grupo=&ids=&q=&tipo=&utm_source=x');
+    const { d: vacios } = await pedirCon('?grupo=&ids=&utm_source=x');
     comprobar(sinFecha(vacios) === sinFecha(d),
       'parámetros vacíos o ajenos (una utm) no cuentan como filtro');
+    const { d: blancos } = await pedirCon('?grupo=%20&ids=,,');
+    comprobar(sinFecha(blancos) === sinFecha(d), 'ni un grupo en blanco ni una lista de ids sin ids');
+    const { d: q } = await pedirCon('?q=libelula&tipo=brazalete');
+    comprobar(sinFecha(q) === sinFecha(d),
+      'q y tipo no existen: no filtran (un buscador literal perdía la Luciérnaga cuando pedían «libélula»)');
   }
 
   console.log('\n9 · ?grupo=Marvel');
@@ -265,12 +270,33 @@ async function main() {
     comprobar(d.reglas && d.fuente && d.aviso, 'reglas, fuente y aviso siguen yendo');
     comprobar(d.total === TOTAL && d.devueltas === todas.length && d.recortado === false,
       'total del catálogo, devueltas y recortado: false', `${d.total}/${d.devueltas}/${d.recortado}`);
-    comprobar(d.filtro && d.filtro.grupo === 'Marvel' && d.filtro.ids === null && d.filtro.q === null && d.filtro.tipo === null,
-      'filtro dice qué se aplicó', JSON.stringify(d.filtro));
+    comprobar(d.filtro && d.filtro.grupo === 'Marvel' && d.filtro.ids === null
+      && JSON.stringify(Object.keys(d.filtro)) === '["grupo","ids"]',
+      'filtro dice qué se aplicó, y solo trae grupo e ids', JSON.stringify(d.filtro));
     const { d: min } = await pedirCon('?grupo=marvel');
     comprobar(min.devueltas === d.devueltas, 'el grupo no distingue mayúsculas');
-    const { d: sim } = await pedirCon('?grupo=simbolos');
-    comprobar(sim.devueltas > 0 && sim.piezas.every(x => x.grupo === 'Símbolos'), 'ni tildes (simbolos → Símbolos)', `${sim.devueltas}`);
+    const { d: con } = await pedirCon('?grupo=' + encodeURIComponent('Símbolos'));
+    const { d: sin, largo: ls } = await pedirCon('?grupo=Simbolos');
+    tam['grupo=Simbolos (39)'] = ls;
+    comprobar(sin.devueltas > 0 && sin.devueltas === con.devueltas && sin.piezas.every(x => x.grupo === 'Símbolos'),
+      'Simbolos sin tilde da lo mismo que Símbolos: es lo que mandará el modelo', `${sin.devueltas} = ${con.devueltas}`);
+    const { d: br, largo: lb } = await pedirCon('?grupo=brazaletes');
+    tam['grupo=brazaletes'] = lb;
+    comprobar(br.piezas.length === 0 && br.brazaletes.length === Object.values(items).filter(x => x.tallas).length,
+      'los brazaletes se piden como grupo (por eso no hace falta un «tipo»)', `${br.brazaletes.length}`);
+  }
+
+  console.log('\n9b · Ninguna pieza se queda fuera de todos los grupos');
+  {
+    const { d } = await pedirCon('');
+    const gruposVivos = [...new Set(d.piezas.concat(d.brazaletes).map(x => x.grupo))];
+    let suma = 0, cortado = false;
+    for (const g of gruposVivos) {
+      const { d: r } = await pedirCon('?grupo=' + encodeURIComponent(g));
+      suma += r.devueltas; cortado = cortado || r.recortado;
+    }
+    comprobar(suma === TOTAL && !cortado,
+      `sumando los ${gruposVivos.length} grupos salen las ${TOTAL} piezas, sin recortar ninguno`, `${suma}`);
   }
 
   console.log('\n10 · ?ids=letra-m');
@@ -285,19 +311,7 @@ async function main() {
       'varios ids separados por coma, y un id que no existe simplemente no sale', `${varios.devueltas}`);
   }
 
-  console.log('\n11 · ?q= sin tildes ni mayúsculas');
-  {
-    const { d: a, largo } = await pedirCon('?q=LIBELULA');
-    tam['q=LIBELULA'] = largo;
-    const { d: b } = await pedirCon('?q=' + encodeURIComponent('libélula'));
-    const ids = x => x.piezas.concat(x.brazaletes).map(p => p.id).join(',');
-    comprobar(a.devueltas > 0 && ids(a) === ids(b), 'LIBELULA y libélula dan lo mismo', ids(a));
-    const { d: g } = await pedirCon('?q=disney');
-    comprobar(g.devueltas > 0 && g.piezas.every(x => x.grupo === 'Disney' || /disney/i.test(x.nombre)),
-      'q también busca en el grupo', `${g.devueltas}`);
-  }
-
-  console.log('\n12 · ?grupo=NoExiste');
+  console.log('\n11 · ?grupo=NoExiste');
   {
     const { r, d, largo } = await pedirCon('?grupo=NoExiste');
     tam['grupo=NoExiste'] = largo;
@@ -307,26 +321,22 @@ async function main() {
     comprobar(d.reglas && d.aviso, 'y aun así van reglas y aviso');
   }
 
-  console.log('\n13 · Más de 40 → se recorta');
+  console.log('\n12 · Más de 40 → se recorta');
   {
-    const { d, largo } = await pedirCon('?tipo=charm');
-    tam['tipo=charm (recortado)'] = largo;
+    /* Símbolos (39) más dos de Marvel: 41, uno más que el tope. */
+    const marvelIds = Object.keys(items).filter(id => require(path.join(RAIZ, 'netlify', 'functions', '_precios.js')).grupos[id] === 'Marvel').slice(0, 2);
+    const { d, largo } = await pedirCon('?grupo=Simbolos&ids=' + marvelIds.join(','));
+    tam['Simbolos + 2 ids (recortado)'] = largo;
     comprobar(d.piezas.length + d.brazaletes.length === 40 && d.devueltas === 40 && d.recortado === true,
-      'un filtro abierto devuelve 40 y recortado: true', `${d.devueltas}/${d.recortado}`);
-    const { d: br, largo: lb } = await pedirCon('?tipo=brazalete');
-    tam['tipo=brazalete'] = lb;
-    comprobar(br.piezas.length === 0 && br.brazaletes.length > 0 && br.brazaletes.length <= 40,
-      'tipo=brazalete: solo brazaletes', `${br.brazaletes.length}`);
-    const { d: mx } = await pedirCon('?grupo=Marvel&tipo=brazalete');
-    comprobar(mx.devueltas === 0, 'tipo restringe lo demás: Marvel y brazalete no se cruzan', `${mx.devueltas}`);
+      'pasado de 40 se devuelven 40 y recortado: true', `${d.devueltas}/${d.recortado}`);
     const { d: uni } = await pedirCon('?grupo=Pixar&ids=letra-m');
     const pixar = Object.keys(items).filter(id => require(path.join(RAIZ, 'netlify', 'functions', '_precios.js')).grupos[id] === 'Pixar').length;
-    comprobar(uni.devueltas === pixar + 1, 'grupo, ids y q se suman (O): Pixar más la letra M', `${uni.devueltas}`);
-    const { d: largoQ } = await pedirCon('?q=' + 'a'.repeat(500));
-    comprobar(largoQ.filtro.q.length <= 60, 'un q kilométrico se recorta antes de devolverse', `${largoQ.filtro.q.length}`);
+    comprobar(uni.devueltas === pixar + 1, 'grupo e ids se suman (O): Pixar más la letra M', `${uni.devueltas}`);
+    const { d: largoG } = await pedirCon('?grupo=' + 'a'.repeat(500));
+    comprobar(largoG.devueltas === 0 && largoG.filtro.grupo.length <= 40, 'un grupo kilométrico se recorta antes de devolverse', `${largoG.filtro.grupo.length}`);
   }
 
-  console.log('\n14 · Blobs caído y con filtro');
+  console.log('\n13 · Blobs caído y con filtro');
   inv._interno.usarAlmacen(null);
   {
     const { d, largo } = await pedirCon('?grupo=Marvel');

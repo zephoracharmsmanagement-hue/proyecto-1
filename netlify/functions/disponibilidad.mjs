@@ -95,14 +95,21 @@ function grupoDe(id, it) {
  * midió en 15 ejecuciones reales que eso multiplica el costo de cada respuesta
  * por 3 a 10. Con filtro pide solo lo que la clienta nombró.
  *
- *   ?grupo=Marvel        la categoría, sin tildes ni mayúsculas
+ *   ?grupo=Marvel        la categoría, sin tildes ni mayúsculas (Simbolos =
+ *                        Símbolos; los brazaletes son el grupo Brazaletes)
  *   ?ids=letra-m,stitch  esas piezas, tal cual salen en `id`
- *   ?q=libelula          busca en el nombre y en el grupo, sin tildes
- *   ?tipo=brazalete      solo brazaletes (o `charm`)
  *
- * `grupo`, `ids` y `q` se SUMAN (una pieza entra si cumple cualquiera): así una
- * sola llamada trae «la M y algo de Disney». `tipo` en cambio RESTRINGE lo
- * anterior, porque su sentido es justo ese: «de eso, solo los brazaletes».
+ * Los dos se SUMAN: una pieza entra si cumple cualquiera, así una sola llamada
+ * trae «la M y algo de Disney». Un parámetro vacío cuenta como ausente.
+ *
+ * A propósito NO hay búsqueda por texto (decisión del propietario, 19-nov):
+ * una clienta pide «libélula» y la pieza se llama Luciérnaga Evangeline; un
+ * buscador literal devuelve cero, el bot la da por agotada y la anota para
+ * reponer. Emparejar lo que la clienta dice con la pieza lo hace el modelo
+ * viendo los candidatos de un grupo, no un `includes()`.
+ *
+ * Tampoco se quita `foto` aunque sea un tercio de cada pieza: sin ella el
+ * agente hace una vuelta más para pedirla, y se midió 48 % más caro.
  *
  * Sin ningún filtro la respuesta es exactamente la de antes, sin campos nuevos:
  * el nodo de n8n no manda parámetros hasta que se cambie después de publicar
@@ -113,8 +120,9 @@ function grupoDe(id, it) {
  * Un filtro sin resultados es un 200 con listas vacías, nunca un error: el
  * asesor tiene que poder decir «no encontré eso» y ofrecer otra cosa.
  *
- * Tope de 40 resultados: un `q` muy abierto no puede volver a cargar el
- * catálogo entero, que es justo lo que esto viene a evitar.
+ * Tope de 40 resultados: un grupo más una lista larga de ids no puede volver
+ * a cargar el catálogo entero, que es justo lo que esto viene a evitar. Hoy
+ * el grupo más grande (Símbolos) son 39, así que un grupo solo nunca se corta.
  */
 const TOPE = 40;
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
@@ -124,28 +132,14 @@ function leerFiltro(req) {
   try { p = new URL(req.url).searchParams; } catch { return null; }
   const corto = (v, n) => { const t = String(v || '').trim(); return t ? t.slice(0, n) : null; };
   const grupo = corto(p.get('grupo'), 40);
-  const q = corto(p.get('q'), 60);
-  const tipoTxt = norm(p.get('tipo'));
-  const tipo = !tipoTxt ? null
-    : /^brazaletes?$/.test(tipoTxt) ? 'brazalete'
-    : /^(charms?|piezas?)$/.test(tipoTxt) ? 'charm'
-    : tipoTxt.slice(0, 20);
   const ids = String(p.get('ids') || '').split(',')
     .map(x => x.trim().toLowerCase()).filter(Boolean).slice(0, TOPE).map(x => x.slice(0, 80));
-  if (!grupo && !q && !tipo && !ids.length) return null;
-  return { grupo, ids: ids.length ? ids : null, q, tipo };
+  if (!grupo && !ids.length) return null;
+  return { grupo, ids: ids.length ? ids : null };
 }
 
 function cumple(p, f) {
-  const porNombre = f.grupo || f.ids || f.q;
-  let entra = !porNombre;
-  if (f.grupo && norm(p.grupo) === norm(f.grupo)) entra = true;
-  if (f.ids && f.ids.includes(p.id)) entra = true;
-  if (f.q) {
-    const q = norm(f.q);
-    if (norm(p.nombre).includes(q) || norm(p.grupo).includes(q)) entra = true;
-  }
-  return entra && (!f.tipo || p.tipo === f.tipo);
+  return Boolean((f.grupo && norm(p.grupo) === norm(f.grupo)) || (f.ids && f.ids.includes(p.id)));
 }
 
 export default async (req) => {
