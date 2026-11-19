@@ -329,6 +329,18 @@ async function main() {
     tam['Simbolos + 2 ids (recortado)'] = largo;
     comprobar(d.piezas.length + d.brazaletes.length === 40 && d.devueltas === 40 && d.recortado === true,
       'pasado de 40 se devuelven 40 y recortado: true', `${d.devueltas}/${d.recortado}`);
+    comprobar(marvelIds.every(id => d.piezas.some(x => x.id === id)),
+      'las piezas pedidas por id entran todas: lo que se recorta es del grupo');
+    /* El caso que importa: un brazalete va al final del catálogo, y recortando
+       en ese orden se caía justo la pieza que la clienta nombró. El bot la
+       habría dado por agotada. */
+    const ultimoMarvel = Object.keys(items).filter(id => require(path.join(RAIZ, 'netlify', 'functions', '_precios.js')).grupos[id] === 'Marvel').pop();
+    const { d: mix } = await pedirCon(`?grupo=Simbolos&ids=${idPulsera},${ultimoMarvel}`);
+    comprobar(mix.recortado === true && mix.devueltas === 40, 'Símbolos + un brazalete + un Marvel: 41 → 40', `${mix.devueltas}/${mix.recortado}`);
+    comprobar(mix.brazaletes.some(x => x.id === idPulsera) && mix.piezas.some(x => x.id === ultimoMarvel),
+      'y el brazalete y el Marvel pedidos aparecen los dos', `${idPulsera}, ${ultimoMarvel}`);
+    comprobar(mix.piezas.every(x => x.tipo === 'charm') && mix.brazaletes.every(x => x.tipo === 'brazalete'),
+      'cada uno en su lista: piezas y brazaletes siguen separados');
     const { d: uni } = await pedirCon('?grupo=Pixar&ids=letra-m');
     const pixar = Object.keys(items).filter(id => require(path.join(RAIZ, 'netlify', 'functions', '_precios.js')).grupos[id] === 'Pixar').length;
     comprobar(uni.devueltas === pixar + 1, 'grupo e ids se suman (O): Pixar más la letra M', `${uni.devueltas}`);

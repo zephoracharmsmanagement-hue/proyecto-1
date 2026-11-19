@@ -241,13 +241,19 @@ export default async (req) => {
 
   const filtro = req ? leerFiltro(req) : null;
   if (filtro) {
-    /* El tope se reparte en el orden del catálogo: primero charms, luego
-       brazaletes, igual que en la respuesta completa. */
-    const p = piezas.filter(x => cumple(x, filtro));
-    const b = brazaletes.filter(x => cumple(x, filtro));
-    const recortado = p.length + b.length > TOPE;
-    cuerpo.piezas = p.slice(0, TOPE);
-    cuerpo.brazaletes = b.slice(0, Math.max(0, TOPE - cuerpo.piezas.length));
+    /* El tope nunca se come una pieza pedida por id: primero entran las de
+       `ids` y solo después las del grupo, hasta 40. Recortando en el orden del
+       catálogo, un brazalete pedido —van al final— se caía detrás de los 39 de
+       Símbolos, y el bot lo habría dado por agotado. Los ids ya vienen
+       topados a 40 al leerlos, así que siempre caben todos. Luego cada pieza
+       vuelve a su lista y a su orden de siempre. */
+    const todas = piezas.concat(brazaletes);
+    const porId = filtro.ids ? todas.filter(x => filtro.ids.includes(x.id)) : [];
+    const delGrupo = todas.filter(x => !porId.includes(x) && cumple(x, filtro));
+    const elegidas = new Set(porId.concat(delGrupo).slice(0, TOPE));
+    const recortado = porId.length + delGrupo.length > TOPE;
+    cuerpo.piezas = piezas.filter(x => elegidas.has(x));
+    cuerpo.brazaletes = brazaletes.filter(x => elegidas.has(x));
     cuerpo.total = piezas.length + brazaletes.length;
     cuerpo.devueltas = cuerpo.piezas.length + cuerpo.brazaletes.length;
     cuerpo.filtro = filtro;
