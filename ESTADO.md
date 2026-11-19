@@ -5,6 +5,25 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Catálogo PDF del bot generado desde la tienda — desplegado el 2026-11-19 (PR #54)
+
+El PDF que manda el bot de WhatsApp (`assets/catalogo-zephora-charms.pdf`, misma ruta: n8n no
+cambió) era un diseño de Canva del 27-sep sin anillos ni piezas de noviembre, y la prueba seguía
+en verde porque solo miraba los precios de lo que sí traía. El propietario eligió «que se genere solo».
+
+- **Se genera en cada despliegue:** `netlify.toml` → `command = "node herramientas/catalogo-pdf.mjs"`,
+  el primer y único paso de build del sitio (~4 s). Sale de las tarjetas de `index.html` (orden,
+  nombre, descripción, sello, foto) y de `assets/catalogo.json` (precio del cobro). Promo: el texto
+  de la portada; «Próximamente»: el `PRONTO` de `tienda.js` si existe. Existencias no: cada
+  página dice «Consulta disponibilidad por WhatsApp».
+- **Si el generador falla, falla el build** y la tienda se queda en el despliegue anterior. El
+  PDF y su JSON **no van en git** (`.gitignore`); se retiró `herramientas/catalogo_pdf.py`.
+- **Para cambiar el diseño** se edita `herramientas/catalogo-pdf.mjs` (fuentes OFL en
+  `herramientas/fuentes/`). `pdfkit` y `sharp` están en `package.json` con versión fija.
+- **`pruebas/catalogo-pdf.js`** corre el generador y exige las 166 piezas, precios del cobro,
+  promo de la portada, menos de 5 MB y el comando de build.
+- Al 2026-11-19: 17 páginas, 131 tarjetas, 166 piezas, 1,64 MB.
+
 ## Filtros en `disponibilidad` para bajar el costo del bot — desplegado el 2026-11-19 (PR #53)
 
 El asesor de WhatsApp (n8n `74TjEtDnn940jh9k`) recibía siempre el catálogo entero (~50.000
