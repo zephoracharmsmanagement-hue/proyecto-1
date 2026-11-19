@@ -1,8 +1,10 @@
 {
   "name": "zephora-charms",
   "private": true,
-  "description": "Dependencias de las funciones de netlify/functions/. Este archivo NO existía a propósito —pruebas/package.json explica por qué: un package.json en la raíz hace que Netlify instale dependencias en cada build— y esa decisión se deshace aquí a conciencia. Se tomó cuando el proyecto tenía cero dependencias; la reserva de inventario necesita @netlify/blobs dentro de las funciones, y sin declararla el bundler no la incluye, las funciones se caen al arrancar y el sitio deja de cobrar. Sigue sin haber comando de build: netlify.toml mantiene command vacío y el sitio se publica tal cual. Lo único que cambia es que Netlify instala esta dependencia antes de empaquetar las funciones.",
+  "description": "Dependencias de las funciones de netlify/functions/. Este archivo NO existía a propósito —pruebas/package.json explica por qué: un package.json en la raíz hace que Netlify instale dependencias en cada build— y esa decisión se deshace aquí a conciencia. Se tomó cuando el proyecto tenía cero dependencias; la reserva de inventario necesita @netlify/blobs dentro de las funciones, y sin declararla el bundler no la incluye, las funciones se caen al arrancar y el sitio deja de cobrar. Desde el 2026-11-19 hay un único paso de build: herramientas/catalogo-pdf.mjs genera el catálogo en PDF del bot desde la tienda, con pdfkit (el PDF) y sharp (las fotos en JPEG). Ninguna función los importa, así que no entran en el paquete de las funciones. El resto del sitio se sigue publicando tal cual.",
   "dependencies": {
-    "@netlify/blobs": "^10.7.12"
+    "@netlify/blobs": "^10.7.12",
+    "pdfkit": "0.20.2",
+    "sharp": "0.35.5"
   }
 }

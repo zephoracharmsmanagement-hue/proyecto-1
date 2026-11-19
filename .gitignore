@@ -33,3 +33,9 @@ material-sin-publicar/
 
 # Entregables generados para el propietario (PDF, etc.): no se versionan
 entregables/
+
+# Catálogo en PDF del bot: lo genera herramientas/catalogo-pdf.mjs en el build
+# de Netlify, en cada despliegue. No se guarda en git a propósito: la copia
+# guardada a mano (Canva, 27-sep) fue la que se quedó vieja sin avisar.
+assets/catalogo-zephora-charms.pdf
+assets/catalogo-zephora-charms.json

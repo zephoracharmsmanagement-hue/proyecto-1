@@ -6,13 +6,23 @@
 # equivocado, que "funciona" sin cambiar nada de lo que ve el público—.
 #
 # El sitio no tiene build: es HTML, CSS y JS servidos tal cual. Lo único que se
-# compila son las funciones, y de eso se encarga Netlify solo.
+# compila son las funciones, y de eso se encarga Netlify solo. La única
+# excepción es el catálogo en PDF (abajo).
 
 [build]
   publish = "."
   functions = "netlify/functions"
-  # Sin comando de build a propósito. Si algún día hace falta, aquí va.
-  command = ""
+  # Lo único que se construye: el catálogo en PDF que el bot de WhatsApp manda
+  # (assets/catalogo-zephora-charms.pdf), generado desde index.html y
+  # assets/catalogo.json en cada despliegue (pedido del propietario,
+  # 2026-11-19: «que se genere solo»). Antes era un diseño de Canva del 27-sep
+  # que se quedó sin anillos ni piezas nuevas sin que nada avisara.
+  #
+  # Si el generador falla, falla el build y la tienda se queda en el
+  # despliegue anterior, entera: es preferible a publicar un catálogo viejo en
+  # silencio. pruebas/catalogo-pdf.js corre el mismo generador en cada push,
+  # así que un fallo se ve en GitHub antes de llegar aquí. Tarda ~4 s.
+  command = "node herramientas/catalogo-pdf.mjs"
 
   # No desplegar cuando el push solo cambia documentación.
   #
