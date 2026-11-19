@@ -222,6 +222,123 @@ async function main() {
       'los charms traen el grupo de la tienda (Marvel, Disney…)');
   }
 
+  /* ── Filtros para el asesor (2026-11-19) ──
+     Medido en el flujo de n8n: el catálogo entero (~50 KB, ~26.000 tokens)
+     se arrastraba en cada vuelta del agente dentro del mismo mensaje y
+     multiplicaba el costo de cada respuesta. Con filtro, el asesor pide solo
+     lo que la clienta nombró. La regla que no se rompe: sin parámetros, la
+     respuesta es la de siempre, porque el nodo de n8n no manda nada hasta que
+     se cambie después de desplegar esto. */
+  inv._interno.usarAlmacen(almacenFalso({ v: 1, vendido: {}, reservas: {} }));
+  const pedirCon = async (qs) => {
+    const mod = await import('../netlify/functions/disponibilidad.mjs');
+    const r = await mod.default(new Request('https://zephoracharms.com/.netlify/functions/disponibilidad' + qs));
+    const texto = await r.text();
+    return { r, d: JSON.parse(texto), largo: texto.length };
+  };
+  const sinFecha = d => JSON.stringify(Object.assign({}, d, { generado: null }));
+  const TOTAL = Object.keys(items).length;
+  const tam = {};
+
+  console.log('\n8 · Filtros: sin parámetros, la respuesta de siempre');
+  {
+    const { d, largo } = await pedirCon('');
+    tam['sin parámetros'] = largo;
+    comprobar(JSON.stringify(Object.keys(d)) === JSON.stringify(['generado', 'fuente', 'reglas', 'aviso', 'piezas', 'brazaletes']),
+      'las mismas claves y en el mismo orden, sin total/devueltas/filtro', Object.keys(d).join(','));
+    comprobar(d.piezas.length + d.brazaletes.length === TOTAL, `el catálogo entero (${TOTAL})`);
+    const { d: sinReq } = await pedir();
+    comprobar(sinFecha(d) === sinFecha(sinReq), 'idéntica a la que sale sin petición (el camino de siempre)');
+    const { d: vacios } = await pedirCon('?grupo=&ids=&q=&tipo=&utm_source=x');
+    comprobar(sinFecha(vacios) === sinFecha(d),
+      'parámetros vacíos o ajenos (una utm) no cuentan como filtro');
+  }
+
+  console.log('\n9 · ?grupo=Marvel');
+  {
+    const { d, largo } = await pedirCon('?grupo=Marvel');
+    tam['grupo=Marvel'] = largo;
+    const todas = d.piezas.concat(d.brazaletes);
+    const marvel = Object.keys(items).filter(id => d && require(path.join(RAIZ, 'netlify', 'functions', '_precios.js')).grupos[id] === 'Marvel').length;
+    comprobar(todas.length === marvel && todas.every(x => x.grupo === 'Marvel'),
+      `${marvel} piezas, todas de Marvel`, `${todas.length}`);
+    comprobar(d.reglas && d.fuente && d.aviso, 'reglas, fuente y aviso siguen yendo');
+    comprobar(d.total === TOTAL && d.devueltas === todas.length && d.recortado === false,
+      'total del catálogo, devueltas y recortado: false', `${d.total}/${d.devueltas}/${d.recortado}`);
+    comprobar(d.filtro && d.filtro.grupo === 'Marvel' && d.filtro.ids === null && d.filtro.q === null && d.filtro.tipo === null,
+      'filtro dice qué se aplicó', JSON.stringify(d.filtro));
+    const { d: min } = await pedirCon('?grupo=marvel');
+    comprobar(min.devueltas === d.devueltas, 'el grupo no distingue mayúsculas');
+    const { d: sim } = await pedirCon('?grupo=simbolos');
+    comprobar(sim.devueltas > 0 && sim.piezas.every(x => x.grupo === 'Símbolos'), 'ni tildes (simbolos → Símbolos)', `${sim.devueltas}`);
+  }
+
+  console.log('\n10 · ?ids=letra-m');
+  {
+    const { d, largo } = await pedirCon('?ids=letra-m');
+    tam['ids=letra-m'] = largo;
+    comprobar(d.piezas.length === 1 && d.piezas[0].id === 'letra-m' && d.brazaletes.length === 0,
+      'una sola pieza, la pedida');
+    comprobar(d.devueltas === 1 && d.total === TOTAL, 'devueltas 1, total el catálogo entero', `${d.devueltas}/${d.total}`);
+    const { d: varios } = await pedirCon(`?ids=letra-m,${idPulsera},no-existe`);
+    comprobar(varios.devueltas === 2 && varios.brazaletes.some(x => x.id === idPulsera),
+      'varios ids separados por coma, y un id que no existe simplemente no sale', `${varios.devueltas}`);
+  }
+
+  console.log('\n11 · ?q= sin tildes ni mayúsculas');
+  {
+    const { d: a, largo } = await pedirCon('?q=LIBELULA');
+    tam['q=LIBELULA'] = largo;
+    const { d: b } = await pedirCon('?q=' + encodeURIComponent('libélula'));
+    const ids = x => x.piezas.concat(x.brazaletes).map(p => p.id).join(',');
+    comprobar(a.devueltas > 0 && ids(a) === ids(b), 'LIBELULA y libélula dan lo mismo', ids(a));
+    const { d: g } = await pedirCon('?q=disney');
+    comprobar(g.devueltas > 0 && g.piezas.every(x => x.grupo === 'Disney' || /disney/i.test(x.nombre)),
+      'q también busca en el grupo', `${g.devueltas}`);
+  }
+
+  console.log('\n12 · ?grupo=NoExiste');
+  {
+    const { r, d, largo } = await pedirCon('?grupo=NoExiste');
+    tam['grupo=NoExiste'] = largo;
+    comprobar(r.status === 200, '200, no un error: el asesor tiene que poder decir «no encontré eso»', `${r.status}`);
+    comprobar(Array.isArray(d.piezas) && d.piezas.length === 0 && Array.isArray(d.brazaletes) && d.brazaletes.length === 0
+      && d.devueltas === 0 && d.total === TOTAL, 'listas vacías, devueltas 0 y total completo');
+    comprobar(d.reglas && d.aviso, 'y aun así van reglas y aviso');
+  }
+
+  console.log('\n13 · Más de 40 → se recorta');
+  {
+    const { d, largo } = await pedirCon('?tipo=charm');
+    tam['tipo=charm (recortado)'] = largo;
+    comprobar(d.piezas.length + d.brazaletes.length === 40 && d.devueltas === 40 && d.recortado === true,
+      'un filtro abierto devuelve 40 y recortado: true', `${d.devueltas}/${d.recortado}`);
+    const { d: br, largo: lb } = await pedirCon('?tipo=brazalete');
+    tam['tipo=brazalete'] = lb;
+    comprobar(br.piezas.length === 0 && br.brazaletes.length > 0 && br.brazaletes.length <= 40,
+      'tipo=brazalete: solo brazaletes', `${br.brazaletes.length}`);
+    const { d: mx } = await pedirCon('?grupo=Marvel&tipo=brazalete');
+    comprobar(mx.devueltas === 0, 'tipo restringe lo demás: Marvel y brazalete no se cruzan', `${mx.devueltas}`);
+    const { d: uni } = await pedirCon('?grupo=Pixar&ids=letra-m');
+    const pixar = Object.keys(items).filter(id => require(path.join(RAIZ, 'netlify', 'functions', '_precios.js')).grupos[id] === 'Pixar').length;
+    comprobar(uni.devueltas === pixar + 1, 'grupo, ids y q se suman (O): Pixar más la letra M', `${uni.devueltas}`);
+    const { d: largoQ } = await pedirCon('?q=' + 'a'.repeat(500));
+    comprobar(largoQ.filtro.q.length <= 60, 'un q kilométrico se recorta antes de devolverse', `${largoQ.filtro.q.length}`);
+  }
+
+  console.log('\n14 · Blobs caído y con filtro');
+  inv._interno.usarAlmacen(null);
+  {
+    const { d, largo } = await pedirCon('?grupo=Marvel');
+    tam['grupo=Marvel sin Blobs'] = largo;
+    comprobar(d.fuente === 'solo-conteo' && /[Cc]onfirmar/.test(d.aviso), 'fuente solo-conteo y el aviso de confirmar');
+    comprobar(d.piezas.length > 0 && d.piezas.every(x => x.disponible === null && x.agotado === null),
+      'sin número de disponibilidad, igual que sin filtro');
+  }
+
+  console.log('\nTamaño de la respuesta por caso (caracteres):');
+  Object.entries(tam).forEach(([k, v]) => console.log(`    ${k.padEnd(26)} ${v}`));
+
   inv._interno.usarAlmacen(null);
   console.log(fallos ? `\nDisponibilidad: ${fallos} en rojo` : '\nDisponibilidad en verde ✓');
 }

@@ -88,6 +88,66 @@ function grupoDe(id, it) {
   return (grupos && grupos[id]) || null;
 }
 
+/* ── Filtros (2026-11-19) ──
+ *
+ * El asesor de n8n recibía siempre el catálogo entero (~50 KB, unos 26.000
+ * tokens), y el agente lo arrastra en cada vuelta dentro del mismo mensaje: se
+ * midió en 15 ejecuciones reales que eso multiplica el costo de cada respuesta
+ * por 3 a 10. Con filtro pide solo lo que la clienta nombró.
+ *
+ *   ?grupo=Marvel        la categoría, sin tildes ni mayúsculas
+ *   ?ids=letra-m,stitch  esas piezas, tal cual salen en `id`
+ *   ?q=libelula          busca en el nombre y en el grupo, sin tildes
+ *   ?tipo=brazalete      solo brazaletes (o `charm`)
+ *
+ * `grupo`, `ids` y `q` se SUMAN (una pieza entra si cumple cualquiera): así una
+ * sola llamada trae «la M y algo de Disney». `tipo` en cambio RESTRINGE lo
+ * anterior, porque su sentido es justo ese: «de eso, solo los brazaletes».
+ *
+ * Sin ningún filtro la respuesta es exactamente la de antes, sin campos nuevos:
+ * el nodo de n8n no manda parámetros hasta que se cambie después de publicar
+ * esto, y nada de lo que hoy funciona puede notar la diferencia. Con filtro
+ * se añaden `total`, `devueltas`, `filtro` y `recortado`, para que el asesor
+ * sepa que vio una parte y no diga «no tenemos» de lo que no pidió.
+ *
+ * Un filtro sin resultados es un 200 con listas vacías, nunca un error: el
+ * asesor tiene que poder decir «no encontré eso» y ofrecer otra cosa.
+ *
+ * Tope de 40 resultados: un `q` muy abierto no puede volver a cargar el
+ * catálogo entero, que es justo lo que esto viene a evitar.
+ */
+const TOPE = 40;
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+
+function leerFiltro(req) {
+  let p;
+  try { p = new URL(req.url).searchParams; } catch { return null; }
+  const corto = (v, n) => { const t = String(v || '').trim(); return t ? t.slice(0, n) : null; };
+  const grupo = corto(p.get('grupo'), 40);
+  const q = corto(p.get('q'), 60);
+  const tipoTxt = norm(p.get('tipo'));
+  const tipo = !tipoTxt ? null
+    : /^brazaletes?$/.test(tipoTxt) ? 'brazalete'
+    : /^(charms?|piezas?)$/.test(tipoTxt) ? 'charm'
+    : tipoTxt.slice(0, 20);
+  const ids = String(p.get('ids') || '').split(',')
+    .map(x => x.trim().toLowerCase()).filter(Boolean).slice(0, TOPE).map(x => x.slice(0, 80));
+  if (!grupo && !q && !tipo && !ids.length) return null;
+  return { grupo, ids: ids.length ? ids : null, q, tipo };
+}
+
+function cumple(p, f) {
+  const porNombre = f.grupo || f.ids || f.q;
+  let entra = !porNombre;
+  if (f.grupo && norm(p.grupo) === norm(f.grupo)) entra = true;
+  if (f.ids && f.ids.includes(p.id)) entra = true;
+  if (f.q) {
+    const q = norm(f.q);
+    if (norm(p.nombre).includes(q) || norm(p.grupo).includes(q)) entra = true;
+  }
+  return entra && (!f.tipo || p.tipo === f.tipo);
+}
+
 export default async (req) => {
   /* El origen sale de la petición y no de una constante para que esto siga
      funcionando en un deploy de vista previa, donde el dominio es otro. */
@@ -171,7 +231,7 @@ export default async (req) => {
     }));
   });
 
-  return new Response(JSON.stringify({
+  const cuerpo = {
     generado: new Date().toISOString(),
     fuente,
     /* Las mismas reglas con las que cobra el checkout. Van aquí para que el
@@ -183,5 +243,22 @@ export default async (req) => {
       : 'Disponibilidad referencial: conteo manual menos lo apartado por pagos en curso.',
     piezas,
     brazaletes,
-  }), { status: 200, headers: CABECERAS });
+  };
+
+  const filtro = req ? leerFiltro(req) : null;
+  if (filtro) {
+    /* El tope se reparte en el orden del catálogo: primero charms, luego
+       brazaletes, igual que en la respuesta completa. */
+    const p = piezas.filter(x => cumple(x, filtro));
+    const b = brazaletes.filter(x => cumple(x, filtro));
+    const recortado = p.length + b.length > TOPE;
+    cuerpo.piezas = p.slice(0, TOPE);
+    cuerpo.brazaletes = b.slice(0, Math.max(0, TOPE - cuerpo.piezas.length));
+    cuerpo.total = piezas.length + brazaletes.length;
+    cuerpo.devueltas = cuerpo.piezas.length + cuerpo.brazaletes.length;
+    cuerpo.filtro = filtro;
+    cuerpo.recortado = recortado;
+  }
+
+  return new Response(JSON.stringify(cuerpo), { status: 200, headers: CABECERAS });
 };
