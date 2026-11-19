@@ -55,6 +55,26 @@ como próximamente». **No fusionar hasta que él lo diga.**
   «Viuda Negra», «Araña»); y el material de Loki y Casco Loki, que en la foto
   son dorados y la tarjeta dice «Plata 925» como todos los charms.
 
+## Filtros en `disponibilidad` para bajar el costo del bot — desplegado el 2026-11-19 (PR #53)
+
+El asesor de WhatsApp (n8n `74TjEtDnn940jh9k`) recibía siempre el catálogo entero (~50.000
+caracteres, ~26.000 tokens) y el agente lo arrastra en cada vuelta del mismo mensaje: se
+midieron 15 ejecuciones reales a $0,20 por mensaje de media y hasta $0,64.
+
+- **Dos filtros, opcionales:** `?grupo=Marvel` (sin tildes ni mayúsculas: `Simbolos` =
+  Símbolos; los brazaletes son `grupo=Brazaletes`) e `?ids=letra-m,stitch`. Se suman.
+- **Sin filtro, o con filtros vacíos, la respuesta es la de antes byte a byte.** Con filtro se
+  añaden `total`, `devueltas`, `filtro` y `recortado`; tope de 40, y lo pedido por `ids`
+  entra siempre antes que el grupo. Sin resultados: 200 con listas vacías.
+- **No hay `q` ni `tipo`, a propósito** (decisión del propietario): «libélula» no casa con
+  «Luciérnaga Evangeline» y un buscador literal haría que el bot la diera por agotada. Y
+  **`foto` se queda**: quitarla forzaba una vuelta más del agente, 48 % más caro.
+- **En vivo, medido:** sin filtro 49.910 · Marvel 5.064 · Símbolos 12.387 · brazaletes 8.007 ·
+  `letra-m` 689 caracteres.
+- **Falta, fuera del sitio:** que la sesión de PROYECTOAUTOMA1 escriba la descripción del nodo
+  `disponibilidad` en n8n (solo `grupo` e `ids`, y que sin filtro devuelve todo) y vuelva a
+  medir. Hasta entonces el bot sigue pidiendo el catálogo entero, como antes.
+
 ## Datos de envío para la guía de Skydropx — función `pedido-envio` (desplegada el 2026-11-16, PR #52)
 
 Etapa 2 de los avisos, aprobada por el propietario el 2026-11-15 y desplegada con
@@ -98,7 +118,7 @@ Sesión 2.
   punta están en el PR.
 - **Funciones en el despliegue: 38 → 40** (`_dane` y `pedido-envio`).
 
-## Correo de novedades de noviembre a las suscriptoras — función `boletin` (sin enviar)
+## Correo de novedades de noviembre a las suscriptoras — función `boletin` (enviado el 2026-11-15)
 
 Pedido del propietario (2026-11-01): contar los anillos, las charms nuevas, los
 brazaletes nuevos y lo que volvió. Eligió una función en el sitio (no Broadcasts de

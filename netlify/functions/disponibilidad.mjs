@@ -88,6 +88,60 @@ function grupoDe(id, it) {
   return (grupos && grupos[id]) || null;
 }
 
+/* ── Filtros (2026-11-19) ──
+ *
+ * El asesor de n8n recibía siempre el catálogo entero (~50 KB, unos 26.000
+ * tokens), y el agente lo arrastra en cada vuelta dentro del mismo mensaje: se
+ * midió en 15 ejecuciones reales que eso multiplica el costo de cada respuesta
+ * por 3 a 10. Con filtro pide solo lo que la clienta nombró.
+ *
+ *   ?grupo=Marvel        la categoría, sin tildes ni mayúsculas (Simbolos =
+ *                        Símbolos; los brazaletes son el grupo Brazaletes)
+ *   ?ids=letra-m,stitch  esas piezas, tal cual salen en `id`
+ *
+ * Los dos se SUMAN: una pieza entra si cumple cualquiera, así una sola llamada
+ * trae «la M y algo de Disney». Un parámetro vacío cuenta como ausente.
+ *
+ * A propósito NO hay búsqueda por texto (decisión del propietario, 19-nov):
+ * una clienta pide «libélula» y la pieza se llama Luciérnaga Evangeline; un
+ * buscador literal devuelve cero, el bot la da por agotada y la anota para
+ * reponer. Emparejar lo que la clienta dice con la pieza lo hace el modelo
+ * viendo los candidatos de un grupo, no un `includes()`.
+ *
+ * Tampoco se quita `foto` aunque sea un tercio de cada pieza: sin ella el
+ * agente hace una vuelta más para pedirla, y se midió 48 % más caro.
+ *
+ * Sin ningún filtro la respuesta es exactamente la de antes, sin campos nuevos:
+ * el nodo de n8n no manda parámetros hasta que se cambie después de publicar
+ * esto, y nada de lo que hoy funciona puede notar la diferencia. Con filtro
+ * se añaden `total`, `devueltas`, `filtro` y `recortado`, para que el asesor
+ * sepa que vio una parte y no diga «no tenemos» de lo que no pidió.
+ *
+ * Un filtro sin resultados es un 200 con listas vacías, nunca un error: el
+ * asesor tiene que poder decir «no encontré eso» y ofrecer otra cosa.
+ *
+ * Tope de 40 resultados: un grupo más una lista larga de ids no puede volver
+ * a cargar el catálogo entero, que es justo lo que esto viene a evitar. Hoy
+ * el grupo más grande (Símbolos) son 39, así que un grupo solo nunca se corta.
+ */
+const TOPE = 40;
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+
+function leerFiltro(req) {
+  let p;
+  try { p = new URL(req.url).searchParams; } catch { return null; }
+  const corto = (v, n) => { const t = String(v || '').trim(); return t ? t.slice(0, n) : null; };
+  const grupo = corto(p.get('grupo'), 40);
+  const ids = String(p.get('ids') || '').split(',')
+    .map(x => x.trim().toLowerCase()).filter(Boolean).slice(0, TOPE).map(x => x.slice(0, 80));
+  if (!grupo && !ids.length) return null;
+  return { grupo, ids: ids.length ? ids : null };
+}
+
+function cumple(p, f) {
+  return Boolean((f.grupo && norm(p.grupo) === norm(f.grupo)) || (f.ids && f.ids.includes(p.id)));
+}
+
 export default async (req) => {
   /* El origen sale de la petición y no de una constante para que esto siga
      funcionando en un deploy de vista previa, donde el dominio es otro. */
@@ -171,7 +225,7 @@ export default async (req) => {
     }));
   });
 
-  return new Response(JSON.stringify({
+  const cuerpo = {
     generado: new Date().toISOString(),
     fuente,
     /* Las mismas reglas con las que cobra el checkout. Van aquí para que el
@@ -183,5 +237,28 @@ export default async (req) => {
       : 'Disponibilidad referencial: conteo manual menos lo apartado por pagos en curso.',
     piezas,
     brazaletes,
-  }), { status: 200, headers: CABECERAS });
+  };
+
+  const filtro = req ? leerFiltro(req) : null;
+  if (filtro) {
+    /* El tope nunca se come una pieza pedida por id: primero entran las de
+       `ids` y solo después las del grupo, hasta 40. Recortando en el orden del
+       catálogo, un brazalete pedido —van al final— se caía detrás de los 39 de
+       Símbolos, y el bot lo habría dado por agotado. Los ids ya vienen
+       topados a 40 al leerlos, así que siempre caben todos. Luego cada pieza
+       vuelve a su lista y a su orden de siempre. */
+    const todas = piezas.concat(brazaletes);
+    const porId = filtro.ids ? todas.filter(x => filtro.ids.includes(x.id)) : [];
+    const delGrupo = todas.filter(x => !porId.includes(x) && cumple(x, filtro));
+    const elegidas = new Set(porId.concat(delGrupo).slice(0, TOPE));
+    const recortado = porId.length + delGrupo.length > TOPE;
+    cuerpo.piezas = piezas.filter(x => elegidas.has(x));
+    cuerpo.brazaletes = brazaletes.filter(x => elegidas.has(x));
+    cuerpo.total = piezas.length + brazaletes.length;
+    cuerpo.devueltas = cuerpo.piezas.length + cuerpo.brazaletes.length;
+    cuerpo.filtro = filtro;
+    cuerpo.recortado = recortado;
+  }
+
+  return new Response(JSON.stringify(cuerpo), { status: 200, headers: CABECERAS });
 };
