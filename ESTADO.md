@@ -5,6 +5,25 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Microsoft Clarity en toda la tienda — desplegado el 2026-11-19 (PR #55)
+
+Grabaciones de sesión y mapas de calor (pedido del propietario: «me gustaria que usaramos el
+clarity»). Proyecto «Zephora Charms», código `zg8e6n5pyk`, en la cuenta de Clarity que ya usa
+Bendito Hogar.
+
+- **`assets/clarity.js`**, aparte del píxel de Meta, la CAPI y el cobro: pide la etiqueta
+  después del `load` y con el navegador libre. Las 177 páginas lo cargan con `defer` en el
+  `<head>`, y también los generadores `gen_productos.py` y `gen_colecciones.py`.
+- **Datos personales enmascarados** (`data-clarity-mask="true"`): datos de envío del checkout
+  (`#panel-datos`), todo el `<main>` de gracias, formulario de reseñas y de suscripción.
+  Clarity oculta solo lo tecleado, no el texto que pinta la página; por eso va el bloque entero.
+  **Una página o un formulario nuevo con datos personales tiene que llevar la máscara**:
+  `pruebas/clarity.js` lo exige para todo `<form>`.
+- Políticas de privacidad y de cookies (`_clck`, `_clsk`) actualizadas.
+- **Al desplegar, la etiqueta `clarity.ms/tag/zg8e6n5pyk` respondía 204 vacío** (no graba, no
+  rompe). Si sigue así, revisar en el panel de Clarity que el proyecto esté activo y con el
+  dominio zephoracharms.com.
+
 ## Catálogo PDF del bot generado desde la tienda — desplegado el 2026-11-19 (PR #54)
 
 El PDF que manda el bot de WhatsApp (`assets/catalogo-zephora-charms.pdf`, misma ruta: n8n no
