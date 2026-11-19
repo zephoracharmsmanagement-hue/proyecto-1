@@ -223,6 +223,7 @@ PAGINA = '''<!DOCTYPE html>
 <script type="application/ld+json">{jsonld}</script>
 {head}
 <link rel="stylesheet" href="tienda.css">
+<script src="/assets/clarity.js" defer></script>
 </head>
 <body data-producto="{pid}">
 
@@ -659,7 +660,7 @@ def bloques_media(pid, tipo, hay, cat, arma_href=None):
 # desde el 2026-10-02 es la única sección de reseñas de la ficha.
 FORM_RESENA = '''    <details class="rp-escribir" id="rp-escribir">
       <summary>Escribir una reseña de {nombre}</summary>
-      <form class="rp-form" id="rp-form" novalidate>
+      <form class="rp-form" id="rp-form" novalidate data-clarity-mask="true">
         <fieldset class="rp-est"><legend>Tu calificación</legend>
           <label><input type="radio" name="estrellas" value="5">5</label><label><input type="radio" name="estrellas" value="4">4</label><label><input type="radio" name="estrellas" value="3">3</label><label><input type="radio" name="estrellas" value="2">2</label><label><input type="radio" name="estrellas" value="1">1</label>
         </fieldset>
