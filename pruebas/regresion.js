@@ -528,7 +528,15 @@ const U = BASE + '/index.html';
            recuadro de comillas en vez de foto, la de solo foto sin cita. */
         formas: [...document.querySelectorAll('#tst-rail .tst')].map(t => t.querySelector('img') ? 'f' : (t.querySelector('.tst-ph--txt') ? 't' : '?')).join(''),
         soloFotoSinCita: ![...document.querySelectorAll('#tst-rail .tst')].pop().querySelector('blockquote'),
-        wa: document.querySelectorAll('.wa-float').length,
+        /* El flotante de WhatsApp volvió a toda la tienda el 2026-11-20: uno
+           solo, a la derecha, sobre la barra, sin cruzarse con el regalo y
+           como consulta (Contact), no como inicio de compra. */
+        wa: (() => { const w = document.querySelectorAll('.cp-wa-float'); if (w.length !== 1) return 'hay ' + w.length;
+          const a = w[0].getBoundingClientRect(), d = document.getElementById('dock').getBoundingClientRect(), g = document.querySelector('.susc-fab');
+          if (w[0].dataset.waEvento !== 'Contact' || !/^https:\/\/wa\.me\/573018990672\?text=/.test(w[0].href)) return 'enlace o evento mal';
+          if (a.width !== 52 || a.left < innerWidth / 2 || a.right > innerWidth || a.bottom > d.top) return 'mal puesto';
+          if (g && !g.hidden) { const c = g.getBoundingClientRect(); if (!(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top)) return 'encima del regalo'; }
+          return 'ok'; })(),
         contacto: (document.querySelector('#menu-panel .menu-contacto') || {}).textContent || '',
         nivelesVisibles: [...document.querySelectorAll('#brazaletes .tier')].filter(t => t.offsetParent !== null).length,
         verMas: (document.getElementById('b-mas') || {}).textContent || '',
@@ -549,7 +557,7 @@ const U = BASE + '/index.html';
       + `\n  el texto de una reseña no se pinta como HTML: ${r.inyectado ? 'NO ✗' : 'sí ✓'}`
       + `\n  un punto por tarjeta y arriba el total que se ve (4 + las 3 fijas): ${r.puntos === 7 && /4,9 de 5 · 7 reseñas/.test(r.prom) ? 'sí ✓' : 'NO ✗ (' + r.puntos + ', ' + r.prom + ')'}`
       + `\n  la portada no se ensancha (${r.ancho}px): ${r.ancho <= 390 ? 'sí ✓' : 'NO ✗'}`
-      + `\n  sin botón flotante de WhatsApp: ${r.wa === 0 ? 'sí ✓' : 'NO ✗'}`
+      + `\n  botón flotante de WhatsApp: uno, abajo a la derecha sobre la barra, con evento Contact: ${r.wa === 'ok' ? 'sí ✓' : 'NO ✗ (' + r.wa + ')'}`
       + `\n  el menú ☰ trae Contacto con el WhatsApp y el correo: ${/301 899 0672/.test(r.contacto) && /zephoracharms@gmail\.com/.test(r.contacto) ? 'sí ✓' : 'NO ✗ (' + r.contacto.trim() + ')'}`
       + `\n  brazaletes: solo el primer nivel a la vista y «${r.verMas}»: ${r.nivelesVisibles === 1 && /Ver más brazaletes · \d+ modelos/.test(r.verMas) ? 'sí ✓' : 'NO ✗ (' + r.nivelesVisibles + ' niveles)'}`
       + `\n  el filtro «Favoritos» muestra los favoritos rehechos con el inventario: ${r.favVis === [...r.favs].sort().join() ? 'sí ✓' : 'NO ✗ (' + r.favVis + ')'}`);

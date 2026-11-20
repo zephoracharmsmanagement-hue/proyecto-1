@@ -2592,6 +2592,25 @@ document.addEventListener('click', e => {
  * Por eso el evento se declara en el enlace con data-wa-evento. Sin ese
  * atributo se mantiene el comportamiento de siempre, que es el correcto para
  * los enlaces de compra. */
+/* Ícono flotante de WhatsApp en toda la tienda (propietario, 2026-11-20: «era
+   para que fuera en todas»). Se había retirado el 2026-10-02 y el 20 de
+   noviembre volvió solo en las páginas de campaña, que lo traen en su HTML con
+   su propio mensaje; en las demás lo pone esto, sin regenerar 170 páginas.
+   Es una consulta, no un inicio de compra: evento Contact. Va antes del
+   bucle de abajo, que es el que le engancha el evento. */
+(function(){
+  if(document.querySelector('.cp-wa-float')) return;
+  const pieza=document.body.dataset.producto&&(document.querySelector('h1')?.textContent||'').trim();
+  const a=document.createElement('a');
+  a.className='cp-wa-float'; a.dataset.wa='flotante'; a.dataset.waEvento='Contact';
+  a.href='https://wa.me/'+WA+'?text='+encodeURIComponent(pieza
+    ?'Hola, Zephora Charms. Estoy viendo «'+pieza+'» en la página y tengo una duda.'
+    :'Hola, Zephora Charms. Estoy en la página y tengo una duda.');
+  a.target='_blank'; a.rel='noopener'; a.setAttribute('aria-label','Escríbenos por WhatsApp');
+  a.innerHTML='<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2zm5.8 14.17c-.25.69-1.44 1.32-1.99 1.4-.53.08-1.2.11-1.94-.12-.45-.14-1.02-.33-1.76-.65-3.1-1.34-5.12-4.46-5.28-4.67-.15-.21-1.26-1.67-1.26-3.19s.8-2.27 1.08-2.58c.28-.31.61-.39.82-.39.2 0 .41 0 .59.01.19.01.44-.07.69.53.25.6.86 2.12.94 2.27.08.15.13.33.03.54-.1.21-.15.33-.29.51-.15.17-.31.39-.44.52-.15.15-.3.31-.13.6.17.3.76 1.25 1.63 2.03 1.12 1 2.06 1.31 2.35 1.46.29.15.46.13.63-.08.17-.21.73-.85.92-1.15.19-.29.39-.24.65-.15.26.1 1.66.78 1.94.93.29.15.48.22.55.34.07.13.07.72-.18 1.41z"/></svg>';
+  document.body.appendChild(a);
+})();
+
 document.querySelectorAll('a[href*="wa.me"]').forEach(a=>{
   const evento=a.dataset.waEvento||'InitiateCheckout';
   a.addEventListener('click',()=>track(evento,{
