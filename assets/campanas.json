@@ -1,0 +1,20 @@
+{
+ "_": "Páginas de campaña (campana-<id>.html), una por tema que se pauta. Las genera herramientas/gen_colecciones.py desde index.html y assets/catalogo.json: una campaña nueva es solo una entrada aquí más correr el generador. «destacados» son las piezas del anuncio, en orden: van primero, en el primer pantallazo del celular. Pedido del propietario, 2026-11-20.",
+ "campanas": [
+  {
+   "id": "marvel",
+   "archivo": "campana-marvel.html",
+   "grupo": "Marvel",
+   "base": "pulsera-avengers",
+   "eyebrow": "Colección Marvel",
+   "titulo": "Tus héroes, en tu muñeca",
+   "texto": "Charms en Plata 925 con sello, sobre la Pulsera Avengers en baño de plata. Toca «Agregar» y arma la tuya.",
+   "destacados": ["capitan-america", "wolverine", "deadpool", "mjolnir-martillo-de-thor", "spider-man-pave"],
+   "destacados_fuente": "Las del anuncio «IG · BF 4 · Tus héroes en tu muñeca» (120255300240020022), leídas de su texto el 2026-11-20, con Spider-Man Pavé en lugar de Spider-Man, que estaba agotado. Confirmadas por el propietario el 2026-11-20.",
+   "og": "assets/avengers-marmol.webp",
+   "desde": "coleccion-marvel.html",
+   "anuncios": ["120255300240020022"],
+   "_anuncios": "Quien llega a «desde» con utm_content igual a uno de estos ids de anuncio pasa a esta campaña (pedido del propietario, 2026-11-20). Así el anuncio no se rehace y conserva su prueba social. Las demás visitas ven la colección normal."
+  }
+ ]
+}
