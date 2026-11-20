@@ -67,6 +67,9 @@ Salió de los clics de Clarity y de la pauta de Marvel. Lo que cambia para quien
 - **El anuncio no se rehace.** `coleccion-marvel.html` trae un script, el primero del `<head>`,
   que pasa a la campaña a quien llega con `utm_content` igual a un id de `anuncios` en
   `campanas.json` (hoy `120255300240020022`). Las demás visitas ven la colección de siempre.
+  Con `desde_meta` pasa también todo el que llega con `fbclid` (cualquier clic desde Facebook o
+  Instagram): el anuncio BF 4 no lleva utm, así que la regla del `utm_content` sola no se le
+  activaba. Alcanza también a BF 5 y a publicaciones normales; decisión del propietario.
 - **Kits en modo campaña** (`pagina.campana` y `relacionadas` en `assets/kits.json`): Avengers,
   Azul Mar y Amuletos.
 - **Ícono flotante de WhatsApp** solo en esas cuatro páginas (`.cp-wa-float`, el glifo original,

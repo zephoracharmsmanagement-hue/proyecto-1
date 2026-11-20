@@ -211,23 +211,39 @@ async function main() {
     /* Quien llega a la colección desde el anuncio pasa a la campaña (el
        enlace del anuncio no se puede cambiar sin perder su prueba social);
        las demás visitas se quedan en la colección. */
-    for (const c2 of CAMPANAS.filter(x => x.desde && (x.anuncios || []).length)) {
+    for (const c2 of CAMPANAS.filter(x => x.desde && ((x.anuncios || []).length || x.desde_meta))) {
       const h = leer(c2.desde);
       comprobar(h.indexOf('utm_content') > 0 && h.indexOf('utm_content') < h.indexOf('fbq('),
         `${c2.desde}: la redirección va antes del píxel (sin PageView de más)`);
       p = await nueva();
-      await p.goto(BASE + '/' + c2.desde + '?utm_source=ig&utm_content=' + c2.anuncios[0] + '&fbclid=abc', { waitUntil: 'load' });
+      for (const ad of (c2.anuncios || []).slice(0, 1)) {
+        await p.goto(BASE + '/' + c2.desde + '?utm_source=ig&utm_content=' + ad + '&fbclid=abc', { waitUntil: 'load' });
+        await p.waitForTimeout(600);
+        const u = new URL(p.url());
+        comprobar(u.pathname.endsWith('/' + c2.archivo) && u.searchParams.get('fbclid') === 'abc' && u.searchParams.get('utm_content') === ad,
+          `del anuncio ${ad} → ${c2.archivo}, conservando utm y fbclid`, u.pathname + u.search);
+      }
+      /* desde_meta: el anuncio BF 4 no lleva utm, solo el fbclid que Meta le
+         pone a todo clic. Con eso basta para pasar a la campaña. */
+      await p.goto(BASE + '/' + c2.desde + '?fbclid=IwAR0abc_DEF-123', { waitUntil: 'load' });
       await p.waitForTimeout(600);
-      const u = new URL(p.url());
-      comprobar(u.pathname.endsWith('/' + c2.archivo) && u.searchParams.get('fbclid') === 'abc' && u.searchParams.get('utm_content') === c2.anuncios[0],
-        `del anuncio ${c2.anuncios[0]} → ${c2.archivo}, conservando utm y fbclid`, u.pathname + u.search);
-      await p.goto(BASE + '/' + c2.desde + '?utm_content=999&fbclid=abc', { waitUntil: 'load' });
-      await p.waitForTimeout(400);
       const u2 = new URL(p.url());
+      if (c2.desde_meta) {
+        comprobar(u2.pathname.endsWith('/' + c2.archivo) && u2.searchParams.get('fbclid') === 'IwAR0abc_DEF-123',
+          `un clic desde Facebook o Instagram (solo fbclid, sin utm) → ${c2.archivo}, conservando el fbclid`, u2.pathname + u2.search);
+        await p.waitForTimeout(900);
+        comprobar(await p.evaluate(() => document.querySelectorAll('#destacadas .pc').length > 0) && !p.errs.length,
+          'y la campaña carga bien tras el salto (destacadas a la vista, consola limpia)', p.errs.join(' | ') || undefined);
+      } else {
+        comprobar(u2.pathname.endsWith('/' + c2.desde), `sin desde_meta, un fbclid suelto se queda en ${c2.desde}`);
+      }
+      await p.goto(BASE + '/' + c2.desde + '?utm_content=999&utm_source=google', { waitUntil: 'load' });
+      await p.waitForTimeout(400);
+      const u3 = new URL(p.url());
       await p.goto(BASE + '/' + c2.desde, { waitUntil: 'load' });
       await p.waitForTimeout(400);
-      comprobar(u2.pathname.endsWith('/' + c2.desde) && new URL(p.url()).pathname.endsWith('/' + c2.desde) && !p.errs.length,
-        `otra visita (otro anuncio, o sin utm) se queda en ${c2.desde}`);
+      comprobar(u3.pathname.endsWith('/' + c2.desde) && new URL(p.url()).pathname.endsWith('/' + c2.desde) && !p.errs.length,
+        `otra visita (sin fbclid: buscador, directa, otro utm) se queda en ${c2.desde}`);
       await p.close();
     }
 

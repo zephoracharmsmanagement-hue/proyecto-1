@@ -1183,20 +1183,31 @@ def redireccion_de_anuncio(archivo):
     utm_content de ese anuncio (campanas.json: «desde» y «anuncios»), la pasa
     a la campaña conservando utm y fbclid. Va lo primero del <head>, antes del
     píxel: la colección no llega a pintarse ni a contar un PageView de más.
+
+    Con «desde_meta» pasa también cualquier visita con fbclid: los anuncios
+    armados desde una publicación de Instagram no llevan utm (BF 4, el de
+    Marvel, 2026-11-20), y lo único que traen es el fbclid que Meta le pone a
+    todo clic, sea de anuncio o de publicación normal.
     """
     campanas = json.loads(CAMPANAS_JSON.read_text(encoding='utf-8'))['campanas']
     reglas = {}
+    meta = ''
     for c in campanas:
         if c.get('desde') == archivo:
+            if c.get('desde_meta'):
+                if meta:
+                    raise SystemExit('Dos campañas con desde_meta para %s: solo puede haber una.' % archivo)
+                meta = c['archivo']
             for ad in c.get('anuncios') or []:
                 if not re.fullmatch(r'[0-9]+', ad):
                     raise SystemExit('Campaña %s: id de anuncio inválido: %r' % (c['id'], ad))
                 reglas[ad] = c['archivo']
-    if not reglas:
+    if not reglas and not meta:
         return ''
     return ('<script>/* Visita de un anuncio con página de campaña: ver gen_colecciones.py */'
-            '(function(){try{var m=%s,d=m[new URLSearchParams(location.search).get("utm_content")];'
-            'if(d)location.replace(d+location.search)}catch(e){}})()</script>\n' % json.dumps(reglas))
+            '(function(){try{var q=new URLSearchParams(location.search),m=%s,'
+            'd=m[q.get("utm_content")]||(q.get("fbclid")?%s:"");'
+            'if(d)location.replace(d+location.search)}catch(e){}})()</script>\n' % (json.dumps(reglas), json.dumps(meta)))
 
 
 def generar_campanas(html, escribir):
