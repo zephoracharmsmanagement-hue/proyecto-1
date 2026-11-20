@@ -193,6 +193,22 @@ console.log(JSON.stringify({
     return json.loads(r.stdout)
 
 
+# ── Los escalones del combo ─────────────────────────────────────────────────
+#
+# Eran <div>: en Clarity (2026-11-20) las clientas tocaban «Brazalete solo
+# $78.000» en la página de Marvel y no pasaba nada. Ahora cada escalón lleva a
+# algo (tienda.js, «Escalones y atajos»): el del brazalete pide su talla en su
+# tarjeta; los de charms llevan a las piezas con un aviso corto de qué hacer.
+
+def escalones(base, p, ir='#piezas'):
+    return '''  <div class="col-escalera">
+    <button type="button" class="col-paso" data-elegir-base="{base}" data-aviso="Elige tu talla: es la medida de tu muñeca más 2 cm."><span class="col-paso-n">Brazalete solo</span><b>{sola}</b><span class="col-paso-ir">Elegir talla</span></button>
+    <button type="button" class="col-paso" data-ir="{ir}" data-aviso="Elige 2 charms y agrégalos: con el brazalete son 3 piezas."><span class="col-paso-n">+ 2 charms</span><b>{dos}</b><span class="col-paso-ir">Elegir mis 2 charms</span></button>
+    <button type="button" class="col-paso col-paso--best" data-ir="{ir}" data-aviso="Elige 3 charms: con el brazalete son 4 piezas y la de menor valor te sale gratis."><span class="col-paso-n">+ 3 charms · 4 piezas</span><b>{tres}</b>
+      <span class="col-paso-ahorro">una GRATIS · ahorras {ahorro}</span><span class="col-paso-ir">Elegir mis 3 charms</span></button>
+  </div>'''.format(base=base, ir=ir, sola=p['pulseraSola'], dos=p['dos'], tres=p['tres'], ahorro=p['ahorroTres'])
+
+
 # ── La página ───────────────────────────────────────────────────────────────
 
 PAGINA = '''<!DOCTYPE html>
@@ -248,12 +264,7 @@ PAGINA = '''<!DOCTYPE html>
   <h2>El combo de la colección</h2>
   <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
   sale <b>gratis</b>. Con 6 piezas son 2 gratis. Se aplica solo en el carrito.</p>
-  <div class="col-escalera">
-    <div class="col-paso"><span class="col-paso-n">Brazalete solo</span><b>{pulsera_sola}</b></div>
-    <div class="col-paso"><span class="col-paso-n">+ 2 charms</span><b>{dos}</b></div>
-    <div class="col-paso col-paso--best"><span class="col-paso-n">+ 3 charms · 4 piezas</span><b>{tres}</b>
-      <span class="col-paso-ahorro">una GRATIS · ahorras {ahorro_tres}</span></div>
-  </div>
+{escalera}
   <p class="col-nota">Precios con pago anticipado y envío gratis. Contraentrega: {contraentrega}
   (el envío lo cobra la transportadora al recaudar).</p>
 </section>
@@ -401,6 +412,7 @@ def generar(col, html, escribir):
         foto_w=col['foto_w'], foto_h=col['foto_h'],
         tarjetas_charms='\n'.join('      ' + t for t in tarjetas(html, ids)),
         tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [col['base']])),
+        escalera=escalones(col['base'], p),
         tercer_charm=p['tercerCharm'], charm_solo=p['charmSolo'],
         pulsera_sola=p['pulseraSola'], dos=p['dos'], tres=p['tres'],
         ahorro_tres=p['ahorroTres'], ahorro_dos=p['ahorroDos'], contraentrega=p['contraentrega'],
@@ -486,17 +498,20 @@ console.log(JSON.stringify(pasos));
     return json.loads(r.stdout)
 
 
-def vitrina(primeras, titulo='Relacionados', sin='', brazaletes=True):
+def vitrina(primeras, titulo='Relacionados', sin='', brazaletes=True, solo=False):
     """El hueco del carrusel con pestañas que llena tienda.js (ver «Vitrina»
     allí). Aquí solo van las piezas de la primera pestaña, en orden; las demás
     salen en vivo de assets/catalogo.json, así que ni un nombre ni un precio se
     copia en el HTML."""
-    return ('<div class="vit" data-vit="%s" data-vit-t="%s"%s%s>'
+    return ('<div class="vit" data-vit="%s" data-vit-t="%s"%s%s%s>'
             '<div class="vit-tabs" role="tablist" aria-label="Elige una colección"></div>'
             '<div class="vit-rail" role="list"></div>'
             '<p class="vit-desliza">Toca una colección y desliza para ver más</p></div>'
             % (','.join(primeras), titulo, ' data-vit-sin="%s"' % sin if sin else '',
-               '' if brazaletes else ' data-vit-b="0"'))
+               '' if brazaletes else ' data-vit-b="0"',
+               # Solo la primera pestaña: en una página de campaña no se ofrecen
+               # otras colecciones (tienda.js, data-vit-solo).
+               ' data-vit-solo="1"' if solo else ''))
 
 
 TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
@@ -777,6 +792,9 @@ def generar_paginas_kit(html, escribir):
     ini = PAGINA_KITS.index('<section class="col-hero wrap" id="top">')
     fin = PAGINA_KITS.index('<section class="col-resto wrap">')
     for k in kits:
+        # Kit pautado (kits.json, pagina.campana; 2026-11-20): el kit primero,
+        # luego solo sus relacionadas, y ninguna salida a otras categorías.
+        campana = bool((k.get('pagina') or {}).get('campana'))
         pasos = escalera(k['base'], k['charms'])
         todo = pasos[-1]
         pz = len(k['charms']) + 1
@@ -811,7 +829,7 @@ def generar_paginas_kit(html, escribir):
             id=k['id'], eyebrow=k['eyebrow'], nombre=k['nombre'], lema=k['lema'], entrada=k['entrada'],
             fotos=miniaturas, ahorro_cuatro=pasos[2]['ahorro'], pasos='\n'.join(filas),
             base=k['base'], base_nombre=nombres[k['base']].replace('Pulsera ', ''),
-            vitrina=vitrina([k['base']] + k['charms'], 'De esta colección'))
+            vitrina=vitrina([k['base']] + k['charms'], 'De esta colección', solo=campana))
         # En su propia página, el enlace «ver la página de este kit» sobra.
         tarjeta = tarjeta.replace('        <a class="kit-ir" href="kit-%s.html">Ver la página de este kit →</a>\n' % k['id'], '')
 
@@ -821,15 +839,19 @@ def generar_paginas_kit(html, escribir):
             id=o['id'], foto=foto_kit(o, fotos, nombres, 'kp-pop-img'), nombre=o['nombre'], lema=o['lema'],
             total=completo[o['id']]['totalTexto'], lista=completo[o['id']]['listaTexto']) for o in otros[:4])
 
+        if campana:
+            pop_html = relacionadas_kit(k, cat, html)
+        else:
+            pop_html = ('<section class="kp-pop wrap" aria-label="Colecciones populares">\n  <h2>Colecciones populares</h2>\n'
+                        + '  <div class="kp-pop-grid">\n' + pop + '\n  </div>\n'
+                        + '  <a class="btn btn--ghost" href="kits.html">Ver todos los kits</a>\n</section>\n\n')
         cuerpo = (hero
                   + '\n<section class="kits-esc wrap">\n  <div class="promo-caja">\n'
                   + '    <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis · paga 4 y llévate 2.</b></p>\n'
                   + '    <p class="promo-caja-x">El brazalete cuenta como una pieza: con 4 piezas, la de menor valor te sale '
                   + '<b>GRATIS</b>; con 6, las 2 de menor valor. <span>(Se aplica automáticamente).</span></p>\n  </div>\n</section>\n\n'
                   + '<section class="kits wrap kp-kit">\n' + tarjeta + '</section>\n\n'
-                  + '<section class="kp-pop wrap" aria-label="Colecciones populares">\n  <h2>Colecciones populares</h2>\n'
-                  + '  <div class="kp-pop-grid">\n' + pop + '\n  </div>\n'
-                  + '  <a class="btn btn--ghost" href="kits.html">Ver todos los kits</a>\n</section>\n\n')
+                  + pop_html)
         url = 'https://zephoracharms.com/kit-%s.html' % k['id']
         imagen = 'https://zephoracharms.com/assets/' + ((k.get('pagina') or {}).get('imagen') or 'avengers-marmol.webp')
         titulo = '%s · %s · Zephora Charms' % (k['nombre'], k['lema'])
@@ -841,16 +863,28 @@ def generar_paginas_kit(html, escribir):
         cabeza = cabeza.replace('https://zephoracharms.com/kits.html', url)
         cabeza = cabeza.replace('Kits Zephora · Dijes de Plata 925 y brazalete', titulo)
         cabeza = cabeza.replace('https://zephoracharms.com/assets/avengers-marmol.webp', imagen)
+        if campana:
+            # Sin «¿Prefieres armarla tú? → catálogo completo» y sin la historia
+            # de la marca: después del kit y sus relacionadas, solo lo que ayuda
+            # a decidir (tallas, fotos, reseñas, pagos).
+            cabeza = cabeza.replace('<body>', '<body class="pag-campana" data-campana="kit-%s" data-vacio="#kit-%s">'
+                                    % (k['id'], k['id']))
+            cola = PAGINA_KITS[PAGINA_KITS.index('{talla}'):]
+        else:
+            cola = PAGINA_KITS[fin:]
         pagina = (cabeza.replace('{', '{{').replace('}', '}}')
                   .replace('{{head}}', '{head}').replace('{{ann}}', '{ann}').replace('{{header}}', '{header}')
                   .replace('{{desc}}', '{desc}')
                   + cuerpo.replace('{', '{{').replace('}', '}}')
-                  + PAGINA_KITS[fin:]).format(
+                  + cola).format(
             head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
             bloques_media=bloques_media(None, 'charm', False, cat, arma_href='#kit-' + k['id']),
-            historia=b['historia'], resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'],
-            footer=b['footer'], chrome=b['chrome'], n_catalogo=len(cat['precios']), desc=desc.replace('"', ''))
+            historia='' if campana else b['historia'], resenas=b['resenas'], pagos=b['pagos'],
+            confianza=b['confianza'], footer=pie_campana(k['nombre']) if campana else b['footer'],
+            chrome=b['chrome'], n_catalogo=len(cat['precios']), desc=desc.replace('"', ''))
         pagina = arregla_nav(pagina)
+        if campana:
+            pagina = solo_tema(pagina, k['nombre'], '#kit-' + k['id'])
         destino = RAIZ / ('kit-%s.html' % k['id'])
         if escribir:
             destino.write_text(pagina, encoding='utf-8')
@@ -920,6 +954,249 @@ def generar_mas_vendidos(html, escribir):
         print('  se escribiría  coleccion-mas-vendidos.html  (%d KB)' % (len(pagina) // 1024))
 
 
+# ══ PÁGINAS DE CAMPAÑA ═════════════════════════════════════════════════════
+#
+# Pedido del propietario (2026-11-20), tras ver en Clarity que quien llegaba de
+# un anuncio de Marvel se perdía: «que salgan esas 5 primero pero que tambien
+# salga todo lo relacionado pero que en esa pagina solo sea marvel».
+#
+# Una página por tema pautado, armada desde assets/campanas.json —una campaña
+# nueva es solo configuración—, con las mismas tarjetas y el mismo andamiaje de
+# la portada (todo sale de index.html, como el resto de este archivo):
+#
+#   1. En el primer pantallazo del celular, las piezas del anuncio, en fila,
+#      con foto, precio y «Agregar». Las agotadas bajan al final (tienda.js).
+#   2. El brazalete del tema y el combo, con cada escalón tocable.
+#   3. El resto de piezas del tema.
+#   4. Tallas, reseñas, pagos y confianza.
+#
+# Solo el tema: la cabecera queda sin menú ni buscador (body.pag-campana), el
+# pie es corto y ningún enlace lleva a otra categoría. Se quedan el carrito,
+# el botón del regalo y WhatsApp. Tocar la foto o el nombre de una pieza abre
+# su ficha ahí mismo, sin ir a la página de la pieza (tienda.js).
+
+CAMPANAS_JSON = RAIZ / 'assets' / 'campanas.json'
+WA_NUMERO = '573018990672'
+
+PAGINA_CAMPANA = '''<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{titulo} · {eyebrow} · Zephora Charms</title>
+<meta name="description" content="{desc}">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
+<meta name="theme-color" content="#2A1F2E">
+<link rel="canonical" href="https://zephoracharms.com/{archivo}">
+<meta name="robots" content="noindex">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_CO">
+<meta property="og:site_name" content="Zephora Charms">
+<meta property="og:title" content="{titulo} · Zephora Charms">
+<meta property="og:description" content="{desc}">
+<meta property="og:url" content="https://zephoracharms.com/{archivo}">
+<meta property="og:image" content="https://zephoracharms.com/{og}">
+<meta name="twitter:card" content="summary_large_image">
+{head}
+<link rel="stylesheet" href="tienda.css">
+<script src="/assets/clarity.js" defer></script>
+</head>
+<body class="pag-campana" data-campana="{id}" data-vacio="#destacadas">
+
+{ann}
+
+{header}
+
+<section class="cp-hero wrap" id="top">
+  <span class="eyebrow">{eyebrow}</span>
+  <h1>{titulo}</h1>
+  <p>{texto}</p>
+</section>
+
+<!-- 1 · LAS DEL ANUNCIO, en el primer pantallazo. -->
+<section class="cp-sec wrap" id="destacadas" aria-label="Las del anuncio">
+  <div class="cp-dest" data-agotadas-final>
+{tarjetas_dest}
+  </div>
+</section>
+
+<!-- 2 · EL BRAZALETE Y EL COMBO, con cada escalón tocable. -->
+<section class="cp-sec wrap" id="combo">
+  <span class="eyebrow">La base</span>
+  <h2>El brazalete de la colección</h2>
+  <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
+  sale <b>gratis</b>. Con 6 piezas son 2 gratis. Se aplica solo en el carrito.</p>
+  <div class="cp-base">
+    <!-- #b-filters lo exige tienda.js. Vacío: una sola base. -->
+    <div class="filters" id="b-filters" hidden></div>
+    <div class="grid grid--base" id="brazaletes">
+{tarjeta_base}
+    </div>
+    <div>
+{escalera}
+      <p class="col-nota">Precios con pago anticipado y envío gratis. Contraentrega: {contraentrega}
+      (el envío lo cobra la transportadora al recaudar).</p>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · EL RESTO DEL TEMA. -->
+<section class="cp-sec wrap" id="piezas">
+  <span class="eyebrow">{eyebrow}</span>
+  <h2>Toda la colección</h2>
+  <p class="col-sub">{n_resto} piezas más, en Plata Esterlina 925 verificada.</p>
+  <div class="grid" data-agotadas-final>
+{tarjetas_resto}
+  </div>
+</section>
+
+{talla}
+
+{resenas}
+
+{pagos}
+
+{confianza}
+
+{pie}
+
+<!-- Contenedores que tienda.js exige por id. Ver PAGINA. -->
+<div hidden>
+  <button type="button" id="ver-todos"></button>
+  <button type="button" id="more-btn"></button>
+  <span id="count"></span>
+  <div id="rail-top"></div>
+  <div id="full-cat" hidden>
+    <div class="filters" id="filters"></div>
+    <input type="search" id="q" aria-hidden="true" tabindex="-1">
+    <button type="button" id="q-x" hidden></button>
+    <div class="grid" id="resto-grid"></div>
+  </div>
+  <div class="letras-grid" id="letras-grid" role="group" aria-label="Elegir inicial"></div>
+</div>
+
+{chrome}
+</body>
+</html>
+'''
+
+WA_ICONO = ('<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
+            'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.5 '
+            '7.8L3 21l1.2-4.5A9 9 0 1121 12z"/></svg>')
+
+
+def wa_href(tema):
+    from urllib.parse import quote
+    return 'https://wa.me/%s?text=%s' % (WA_NUMERO, quote(
+        'Hola, Zephora Charms. Vengo de la página de %s y tengo una duda.' % tema))
+
+
+def solo_tema(pagina, tema, salida='#destacadas'):
+    """Que ningún enlace saque de la campaña.
+
+    La cabecera, el aviso y el carrito vienen de la portada. Sus anclas a
+    secciones que aquí no existen llevan a la sección principal de la campaña
+    (no a la portada, como en las demás páginas); el logotipo vuelve arriba de
+    esta misma página; el aviso de la promo lleva al combo; y en la cabecera,
+    en lugar del menú (que queda oculto por CSS), va WhatsApp.
+    """
+    # El menú de la cabecera (categorías, kits, más vendidos…) se vacía: no
+    # basta con esconderlo por CSS, un enlace que existe se termina tocando.
+    # Los contenedores se quedan porque tienda.js los busca por id.
+    pagina = re.sub(r'(<nav class="tnav">).*?(</nav>)', r'\1\2', pagina, count=1, flags=re.S)
+    pagina = re.sub(r'(<nav class="menu-panel"[^>]*>).*?(</nav>)', r'\1\2', pagina, count=1, flags=re.S)
+
+    def destino(m):
+        ancla = m.group(1)
+        return m.group(0) if ('id="%s"' % ancla) in pagina else 'href="%s"' % salida
+    pagina = re.sub(r'href="#([^"]+)"', destino, pagina)
+    pagina = re.sub(r'href="index\.html#([^"]+)"',
+                    lambda m: 'href="#%s"' % m.group(1) if ('id="%s"' % m.group(1)) in pagina else 'href="%s"' % salida,
+                    pagina)
+    pagina = pagina.replace('<a class="ann-slide" href="#destacadas"', '<a class="ann-slide" href="#combo"')
+    pagina = pagina.replace('<a class="brand" href="index.html">', '<a class="brand" href="#top">')
+    # «Ver la página completa de la pieza», en la ficha: llevaría a una página
+    # con todo el menú. Se oculta por CSS (tienda.js le sigue poniendo href).
+    pagina = pagina.replace('<a class="fx-pag" id="fx-pag" href="index.html">', '<a class="fx-pag" id="fx-pag" href="#top" hidden>')
+    boton =('<a class="cp-wa" data-wa="cabecera" data-wa-evento="Contact" href="%s" '
+             'aria-label="Escríbenos por WhatsApp">%sWhatsApp</a>\n    ' % (wa_href(tema), WA_ICONO))
+    return pagina.replace('<button class="top-lupa"', boton + '<button class="top-lupa"', 1)
+
+
+def generar_campana(c, html, escribir):
+    cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
+    grupos = cat['grupos']
+    tema = [pid for pid, g in grupos.items() if g == c['grupo']]
+    fuera = [d for d in c['destacados'] if grupos.get(d) != c['grupo']]
+    if fuera:
+        raise SystemExit('Campaña %s: %s no es del grupo %s. Solo el tema.' % (c['id'], ', '.join(fuera), c['grupo']))
+    resto = [pid for pid in tema if pid not in c['destacados']]
+    b = bloques(html)
+    p = precios_de_combo({'id': c['base'], 'talla': None}, c['destacados'] + resto)
+    desc = '%s: %s' % (c['titulo'], c['texto'])
+    pagina = PAGINA_CAMPANA.format(
+        id=c['id'], archivo=c['archivo'], eyebrow=c['eyebrow'], titulo=c['titulo'], texto=c['texto'],
+        desc=desc.replace('"', ''), og=c.get('og', 'assets/avengers-marmol.webp'),
+        head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+        resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'], chrome=b['chrome'],
+        tarjetas_dest='\n'.join('    ' + t for t in tarjetas(html, c['destacados'])),
+        tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [c['base']])),
+        tarjetas_resto='\n'.join('    ' + t for t in tarjetas(html, resto)),
+        n_resto=len(resto), escalera=escalones(c['base'], p, '#piezas'),
+        contraentrega=p['contraentrega'], pie=pie_campana(c['eyebrow']),
+    )
+    pagina = solo_tema(pagina, c['eyebrow'])
+    destino = RAIZ / c['archivo']
+    if escribir:
+        destino.write_text(pagina, encoding='utf-8')
+    print('  %s  %s  (%d destacadas + %d del tema, %d KB)' % ('escrito ' if escribir else 'se escribiría',
+          c['archivo'], len(c['destacados']), len(resto), len(pagina) // 1024))
+
+
+def generar_campanas(html, escribir):
+    for c in json.loads(CAMPANAS_JSON.read_text(encoding='utf-8'))['campanas']:
+        generar_campana(c, html, escribir)
+
+
+def pie_campana(tema):
+    """El pie de una página de campaña: WhatsApp y lo legal, sin el menú de
+    categorías del pie de la portada."""
+    return ('<footer class="cp-foot">\n  <div class="wrap">\n'
+            '    <span class="brand">Zephora <em>Charms</em></span>\n'
+            '    <p>¿Dudas con tu pedido? <a data-wa="pie" data-wa-evento="Contact" href="%s">Escríbenos por WhatsApp</a>'
+            ' · +57 301 899 0672</p>\n'
+            '    <ul>\n'
+            '      <li><a href="envios-y-devoluciones.html">Envíos y devoluciones</a></li>\n'
+            '      <li><a href="politica-de-privacidad.html">Política de privacidad</a></li>\n'
+            '      <li><a href="terminos-y-condiciones.html">Términos y condiciones</a></li>\n'
+            '    </ul>\n'
+            # #year lo exige tienda.js: sin él el script se cae y el carrito queda mudo.
+            '    <p>© 2024–<span id="year">2026</span> Zephora Charms</p>\n  </div>\n</footer>' % wa_href(tema))
+
+
+def relacionadas_kit(k, cat, html):
+    """Las piezas del mismo tema que el kit, sin las del kit. Salen de
+    kits.json (pagina.relacionadas): un grupo de catalogo.json o una lista de
+    ids. Van en lugar de «Colecciones populares», que llevaba a otros kits."""
+    rel = (k.get('pagina') or {}).get('relacionadas') or {}
+    propias = set([k['base']] + k['charms'])
+    if rel.get('grupo'):
+        ids = [pid for pid, g in cat['grupos'].items() if g == rel['grupo']]
+    else:
+        ids = list(rel.get('ids') or [])
+    faltan = [pid for pid in ids if pid not in cat['precios']]
+    if faltan:
+        raise SystemExit('Kit %s: relacionadas que no existen en el catálogo: %s' % (k['id'], ', '.join(faltan)))
+    ids = [pid for pid in ids if pid not in propias]
+    if not ids:
+        return ''
+    return ('<section class="cp-sec wrap" id="relacionadas">\n'
+            '  <span class="eyebrow">%s</span>\n  <h2>Combinan con este kit</h2>\n'
+            '  <p class="col-sub">%d piezas más del mismo tema, en Plata Esterlina 925 verificada.</p>\n'
+            '  <div class="grid" data-agotadas-final>\n%s\n  </div>\n</section>\n\n'
+            % (k['nombre'], len(ids), '\n'.join('    ' + t for t in tarjetas(html, ids))))
+
+
 def main():
     escribir = '--escribir' in sys.argv
     html = INDEX.read_text(encoding='utf-8')
@@ -932,6 +1209,8 @@ def main():
     generar_paginas_kit(html, escribir)
     print('\nMás vendidos:')
     generar_mas_vendidos(html, escribir)
+    print('\nCampañas:')
+    generar_campanas(html, escribir)
     if not escribir:
         print('\nNo se escribió nada. Repite con --escribir.')
 

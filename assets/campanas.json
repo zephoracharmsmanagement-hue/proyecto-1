@@ -1,0 +1,17 @@
+{
+ "_": "Páginas de campaña (campana-<id>.html), una por tema que se pauta. Las genera herramientas/gen_colecciones.py desde index.html y assets/catalogo.json: una campaña nueva es solo una entrada aquí más correr el generador. «destacados» son las piezas del anuncio, en orden: van primero, en el primer pantallazo del celular. Pedido del propietario, 2026-11-20.",
+ "campanas": [
+  {
+   "id": "marvel",
+   "archivo": "campana-marvel.html",
+   "grupo": "Marvel",
+   "base": "pulsera-avengers",
+   "eyebrow": "Colección Marvel",
+   "titulo": "Tus héroes, en tu muñeca",
+   "texto": "Charms en Plata 925 con sello, sobre la Pulsera Avengers en baño de plata. Toca «Agregar» y arma la tuya.",
+   "destacados": ["capitan-america", "wolverine", "deadpool", "mjolnir-martillo-de-thor", "spider-man"],
+   "destacados_fuente": "Las del anuncio «IG · BF 4 · Tus héroes en tu muñeca» (120255300240020022), leídas de su texto el 2026-11-20. Provisionales hasta que el propietario confirme.",
+   "og": "assets/avengers-marmol.webp"
+  }
+ ]
+}
