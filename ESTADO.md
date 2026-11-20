@@ -55,6 +55,33 @@ como próximamente». **No fusionar hasta que él lo diga.**
   «Viuda Negra», «Araña»); y el material de Loki y Casco Loki, que en la foto
   son dorados y la tarjeta dice «Plata 925» como todos los charms.
 
+## Campañas y conversión — desplegado el 2026-11-20 (PR #56)
+
+Salió de los clics de Clarity y de la pauta de Marvel. Lo que cambia para quien toque la tienda:
+
+- **Páginas de campaña** (`campana-<id>.html`, `noindex`): una por tema que se pauta. Se declaran
+  en `assets/campanas.json` y las genera `gen_colecciones.py`; una campaña nueva es una entrada
+  ahí más correr el generador. Hoy existe `campana-marvel.html`, con las 5 piezas del anuncio
+  primero (Spider-Man Pavé en lugar de Spider-Man, confirmado por el propietario). Solo el tema:
+  sin menú, y el logo lleva a la portada.
+- **El anuncio no se rehace.** `coleccion-marvel.html` trae un script, el primero del `<head>`,
+  que pasa a la campaña a quien llega con `utm_content` igual a un id de `anuncios` en
+  `campanas.json` (hoy `120255300240020022`). Las demás visitas ven la colección de siempre.
+- **Kits en modo campaña** (`pagina.campana` y `relacionadas` en `assets/kits.json`): Avengers,
+  Azul Mar y Amuletos.
+- **Ícono flotante de WhatsApp** solo en esas cuatro páginas (`.cp-wa-float`, el glifo original,
+  abajo a la derecha; el regalo va a la izquierda). En el resto de la tienda sigue retirado.
+- **La suscripción ya no se abre sola**: solo con el ícono del regalo. La casilla va premarcada
+  por decisión del propietario, avisado de la Ley 1581.
+- **Barra de abajo vacía**: «Elige tu primera pieza» lleva a las piezas. Los escalones del combo
+  ahora hacen algo (`data-elegir-base`, `data-ir`) y una destacada agotada sale del primer
+  pantallazo (`data-agotadas-a`).
+- Prueba nueva: `pruebas/campanas.js`, también a 1366 y 800 px. Todo va para computador y celular.
+- **Pendiente:** fotos propias para la cabecera de los kits (hay tres propuestas; el propietario
+  no ha elegido). Y `gen_productos.py` se detiene en `main` porque exige el id `aviso-corto`,
+  que `tienda.js` crea al vuelo: el arreglo (una línea en `IDS_DINAMICOS`) va en el PR #51. La
+  tienda en vivo no se afecta; solo no se pueden regenerar fichas desde `main` hasta entonces.
+
 ## Microsoft Clarity en toda la tienda — desplegado el 2026-11-19 (PR #55)
 
 Grabaciones de sesión y mapas de calor (pedido del propietario: «me gustaria que usaramos el
