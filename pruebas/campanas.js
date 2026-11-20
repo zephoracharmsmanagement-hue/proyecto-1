@@ -184,7 +184,8 @@ async function main() {
     await p.waitForTimeout(1200);
     const sitio = await p.evaluate(id => ({
       dest: [...document.querySelectorAll('#destacadas .pc')].map(e => e.dataset.id),
-      ultima: [...document.querySelectorAll('#piezas .grid > .pc')].map(e => e.dataset.id).pop(),
+      ultima: [...document.querySelectorAll('#piezas .grid > .pc')]   // las «Próximamente» van después de todo, también de las agotadas
+        .filter(e => !/Próximamente/.test((e.querySelector('.pc-stock') || {}).textContent || '')).map(e => e.dataset.id).pop(),
     }), agotar);
     comprobar(!sitio.dest.includes(agotar) && sitio.dest.length === c.destacados.length - 1 && sitio.ultima === agotar,
       `una destacada agotada (${agotar}) sale del primer pantallazo y va al final de la colección`, JSON.stringify(sitio));

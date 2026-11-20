@@ -9,7 +9,7 @@ const ENVIO={anticipado:15000, contraentrega:20000};
    opción más cara. Se dice de frente en el carrito, no en letra chica. */
 const LIBRE_SOLO_ANTICIPADO=true;
 let pago='anticipado';
-const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 95000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 95000}, {"id": "dalmata", "n": "Dálmata", "p": 95000}, {"id": "ariel", "n": "Ariel", "p": 95000}, {"id": "jasmine", "n": "Jasmine", "p": 95000}, {"id": "blancanieves", "n": "Blancanieves", "p": 95000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 95000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 95000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 95000}, {"id": "stitch", "n": "Stitch", "p": 95000}, {"id": "angel", "n": "Angel", "p": 95000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 95000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 95000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 95000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 95000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 95000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 95000}, {"id": "sulley", "n": "Sulley", "p": 95000}, {"id": "walle", "n": "WALL·E", "p": 95000}, {"id": "capitan-america", "n": "Capitán América", "p": 95000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 95000}, {"id": "spider-man", "n": "Spider-Man", "p": 95000}, {"id": "wolverine", "n": "Wolverine", "p": 95000}, {"id": "hulk", "n": "Hulk", "p": 95000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 95000}, {"id": "iron-man", "n": "Iron Man", "p": 95000}, {"id": "deadpool", "n": "Deadpool", "p": 95000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 95000}, {"id": "groot-bebe", "n": "Groot Bebé", "p": 95000}, {"id": "casco-iron-man", "n": "Casco Iron Man", "p": 95000}, {"id": "mascara-un-gran-poder", "n": "Máscara Un Gran Poder", "p": 95000}, {"id": "esfera-telarana-spider-man", "n": "Esfera Telaraña Spider-Man", "p": 95000}, {"id": "spider-man-pave", "n": "Spider-Man Pavé", "p": 95000}, {"id": "mascara-spider-man-roja", "n": "Máscara Spider-Man Roja", "p": 95000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 88000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 78000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 78000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 78000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 78000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 75000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 75000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 75000}, {"id": "bola-rosa-con-flores", "n": "Murano Rosa con Flores", "p": 82000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 90000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 86000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 94000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 94000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 82000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 86000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 94000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 82000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 82000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 82000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 82000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 82000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 86000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 82000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 82000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 82000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 82000}, {"id": "bola-roja-remolino", "n": "Murano Fucsia Remolino", "p": 82000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 82000}, {"id": "virgen-maria", "n": "Virgen María", "p": 86000}, {"id": "bola-azul-con-flor-rosa", "n": "Murano Azul con Flor Rosa", "p": 82000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 88000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 86000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 82000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 82000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 82000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga Evangeline", "p": 82000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 88000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 82000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 82000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 82000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 82000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 92000}, {"id": "aries", "n": "Aries", "p": 86000}, {"id": "tauro", "n": "Tauro", "p": 86000}, {"id": "geminis", "n": "Géminis", "p": 86000}, {"id": "cancer", "n": "Cáncer", "p": 86000}, {"id": "leo", "n": "Leo", "p": 86000}, {"id": "virgo", "n": "Virgo", "p": 86000}, {"id": "libra", "n": "Libra", "p": 86000}, {"id": "escorpio", "n": "Escorpio", "p": 86000}, {"id": "sagitario", "n": "Sagitario", "p": 86000}, {"id": "capricornio", "n": "Capricornio", "p": 86000}, {"id": "acuario", "n": "Acuario", "p": 86000}, {"id": "piscis", "n": "Piscis", "p": 86000}, {"id": "cenicienta", "n": "Cenicienta", "p": 95000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 78000}, {"id": "letra-a", "n": "Letra A", "p": 86000}, {"id": "letra-b", "n": "Letra B", "p": 86000}, {"id": "letra-c", "n": "Letra C", "p": 86000}, {"id": "letra-d", "n": "Letra D", "p": 86000}, {"id": "letra-e", "n": "Letra E", "p": 86000}, {"id": "letra-f", "n": "Letra F", "p": 86000}, {"id": "letra-g", "n": "Letra G", "p": 86000}, {"id": "letra-h", "n": "Letra H", "p": 86000}, {"id": "letra-i", "n": "Letra I", "p": 86000}, {"id": "letra-j", "n": "Letra J", "p": 86000}, {"id": "letra-k", "n": "Letra K", "p": 86000}, {"id": "letra-l", "n": "Letra L", "p": 86000}, {"id": "letra-m", "n": "Letra M", "p": 86000}, {"id": "letra-n", "n": "Letra N", "p": 86000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 86000}, {"id": "letra-o", "n": "Letra O", "p": 86000}, {"id": "letra-p", "n": "Letra P", "p": 86000}, {"id": "letra-q", "n": "Letra Q", "p": 86000}, {"id": "letra-r", "n": "Letra R", "p": 86000}, {"id": "letra-s", "n": "Letra S", "p": 86000}, {"id": "letra-t", "n": "Letra T", "p": 86000}, {"id": "letra-u", "n": "Letra U", "p": 86000}, {"id": "letra-v", "n": "Letra V", "p": 86000}, {"id": "letra-w", "n": "Letra W", "p": 86000}, {"id": "letra-x", "n": "Letra X", "p": 86000}, {"id": "letra-y", "n": "Letra Y", "p": 86000}, {"id": "letra-z", "n": "Letra Z", "p": 86000}, {"id": "black-panther", "n": "Black Panther", "p": 95000}, {"id": "virgen-de-fatima", "n": "Virgen de Fátima", "p": 94000}, {"id": "virgen-aparecida", "n": "Virgen Aparecida", "p": 94000}, {"id": "simbolo-de-la-medicina", "n": "Símbolo de la Medicina", "p": 94000}, {"id": "maquina-de-coser", "n": "Máquina de Coser", "p": 94000}, {"id": "graduacion-diploma-y-flores", "n": "Graduación con Diploma y Flores", "p": 94000}, {"id": "brindis-cheers", "n": "Brindis Cheers", "p": 94000}, {"id": "mano-rock-y-guitarra", "n": "Mano Rock y Guitarra", "p": 94000}, {"id": "anillo-corazon-elevado-blanco-t5", "n": "Anillo Corazón Elevado Blanco · Talla 5", "p": 115000}, {"id": "anillo-corazon-elevado-blanco-t6", "n": "Anillo Corazón Elevado Blanco · Talla 6", "p": 115000}, {"id": "anillo-corazon-elevado-blanco-t7", "n": "Anillo Corazón Elevado Blanco · Talla 7", "p": 115000}, {"id": "anillo-corazon-elevado-blanco-t8", "n": "Anillo Corazón Elevado Blanco · Talla 8", "p": 115000}, {"id": "anillo-corazon-elevado-rojo-t5", "n": "Anillo Corazón Elevado Rojo · Talla 5", "p": 115000}, {"id": "anillo-corazon-elevado-rojo-t6", "n": "Anillo Corazón Elevado Rojo · Talla 6", "p": 115000}, {"id": "anillo-corazon-elevado-rojo-t7", "n": "Anillo Corazón Elevado Rojo · Talla 7", "p": 115000}, {"id": "anillo-corazon-elevado-rojo-t8", "n": "Anillo Corazón Elevado Rojo · Talla 8", "p": 115000}, {"id": "anillo-doble-corazon-t5", "n": "Anillo Doble Corazón · Talla 5", "p": 115000}, {"id": "anillo-doble-corazon-t6", "n": "Anillo Doble Corazón · Talla 6", "p": 115000}, {"id": "anillo-doble-corazon-t7", "n": "Anillo Doble Corazón · Talla 7", "p": 115000}, {"id": "anillo-doble-corazon-t8", "n": "Anillo Doble Corazón · Talla 8", "p": 115000}, {"id": "corazon-liso-plateado", "n": "Corazón Liso Plateado", "p": 92000}, {"id": "corazon-liso-rojo", "n": "Corazón Liso Rojo", "p": 92000}, {"id": "estetoscopio-con-corazon", "n": "Estetoscopio con Corazón", "p": 92000}, {"id": "paleta-de-pintor", "n": "Paleta de Pintor", "p": 92000}, {"id": "corazon-mom-rosa", "n": "Corazón Mom Rosa", "p": 92000}, {"id": "pesa-rosa-con-corazon", "n": "Pesa Rosa con Corazón", "p": 92000}, {"id": "avion-globo-y-maleta", "n": "Avión, Globo y Maleta", "p": 92000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 82000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 78000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 78000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 78000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 78000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 82000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 78000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 88000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 82000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 82000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 88000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 82000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 78000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 82000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 88000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 78000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 88000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 78000}, {"id": "pulsera-corazon-abierto", "n": "Pulsera Corazón Abierto", "p": 82000}, {"id": "pulsera-corazon-infinito", "n": "Pulsera Corazón Infinito", "p": 82000}, {"id": "pulsera-corazon-arbol-de-la-vida", "n": "Pulsera Corazón Árbol de la Vida", "p": 82000}, {"id": "pulsera-barril-pandora", "n": "Pulsera Barril Pandora", "p": 82000}]};
+const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 95000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 95000}, {"id": "dalmata", "n": "Dálmata", "p": 95000}, {"id": "ariel", "n": "Ariel", "p": 95000}, {"id": "jasmine", "n": "Jasmine", "p": 95000}, {"id": "blancanieves", "n": "Blancanieves", "p": 95000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 95000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 95000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 95000}, {"id": "stitch", "n": "Stitch", "p": 95000}, {"id": "angel", "n": "Angel", "p": 95000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 95000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 95000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 95000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 95000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 95000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 95000}, {"id": "sulley", "n": "Sulley", "p": 95000}, {"id": "walle", "n": "WALL·E", "p": 95000}, {"id": "capitan-america", "n": "Capitán América", "p": 95000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 95000}, {"id": "spider-man", "n": "Spider-Man", "p": 95000}, {"id": "wolverine", "n": "Wolverine", "p": 95000}, {"id": "hulk", "n": "Hulk", "p": 95000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 95000}, {"id": "iron-man", "n": "Iron Man", "p": 95000}, {"id": "deadpool", "n": "Deadpool", "p": 95000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 95000}, {"id": "groot-bebe", "n": "Groot Bebé", "p": 95000}, {"id": "casco-iron-man", "n": "Casco Iron Man", "p": 95000}, {"id": "mascara-un-gran-poder", "n": "Máscara Un Gran Poder", "p": 95000}, {"id": "esfera-telarana-spider-man", "n": "Esfera Telaraña Spider-Man", "p": 95000}, {"id": "spider-man-pave", "n": "Spider-Man Pavé", "p": 95000}, {"id": "mascara-spider-man-roja", "n": "Máscara Spider-Man Roja", "p": 95000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 88000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 78000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 78000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 78000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 78000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 75000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 75000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 75000}, {"id": "bola-rosa-con-flores", "n": "Murano Rosa con Flores", "p": 82000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 90000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 86000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 94000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 94000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 82000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 86000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 94000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 82000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 82000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 82000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 82000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 82000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 86000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 82000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 82000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 82000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 82000}, {"id": "bola-roja-remolino", "n": "Murano Fucsia Remolino", "p": 82000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 82000}, {"id": "virgen-maria", "n": "Virgen María", "p": 86000}, {"id": "bola-azul-con-flor-rosa", "n": "Murano Azul con Flor Rosa", "p": 82000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 88000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 86000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 82000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 82000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 82000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga Evangeline", "p": 82000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 88000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 82000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 82000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 82000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 82000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 92000}, {"id": "aries", "n": "Aries", "p": 86000}, {"id": "tauro", "n": "Tauro", "p": 86000}, {"id": "geminis", "n": "Géminis", "p": 86000}, {"id": "cancer", "n": "Cáncer", "p": 86000}, {"id": "leo", "n": "Leo", "p": 86000}, {"id": "virgo", "n": "Virgo", "p": 86000}, {"id": "libra", "n": "Libra", "p": 86000}, {"id": "escorpio", "n": "Escorpio", "p": 86000}, {"id": "sagitario", "n": "Sagitario", "p": 86000}, {"id": "capricornio", "n": "Capricornio", "p": 86000}, {"id": "acuario", "n": "Acuario", "p": 86000}, {"id": "piscis", "n": "Piscis", "p": 86000}, {"id": "cenicienta", "n": "Cenicienta", "p": 95000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 78000}, {"id": "letra-a", "n": "Letra A", "p": 86000}, {"id": "letra-b", "n": "Letra B", "p": 86000}, {"id": "letra-c", "n": "Letra C", "p": 86000}, {"id": "letra-d", "n": "Letra D", "p": 86000}, {"id": "letra-e", "n": "Letra E", "p": 86000}, {"id": "letra-f", "n": "Letra F", "p": 86000}, {"id": "letra-g", "n": "Letra G", "p": 86000}, {"id": "letra-h", "n": "Letra H", "p": 86000}, {"id": "letra-i", "n": "Letra I", "p": 86000}, {"id": "letra-j", "n": "Letra J", "p": 86000}, {"id": "letra-k", "n": "Letra K", "p": 86000}, {"id": "letra-l", "n": "Letra L", "p": 86000}, {"id": "letra-m", "n": "Letra M", "p": 86000}, {"id": "letra-n", "n": "Letra N", "p": 86000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 86000}, {"id": "letra-o", "n": "Letra O", "p": 86000}, {"id": "letra-p", "n": "Letra P", "p": 86000}, {"id": "letra-q", "n": "Letra Q", "p": 86000}, {"id": "letra-r", "n": "Letra R", "p": 86000}, {"id": "letra-s", "n": "Letra S", "p": 86000}, {"id": "letra-t", "n": "Letra T", "p": 86000}, {"id": "letra-u", "n": "Letra U", "p": 86000}, {"id": "letra-v", "n": "Letra V", "p": 86000}, {"id": "letra-w", "n": "Letra W", "p": 86000}, {"id": "letra-x", "n": "Letra X", "p": 86000}, {"id": "letra-y", "n": "Letra Y", "p": 86000}, {"id": "letra-z", "n": "Letra Z", "p": 86000}, {"id": "black-panther", "n": "Black Panther", "p": 95000}, {"id": "doctor-doom", "n": "Doctor Doom", "p": 95000}, {"id": "loki", "n": "Loki", "p": 95000}, {"id": "casco-loki", "n": "Casco Loki", "p": 95000}, {"id": "viuda-negra", "n": "Viuda Negra", "p": 95000}, {"id": "miles-morales", "n": "Miles Morales", "p": 95000}, {"id": "arana", "n": "Araña", "p": 95000}, {"id": "virgen-de-fatima", "n": "Virgen de Fátima", "p": 94000}, {"id": "virgen-aparecida", "n": "Virgen Aparecida", "p": 94000}, {"id": "simbolo-de-la-medicina", "n": "Símbolo de la Medicina", "p": 94000}, {"id": "maquina-de-coser", "n": "Máquina de Coser", "p": 94000}, {"id": "graduacion-diploma-y-flores", "n": "Graduación con Diploma y Flores", "p": 94000}, {"id": "brindis-cheers", "n": "Brindis Cheers", "p": 94000}, {"id": "mano-rock-y-guitarra", "n": "Mano Rock y Guitarra", "p": 94000}, {"id": "anillo-corazon-elevado-blanco-t5", "n": "Anillo Corazón Elevado Blanco · Talla 5", "p": 115000}, {"id": "anillo-corazon-elevado-blanco-t6", "n": "Anillo Corazón Elevado Blanco · Talla 6", "p": 115000}, {"id": "anillo-corazon-elevado-blanco-t7", "n": "Anillo Corazón Elevado Blanco · Talla 7", "p": 115000}, {"id": "anillo-corazon-elevado-blanco-t8", "n": "Anillo Corazón Elevado Blanco · Talla 8", "p": 115000}, {"id": "anillo-corazon-elevado-rojo-t5", "n": "Anillo Corazón Elevado Rojo · Talla 5", "p": 115000}, {"id": "anillo-corazon-elevado-rojo-t6", "n": "Anillo Corazón Elevado Rojo · Talla 6", "p": 115000}, {"id": "anillo-corazon-elevado-rojo-t7", "n": "Anillo Corazón Elevado Rojo · Talla 7", "p": 115000}, {"id": "anillo-corazon-elevado-rojo-t8", "n": "Anillo Corazón Elevado Rojo · Talla 8", "p": 115000}, {"id": "anillo-doble-corazon-t5", "n": "Anillo Doble Corazón · Talla 5", "p": 115000}, {"id": "anillo-doble-corazon-t6", "n": "Anillo Doble Corazón · Talla 6", "p": 115000}, {"id": "anillo-doble-corazon-t7", "n": "Anillo Doble Corazón · Talla 7", "p": 115000}, {"id": "anillo-doble-corazon-t8", "n": "Anillo Doble Corazón · Talla 8", "p": 115000}, {"id": "corazon-liso-plateado", "n": "Corazón Liso Plateado", "p": 92000}, {"id": "corazon-liso-rojo", "n": "Corazón Liso Rojo", "p": 92000}, {"id": "estetoscopio-con-corazon", "n": "Estetoscopio con Corazón", "p": 92000}, {"id": "paleta-de-pintor", "n": "Paleta de Pintor", "p": 92000}, {"id": "corazon-mom-rosa", "n": "Corazón Mom Rosa", "p": 92000}, {"id": "pesa-rosa-con-corazon", "n": "Pesa Rosa con Corazón", "p": 92000}, {"id": "avion-globo-y-maleta", "n": "Avión, Globo y Maleta", "p": 92000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 82000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 78000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 78000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 78000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 78000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 82000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 78000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 88000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 82000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 82000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 88000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 82000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 78000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 82000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 88000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 78000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 88000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 78000}, {"id": "pulsera-corazon-abierto", "n": "Pulsera Corazón Abierto", "p": 82000}, {"id": "pulsera-corazon-infinito", "n": "Pulsera Corazón Infinito", "p": 82000}, {"id": "pulsera-corazon-arbol-de-la-vida", "n": "Pulsera Corazón Árbol de la Vida", "p": 82000}, {"id": "pulsera-barril-pandora", "n": "Pulsera Barril Pandora", "p": 82000}]};
 const byId=(a)=>a.reduce((o,x)=>(o[x.id]=x,o),{});
 const CH=byId(DATA.charms), PU=byId(DATA.pulseras);
 /* Anillos (2026-11-01): cada talla es una pieza de DATA (anillo-<modelo>-t<talla>);
@@ -73,8 +73,18 @@ const unidades = id => { const r=real(id); if(r&&typeof r.disponible==='number')
 const tallasDe = id => { const r=real(id); if(r&&r.tallas) return r.tallas;
   const s=inv(id); return s&&s.tallas ? s.tallas : null; };
 const tallasLibres = id => { const t=tallasDe(id); return t ? Object.keys(t).filter(k=>t[k]>0) : null; };
-/* Sin inventario nada está agotado: ante la duda, no bloqueamos la venta. */
+/* Piezas anunciadas que todavía no llegan (pedido del propietario,
+   2026-11-15: «fichas Marvel, ponerlas como próximamente»). No se venden, como
+   una agotada, pero dicen «Próximamente» y van al final de todo. Cuando lleguen
+   y se carguen sus unidades, se quita el id de aquí. */
+const PRONTO=new Set(['doctor-doom','loki','casco-loki','viuda-negra','miles-morales','arana']);
+const pronto = id => PRONTO.has(id);
+/* La palabra para lo que no se puede comprar hoy. */
+const fueraTxt = id => pronto(id)?'Próximamente':'Agotado';
+/* Sin inventario nada está agotado: ante la duda, no bloqueamos la venta.
+   Lo que viene en camino sí: sin inventario se vendería algo que no existe. */
 const agotado = id => {
+  if(pronto(id)) return true;
   if(!STOCK&&!DISP) return false;
   if(ANI[id]) return ANI[id].tallas.every(agotado);
   const t=tallasLibres(id); if(t) return t.length===0;
@@ -299,7 +309,7 @@ const vidPortada=id=>'assets/vid-'+id+'.webp?v=20261003';
    ancho, usan esta. Por nombre de archivo de la foto, no por id: así está en
    catalogo.json. Antes eran solo las 41 de Flow, a 880 px. */
 const FOTOS_HD = new Set((
-  'corazon-liso-plateado corazon-liso-rojo estetoscopio-con-corazon paleta-de-pintor corazon-mom-rosa pesa-rosa-con-corazon avion-globo-y-maleta pulsera-barril-pandora black-panther virgen-de-fatima virgen-aparecida simbolo-de-la-medicina maquina-de-coser graduacion-diploma-y-flores brindis-cheers mano-rock-y-guitarra pulsera-corazon-abierto pulsera-corazon-infinito pulsera-corazon-arbol-de-la-vida black-panther-2 '
+  'doctor-doom loki casco-loki viuda-negra miles-morales arana corazon-liso-plateado corazon-liso-rojo estetoscopio-con-corazon paleta-de-pintor corazon-mom-rosa pesa-rosa-con-corazon avion-globo-y-maleta pulsera-barril-pandora black-panther virgen-de-fatima virgen-aparecida simbolo-de-la-medicina maquina-de-coser graduacion-diploma-y-flores brindis-cheers mano-rock-y-guitarra pulsera-corazon-abierto pulsera-corazon-infinito pulsera-corazon-arbol-de-la-vida black-panther-2 '
   +  'acuario angel angel-guardian ariel aries atrapasuenos-azul atrapasuenos-corazon-multicolor '
   +'avion-globo-y-pasaporte blancanieves bola-azul-con-flor-rosa bola-roja-remolino bola-rosa-con-flores '
   +'buzz-lightyear caballo-herradura cadena-seguridad-hamsa-y-ojo cadena-seguridad-love-forever '
@@ -382,12 +392,12 @@ function itemVit(id){
   const esB=!!PU[id], d=esB?PU[id]:CH[id], f=CAT.fotos[id], fuera=agotado(id);
   /* Urgencia con el dato real, el mismo texto de la ficha (estadoDe): «Agotado»,
      «Queda 1 unidad», «Quedan 2 unidades». Sin dato real no se pone nada. */
-  const e=estadoDe(id), marca=fuera?'Agotado':(e.k==='few'?(unidades(id)===1?'Última unidad':'Quedan '+unidades(id)):'');
+  const e=estadoDe(id), marca=fuera?fueraTxt(id):(e.k==='few'?(unidades(id)===1?'Última unidad':'Quedan '+unidades(id)):'');
   return '<div class="vit-it'+(fuera?' vit-it--agot':'')+'" data-vid="'+id+'" role="listitem">'
     +(marca?'<span class="vit-marca'+(fuera?'':' vit-marca--pocas')+'">'+marca+'</span>':'')
     +(f?'<img src="assets/'+f+VFOTO+'" alt="" width="96" height="96" loading="lazy" decoding="async" onerror="this.style.visibility=\'hidden\'">':'<span class="vit-nof"></span>')
     +'<span class="vit-n">'+escHTML(d.n)+'</span><small>'+cop(d.p)+'</small>'
-    +(fuera?'<a class="vit-add vit-avisa" href="'+escHTML(waEncargo(d.n))+'" target="_blank" rel="noopener">Avísame</a>'
+    +(fuera?'<a class="vit-add vit-avisa" href="'+escHTML(waEncargo(d.n,id))+'" target="_blank" rel="noopener">Avísame</a>'
      :esB?'<button type="button" class="vit-add" data-vit-talla="'+id+'">Elegir talla</button>'
          +'<div class="vit-tallas tallas-row" data-para="'+id+'" hidden></div>'
          :'<button type="button" class="vit-add" data-add="'+id+'">Agregar</button>')
@@ -684,17 +694,26 @@ function pintarCalculadora(){
   });
 }
 
-/* Enlace a WhatsApp para pedir por encargo algo agotado. */
-function waEncargo(nombre){
-  return 'https://wa.me/'+WA+'?text='+encodeURIComponent(
-    'Hola, Zephora Charms. Vi en la página que «'+nombre+'» está agotado. '+
-    '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?');
+/* Enlace a WhatsApp para pedir por encargo algo agotado. Con el id de una
+   pieza que viene en camino, pide el aviso de llegada. */
+function waEncargo(nombre,id){
+  return 'https://wa.me/'+WA+'?text='+encodeURIComponent(id&&pronto(id)
+    ? 'Hola, Zephora Charms. Vi en la página que «'+nombre+'» llega pronto. ¿Me avisan cuando llegue?'
+    : 'Hola, Zephora Charms. Vi en la página que «'+nombre+'» está agotado. '+
+      '¿Me pueden avisar cuándo vuelve o pedirlo por encargo?');
 }
 
 /* Etiqueta de disponibilidad. Solo dice "últimas unidades" cuando de verdad
    quedan 1 o 2: no se inventa urgencia donde no la hay. */
 function etiquetaStock(p,id){
   let vieja=p.querySelector('.pc-stock'); if(vieja) vieja.remove();
+  const pie0=p.querySelector('.pc-foot');
+  if(pronto(id)&&pie0){
+    const e=document.createElement('p');
+    e.className='pc-stock pc-stock--0'; e.textContent='Próximamente';
+    pie0.parentNode.insertBefore(e,pie0);
+    return;
+  }
   /* Solo con la disponibilidad real de esta pieza. Mientras no llega —o si
      vino sin números— no se dice nada: mejor ninguna etiqueta que una
      «Última unidad» sobre algo agotado. El botón sí puede caer al conteo,
@@ -844,14 +863,14 @@ function pintarTarjetas(){
     let enc=pie.querySelector('.pc-encargo');
     if(sinStock){
       b.setAttribute('aria-disabled','true');
-      b.textContent='Agotado';
+      b.textContent=fueraTxt(id);
       if(!enc){
         enc=document.createElement('a');
         enc.className='pc-encargo'; enc.dataset.wa='encargo';
-        enc.textContent='Pedir por encargo';
         pie.appendChild(enc);
       }
-      enc.href=waEncargo((esBrazalete?PU[id]:CH[id]).n);
+      enc.textContent=pronto(id)?'Avísame cuando llegue':'Pedir por encargo';
+      enc.href=waEncargo((esBrazalete?PU[id]:CH[id]).n,id);
     }else{
       b.removeAttribute('aria-disabled');
       if(enc) enc.remove();
@@ -1031,6 +1050,7 @@ function estadoDe(id){
     if(agotado(id)) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
     return {t:'Disponible en talla '+ANI[id].tallas.filter(t=>!agotado(t)).map(t=>t.replace(/^.*-t/,'')).join(', '),k:'ok'};
   }
+  if(pronto(id)) return {t:'Próximamente — escríbenos y te avisamos cuando llegue',k:'out'};
   if(!real(id)) return {t:'',k:''};
   if(agotado(id)) return {t:'Agotado — puedes pedirlo por encargo',k:'out'};
   if(PU[id]) return {t:'Disponible en talla '+(tallasLibres(id)||[]).join(', ')+' cm',k:'ok'};
@@ -1080,7 +1100,13 @@ function pintarPagina(){
   const compra=$('#pp-compra'), sin=$('#pp-agotado'), enc=$('#pp-encargo');
   if(compra) compra.hidden=fuera;
   if(sin) sin.hidden=!fuera;
-  if(enc) enc.href=waEncargo((PU[id]||CH[id]||ANI[id]).n);
+  if(enc) enc.href=waEncargo((PU[id]||CH[id]||ANI[id]).n,id);
+  /* El texto de la página lo escribe gen_productos.py para una agotada; si
+     viene en camino, se dice eso. */
+  if(sin&&enc&&pronto(id)){
+    if(sin.firstChild&&sin.firstChild.nodeType===3) sin.firstChild.textContent='Esta pieza llega pronto. ';
+    enc.textContent='Escríbenos y te avisamos cuando llegue';
+  }
   /* En la página de un brazalete, la talla es lo primero que hay que elegir:
      el panel sale abierto en vez de esconderse tras «Elegir». */
   const t=tarjetaDe(id), tallas=t&&t.querySelector('.tallas');
@@ -1277,7 +1303,7 @@ function abrirFicha(id, lamina){
   add.hidden=esB;
   if(!esB){
     const lleno=sel.filter(x=>x===id).length>=tope(id);
-    add.textContent = sinStock ? 'Agotado' : (lleno?'Sin más unidades':'Agregar a mi pulsera');
+    add.textContent = sinStock ? fueraTxt(id) : (lleno?'Sin más unidades':'Agregar a mi pulsera');
     if(sinStock||lleno) add.setAttribute('aria-disabled','true'); else add.removeAttribute('aria-disabled');
   }
   const pag=$('#fx-pag');
@@ -1285,7 +1311,7 @@ function abrirFicha(id, lamina){
   pag.hidden = id===document.body.dataset.producto;
   const fw=$('#fx-wa');
   fw.hidden=!sinStock;
-  if(sinStock) fw.href=waEncargo(p.n);
+  if(sinStock) fw.href=waEncargo(p.n,id);
 
   $('#ficha').hidden=false;
   if(ppGal) ppGal.ajustar();   /* el video de la página se pausa bajo la ficha */
@@ -2528,7 +2554,7 @@ function pintarBusqueda() {
     /* El estado se dice aquí y no al abrir la ficha: enterarse de que está
        agotado después de haber tocado es un clic perdido. */
     if (!x.letras && agotado(x.id)) {
-      const o = document.createElement('span'); o.className = 'out'; o.textContent = ' · Agotado';
+      const o = document.createElement('span'); o.className = 'out'; o.textContent = ' · ' + fueraTxt(x.id);
       meta.appendChild(o);
     }
     n.appendChild(meta);
@@ -2732,25 +2758,37 @@ const inventarioListo=fetch('assets/stock.json',{cache:'no-cache'})
  * ventas ordenadas de más a menos, sin cifras: `vendidas` solo trae las 12
  * primeras de toda la tienda y con 3 o más libres, y casi ninguna de Marvel
  * entraría. Las agotadas van al final aunque hayan vendido —abrir la colección
- * con un «Agotado» no vende—, y por eso espera también al inventario. Las que
- * no han vendido quedan en el orden de siempre. Si algo falla, no se mueve. */
+ * con un «Agotado» no vende— y, detrás de ellas, las que vienen en camino.
+ * Las que no han vendido quedan en el orden de siempre.
+ *
+ * 2026-11-15 (la Sesión 5 la vio en vivo abriendo con Iron Man, Escudo y
+ * Guantelete agotados, y el propietario aprobó el nuevo orden): se ordenaba una
+ * sola vez, con el conteo de stock.json, que no descuenta lo vendido —ahí Iron
+ * Man tenía 4—; y sin ranking no se movía nada. Ahora se vuelve a ordenar
+ * cuando llega la disponibilidad real, y sin ranking igual se mandan al final
+ * las que no hay. */
 const marvelGrid=(()=>{
   const g=$('#piezas .grid'); if(!g) return null;
   const cs=[...g.querySelectorAll(':scope > .pc')];
   return cs.length&&cs.every(el=>el.dataset.g==='Marvel')?g:null;
 })();
+let marvelRank=null;
+function ordenarMarvel(){
+  if(!marvelGrid||!marvelRank) return;
+  const pos={}; marvelRank.forEach((id,i)=>{ pos[id]=i; });
+  const clave=el=>{ const id=el.dataset.id;
+    return pronto(id) ? 3e6 : agotado(id) ? 2e6 : (id in pos ? pos[id] : 1e6); };
+  [...marvelGrid.querySelectorAll(':scope > .pc')].map((el,i)=>[el,i])
+    .sort((a,b)=>clave(a[0])-clave(b[0])||a[1]-b[1])
+    .forEach(([el])=>marvelGrid.appendChild(el));
+}
 if(marvelGrid){
   Promise.all([
     fetch('.netlify/functions/mas-vendidos').then(r=>r.ok?r.json():null).catch(()=>null),
     inventarioListo,
   ]).then(([d])=>{
-    const rank=(d&&d.ranking)||[]; if(!rank.length) return;
-    const pos={}; rank.forEach((id,i)=>{ pos[id]=i; });
-    const clave=el=>{ const id=el.dataset.id;
-      return agotado(id) ? 2e6 : (id in pos ? pos[id] : 1e6); };
-    [...marvelGrid.querySelectorAll(':scope > .pc')].map((el,i)=>[el,i])
-      .sort((a,b)=>clave(a[0])-clave(b[0])||a[1]-b[1])
-      .forEach(([el])=>marvelGrid.appendChild(el));
+    marvelRank=(d&&d.ranking)||[];
+    ordenarMarvel();
   });
 }
 
@@ -2768,6 +2806,7 @@ fetch('.netlify/functions/disponibilidad',{cache:'no-cache'})
        que volver a dibujarla, porque esconde las piezas agotadas. */
     vitConStock=false;
     alLlegarInventario();
+    ordenarMarvel();
     /* Señal de que ya manda el dato real, como `con-stock` lo es del conteo.
        Las pruebas esperan por esta y no por aquella: desde que las etiquetas
        solo salen con dato real, esperar `con-stock` pasaba por suerte de

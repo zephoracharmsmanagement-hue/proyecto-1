@@ -50,7 +50,7 @@ MAX_RELACIONADAS = 8
 MAX_BRAZALETES = 4
 
 # Ids que tienda.js crea él mismo; no tienen que venir en el HTML.
-IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res'}
+IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res', 'aviso-corto'}  # aviso-corto lo crea avisoCorto() al vuelo
 # Ids de la ficha de producto que tienda.js usa SOLO tras comprobar que
 # existen (las estrellas no existen sin reseñas, por ejemplo).
 # Si se agrega aquí uno que se use sin comprobar, la página se queda sin

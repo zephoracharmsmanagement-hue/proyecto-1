@@ -5,6 +5,56 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Fichas de las 6 piezas Marvel del pedido de Black Friday — rama `claude/fichas-marvel-doomsday`, SIN fusionar
+
+Pedido del propietario (2026-11-14): «Prepara las fichas, aunque aún faltan los
+videos». La mercancía no ha llegado. El 15-nov eligió cómo se muestran: «ponerlas
+como próximamente». **No fusionar hasta que él lo diga.**
+
+- **«Próximamente» (15-nov):** los seis id están en `PRONTO` de tienda.js. Para
+  `agotado()` cuentan como sin unidades aunque el inventario no haya cargado (no
+  se venden nunca), pero dicen «Próximamente» en la tarjeta, la vitrina, la
+  ficha, el buscador y su página, con «Avísame cuando llegue» por WhatsApp
+  («llega pronto. ¿Me avisan cuando llegue?»). En la Colección Marvel van al
+  final de todo, detrás de las agotadas. **Al llegar la mercancía: quitar los
+  id de `PRONTO` y poner sus unidades en stock.json, en el mismo deploy.**
+- **Colección Marvel, nuevo orden (aprobado por el propietario el 15-nov):**
+  disponibles primero (por ventas), agotadas después y las que vienen en camino
+  al final. Antes se ordenaba una sola vez con stock.json, que no descuenta lo
+  vendido (Iron Man salía con 4 y en vivo tenía 0), y sin ranking no se movía;
+  ahora se reordena al llegar la disponibilidad real. Cabecera nueva
+  `assets/marvel-heroes-disponibles.webp` (la foto del anuncio 4, con piezas que
+  sí hay); la de antes mostraba Iron Man, Escudo y Guantelete, agotados.
+
+- **Piezas** (grupo Marvel, después de Black Panther): `doctor-doom`, `loki`,
+  `casco-loki`, `viuda-negra`, `miles-morales` y `arana` («Araña»). Pantera
+  Negra ya existía como `black-panther` (1-nov): solo le faltan unidades.
+- **Precio: $95.000 es un SUPUESTO** (el de los Avengers del 1-nov). Si cambia:
+  `p` en `DATA` de tienda.js, la tarjeta de index.html y `precio` en
+  stock.json; luego `extraer_catalogo.py`, `gen_productos.py --escribir` y
+  `gen_colecciones.py --escribir`.
+- **Unidades: 0 en stock.json** («generado» sin tocar). Salen en gris como
+  «Próximamente» (ver arriba), y el feed de Meta las manda sin existencias. Al
+  llegar: quitarlas de `PRONTO`, poner
+  las unidades contadas en `stock.json` (deploy) y cargar a mano la hoja
+  («Existencias» con su `clave`, y `AJ-AAMMDD-LLEGADA-NN` en «Movimientos»).
+- **Fotos:** las de catálogo de la marca que mandó el propietario (permiso de
+  Pandora), con el encuadre de `fotos_hd.py` (fondo blanco, 90 % del cuadro):
+  `assets/<id>.webp` 600 px y `assets/hd/<id>.webp` 1200 px. La de la Araña
+  venía con fondo gris de estudio y se llevó a blanco. Cambiar por la foto de
+  la pieza real cuando llegue, si se ve distinta.
+- **Video: no hay.** Las seis NO están en `VIDEOS` de tienda.js ni en
+  `herramientas/videos_joyas.json`, así que la galería muestra solo la foto y
+  no pide ningún archivo que no exista. Cuando lleguen los clips: copiarlos a
+  `material-sin-publicar/videos-joyas/originales/Videos pagina web/`, agregar
+  `"<id>": ["<clip>"]` a `videos_joyas.json`, correr
+  `videos_joyas.py <id>…` (deja `assets/vid-<id>.webp`), subir con
+  `subir_media.mjs`, sumar los id a `VIDEOS` y regenerar las páginas.
+  `pruebas/regresion.js` exige que `VIDEOS` y el `.json` digan lo mismo.
+- **Por confirmar con el propietario:** el precio; los nombres («Casco Loki»,
+  «Viuda Negra», «Araña»); y el material de Loki y Casco Loki, que en la foto
+  son dorados y la tarjeta dice «Plata 925» como todos los charms.
+
 ## Campañas y conversión — desplegado el 2026-11-20 (PR #56)
 
 Salió de los clics de Clarity y de la pauta de Marvel. Lo que cambia para quien toque la tienda:
