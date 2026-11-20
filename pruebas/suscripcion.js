@@ -243,14 +243,18 @@ async function main() {
       p.evaluate(() => { document.querySelectorAll('.pc--top .pc-img')[1].click(); })]);
     await p.waitForTimeout(16000);
     comprobar(!(await p.locator('.susc').count()), 'ni tras ver 2 productos ni pasados 15 s se abre sola');
-    /* El botón flotante de WhatsApp se quitó el 2026-10-02: queda solo el de
-       regalo, por encima de la barra del carrito. Abajo a la izquierda; en la
-       página de una pieza, a la derecha, para no tapar su nombre y su precio
-       (desde el 2026-11-20, que se ve siempre). Esta es una página de pieza. */
+    /* El regalo va por encima de la barra del carrito. Abajo a la izquierda;
+       en la página de una pieza, a la derecha, para no tapar su nombre y su
+       precio (desde el 2026-11-20, que se ve siempre). Esta es una página de
+       pieza. El flotante de WhatsApp, que se había quitado el 2026-10-02,
+       volvió a toda la tienda el 2026-11-20: aquí queda debajo del regalo. */
     const fab = await p.locator('.susc-fab').boundingBox(), dock = await p.locator('#dock').boundingBox();
     const ancho = p.viewportSize().width;
-    comprobar(fab.x + fab.width > ancho - 60 && fab.y + fab.height <= dock.y && !(await p.locator('.wa-float').count()),
-      'en la página de una pieza, abajo a la derecha sobre la barra del carrito, y sin el botón de WhatsApp');
+    const wa = await p.locator('.cp-wa-float').boundingBox();
+    comprobar(fab.x + fab.width > ancho - 60 && fab.y + fab.height <= dock.y
+      && wa && wa.x + wa.width > ancho - 60 && wa.y + wa.height <= dock.y && fab.y + fab.height <= wa.y,
+      'en la página de una pieza, abajo a la derecha sobre la barra del carrito, con WhatsApp debajo y sin tocarse',
+      JSON.stringify({ fab, wa }));
     await p.click('.susc-fab');
     await p.waitForTimeout(200);
     comprobar(await p.locator('.susc').isVisible() && !(await p.locator('.susc-fab').isVisible()), 'el botón la abre');

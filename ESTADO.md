@@ -73,7 +73,10 @@ Salió de los clics de Clarity y de la pauta de Marvel. Lo que cambia para quien
 - **Kits en modo campaña** (`pagina.campana` y `relacionadas` en `assets/kits.json`): Avengers,
   Azul Mar y Amuletos.
 - **Ícono flotante de WhatsApp** solo en esas cuatro páginas (`.cp-wa-float`, el glifo original,
-  abajo a la derecha; el regalo va a la izquierda). En el resto de la tienda sigue retirado.
+  abajo a la derecha; el regalo va a la izquierda). **Desde el PR #58 está en toda la tienda**
+  (pedido del propietario): en las demás páginas lo pone `tienda.js`, con evento `Contact`; en la
+  ficha de una pieza el regalo queda encima de él. No va en checkout, gracias ni páginas legales,
+  que no cargan `tienda.js`.
 - **La suscripción ya no se abre sola**: solo con el ícono del regalo. La casilla va premarcada
   por decisión del propietario, avisado de la Ley 1581.
 - **Barra de abajo vacía**: «Elige tu primera pieza» lleva a las piezas. Los escalones del combo
