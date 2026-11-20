@@ -373,7 +373,11 @@ function pestanasDe(v){
   /* Las agotadas también se ven, al final de cada colección y marcadas
      (pedido del propietario, 2026-10-31: «para causar urgencia»). Antes se
      quitaban, y la Colección Avengers salía sin Deadpool. */
-  return tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id)).concat(ids.filter(agotado))]).filter(([,ids])=>ids.length);
+  const listas=tabs.map(([t,ids])=>[t,ids.filter(id=>!agotado(id)).concat(ids.filter(agotado))]).filter(([,ids])=>ids.length);
+  /* data-vit-solo: solo la primera pestaña. Lo usan las páginas de campaña
+     (2026-11-20): quien llegó por un kit de Marvel no ve pestañas de Disney,
+     Zodiaco… que la sacan del tema. */
+  return v.dataset.vitSolo==='1'?listas.slice(0,1):listas;
 }
 function itemVit(id){
   /* Un anillo en la vitrina (2026-11-01): se elige la talla en su página. */
@@ -501,53 +505,49 @@ const track=(ev,d)=>{ if(typeof fbq==='function')
    página de producto y el que usará el catálogo de Meta—, así que el
    retargeting dinámico empata sin mapeos. */
 const verPieza=id=>{ const p=PU[id]||CH[id]||ANI[id]; if(!p) return;
-  track('ViewContent',{content_type:'product',content_ids:ANI[id]?ANI[id].tallas:[id],content_name:p.n,value:p.p});
-  suscVista(); };
+  track('ViewContent',{content_type:'product',content_ids:ANI[id]?ANI[id].tallas:[id],content_name:p.n,value:p.p}); };
 
 /* ——— Suscripción por correo con $15.000 de descuento en la primera compra ———
  * (desde el 2026-10-29; antes, el charm de la inicial de regalo).
- * automatizaciones/suscripcion/BRIEF.md. Aparece a los 15 s o tras ver 2
- * productos, lo primero que pase; nunca encima de la ficha o del carrito
- * (espera a que se cierren). Cerrada, no vuelve en 30 días. checkout.html no
- * carga este archivo, así que ahí nunca sale. La casilla de autorización va
- * SIN marcar (Ley 1581) y el servidor solo la acepta como booleano true. */
+ * automatizaciones/suscripcion/BRIEF.md.
+ *
+ * Desde el 2026-11-20 la ventana NO se abre sola (antes, a los 15 s o tras ver
+ * 2 productos). Decisión del propietario tras ver Clarity, donde la X de esa
+ * ventana era lo más tocado de la portada (15 % de los clics) y de Marvel
+ * (26 %): «prefiero que no salga la ventana sino que solo se active cuando el
+ * cliente haga click en el icono del regalo». El botón del regalo se ve desde
+ * la entrada, en todas las páginas, mientras la clienta no esté suscrita.
+ * checkout.html no carga este archivo, así que ahí no sale.
+ *
+ * La casilla de autorización va MARCADA por defecto: decisión del propietario
+ * del 2026-11-20 («que la casilla de autorizacion ya venga marcada»), tomada
+ * después de que se le explicó que la SIC no considera válida una casilla
+ * premarcada bajo la Ley 1581. La clienta puede desmarcarla, y el servidor
+ * sigue aceptando solo el booleano true. */
 const lsLeer=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
 const lsPoner=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){} };
-/* navigator.webdriver: un navegador automatizado (las pruebas con Playwright,
-   bots) no recibe la ventana sola —taparía los clics de cualquier batería que
-   pase más de 15 s en la página—. pruebas/suscripcion.js lo apaga para probarla. */
-const suscFuera=()=>navigator.webdriver||lsLeer('zephora.suscrita')
-  ||(Date.now()-(+lsLeer('zephora.susc.cerrado')||0)<30*864e5);
+/* Suscrita (o con la confirmación pendiente): ni ventana ni botón. */
+const suscrita=()=>!!(lsLeer('zephora.suscrita')||lsLeer('zephora.susc.enviada'));
 let suscAbierta=false;
-/* Botón de regalo (pedido del propietario, 2026-09-26): si la clienta cierra
-   la ventana con la X, queda un botón al lado contrario del de WhatsApp para
-   retomar el incentivo. Desaparece en cuanto se suscribe. */
+/* Botón de regalo (pedido del propietario, 2026-09-26): abajo a la izquierda,
+   al lado contrario del de WhatsApp. Desde el 2026-11-20 es la ÚNICA puerta a
+   la suscripción y se ve desde la entrada. Desaparece en cuanto se suscribe. */
 function botonRegalo(ver){
   let b=document.querySelector('.susc-fab');
   if(!ver){ if(b) b.hidden=true; return; }
-  if(lsLeer('zephora.suscrita')||lsLeer('zephora.susc.enviada')) return;
+  if(suscrita()) return;
   if(!b){
     b=document.createElement('button'); b.type='button'; b.className='susc-fab';
     b.setAttribute('aria-label','$15.000 de descuento en tu primera compra: suscríbete');
     b.innerHTML='<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11" rx="1"/><path d="M12 9v11M3.5 13h17M12 9C10 5 6.5 5.5 7.5 8c.6 1.4 4.5 1 4.5 1s3.9.4 4.5-1C17.5 5.5 14 5 12 9"/></svg>';
-    b.addEventListener('click',()=>abrirSusc(true));
+    b.addEventListener('click',()=>abrirSusc());
     document.body.appendChild(b);
   }
   b.hidden=false;
 }
-function suscVista(){
-  let n=0; try{ n=+(sessionStorage.getItem('zephora.vistas')||0)+1; sessionStorage.setItem('zephora.vistas',n); }catch(e){}
-  /* Un instante después: verPieza corre dentro de abrirFicha ANTES de que la
-     ficha se muestre, y sin esperar la ventana creía que no había ficha y se
-     le ponía encima. */
-  if(n>=2) setTimeout(()=>abrirSusc(),600);
-}
-function abrirSusc(forzar){
-  if(suscAbierta||(!forzar&&suscFuera())) return;
-  const ficha=document.getElementById('ficha');
-  if((ficha&&!ficha.hidden)||document.body.classList.contains('sheet-open')){
-    if(!forzar){ setTimeout(()=>abrirSusc(),4000); return; }
-  }
+/* Solo se abre a pedido: el botón del regalo o un enlace [data-susc]. */
+function abrirSusc(){
+  if(suscAbierta) return;
   suscAbierta=true;
   botonRegalo(false);
   const capa=document.createElement('div');
@@ -569,7 +569,7 @@ function abrirSusc(forzar){
     +'<form class="susc-f" novalidate data-clarity-mask="true">'
     +'<input type="email" name="correo" required autocomplete="email" placeholder="Tu correo" aria-label="Tu correo">'
     +'<input type="text" name="web" class="susc-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">'
-    +'<label class="susc-ok"><input type="checkbox" name="acepta"> <span>Acepto recibir correos de Zephora Charms con novedades y ofertas. Puedo darme de baja cuando quiera. <a href="politica-de-privacidad.html" target="_blank" rel="noopener">Política de datos</a></span></label>'
+    +'<label class="susc-ok"><input type="checkbox" name="acepta" checked> <span>Acepto recibir correos de Zephora Charms con novedades y ofertas. Puedo darme de baja cuando quiera. <a href="politica-de-privacidad.html" target="_blank" rel="noopener">Política de datos</a></span></label>'
     +'<button class="btn" type="submit">Quiero mis $15.000</button>'
     +'<p class="susc-msg" aria-live="polite"></p></form></div>';
   document.body.appendChild(capa);
@@ -602,11 +602,14 @@ function abrirSusc(forzar){
   });
   f.correo.focus();
 }
-if(!suscFuera()) setTimeout(()=>abrirSusc(),15000);
-/* Quien ya la cerró en otra visita ve el botón de regalo desde el principio. */
-else if(lsLeer('zephora.susc.cerrado')) botonRegalo(true);
+/* El botón del regalo, desde la entrada, a quien no está suscrita.
+   navigator.webdriver: en un navegador automatizado (las baterías con
+   Playwright) no se pinta, porque un botón fijo abajo a la izquierda puede
+   tapar lo que otra batería quiere tocar. pruebas/suscripcion.js lo apaga
+   para probarlo. */
+if(!navigator.webdriver) botonRegalo(true);
 /* Cualquier enlace o botón con data-susc abre la suscripción a pedido. */
-document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); if(a){ e.preventDefault(); abrirSusc(true); } });
+document.addEventListener('click',e=>{ const a=e.target.closest('[data-susc]'); if(a){ e.preventDefault(); abrirSusc(); } });
 
 /* Desde el 2026-09-25 cada inicial tiene su foto (assets/letra-x.webp), salvo
    las que no llegaron (hoy Ñ y Q): esas caen a la foto del grupo con onerror,
@@ -1534,7 +1537,9 @@ function render(){
         :nGratis?' · '+nGratis+' GRATIS'
         :libre?' · envío gratis'
         :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
-    : 'Tu selección está vacía';
+    /* Corto a propósito: al lado de «Elige tu primera pieza», «Tu selección
+       está vacía» se cortaba a 375 px. */
+    : 'Sin piezas aún';
   $('#dock-p').textContent=cop(total);
   /* En la página de una pieza, con el carrito vacío, la barra fija es el
      llamado a la acción constante (encargo de la ficha): nombre, precio y
@@ -1542,7 +1547,11 @@ function render(){
   const pp=document.body.dataset.producto, ppP=pp&&(CH[pp]||PU[pp]||ANI[pp]);
   const ppVacio=!piezas&&ppP&&!agotado(pp);
   if(ppVacio){ $('#dock-n').textContent=ppP.n; $('#dock-p').textContent=cop(ppP.p); }
-  $('#dock-send').textContent=ppVacio?(PU[pp]||ANI[pp]?'Elegir talla':'Agregar'):'Comprar';
+  /* Con la selección vacía el botón no puede decir «Comprar»: en Clarity las
+     clientas lo tocaban con $0 y en kits.html no hacía nada (2026-11-20). Dice
+     qué hacer y lleva ahí (ver destinoVacio). */
+  $('#dock-send').textContent=ppVacio?(PU[pp]||ANI[pp]?'Elegir talla':'Agregar'):(piezas?'Comprar':'Elige tu primera pieza');
+  document.body.classList.toggle('sel-vacia',!piezas);
 
   const dbar=$('#dock-bar');
   dbar.classList.toggle('is-ok',libre);
@@ -1845,6 +1854,17 @@ function pedirTalla(id){
   if(panel){ panel.hidden=false; panel.scrollIntoView({behavior:'smooth',block:'center'});
     panel.classList.remove('is-pide'); void panel.offsetWidth; panel.classList.add('is-pide'); }
 }
+/* Adónde lleva «Elige tu primera pieza»: lo lógico de cada página. Una
+   página puede decirlo con <body data-vacio="#selector">; si no, lo primero
+   que exista de esta lista. Antes iba siempre a #brazaletes, que en kits.html
+   no existe: el botón no hacía nada (Clarity, 2026-11-20). La última opción,
+   la portada, garantiza que el botón nunca quede muerto. */
+function destinoVacio(){
+  const lista=[document.body.dataset.vacio,'#destacadas','#piezas','.kp-kit .kit','#kits',
+    '#brazaletes','.mv','#charms'];
+  for(const s of lista){ if(!s) continue; const el=document.querySelector(s); if(el) return el; }
+  return null;
+}
 function comprar(){
   if(!base&&!sel.length){
     /* En una página de producto la barra dice «Agregar»: agrega la pieza (o
@@ -1853,7 +1873,13 @@ function comprar(){
     if(pp&&CH[pp]){ sumarCharm(pp); return; }
     if(pp&&PU[pp]){ pedirTalla(pp); return; }
     if(pp&&ANI[pp]){ tallaAnillo(pp); return; }
-    document.getElementById('brazaletes').scrollIntoView({behavior:'smooth'});
+    /* El carrito abierto se cierra primero (la ficha también usa sheet-open,
+       así que se mira la hoja misma). */
+    if($('#sheet').getAttribute('aria-hidden')==='false') abrir(false);
+    const d=destinoVacio();
+    if(!d){ location.href='index.html#brazaletes'; return; }
+    d.scrollIntoView({behavior:'smooth',block:'start'});
+    d.classList.remove('is-pide'); void d.offsetWidth; d.classList.add('is-pide');
     return;
   }
   tocado=true;
@@ -1961,6 +1987,12 @@ document.addEventListener('click',e=>{
   const ver=e.target.closest('.pc-img, .pc-name');
   if(ver && !e.target.closest('.pc-add, .tbtn, .lbtn, .pc-encargo')){
     const t=ver.closest('.pc'), id=t&&t.dataset.id;
+    /* En una página de campaña la foto y el nombre abren la ficha ahí mismo:
+       ir a la página de la pieza la sacaría del tema, a un sitio con todo el
+       menú de la tienda (pedido del propietario, 2026-11-20). */
+    if(id && document.body.classList.contains('pag-campana') && (CH[id]||PU[id]||ANI[id])){
+      e.preventDefault(); abrirFicha(id); return;
+    }
     if(id && t.classList.contains('pc--pp')){
       /* Tocar el video de la galería de la página no abre nada: se está
          viendo ahí mismo. Una foto abre la ficha en esa misma lámina. */
@@ -2638,8 +2670,55 @@ function alLlegarInventario(){
     pintarCalculadora();   /* ahora sí puede marcar las tallas sin unidades */
     marcarKits();
     pintarPagina();
+    agotadasAlFinal();
     if(fichaId) abrirFicha(fichaId);
 }
+
+/* Rejillas con [data-agotadas-final]: lo agotado baja al final, en el mismo
+   orden de antes, y lo disponible sube. Lo usan las páginas de campaña: la
+   pieza del anuncio que se agotó no ocupa el primer pantallazo (2026-11-20). */
+function agotadasAlFinal(){
+  /* [data-agotadas-a="#sel"]: las agotadas no se quedan aquí, se mudan al
+     final de esa otra rejilla. Lo usan las destacadas de una campaña: una
+     pieza agotada no puede ocupar el primer pantallazo, aunque esté en la
+     lista del anuncio (2026-11-20). Si vuelve a haber unidades, regresa. */
+  document.querySelectorAll('[data-agotadas-a]').forEach(g=>{
+    const otra=document.querySelector(g.dataset.agotadasA); if(!otra) return;
+    [...otra.querySelectorAll(':scope > .pc[data-de]')].forEach(el=>{ if(!agotado(el.dataset.id)) g.appendChild(el); });
+    [...g.children].filter(el=>el.matches('.pc')&&agotado(el.dataset.id)).forEach(el=>{ el.dataset.de='1'; otra.appendChild(el); });
+  });
+  document.querySelectorAll('[data-agotadas-final]').forEach(g=>{
+    const cs=[...g.children].filter(el=>el.matches('.pc'));
+    cs.forEach((el,i)=>{ if(el.dataset.orden==null) el.dataset.orden=i; });
+    cs.sort((a,b)=>(agotado(a.dataset.id)-agotado(b.dataset.id))||(a.dataset.orden-b.dataset.orden))
+      .forEach(el=>g.appendChild(el));
+  });
+}
+
+/* Escalones y atajos que llevan a algo (2026-11-20, de los clics de Clarity:
+   en Marvel tocaban «Brazalete solo $78.000» y no pasaba nada).
+     [data-elegir-base="id"]  pide la talla de ese brazalete, en su tarjeta.
+     [data-ir="#sel"]         lleva a esa sección.
+     [data-aviso="…"]         y deja un aviso corto de qué hacer ahí. */
+function avisoCorto(txt){
+  let a=document.getElementById('aviso-corto');
+  if(!a){ a=document.createElement('div'); a.id='aviso-corto'; a.className='aviso-corto';
+    a.setAttribute('role','status'); a.setAttribute('aria-live','polite'); document.body.appendChild(a); }
+  a.textContent=txt; a.hidden=false; a.classList.remove('is-on'); void a.offsetWidth; a.classList.add('is-on');
+  clearTimeout(avisoCorto.t); avisoCorto.t=setTimeout(()=>{ a.classList.remove('is-on'); },4200);
+}
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-elegir-base],[data-ir]'); if(!el) return;
+  e.preventDefault();
+  if(el.dataset.elegirBase){
+    const id=el.dataset.elegirBase;
+    if(tarjetaDe(id)) pedirTalla(id); else location.href='producto-'+id+'.html';
+  }else{
+    const d=document.querySelector(el.dataset.ir);
+    if(d){ d.scrollIntoView({behavior:'smooth',block:'start'}); d.classList.remove('is-pide'); void d.offsetWidth; d.classList.add('is-pide'); }
+  }
+  if(el.dataset.aviso) avisoCorto(el.dataset.aviso);
+});
 
 /* El inventario llega después de pintar: la página ya es usable sin él, y si
    falla el fetch se queda como está, sin errores visibles ni venta bloqueada. */

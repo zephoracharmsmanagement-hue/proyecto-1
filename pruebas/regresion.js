@@ -350,11 +350,12 @@ const U = BASE + '/index.html';
     await ctx.close();
 
     /* Con la galería en 4:5, el nombre y el precio quedan al pie de la
-       primera pantalla, justo donde flota el botón de regalo (sale a quien
-       cerró la ventana de suscripción). No puede tapar el precio, y vuelve al
-       bajar. */
+       primera pantalla. Desde el 2026-11-20 el botón de regalo se ve desde la
+       entrada en todas las páginas (pedido del propietario): no puede tapar
+       el precio, y sigue ahí al bajar. (webdriver en false: en un navegador
+       automatizado tienda.js no lo pinta.) */
     const ctx2 = await b.newContext({ viewport: { width: 390, height: 844 } });
-    await ctx2.addInitScript(() => { localStorage.setItem('zephora.susc.cerrado', String(Date.now())); });
+    await ctx2.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', { get: () => false }); });
     const q = await ctx2.newPage();
     await q.goto(BASE + '/producto-' + encodeURIComponent(soloVideo) + '.html', { waitUntil: 'networkidle' });
     const tapa = await q.evaluate(async () => {
@@ -362,13 +363,15 @@ const U = BASE + '/index.html';
       const f = document.querySelector('.susc-fab'), pr = document.querySelector('.pc--pp .pc-price');
       if (!f) return 'sin botón';
       const ve = () => !f.hidden && getComputedStyle(f).visibility !== 'hidden' && getComputedStyle(f).display !== 'none';
-      const a = f.getBoundingClientRect(), c = pr.getBoundingClientRect();
+      /* El texto del precio, no su caja: la caja ocupa todo el ancho. */
+      const rg = document.createRange(); rg.selectNodeContents(pr);
+      const a = f.getBoundingClientRect(), c = rg.getBoundingClientRect();
       const cruza = !(a.right < c.left || c.right < a.left || a.bottom < c.top || c.bottom < a.top);
-      const tapa = ve() && cruza && c.top < innerHeight;
+      const tapa = ve() && cruza && c.top < innerHeight, arriba = ve();
       scrollTo(0, 1600); await new Promise(r => setTimeout(r, 500));
-      return { tapa, vuelve: ve() };
+      return { tapa, vuelve: arriba && ve() };
     });
-    out.push(`  el botón de regalo no tapa el precio en la primera pantalla y vuelve al bajar: `
+    out.push(`  el botón de regalo se ve desde la entrada, no tapa el precio y sigue al bajar: `
       + `${tapa !== 'sin botón' && !tapa.tapa && tapa.vuelve ? 'sí ✓' : 'NO ✗ ' + JSON.stringify(tapa)}`);
     await ctx2.close();
 

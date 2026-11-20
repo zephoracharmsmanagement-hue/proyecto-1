@@ -227,41 +227,48 @@ async function main() {
     await p.route('**/suscribir', r => r.fulfill({ status: 200, contentType: 'application/json',
       body: JSON.stringify({ ok: true, mensaje: 'x' }) }));
     await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
+    /* Desde el 2026-11-20 la ventana NO se abre sola (decisión del
+       propietario tras ver en Clarity que su X era lo más tocado): ni a los
+       15 s ni tras ver 2 productos. La única puerta es el botón del regalo,
+       que se ve desde la entrada. */
     comprobar(!(await p.locator('.susc').count()), 'no aparece al entrar');
-    /* Desde el 2026-09-26 tocar una joya lleva a su página: cada página vista
-       cuenta. En la segunda se abre en seguida su galería (la ficha), y la
-       invitación tiene que esperar a que se cierre. */
+    comprobar(await p.locator('.susc-fab').isVisible(), 'el botón de regalo se ve desde la entrada');
     await p.waitForSelector('.pc--top .pc-img', { state: 'attached' });
     await Promise.all([p.waitForURL(/producto-.+\.html/), p.evaluate(() => { document.querySelectorAll('.pc--top .pc-img')[0].click(); })]);
     await p.waitForTimeout(900);
-    comprobar(!(await p.locator('.susc').count()), 'con 1 producto visto todavía no aparece');
+    comprobar(await p.locator('.susc-fab').isVisible(), 'también en la página de una pieza, con su precio a la vista');
     await p.goto(BASE + '/index.html', { waitUntil: 'networkidle' });
     const segunda = await p.evaluate(() => document.querySelectorAll('.pc--top')[1].dataset.id);
     await Promise.all([p.waitForURL(u => u.pathname.endsWith('/producto-' + segunda + '.html'), { waitUntil: 'domcontentloaded' }),
       p.evaluate(() => { document.querySelectorAll('.pc--top .pc-img')[1].click(); })]);
-    await p.evaluate(() => document.querySelector('.pc--pp .pc-img').click());
-    await p.waitForTimeout(900);
-    comprobar(!(await p.locator('.susc').count()), 'con la ficha abierta no se sobrepone');
-    await p.keyboard.press('Escape');
-    await p.waitForTimeout(4500);
-    comprobar(await p.locator('.susc').isVisible(), 'tras ver 2 productos, aparece al cerrar la ficha');
-    comprobar(!(await p.locator('.susc input[name=acepta]').isChecked()), 'la casilla de autorización va sin marcar');
+    await p.waitForTimeout(16000);
+    comprobar(!(await p.locator('.susc').count()), 'ni tras ver 2 productos ni pasados 15 s se abre sola');
+    /* El botón flotante de WhatsApp se quitó el 2026-10-02: queda solo el de
+       regalo, por encima de la barra del carrito. Abajo a la izquierda; en la
+       página de una pieza, a la derecha, para no tapar su nombre y su precio
+       (desde el 2026-11-20, que se ve siempre). Esta es una página de pieza. */
+    const fab = await p.locator('.susc-fab').boundingBox(), dock = await p.locator('#dock').boundingBox();
+    const ancho = p.viewportSize().width;
+    comprobar(fab.x + fab.width > ancho - 60 && fab.y + fab.height <= dock.y && !(await p.locator('.wa-float').count()),
+      'en la página de una pieza, abajo a la derecha sobre la barra del carrito, y sin el botón de WhatsApp');
+    await p.click('.susc-fab');
+    await p.waitForTimeout(200);
+    comprobar(await p.locator('.susc').isVisible() && !(await p.locator('.susc-fab').isVisible()), 'el botón la abre');
+    /* La casilla viene MARCADA: decisión del propietario del 2026-11-20, tras
+       explicarle que la SIC no da por válida una casilla premarcada (Ley
+       1581). Quitarla tiene que seguir impidiendo el envío. */
+    comprobar(await p.locator('.susc input[name=acepta]').isChecked(), 'la casilla de autorización viene marcada (decisión del propietario)');
     await p.click('.susc-x');
     await p.waitForTimeout(200);
     comprobar(!(await p.locator('.susc').count()) && await p.locator('.susc-fab').isVisible(),
-      'al cerrarla con la X queda el botón de regalo');
-    /* El botón flotante de WhatsApp se quitó el 2026-10-02: queda solo el de
-       regalo, abajo a la izquierda, por encima de la barra del carrito. */
-    const fab = await p.locator('.susc-fab').boundingBox(), dock = await p.locator('#dock').boundingBox();
-    comprobar(fab.x < 60 && fab.y + fab.height <= dock.y && !(await p.locator('.wa-float').count()),
-      'abajo a la izquierda, sobre la barra del carrito, y sin el botón de WhatsApp');
+      'al cerrarla con la X vuelve el botón de regalo');
     await p.click('.susc-fab');
     await p.waitForTimeout(200);
-    comprobar(await p.locator('.susc').isVisible() && !(await p.locator('.susc-fab').isVisible()), 'y el botón la vuelve a abrir');
     await p.fill('.susc input[name=correo]', 'cami@ejemplo.com');
+    await p.uncheck('.susc input[name=acepta]');
     await p.click('.susc button[type=submit]');
     await p.waitForTimeout(300);
-    comprobar(/Marca la casilla/.test(await p.textContent('.susc-msg')), 'sin la casilla no envía');
+    comprobar(/Marca la casilla/.test(await p.textContent('.susc-msg')), 'si la desmarca, no envía');
     await p.check('.susc input[name=acepta]');
     await p.click('.susc button[type=submit]');
     await p.waitForTimeout(400);
