@@ -1887,7 +1887,11 @@ button.col-paso{width:100%;font:inherit;color:inherit;text-align:left;cursor:poi
 button.col-paso::after{content:'›';position:absolute;right:15px;top:50%;transform:translateY(-55%);
   font-size:26px;line-height:1;color:var(--rose)}
 @media(hover:hover){button.col-paso:hover{border-color:var(--plum)}}
-@media(min-width:760px){button.col-paso{text-align:center;padding-right:16px}button.col-paso::after{display:none}}
+/* En computador los escalones van en tres columnas, cada uno apilado: sin
+   flex-wrap, que en columna mandaba el «Elegir…» fuera de la tarjeta. */
+@media(min-width:760px){button.col-paso{text-align:center;padding-right:16px;flex-wrap:nowrap}
+  button.col-paso::after{display:none}
+  button.col-paso .col-paso-ir{flex-basis:auto}}
 /* Lo que pasa al tocar, dicho en el propio escalón. */
 .col-paso-ir{flex-basis:100%;order:3;font-size:12.5px;letter-spacing:.04em;color:var(--pagar);text-decoration:underline;
   text-underline-offset:3px}
@@ -1924,7 +1928,7 @@ body.pag-campana .menu-panel,body.pag-campana .busq{display:none!important}
 .cp-sec{padding-top:10px;padding-bottom:26px}
 #destacadas{padding-top:8px}
 .cp-sec h2{font-size:clamp(23px,6vw,34px);line-height:1.15;margin:4px 0 6px}
-.cp-sec .col-sub{margin:0 0 12px}
+.cp-sec .col-sub{margin:0 0 12px;text-align:left;max-width:none}
 /* Las destacadas: en fila, foto a la izquierda, para que las cinco quepan en
    el primer pantallazo del celular con su precio y su botón. */
 .cp-dest{display:grid;gap:7px}
@@ -1937,7 +1941,9 @@ body.pag-campana .menu-panel,body.pag-campana .busq{display:none!important}
 .cp-dest .pc-add{justify-self:end;min-height:36px;padding:9px 14px}
 @media(min-width:760px){.cp-dest{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}}
 .cp-base{display:grid;gap:14px}
-@media(min-width:760px){.cp-base{grid-template-columns:minmax(220px,300px) 1fr;align-items:start}}
+@media(min-width:760px){.cp-base{grid-template-columns:minmax(220px,300px) 1fr;align-items:start;gap:24px}
+  .cp-base .grid--base{grid-template-columns:1fr}
+  .cp-dest .pc{grid-template-columns:96px 1fr}.cp-dest .pc-img{width:96px;height:96px}}
 .cp-foot{background:var(--ink);color:#c3b4c6;padding:26px 0 calc(var(--dock) + 26px);font-size:13px;line-height:1.6}
 .cp-foot a{color:var(--bone)}
 .cp-foot .brand{color:var(--bone)}

@@ -183,6 +183,33 @@ async function main() {
       'Marvel: «+ 3 charms» lleva a las piezas y dice qué hacer');
     await p.close();
 
+    /* En computador y tableta también (pedido del propietario, 2026-11-20:
+       «todo debe estar optimizado tanto para computador como para celular»).
+       El 20-nov, a lo ancho, el «Elegir…» de cada escalón se salía de su
+       tarjeta y el brazalete quedaba en la columna equivocada. */
+    for (const ancho of [1366, 800]) {
+      for (const pag of [c.archivo, 'coleccion-marvel.html', 'kit-avengers.html']) {
+        p = await b.newPage({ viewport: { width: ancho, height: 800 } });
+        const errs = []; p.on('pageerror', e => errs.push(e.message));
+        await p.goto(BASE + '/' + pag, { waitUntil: 'load' });
+        await p.waitForTimeout(600);
+        const r = await p.evaluate(() => {
+          const dentro = (h, cont) => { const a = h.getBoundingClientRect(), c = cont.getBoundingClientRect();
+            return a.left >= c.left - 1 && a.right <= c.right + 1 && a.top >= c.top - 1 && a.bottom <= c.bottom + 1; };
+          const fuera = [...document.querySelectorAll('button.col-paso')].filter(bt =>
+            [...bt.children].some(h => !dentro(h, bt))).length;
+          const base = document.querySelector('.cp-base');
+          let lado = true;
+          if (base) { const t = base.querySelector('.pc').getBoundingClientRect(), e = base.querySelector('.col-escalera').getBoundingClientRect();
+            lado = t.right <= e.left && Math.abs(t.top - e.top) < 40; }
+          return { fuera, lado, des: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+        });
+        comprobar(r.fuera === 0 && r.lado && r.des <= 0 && !errs.length,
+          `${pag} a ${ancho} px: nada se sale de su tarjeta ni desborda`, JSON.stringify(r) + (errs.length ? ' ' + errs.join('|') : ''));
+        await p.close();
+      }
+    }
+
     /* Ninguna página con el botón muerto: con la selección vacía, tocarlo
        mueve la página hasta algo que elegir. */
     for (const [pag, sel] of [['index.html', '#brazaletes'], ['coleccion-marvel.html', '#piezas'], ['coleccion-simbolos.html', '#piezas'],

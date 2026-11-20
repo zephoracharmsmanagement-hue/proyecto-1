@@ -1026,9 +1026,10 @@ PAGINA_CAMPANA = '''<!DOCTYPE html>
   <h2>El brazalete de la colección</h2>
   <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
   sale <b>gratis</b>. Con 6 piezas son 2 gratis. Se aplica solo en el carrito.</p>
+  <!-- #b-filters lo exige tienda.js. Vacío: una sola base. Fuera de .cp-base:
+       dentro ocupaba una columna de la rejilla en computador. -->
+  <div class="filters" id="b-filters" hidden></div>
   <div class="cp-base">
-    <!-- #b-filters lo exige tienda.js. Vacío: una sola base. -->
-    <div class="filters" id="b-filters" hidden></div>
     <div class="grid grid--base" id="brazaletes">
 {tarjeta_base}
     </div>
