@@ -146,6 +146,26 @@ async function main() {
     comprobar(!p.errs.length, 'consola limpia', p.errs.join(' | ') || undefined);
     await p.close();
 
+    /* Una destacada agotada no ocupa el primer pantallazo, aunque esté en la
+       lista del anuncio: se muda al final de «Toda la colección». Se simula
+       con el conteo en 0 (en vivo lo dice disponibilidad). */
+    p = await nueva();
+    const agotar = c.destacados[c.destacados.length - 1];
+    await p.route('**/assets/stock.json*', async r => {
+      const s = JSON.parse(fs.readFileSync(path.join(RAIZ, 'assets', 'stock.json'), 'utf8'));
+      s.items[agotar].stock = 0;
+      await r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(s) });
+    });
+    await p.goto(BASE + '/' + c.archivo, { waitUntil: 'load' });
+    await p.waitForTimeout(1200);
+    const sitio = await p.evaluate(id => ({
+      dest: [...document.querySelectorAll('#destacadas .pc')].map(e => e.dataset.id),
+      ultima: [...document.querySelectorAll('#piezas .grid > .pc')].map(e => e.dataset.id).pop(),
+    }), agotar);
+    comprobar(!sitio.dest.includes(agotar) && sitio.dest.length === c.destacados.length - 1 && sitio.ultima === agotar,
+      `una destacada agotada (${agotar}) sale del primer pantallazo y va al final de la colección`, JSON.stringify(sitio));
+    await p.close();
+
     /* El escalón «Brazalete solo» pide la talla; «+ 3 charms» lleva a las
        piezas con un aviso. */
     p = await nueva();

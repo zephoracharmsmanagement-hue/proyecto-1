@@ -1015,7 +1015,7 @@ PAGINA_CAMPANA = '''<!DOCTYPE html>
 
 <!-- 1 · LAS DEL ANUNCIO, en el primer pantallazo. -->
 <section class="cp-sec wrap" id="destacadas" aria-label="Las del anuncio">
-  <div class="cp-dest" data-agotadas-final>
+  <div class="cp-dest" data-agotadas-final data-agotadas-a="#piezas .grid">
 {tarjetas_dest}
   </div>
 </section>
@@ -1131,6 +1131,14 @@ def generar_campana(c, html, escribir):
     if fuera:
         raise SystemExit('Campaña %s: %s no es del grupo %s. Solo el tema.' % (c['id'], ', '.join(fuera), c['grupo']))
     resto = [pid for pid in tema if pid not in c['destacados']]
+    # Una destacada agotada no ocupa el primer pantallazo: tienda.js la muda al
+    # final de «Toda la colección» con las existencias en vivo. Aquí solo se
+    # avisa con el último conteo (stock.json no sabe lo vendido después).
+    stock = json.loads((RAIZ / 'assets' / 'stock.json').read_text(encoding='utf-8'))['items']
+    for d in c['destacados']:
+        it = stock.get(d) or {}
+        if (sum(it['tallas'].values()) if it.get('tallas') else it.get('stock', 0)) <= 0:
+            print('  AVISO  %s: «%s» está en 0 en el último conteo; en la página baja al final.' % (c['archivo'], d))
     b = bloques(html)
     p = precios_de_combo({'id': c['base'], 'talla': None}, c['destacados'] + resto)
     desc = '%s: %s' % (c['titulo'], c['texto'])

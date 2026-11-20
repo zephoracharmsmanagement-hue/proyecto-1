@@ -2652,6 +2652,15 @@ function alLlegarInventario(){
    orden de antes, y lo disponible sube. Lo usan las páginas de campaña: la
    pieza del anuncio que se agotó no ocupa el primer pantallazo (2026-11-20). */
 function agotadasAlFinal(){
+  /* [data-agotadas-a="#sel"]: las agotadas no se quedan aquí, se mudan al
+     final de esa otra rejilla. Lo usan las destacadas de una campaña: una
+     pieza agotada no puede ocupar el primer pantallazo, aunque esté en la
+     lista del anuncio (2026-11-20). Si vuelve a haber unidades, regresa. */
+  document.querySelectorAll('[data-agotadas-a]').forEach(g=>{
+    const otra=document.querySelector(g.dataset.agotadasA); if(!otra) return;
+    [...otra.querySelectorAll(':scope > .pc[data-de]')].forEach(el=>{ if(!agotado(el.dataset.id)) g.appendChild(el); });
+    [...g.children].filter(el=>el.matches('.pc')&&agotado(el.dataset.id)).forEach(el=>{ el.dataset.de='1'; otra.appendChild(el); });
+  });
   document.querySelectorAll('[data-agotadas-final]').forEach(g=>{
     const cs=[...g.children].filter(el=>el.matches('.pc'));
     cs.forEach((el,i)=>{ if(el.dataset.orden==null) el.dataset.orden=i; });
