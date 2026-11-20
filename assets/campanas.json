@@ -14,7 +14,9 @@
    "og": "assets/avengers-marmol.webp",
    "desde": "coleccion-marvel.html",
    "anuncios": ["120255300240020022"],
-   "_anuncios": "Quien llega a «desde» con utm_content igual a uno de estos ids de anuncio pasa a esta campaña (pedido del propietario, 2026-11-20). Así el anuncio no se rehace y conserva su prueba social. Las demás visitas ven la colección normal."
+   "_anuncios": "Quien llega a «desde» con utm_content igual a uno de estos ids de anuncio pasa a esta campaña (pedido del propietario, 2026-11-20). Así el anuncio no se rehace y conserva su prueba social. Las demás visitas ven la colección normal.",
+   "desde_meta": true,
+   "_desde_meta": "También pasa a la campaña quien llega a «desde» con fbclid, o sea desde cualquier clic en Facebook o Instagram (decisión del propietario, 2026-11-20). Hizo falta porque el anuncio BF 4 no lleva utm (se armó desde una publicación de IG, url_tags vacío) y ponérselos reinicia su aprendizaje. Alcanza también a BF 5 y a publicaciones normales que enlacen a la colección; el propietario lo sabe."
   }
  ]
 }
