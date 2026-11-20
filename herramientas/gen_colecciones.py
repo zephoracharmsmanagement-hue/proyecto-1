@@ -216,7 +216,7 @@ PAGINA = '''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{titulo} · Zephora Charms</title>
+{redir}<title>{titulo} · Zephora Charms</title>
 <meta name="description" content="{desc}">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzJBMUYyRSIvPjx0ZXh0IHg9IjE2IiB5PSIyMyIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtc2l6ZT0iMTkiIGZpbGw9IiNGNkYzRjQiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlo8L3RleHQ+PC9zdmc+">
 <meta name="theme-color" content="#2A1F2E">
@@ -412,7 +412,7 @@ def generar(col, html, escribir):
         foto_w=col['foto_w'], foto_h=col['foto_h'],
         tarjetas_charms='\n'.join('      ' + t for t in tarjetas(html, ids)),
         tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [col['base']])),
-        escalera=escalones(col['base'], p),
+        escalera=escalones(col['base'], p), redir=redireccion_de_anuncio(col['archivo']),
         tercer_charm=p['tercerCharm'], charm_solo=p['charmSolo'],
         pulsera_sola=p['pulseraSola'], dos=p['dos'], tres=p['tres'],
         ahorro_tres=p['ahorroTres'], ahorro_dos=p['ahorroDos'], contraentrega=p['contraentrega'],
@@ -1160,6 +1160,31 @@ def generar_campana(c, html, escribir):
         destino.write_text(pagina, encoding='utf-8')
     print('  %s  %s  (%d destacadas + %d del tema, %d KB)' % ('escrito ' if escribir else 'se escribiría',
           c['archivo'], len(c['destacados']), len(resto), len(pagina) // 1024))
+
+
+def redireccion_de_anuncio(archivo):
+    """Manda a su página de campaña a quien llega a «archivo» desde un anuncio.
+
+    El enlace de un anuncio hecho desde una publicación no se puede cambiar
+    sin rehacerlo, y rehacerlo pierde sus reacciones y comentarios. Así que el
+    anuncio sigue apuntando a la colección y esta, solo si la visita trae el
+    utm_content de ese anuncio (campanas.json: «desde» y «anuncios»), la pasa
+    a la campaña conservando utm y fbclid. Va lo primero del <head>, antes del
+    píxel: la colección no llega a pintarse ni a contar un PageView de más.
+    """
+    campanas = json.loads(CAMPANAS_JSON.read_text(encoding='utf-8'))['campanas']
+    reglas = {}
+    for c in campanas:
+        if c.get('desde') == archivo:
+            for ad in c.get('anuncios') or []:
+                if not re.fullmatch(r'[0-9]+', ad):
+                    raise SystemExit('Campaña %s: id de anuncio inválido: %r' % (c['id'], ad))
+                reglas[ad] = c['archivo']
+    if not reglas:
+        return ''
+    return ('<script>/* Visita de un anuncio con página de campaña: ver gen_colecciones.py */'
+            '(function(){try{var m=%s,d=m[new URLSearchParams(location.search).get("utm_content")];'
+            'if(d)location.replace(d+location.search)}catch(e){}})()</script>\n' % json.dumps(reglas))
 
 
 def generar_campanas(html, escribir):

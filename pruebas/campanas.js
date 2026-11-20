@@ -183,6 +183,29 @@ async function main() {
       'Marvel: «+ 3 charms» lleva a las piezas y dice qué hacer');
     await p.close();
 
+    /* Quien llega a la colección desde el anuncio pasa a la campaña (el
+       enlace del anuncio no se puede cambiar sin perder su prueba social);
+       las demás visitas se quedan en la colección. */
+    for (const c2 of CAMPANAS.filter(x => x.desde && (x.anuncios || []).length)) {
+      const h = leer(c2.desde);
+      comprobar(h.indexOf('utm_content') > 0 && h.indexOf('utm_content') < h.indexOf('fbq('),
+        `${c2.desde}: la redirección va antes del píxel (sin PageView de más)`);
+      p = await nueva();
+      await p.goto(BASE + '/' + c2.desde + '?utm_source=ig&utm_content=' + c2.anuncios[0] + '&fbclid=abc', { waitUntil: 'load' });
+      await p.waitForTimeout(600);
+      const u = new URL(p.url());
+      comprobar(u.pathname.endsWith('/' + c2.archivo) && u.searchParams.get('fbclid') === 'abc' && u.searchParams.get('utm_content') === c2.anuncios[0],
+        `del anuncio ${c2.anuncios[0]} → ${c2.archivo}, conservando utm y fbclid`, u.pathname + u.search);
+      await p.goto(BASE + '/' + c2.desde + '?utm_content=999&fbclid=abc', { waitUntil: 'load' });
+      await p.waitForTimeout(400);
+      const u2 = new URL(p.url());
+      await p.goto(BASE + '/' + c2.desde, { waitUntil: 'load' });
+      await p.waitForTimeout(400);
+      comprobar(u2.pathname.endsWith('/' + c2.desde) && new URL(p.url()).pathname.endsWith('/' + c2.desde) && !p.errs.length,
+        `otra visita (otro anuncio, o sin utm) se queda en ${c2.desde}`);
+      await p.close();
+    }
+
     /* En computador y tableta también (pedido del propietario, 2026-11-20:
        «todo debe estar optimizado tanto para computador como para celular»).
        El 20-nov, a lo ancho, el «Elegir…» de cada escalón se salía de su
