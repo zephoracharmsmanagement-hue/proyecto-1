@@ -44,7 +44,9 @@ const salidas = (h, tema) => [...h.matchAll(/href="([^"#][^"]*)"/g)].map(m => m[
   .filter(u => !/^(envios-y-devoluciones|politica-de-privacidad|terminos-y-condiciones|politica-de-cookies|preguntas-frecuentes)\.html/.test(u))
   .filter(u => !/^(tienda\.css|data:|mailto:|tel:|checkout\.html|https:\/\/instagram\.com\/zephora_charms)/.test(u))
   .filter(u => { const m = u.match(/^producto-(.+)\.html/); return !(m && tema.has(m[1])); })
-  .filter(u => !/^assets\//.test(u));
+  .filter(u => !/^assets\//.test(u))
+  /* El logotipo vuelve a la portada: es la única salida a propósito. */
+  .filter(u => u !== 'index.html');
 
 async function main() {
   console.log('\n1 · Páginas de campaña (assets/campanas.json)');
@@ -67,8 +69,10 @@ async function main() {
       'sin menú (body.pag-campana) y la barra vacía lleva a las destacadas');
     const sal = salidas(h, tema);
     comprobar(sal.length === 0, 'ningún enlace saca del tema', [...new Set(sal)].slice(0, 6).join(', ') || undefined);
-    comprobar(/class="cp-wa"[^>]*data-wa-evento="Contact"/.test(h) && /id="year"/.test(h),
-      'se quedan WhatsApp (con su evento) y el pie con #year, que exige tienda.js');
+    comprobar(/class="cp-wa-float"[^>]*data-wa-evento="Contact"[^>]*href="https:\/\/wa\.me\//.test(h) && /id="year"/.test(h),
+      'el ícono flotante de WhatsApp (con su evento) y el pie con #year, que exige tienda.js');
+    comprobar(/<a class="brand" href="index\.html">/.test(h) && (h.match(/href="index\.html"/g) || []).length === 1,
+      'el logotipo lleva a la página principal, y es la única salida');
     comprobar(/data-agotadas-final/.test(h), 'las agotadas bajan al final (data-agotadas-final)');
     comprobar(/data-elegir-base="[^"]+"/.test(h) && (h.match(/data-ir="#piezas"/g) || []).length >= 2,
       'el combo se puede tocar: brazalete y charms');
@@ -131,6 +135,24 @@ async function main() {
     const menu = await p.evaluate(() => ['.tnav', '.top-lupa', '.top-menu'].map(s => {
       const el = document.querySelector(s); return el ? getComputedStyle(el).display : 'none'; }));
     comprobar(menu.every(d => d === 'none'), 'sin menú, buscador ni hamburguesa', menu.join(','));
+    /* El ícono de WhatsApp, a la vista y sin tapar el regalo, la barra ni un
+       «Agregar». En celular y en computador. (El regalo no se pinta en un
+       navegador automatizado; se compara contra su sitio: abajo a la izquierda.) */
+    for (const ancho of [375, 1366]) {
+      await p.setViewportSize({ width: ancho, height: 812 });
+      await p.waitForTimeout(200);
+      const wa = await p.evaluate(() => {
+        const w = document.querySelector('.cp-wa-float'); if (!w || getComputedStyle(w).display === 'none') return 'no está';
+        const a = w.getBoundingClientRect(), cruza = el => { if (!el) return false; const c = el.getBoundingClientRect();
+          return c.width > 0 && !(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top); };
+        if (a.right > innerWidth || a.left < innerWidth / 2) return 'no está abajo a la derecha';
+        if (cruza(document.getElementById('dock'))) return 'tapa la barra';
+        return [...document.querySelectorAll('.pc-add')].some(cruza) ? 'tapa un Agregar' : '';
+      });
+      comprobar(wa === '', `a ${ancho} px el ícono de WhatsApp se ve y no tapa la barra ni un «Agregar»`, wa || undefined);
+    }
+    await p.setViewportSize({ width: 375, height: 812 });
+    await p.waitForTimeout(200);
     comprobar(await p.locator('#dock-send').textContent() === 'Elige tu primera pieza',
       'con la selección vacía la barra dice «Elige tu primera pieza»');
     const url0 = p.url();

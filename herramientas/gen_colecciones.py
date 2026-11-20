@@ -1081,9 +1081,10 @@ PAGINA_CAMPANA = '''<!DOCTYPE html>
 </html>
 '''
 
-WA_ICONO = ('<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
+WA_ICONO = ('<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
             'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 01-13.5 '
-            '7.8L3 21l1.2-4.5A9 9 0 1121 12z"/></svg>')
+            '7.8L3 21l1.2-4.5A9 9 0 1121 12z"/><path d="M9.2 8.4c-.3 1.2.3 2.7 1.700 4.100s2.900 2 4.100 1.700l.6-1.300-1.700-1-.9.700c-.7-.3-1.500-1.100-1.800-1.800l.7-.9-1-1.700z"'
+            'fill="currentColor" stroke="none"/></svg>')
 
 
 def wa_href(tema):
@@ -1115,13 +1116,20 @@ def solo_tema(pagina, tema, salida='#destacadas'):
                     lambda m: 'href="#%s"' % m.group(1) if ('id="%s"' % m.group(1)) in pagina else 'href="%s"' % salida,
                     pagina)
     pagina = pagina.replace('<a class="ann-slide" href="#destacadas"', '<a class="ann-slide" href="#combo"')
-    pagina = pagina.replace('<a class="brand" href="index.html">', '<a class="brand" href="#top">')
     # «Ver la página completa de la pieza», en la ficha: llevaría a una página
     # con todo el menú. Se oculta por CSS (tienda.js le sigue poniendo href).
     pagina = pagina.replace('<a class="fx-pag" id="fx-pag" href="index.html">', '<a class="fx-pag" id="fx-pag" href="#top" hidden>')
-    boton =('<a class="cp-wa" data-wa="cabecera" data-wa-evento="Contact" href="%s" '
-             'aria-label="Escríbenos por WhatsApp">%sWhatsApp</a>\n    ' % (wa_href(tema), WA_ICONO))
-    return pagina.replace('<button class="top-lupa"', boton + '<button class="top-lupa"', 1)
+    # El logotipo sí vuelve a la portada, como en toda la tienda (pedido del
+    # propietario, 2026-11-20): un logo que no responde es otro clic muerto.
+    # Es la única salida a propósito.
+    pagina = pagina.replace('<a class="brand" href="#top">', '<a class="brand" href="index.html">')
+    # WhatsApp: el ícono flotante, abajo a la derecha (el regalo va a la
+    # izquierda). El propietario pidió que volviera (2026-11-20); en el resto
+    # de la tienda se quitó el 2026-10-02. Sin botón en la cabecera: con los
+    # dos, uno sobraba.
+    flotante = ('<a class="cp-wa-float" data-wa="flotante" data-wa-evento="Contact" href="%s" target="_blank" '
+                'rel="noopener" aria-label="Escríbenos por WhatsApp">%s</a>\n' % (wa_href(tema), WA_ICONO))
+    return pagina.replace('</body>', flotante + '</body>', 1)
 
 
 def generar_campana(c, html, escribir):
