@@ -787,7 +787,8 @@ section{scroll-margin-top:64px}
    que sirve. Al no haber texto visible, el aria-label del enlace deja de ser
    un extra y pasa a ser la unica forma de saber que hace este boton con un
    lector de pantalla. */
-/* .wa-float (botón flotante de WhatsApp) se retiró el 2026-10-02. */
+/* .wa-float (botón flotante de WhatsApp) se retiró el 2026-10-02 y volvió el
+   2026-11-20 como .cp-wa-float, en toda la tienda: lo pone tienda.js. */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:80;background:var(--ink);color:var(--bone);
   border-top:1px solid rgba(255,255,255,.14);height:var(--dock);
   display:flex;align-items:center;gap:10px;padding:0 12px;cursor:pointer}
@@ -1926,7 +1927,7 @@ body.pag-campana .menu-panel,body.pag-campana .busq{display:none!important}
   box-shadow:0 6px 20px rgba(42,31,46,.22);text-decoration:none}
 @media(hover:hover){.cp-wa-float:hover{background:#1e6b58}}
 /* Con el regalo y WhatsApp abajo, el aviso corto sale por encima de los dos. */
-body.pag-campana .aviso-corto{bottom:calc(var(--dock) + 80px)}
+.aviso-corto{bottom:calc(var(--dock) + 80px)}
 .cp-hero{padding-top:12px;padding-bottom:4px}
 .cp-hero h1{font-size:clamp(25px,6.6vw,40px);line-height:1.1;margin:3px 0 4px}
 .cp-hero p{margin:0;color:#6d6070;font-size:13.5px;line-height:1.4}
@@ -1959,4 +1960,6 @@ body.pag-campana .fx-pag{display:none!important}
 /* En la página de una pieza, el nombre y el precio quedan abajo a la izquierda
    del primer pantallazo, justo donde flota el regalo. Desde que el regalo se ve
    siempre (2026-11-20), ahí va a la derecha, donde no tapa nada. */
-body[data-producto] .susc-fab{left:auto;right:14px}
+/* Con WhatsApp de vuelta en toda la tienda (2026-11-20), en la ficha el
+   regalo va encima de él, los dos a la derecha. */
+body[data-producto] .susc-fab{left:auto;right:14px;bottom:calc(var(--dock) + 78px)}
