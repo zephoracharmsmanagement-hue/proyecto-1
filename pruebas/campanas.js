@@ -71,6 +71,8 @@ async function main() {
     comprobar(sal.length === 0, 'ningún enlace saca del tema', [...new Set(sal)].slice(0, 6).join(', ') || undefined);
     comprobar(/class="cp-wa-float"[^>]*data-wa-evento="Contact"[^>]*href="https:\/\/wa\.me\//.test(h) && /id="year"/.test(h),
       'el ícono flotante de WhatsApp (con su evento) y el pie con #year, que exige tienda.js');
+    comprobar(/class="cp-wa-float"[^>]*><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"[^>]*><path d="M12\.04 2C6\.58 2 /.test(h),
+      'el ícono de WhatsApp es el glifo oficial relleno, el de la portada original (propietario, 2026-11-20)');
     comprobar(/<a class="brand" href="index\.html">/.test(h) && (h.match(/href="index\.html"/g) || []).length === 1,
       'el logotipo lleva a la página principal, y es la única salida');
     comprobar(/data-agotadas-final/.test(h), 'las agotadas bajan al final (data-agotadas-final)');

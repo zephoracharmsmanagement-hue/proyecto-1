@@ -1919,11 +1919,12 @@ body.sel-vacia #dock-send{white-space:nowrap;padding-left:14px;padding-right:14p
 body.pag-campana .tnav,body.pag-campana .top-lupa,body.pag-campana .top-menu,
 body.pag-campana .menu-panel,body.pag-campana .busq{display:none!important}
 /* Ícono flotante de WhatsApp (volvió a pedido del propietario, 2026-11-20):
-   abajo a la derecha, sobre la barra; el regalo va a la izquierda. */
+   abajo a la derecha, sobre la barra; el regalo va a la izquierda. Mismo
+   glifo, verde (--wa) y sombra del .wa-float original. */
 .cp-wa-float{position:fixed;right:14px;bottom:calc(var(--dock) + 14px);z-index:70;width:52px;height:52px;
-  border-radius:50%;background:#25D366;color:#fff;display:inline-flex;align-items:center;justify-content:center;
-  box-shadow:0 6px 20px rgba(42,31,46,.25);text-decoration:none}
-@media(hover:hover){.cp-wa-float:hover{background:#1ebe5b}}
+  border-radius:50%;background:var(--wa);color:#fff;display:inline-flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(42,31,46,.22);text-decoration:none}
+@media(hover:hover){.cp-wa-float:hover{background:#1e6b58}}
 /* Con el regalo y WhatsApp abajo, el aviso corto sale por encima de los dos. */
 body.pag-campana .aviso-corto{bottom:calc(var(--dock) + 80px)}
 .cp-hero{padding-top:12px;padding-bottom:4px}
