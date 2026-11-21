@@ -1189,7 +1189,10 @@ def generar_campana_inicial_signo(c, html, cat, escribir):
         desc=desc.replace('"', ''), og=c['og'],
         head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'], chrome=b['chrome'],
-        tarjeta_letras='\n'.join('    ' + t for t in tarjetas(html, ['letras'])),
+        # La foto del primer pantallazo no espera: con loading="lazy" se
+        # quedaba en blanco un momento.
+        tarjeta_letras='\n'.join('    ' + t for t in tarjetas(html, ['letras'])).replace(
+            ' loading="lazy"', ' fetchpriority="high"', 1),
         tarjetas_resto='\n'.join('    ' + t for t in tarjetas(html, signos)),
         n_resto=len(signos),
         tarjetas_base='\n'.join('    ' + t for t in tarjetas(html, cat['pulseras'])),
@@ -1230,7 +1233,8 @@ def generar_campana(c, html, escribir):
         desc=desc.replace('"', ''), og=c.get('og', 'assets/avengers-marmol.webp'),
         head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'], chrome=b['chrome'],
-        tarjetas_dest='\n'.join('    ' + t for t in tarjetas(html, c['destacados'])),
+        # Las del primer pantallazo no esperan (sin loading="lazy").
+        tarjetas_dest='\n'.join('    ' + t for t in tarjetas(html, c['destacados'])).replace(' loading="lazy"', ''),
         tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [c['base']])),
         tarjetas_resto='\n'.join('    ' + t for t in tarjetas(html, resto)),
         n_resto=len(resto), escalera=escalones(c['base'], p, '#piezas'),

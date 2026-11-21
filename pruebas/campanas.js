@@ -78,6 +78,8 @@ async function main() {
     comprobar(/<a class="brand" href="index\.html">/.test(h) && (h.match(/href="index\.html"/g) || []).length === 1,
       'el logotipo lleva a la página principal, y es la única salida');
     comprobar(/data-agotadas-final/.test(h), 'las agotadas bajan al final (data-agotadas-final)');
+    comprobar(!/loading="lazy"/.test(h.slice(h.indexOf('id="destacadas"'), h.indexOf('</section>', h.indexOf('id="destacadas"')))),
+      'las fotos del primer pantallazo no llevan carga diferida');
     if (c.tipo === 'inicial-signo') {
       comprobar((h.match(/id="letras-grid"/g) || []).length === 1 && !/class="letras-ver"/.test(h),
         'un solo selector de iniciales, y sin el enlace a la página de cada inicial');

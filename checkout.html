@@ -215,7 +215,7 @@ button{font-family:inherit}
 .co-t{font-size:clamp(26px,7vw,34px);line-height:1.1;margin:22px 0 16px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .campo[hidden],.ops[hidden]{display:none}
-.env-plazo{font-size:12.5px;line-height:1.45;color:var(--gris);margin:6px 0 0}
+.env-plazo{font-size:13px;line-height:1.45;color:var(--gris);margin:0 0 14px}
 .env-plazo b{font-weight:500;color:var(--ink)}
 /* Lo opcional, plegado: una casilla limpia que abre su campo. */
 .extra{display:grid;gap:10px}
@@ -339,9 +339,6 @@ button{font-family:inherit}
         <div id="res-totales"></div>
           <div class="env-bar" id="env-bar" aria-hidden="true"><i></i></div>
           <p class="env-nota" id="env-nota"></p>
-          <!-- El plazo, con las mismas cifras de la ficha y de
-               envios-y-devoluciones.html: no se inventa ninguno. -->
-          <p class="env-plazo" id="env-plazo">Entrega en días hábiles desde el despacho: <b>Bogotá 1 día</b> · municipios cercanos 1 – 2 · ciudades principales 2 – 4 · resto del país 3 – 6.</p>
           <p class="env-nota env-nota--regalo">🎁 Incluye caja, paño para limpiar la plata y dedicatoria escrita a mano — sin costo.</p>
         <a class="res-editar" href="index.html#brazaletes">← Modificar mi selección</a>
       </div>
@@ -550,6 +547,12 @@ button{font-family:inherit}
               </span>
             </label>
           </div>
+
+          <!-- El plazo, con las mismas cifras de la ficha y de
+               envios-y-devoluciones.html: no se inventa ninguno. Va aquí, bajo
+               los medios de pago, y no en el resumen: en el celular el resumen
+               está plegado hasta tocar «Ver pedido» y el plazo no se veía. -->
+          <p class="env-plazo" id="env-plazo">Entrega en días hábiles desde el despacho: <b>Bogotá 1 día</b> · municipios cercanos 1 – 2 · ciudades principales 2 – 4 · resto del país 3 – 6.</p>
 
           <div class="aval">
             <span class="aval-e" aria-label="5 de 5 estrellas"><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg><svg width="12" height="12" viewBox="0 0 24 24" fill="#B4657F" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></span>

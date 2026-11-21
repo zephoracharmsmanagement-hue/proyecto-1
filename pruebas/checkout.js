@@ -172,8 +172,9 @@ async function llenarDatos(p, d) {
     ok(!(await p.locator('#cambiar-pago').isVisible()) && await p.evaluate(() => document.querySelector('#ops-pago input[name="pago"]:checked').value === 'anticipado')
       && /Pagar ahora/i.test(await p.locator('#pago-elegido-tx').textContent()),
       'y viene marcada la que eligió en el carrito');
-    ok(/Bogotá 1 día/.test(await p.locator('#env-plazo').textContent()) && /3 – 6/.test(await p.locator('#env-plazo').textContent()),
-      'el plazo de entrega está a la vista, con las cifras de la ficha');
+    ok(await p.locator('#env-plazo').isVisible() && (await p.locator('#env-plazo').count()) === 1
+      && /Bogotá 1 día/.test(await p.locator('#env-plazo').textContent()) && /3 – 6/.test(await p.locator('#env-plazo').textContent()),
+      'el plazo de entrega se ve sin abrir el resumen (una sola vez), con las cifras de la ficha');
     const total = (await p.locator('#res-total').textContent()).trim();
     ok((await p.locator('#confirmar').textContent()).includes(total), 'el botón dice cuánto va a pagar', total);
 
