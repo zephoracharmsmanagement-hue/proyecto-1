@@ -5,6 +5,56 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Black Friday 2026 — precios y oferta (PR A, en vista previa: NO desplegado)
+
+Pedido del propietario (2026-11-20). **Toca el cobro**: no se despliega sin su «deploy», y antes de
+desplegar hay que avisar al tablero y a la Sesión 5 con la hora (hay anuncios con cifras en pesos).
+
+- **Precio de lista +$10.000 en todas las referencias** (`DATA` en tienda.js y `precio` en stock.json).
+- **`OFERTA` en tienda.js es el único sitio de la oferta**: `{nombre, hasta:"2026-11-30", charms:20,
+  brazaletes:10}`. Mientras está vigente se cobra lista − % y la lista se ve tachada con su etiqueta
+  (`precioHTML()` en tienda.js, `precio_html()` en herramientas/precios_tarjetas.py). Solo tachado y
+  porcentaje: **ni «antes» ni «precio anterior»** en ningún texto (decisión del propietario, por la SIC).
+- **Al vencer (30-nov 23:59, hora Colombia) vuelve sola al precio de lista**, en la página y en el
+  servidor, sin desplegar: `catalogo.json` trae `precios` (con descuento) y `lista`, y `_precios.js`
+  elige por fecha (`ofertaVigente()`, con 30 min de gracia solo en el servidor). El HTML ya generado
+  sigue diciendo el precio rebajado en lo que no pinta tienda.js (totales de los kits, cuota de Addi
+  de la ficha, datos estructurados): **el 1-dic conviene regenerar y desplegar** — poner `OFERTA=null`
+  (o la fecha nueva), y correr la cadena de abajo. La barra de arriba vuelve sola al aviso de siempre.
+- **Cadena al tocar un precio o la oferta:** `extraer_catalogo.py` → `precios_tarjetas.py` (nuevo:
+  escribe el precio de las tarjetas y niveles de index.html) → `gen_colecciones.py --escribir` →
+  `gen_productos.py --escribir`.
+- **Contraentrega: envío gratis desde 2 piezas** (`CONTRA_GRATIS_DESDE` en tienda.js →
+  `reglas.contraentregaGratisDesde`). Con 1 pieza siguen los $20.000. Servidor, carrito, checkout,
+  fichas, preguntas frecuentes, envíos y boletín.
+- **La promo de piezas no cambia** (4 → 1 gratis, 6 → 2) y se aplica sobre el precio final.
+- **Quién más lee precios:** el feed de Meta manda `price` = lista y `sale_price` = oferta;
+  `disponibilidad` devuelve `precio` (lo que se cobra hoy, ya no sale de stock.json) y `precio_lista`
+  (solo con oferta vigente); las fichas llevan `priceValidUntil`; el PDF se arma con el precio del día.
+- `gen_paginas.py` no conoce la línea de Clarity de las páginas legales: al regenerar hay que
+  reponerla a mano (se repuso en envíos y preguntas frecuentes; las otras tres no se tocaron).
+
+## Black Friday 2026 — pago y página «Inicial y signo» (PR B, en vista previa: NO desplegado)
+
+Del estudio de conversión (2026-11-20). Va montado sobre el PR A: se despliega después de él.
+
+- **Checkout:** los medios de pago van todos a la vista (Wompi, contraentrega, Addi), sin «Cambiar»
+  (`#pago-elegido` sigue en el HTML, oculto: de ahí leen las pruebas). Sistecrédito no se muestra
+  mientras `SISTE_PAUSADO`. La caja de la promo ya no dice «agrega N piezas»: solo aparece para
+  celebrar una pieza gratis ya ganada (el aviso de sumar se queda en el carrito). Plazo de entrega
+  a la vista (`#env-plazo`, mismas cifras de la ficha). El celular acepta +57 / 57 delante.
+  «Intentar de nuevo» encuentra el formulario lleno (sale de `zephora.pedido`, sessionStorage).
+- **Medición:** `InitiateCheckout` una vez por carrito y sesión (`zephora.ic` en sessionStorage), no
+  en cada carga del checkout: **el conteo baja frente a antes sin que baje la intención**; no
+  comparar semanas de un lado y otro del despliegue. `AddToCart` lleva el parámetro propio
+  `origen` (grilla, pagina-pieza, vitrina, ficha-emergente, barra, kit).
+- **Aviso «✓ Agregado · Ir a pagar»** al agregar una pieza o elegir talla (`avisoAgregado()` en
+  tienda.js); el botón va al pago por `comprar()`.
+- **`campana-inicial-signo.html`** (campanas.json, `tipo: inicial-signo`): tarjeta de iniciales, 12
+  signos y todos los brazaletes. La portada con `?cat=Letras` o `?cat=Zodiaco` **y** `fbclid` pasa
+  a esa página (`portada_cat`; el script vive en index.html entre las marcas `redir-campana` y lo
+  escribe `gen_colecciones.py`). Sin fbclid, la portada filtra como siempre.
+
 ## Campañas y conversión — desplegado el 2026-11-20 (PR #56)
 
 Salió de los clics de Clarity y de la pauta de Marvel. Lo que cambia para quien toque la tienda:

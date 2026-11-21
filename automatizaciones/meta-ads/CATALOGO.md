@@ -42,7 +42,8 @@ créditos.
 | Campo | De dónde sale |
 |---|---|
 | `id` | slug de `catalogo.json`, **el mismo que manda el píxel** |
-| `price` | `calcular()` de `_precios.js` con un pedido de una pieza. Sin `sale_price`: la promo empieza en 4 piezas |
+| `price` | `calcular()` de `_precios.js` con un pedido de una pieza. Con una oferta de temporada vigente (`reglas.oferta`, Black Friday 2026) es el precio de lista |
+| `sale_price` | lo que se cobra durante la oferta; vacío sin oferta. La promo de piezas no entra: empieza en 4 |
 | `availability` | charm: libre del sku `id`; brazalete: **suma de sus 5 tallas** (`id\|17`…`id\|21`), nunca `item.stock` |
 | `image_link` | `/.netlify/images?url=/assets/hd/<foto>&fm=jpg&w=1080` (JPEG público, 1080 px) |
 | `link` | `producto-<id>.html`; un anillo enlaza a la página de su modelo |

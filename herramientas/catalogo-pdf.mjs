@@ -112,7 +112,11 @@ function tarjetas(trozo) {
 export function leerTienda() {
   const html = leer('index.html');
   const cat = JSON.parse(leer('assets/catalogo.json'));
-  const precios = cat.precios;
+  /* Con una oferta de temporada, catalogo.json trae `precios` (con descuento) y
+     `lista`. El PDF se arma en cada despliegue: lleva lo que se cobra ese día,
+     igual que _precios.js (oferta vigente hasta el último día, hora de Colombia). */
+  const of = cat.reglas.oferta;
+  const precios = of && cat.lista && Date.now() > Date.parse(of.hasta + 'T23:59:59-05:00') ? cat.lista : cat.precios;
 
   /* Brazaletes, en el orden de su sección. */
   const brz = tarjetas(seccion(html, 'brazaletes'));

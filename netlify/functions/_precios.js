@@ -12,8 +12,31 @@
  */
 const CAT = require('../../assets/catalogo.json');
 const INV = require('../../assets/stock.json');
-const { precios, nombres, pulseras, reglas, fotos, grupos } = CAT;
+const { nombres, pulseras, reglas, fotos, grupos } = CAT;
 const ESP = new Set(pulseras);
+
+/* Oferta de temporada (Black Friday 2026). catalogo.json trae dos tablas:
+   `precios` —lista menos el descuento— y `lista`. Cuál se cobra lo decide la
+   fecha: hasta el último día de `reglas.oferta.hasta`, en hora de Colombia,
+   `precios`; después, `lista`, sin que nadie despliegue nada. La página hace
+   la misma cuenta (OFERTA en tienda.js) y pruebas/precios.js las compara.
+
+   La media hora de gracia es solo del servidor y a favor de la clienta: quien
+   abrió el pago a las 23:58 viendo el precio de oferta no puede encontrarse
+   con que se le cobra el de lista a las 00:01. */
+const OFERTA = reglas.oferta || null;
+const OFERTA_FIN = OFERTA ? Date.parse(OFERTA.hasta + 'T23:59:59-05:00') : 0;
+const GRACIA_MS = 30 * 60 * 1000;
+const ofertaVigente = (ahora = Date.now()) => !!OFERTA && ahora <= OFERTA_FIN + GRACIA_MS;
+const LISTA = CAT.lista || CAT.precios;
+/* La tabla con la que se cobra en este instante. Se pide en cada cálculo, no
+   una vez al cargar: una función de Netlify puede seguir viva de un día a otro. */
+const tabla = ahora => (ofertaVigente(ahora) ? CAT.precios : LISTA);
+/* Todas las piezas que existen, con o sin oferta (las dos tablas traen los
+   mismos ids; lo exige pruebas/precios.js). */
+const precios = CAT.precios;
+const precioDe = (id, ahora) => tabla(ahora)[id];
+const listaDe = id => LISTA[id];
 
 /* Tope de piezas por pedido. No es una regla de negocio, es un cortafuegos:
    sin él, un carrito con 10.000 charms genera un cobro absurdo. */
@@ -31,7 +54,8 @@ const MAX_CHARMS = 60;
    (gratisDe en tienda.js y en checkout.html) y pruebas/precios.js lo compara. */
 const cuantasGratis = n => reglas.promo.tramos.reduce((g, [p, k]) => (n >= p ? k : g), 0);
 
-function piezasGratis(pedido) {
+function piezasGratis(pedido, ahora) {
+  const precios = tabla(ahora);
   const piezas = pedido.charms.map(id => ({ id, precio: precios[id] }));
   if (pedido.base) piezas.push({ id: pedido.base.id, precio: precios[pedido.base.id] });
   const orden = piezas.map((x, i) => [x, i]).sort((a, b) => a[0].precio - b[0].precio || a[1] - b[1]);
@@ -141,20 +165,25 @@ class SinInventario extends Error {}
 
 /* El mismo cálculo que hace la página, con los mismos redondeos y en el mismo
    orden. Si esto y render() en index.html se separan, pruebas/precios.js falla. */
-function calcular(pedido) {
+function calcular(pedido, ahora) {
+  const precios = tabla(ahora);
   const brutoC = pedido.charms.reduce((s, id) => s + precios[id], 0);
   const brutoB = pedido.base ? precios[pedido.base.id] : 0;
-  const gratis = piezasGratis(pedido);
+  const gratis = piezasGratis(pedido, ahora);
   const desc = gratis.reduce((s, x) => s + x.precio, 0);
 
   /* El umbral de envío gratis mide mercancía, no total: si contara el envío,
      el propio envío ayudaría a alcanzarlo. Y el beneficio es solo del prepago:
      la contraentrega le cuesta a la tienda la comisión de recaudo y el riesgo
-     de devolución, así que ahí el envío se cobra siempre. */
+     de devolución, así que ahí el envío se cobra… salvo desde
+     `contraentregaGratisDesde` piezas (2, desde el 2026-11-20): con dos o más
+     la contraentrega tampoco lo paga. Cuenta piezas, no pesos. */
   const subtotal = brutoC + brutoB - desc;
   const alcanza = subtotal >= reglas.envioGratisDesde;
+  const piezas = pedido.charms.length + (pedido.base ? 1 : 0);
+  const contraLibre = reglas.contraentregaGratisDesde > 0 && piezas >= reglas.contraentregaGratisDesde;
   const envioGratis = alcanza
-    && (!reglas.envioGratisSoloAnticipado || pedido.pago === 'anticipado');
+    && (!reglas.envioGratisSoloAnticipado || pedido.pago === 'anticipado' || contraLibre);
   const envio = (subtotal <= 0 || envioGratis) ? 0 : reglas.envio[pedido.pago];
 
   /* Wompi cobra en centavos y en enteros. Se redondea una sola vez, al final:
@@ -180,10 +209,11 @@ function calcular(pedido) {
 /* Renglones legibles para el correo, el WhatsApp y el resumen del pedido.
    `gratis` cuenta cuántas unidades de esa línea salieron gratis por la promo;
    `precio` sigue siendo el de lista, para que el correo las muestre tachadas. */
-function detallar(pedido) {
+function detallar(pedido, ahora) {
+  const precios = tabla(ahora);
   const lineas = [];
   const libres = {};
-  piezasGratis(pedido).forEach(x => { libres[x.id] = (libres[x.id] || 0) + 1; });
+  piezasGratis(pedido, ahora).forEach(x => { libres[x.id] = (libres[x.id] || 0) + 1; });
   if (pedido.base) {
     lineas.push({
       id: pedido.base.id,
@@ -209,4 +239,5 @@ const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
    importación o a createRequire, y las dos formas se comportan distinto según
    si Netlify empaqueta o no. Pasando por aquí, hay un solo sitio que lo lee. */
 module.exports = { leerPedido, comprobarInventario, calcular, detallar, piezasGratis, cop,
-  PedidoInvalido, SinInventario, reglas, nombres, fotos, grupos, inventario: INV };
+  PedidoInvalido, SinInventario, reglas, nombres, fotos, grupos, inventario: INV,
+  ofertaVigente, precioDe, listaDe };
