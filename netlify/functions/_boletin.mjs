@@ -98,7 +98,8 @@ export function seleccionar(campana, disp) {
     .map(id => ({ id, nombre: piezas.get(id).nombre, url: pagina(id) }));
 
   return { anillos, charms, brazaletes, volvieron, signos, omitidas,
-    contraentrega: Number(disp.reglas.envio.contraentrega) };
+    contraentrega: Number(disp.reglas.envio.contraentrega),
+    contraGratisDesde: Number(disp.reglas.contraentregaGratisDesde) || 0 };
 }
 
 /* ── HTML ── */
@@ -179,7 +180,7 @@ export function armar(campana, sel, { baja, descuento = false }) {
 
   const beneficios = [
     '<b>Arma tu set: paga 3 y llévate 1 gratis · paga 4 y llévate 2.</b> Con 4 piezas sale gratis la de menor valor; con 6, las 2 de menor valor. Charms, anillos y brazaletes cuentan igual.',
-    `Envío gratis a toda Colombia pagando en línea. Contraentrega cuesta ${esc(cop(sel.contraentrega))}.`,
+    `Envío gratis a toda Colombia pagando en línea. ${sel.contraGratisDesde ? `Contraentrega también es gratis desde ${sel.contraGratisDesde} piezas; con una sola pieza cuesta ${esc(cop(sel.contraentrega))}.` : `Contraentrega cuesta ${esc(cop(sel.contraentrega))}.`}`,
     'Hasta 3 cuotas sin interés con Addi.',
     'Cada pedido va con caja, paño para limpiar la plata y dedicatoria escrita a mano.',
   ];

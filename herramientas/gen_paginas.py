@@ -312,7 +312,8 @@ ENVIOS = '''  <p>Aquí encuentras cómo enviamos, cuánto cuesta y qué hacer si
     <tr><td>Cobertura</td><td>Todo el territorio nacional colombiano</td></tr>
     <tr><td>Pago anticipado (en línea)</td><td><b>Envío gratis</b> a cualquier ciudad, sin
       monto mínimo</td></tr>
-    <tr><td>Pago contraentrega</td><td><b>$20.000 COP</b>, tarifa plana. Cuesta más porque la
+    <tr><td>Pago contraentrega</td><td><b>Envío gratis desde 2 piezas</b>. Con una sola pieza cuesta
+      <b>$20.000 COP</b>, tarifa plana, porque la
       transportadora cobra por recaudar el dinero en la entrega. Disponible en las ciudades donde
       la transportadora lo permite; lo confirmamos por WhatsApp antes de despachar</td></tr>
   </table>
@@ -459,7 +460,8 @@ FAQS = [
      'que consultes el estado directamente en la web oficial de Inter Rapidísimo.</p>'),
     ('¿Cuánto cuesta el envío?',
      '<p>Pagando en línea, el envío es <b>gratis a toda Colombia, sin monto mínimo</b>. '
-     'Contraentrega cuesta <b>$20.000</b>, tarifa plana —es lo que cobra la transportadora por '
+     'Contraentrega también es <b>gratis desde 2 piezas</b>; con una sola pieza cuesta <b>$20.000</b>, '
+     'tarifa plana —es lo que cobra la transportadora por '
      'recaudar el dinero en la entrega—. No cotizamos por ciudad: el costo ya viene en el total '
      'que ves en tu carrito.</p>'),
     ('¿Hacen envíos internacionales?',
@@ -480,8 +482,8 @@ FAQS = [
      'envío ya incluidos—, tocas <b>Comprar</b> y en una sola pantalla escribes tus datos de '
      'envío y pagas. Si prefieres, escríbenos por WhatsApp y te asesoramos desde cero.</p>'),
     ('¿Puedo pagar contraentrega?',
-     '<p>Sí, en las ciudades donde la transportadora lo permite. El envío contraentrega cuesta '
-     '<b>$20.000</b> (pagando en línea es gratis), porque la transportadora cobra por recaudar el '
+     '<p>Sí, en las ciudades donde la transportadora lo permite. El envío contraentrega es <b>gratis desde 2 piezas</b>; '
+     'con una sola pieza cuesta <b>$20.000</b> (pagando en línea es gratis), porque la transportadora cobra por recaudar el '
      'dinero. Te confirmamos la disponibilidad en tu ciudad por WhatsApp antes de despachar.</p>'),
     ('¿Emiten factura?',
      '<p>No emitimos factura electrónica. Con tu pedido adjuntamos el <b>comprobante digital de '

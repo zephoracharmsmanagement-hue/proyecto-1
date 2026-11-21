@@ -9,14 +9,39 @@
    "eyebrow": "Colección Marvel",
    "titulo": "Tus héroes, en tu muñeca",
    "texto": "Charms en Plata 925 con sello, sobre la Pulsera Avengers en baño de plata. Toca «Agregar» y arma la tuya.",
-   "destacados": ["capitan-america", "wolverine", "deadpool", "mjolnir-martillo-de-thor", "spider-man-pave"],
+   "destacados": [
+    "capitan-america",
+    "wolverine",
+    "deadpool",
+    "mjolnir-martillo-de-thor",
+    "spider-man-pave"
+   ],
    "destacados_fuente": "Las del anuncio «IG · BF 4 · Tus héroes en tu muñeca» (120255300240020022), leídas de su texto el 2026-11-20, con Spider-Man Pavé en lugar de Spider-Man, que estaba agotado. Confirmadas por el propietario el 2026-11-20.",
    "og": "assets/avengers-marmol.webp",
    "desde": "coleccion-marvel.html",
-   "anuncios": ["120255300240020022"],
+   "anuncios": [
+    "120255300240020022"
+   ],
    "_anuncios": "Quien llega a «desde» con utm_content igual a uno de estos ids de anuncio pasa a esta campaña (pedido del propietario, 2026-11-20). Así el anuncio no se rehace y conserva su prueba social. Las demás visitas ven la colección normal.",
    "desde_meta": true,
    "_desde_meta": "También pasa a la campaña quien llega a «desde» con fbclid, o sea desde cualquier clic en Facebook o Instagram (decisión del propietario, 2026-11-20). Hizo falta porque el anuncio BF 4 no lleva utm (se armó desde una publicación de IG, url_tags vacío) y ponérselos reinicia su aprendizaje. Alcanza también a BF 5 y a publicaciones normales que enlacen a la colección; el propietario lo sabe."
+  },
+  {
+   "id": "inicial-signo",
+   "archivo": "campana-inicial-signo.html",
+   "tipo": "inicial-signo",
+   "_tipo": "Otra forma de página (estudio de conversión, 2026-11-20): primero la tarjeta de las iniciales, después los 12 signos (el grupo), después todos los brazaletes. Sin combo de un solo brazalete.",
+   "grupo": "Zodiaco",
+   "eyebrow": "Inicial y signo",
+   "titulo": "Tu inicial y tu signo, en tu muñeca",
+   "texto": "Charms en Plata 925 con sello. Elige tu inicial, tu signo y el brazalete donde van.",
+   "destacados": [],
+   "og": "assets/charms-de-letras-pave.webp",
+   "portada_cat": [
+    "Letras",
+    "Zodiaco"
+   ],
+   "_portada_cat": "Los anuncios de «Inicial y signo» apuntan a index.html?cat=Letras o ?cat=Zodiaco: se veía la portada de Avengers y luego la página saltaba. Quien llega a la portada con uno de estos cat Y con fbclid (un clic en Facebook o Instagram) pasa a esta página, conservando la consulta. Sin fbclid, la portada filtra como siempre. Mismo criterio que desde_meta en la de Marvel (PR #57)."
   }
  ]
 }
