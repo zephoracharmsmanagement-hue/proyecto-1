@@ -32,6 +32,14 @@ button{font-family:inherit}
 .ann-slide:nth-child(2){animation-delay:-10s}
 .ann-slide:nth-child(3){animation-delay:-5s}
 .ann b{font-weight:500;color:#fff}
+/* Aviso de la oferta de temporada (Black Friday 2026), con cuenta regresiva.
+   La cuenta va en cifras de ancho fijo y no se parte: si no, la barra baila
+   cada segundo. */
+.ann-cuenta{display:inline-block;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;font-weight:600;min-width:17ch;text-align:left}
+.ann-hasta{white-space:nowrap}
+/* En el celular el aviso se queda en dos renglones: la promo de piezas ya
+   está dicha en la portada, la ficha y el carrito. */
+@media(max-width:640px){.ann-extra{display:none}}
 /* Un solo aviso, fijo: sin rotación. Es un enlace a la promo de la portada. */
 .ann-slide:only-child{opacity:1;animation:none}
 a.ann-slide{color:inherit;text-decoration:none}
@@ -1548,6 +1556,13 @@ img,video{-webkit-touch-callout:none;-webkit-user-drag:none;user-select:none;-we
 .btn{font-weight:600;font-size:14px;letter-spacing:.08em}
 .pc-add,.vit-add{font-weight:600;font-size:12.5px}
 .pc-price{font-size:16px;font-weight:600;color:var(--ink)}
+/* Precio con oferta: la lista tachada, lo que se cobra y el porcentaje. Sirve
+   en tarjetas, fichas y la hoja de la pieza (precioHTML en tienda.js). */
+.pr-lista{font-weight:400;font-size:.82em;color:var(--gris-suave);text-decoration:line-through}
+.pr-hoy{font-weight:600}
+.pr-off{display:inline-block;font-style:normal;font:600 11px/1 Jost,sans-serif;letter-spacing:.02em;
+  background:var(--plum);color:#fff;padding:4px 6px;border-radius:999px;white-space:nowrap;vertical-align:2px}
+.pc-meta .pr-off{vertical-align:0}
 .vit-it small{font-size:14px;font-weight:600;color:var(--ink)}
 /* En la hoja del carrito (fondo oscuro) el precio hereda el color claro:
    solo más peso. Con color tinta desaparecía sobre el fondo. */
@@ -1716,7 +1731,9 @@ p,li,dd,.pp-acc-in{line-height:1.55}
 .pbtn small{color:var(--gris-suave)}
 .pbtn.is-on{background:var(--rose-soft);border-color:var(--pagar);color:var(--ink);box-shadow:0 0 0 1px var(--pagar)}
 .pbtn.is-on small{color:var(--pagar)}
-.pbtn small.pb-gratis,.pbtn.is-on small.pb-gratis{color:#1F7A5C}
+.pbtn small.pb-gratis{color:#1F7A5C}
+/* Sobre el rosa del botón elegido el verde de arriba se queda en 4,3:1. */
+.pbtn.is-on small.pb-gratis{color:#17654B}
 .tot-row{color:var(--gris)}
 .tot-row.save{color:var(--pagar)}
 .ship-note{color:var(--gris-suave)}

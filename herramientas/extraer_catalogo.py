@@ -75,6 +75,28 @@ def main():
             or any(not 0 < x[1] < x[0] for x in t)):
         sys.exit('PROMO en tienda.js no tiene la forma {tramos:[[piezas,gratis],…]} creciente: %r' % promo)
 
+    # OFERTA={nombre,hasta,charms,brazaletes} o null (Black Friday, 2026-11-20).
+    # DATA trae el precio de LISTA; con oferta, `precios` lleva lista − % y
+    # `lista` el de lista, y es _precios.js quien decide por la fecha cuál de
+    # los dos cobra. Sin oferta los dos son iguales y `reglas.oferta` no existe.
+    oferta_txt = saca(r'const OFERTA=(\{.*?\}|null);', motor, 'la oferta OFERTA', 'tienda.js')
+    oferta = json.loads(re.sub(r'([{,])(\w+):', r'\1"\2":', oferta_txt))
+    if oferta is not None:
+        if (set(oferta) != {'nombre', 'hasta', 'charms', 'brazaletes'}
+                or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(oferta['hasta']))
+                or any(not (isinstance(oferta[k], int) and 0 <= oferta[k] < 100) for k in ('charms', 'brazaletes'))):
+            sys.exit('OFERTA en tienda.js no tiene la forma {nombre,hasta:"AAAA-MM-DD",charms:%%,brazaletes:%%}: %r' % oferta)
+
+    def con_oferta(p, pct):
+        # El mismo redondeo que tienda.js: Math.round(lista*(100-pct)/100).
+        # Se exige que dé entero exacto: un precio con decimales se redondea
+        # distinto en Python y en JavaScript, y eso es cobrar otro número.
+        if p * (100 - pct) % 100:
+            sys.exit('El %d %% sobre %d no da un precio entero.' % (pct, p))
+        return p * (100 - pct) // 100
+    pct_c = oferta['charms'] if oferta else 0
+    pct_b = oferta['brazaletes'] if oferta else 0
+
     libre = int(saca(r'LIBRE\s*=\s*(\d+)', motor, 'el umbral de envío gratis LIBRE', 'tienda.js'))
     solo_ant = saca(r'const LIBRE_SOLO_ANTICIPADO=(true|false);', motor,
                     'la regla LIBRE_SOLO_ANTICIPADO', 'tienda.js') == 'true'
@@ -83,6 +105,8 @@ def main():
         k.strip(): int(v)
         for k, v in (par.split(':') for par in envio_txt.split(','))
     }
+    contra_desde = int(saca(r'const CONTRA_GRATIS_DESDE=(\d+);', motor,
+                            'la regla CONTRA_GRATIS_DESDE', 'tienda.js'))
 
 
     # data-g en cada tarjeta lleva la categoría; .pc--top marca los destacados.
@@ -144,7 +168,15 @@ def main():
               'No editar a mano: el próximo extractor lo pisa. Lo leen '
               'checkout.html (por fetch) y netlify/functions/_precios.js '
               '(por require).'),
+        # Lo que se cobra MIENTRAS la oferta esté vigente (sin oferta, la
+        # lista). Quien cobra no lee esto a ciegas: _precios.js mira la fecha.
         'precios': {
+            **{c['id']: con_oferta(c['p'], pct_c) for c in data['charms']},
+            **{p['id']: con_oferta(p['p'], pct_b) for p in data['pulseras']},
+        },
+        # El precio de lista: el que se muestra tachado durante la oferta y el
+        # que se cobra cuando vence.
+        'lista': {
             **{c['id']: c['p'] for c in data['charms']},
             **{p['id']: p['p'] for p in data['pulseras']},
         },
@@ -169,6 +201,9 @@ def main():
             'envioGratisDesde': libre,
             'envioGratisSoloAnticipado': solo_ant,
             'envio': envio,
+            # Desde cuántas piezas la contraentrega tampoco paga envío (0 = nunca).
+            'contraentregaGratisDesde': contra_desde,
+            **({'oferta': oferta} if oferta else {}),
         },
     }
 

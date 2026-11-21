@@ -40,7 +40,8 @@
 /* Se leen a través de _precios.js y no con un import de JSON: ese módulo ya los
    carga con require, es la fuente que usa el checkout para cobrar, y así no
    dependemos de que el empaquetador de Netlify soporte import attributes. */
-import { reglas, nombres, fotos, grupos, inventario as stock } from './_precios.js';
+import { reglas, nombres, fotos, grupos, inventario as stock,
+  ofertaVigente, precioDe, listaDe } from './_precios.js';
 import { disponibles } from './_inventario.mjs';
 
 /* ── La foto, y por qué pasa por el CDN de imágenes ──
@@ -173,7 +174,12 @@ export default async (req) => {
     const base = {
       id,
       nombre: nombres[id] || id,
-      precio: it.precio,
+      /* Lo que se cobra hoy por la pieza, de la misma tabla con la que cobra
+         el checkout (antes salía de stock.json, que es un conteo y no sabe de
+         ofertas). Con una oferta vigente va también el de lista, para que el
+         bot pueda decir «de $105.000 a $84.000» sin calcularlo. */
+      precio: precioDe(id) ?? it.precio,
+      ...(ofertaVigente() && listaDe(id) > precioDe(id) ? { precio_lista: listaDe(id) } : {}),
       /* URL pública en JPEG, lista para mandarse por WhatsApp sin convertir
          nada. Las 27 letras comparten la foto del grupo: no tienen una propia.
          Ver `fotos` en catalogo.json. */

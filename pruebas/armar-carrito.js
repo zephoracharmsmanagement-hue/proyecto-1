@@ -104,12 +104,17 @@ async function main() {
       `${cop(a.d.subtotal)} ≥ ${cop(reglas.envioGratisDesde)}`);
     comprobar(a.d.envioGratis === true && a.d.envio === 0,
       'pagando por adelantado, el envío sale gratis');
-    comprobar(b.d.envioGratis === false && b.d.envio === reglas.envio.contraentrega,
-      'y contraentrega lo paga igual, aunque el carrito sea el mismo',
-      cop(b.d.envio));
-    comprobar(b.d.total - a.d.total === reglas.envio.contraentrega,
-      'la diferencia es exactamente el envío, no una aproximación',
+    /* Desde el 2026-11-20, con `contraentregaGratisDesde` piezas o más (2) la
+       contraentrega tampoco paga envío; con una sola, sí. */
+    comprobar(b.d.envioGratis === true && b.d.envio === 0 && b.d.total === a.d.total,
+      'y contraentrega, con 2 piezas o más, tampoco lo paga: mismo total',
       `${a.d.totalTexto} vs ${b.d.totalTexto}`);
+    const a1 = await pedir({ pago: 'anticipado', charms: tres.slice(0, 1) });
+    const b1 = await pedir({ pago: 'contraentrega', charms: tres.slice(0, 1) });
+    comprobar(b1.d.envioGratis === false && b1.d.envio === reglas.envio.contraentrega
+      && b1.d.total - a1.d.total === reglas.envio.contraentrega,
+      'con una sola pieza la contraentrega sí lo paga, y la diferencia es exactamente el envío',
+      `${a1.d.totalTexto} vs ${b1.d.totalTexto}`);
   }
 
   console.log('\n2 · No se puede armar lo que el checkout rechazaría');

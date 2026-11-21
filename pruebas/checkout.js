@@ -712,8 +712,11 @@ async function llenarDatos(p, d) {
 
     const antes = await p.locator('#p-anticipado').textContent();
     const contra = await p.locator('#p-contraentrega').textContent();
-    ok(antes !== contra, 'los dos totales se ven antes de elegir, y son distintos',
+    /* Brazalete + 1 charm son 2 piezas: desde el 2026-11-20 la contraentrega
+       tampoco paga envío, así que los dos totales son el mismo. */
+    ok(/^\$[\d.]+$/.test(antes) && antes === contra, 'los dos totales se ven antes de elegir; con 2 piezas son iguales',
       `${antes} vs ${contra}`);
+    ok(/gratis/i.test(await p.locator('#d-contra').textContent()), 'y la contraentrega dice que su envío es gratis');
 
     await p.check('#ops-pago input[value="contraentrega"]');
     await p.waitForTimeout(200);
