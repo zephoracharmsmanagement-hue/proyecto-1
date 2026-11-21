@@ -856,6 +856,42 @@
       "stock": 3,
       "familia": "pasador"
     },
+    "doctor-doom": {
+      "tipo": "charm",
+      "precio": 105000,
+      "stock": 0,
+      "familia": "pasador"
+    },
+    "loki": {
+      "tipo": "charm",
+      "precio": 105000,
+      "stock": 0,
+      "familia": "pasador"
+    },
+    "casco-loki": {
+      "tipo": "charm",
+      "precio": 105000,
+      "stock": 0,
+      "familia": "pasador"
+    },
+    "viuda-negra": {
+      "tipo": "charm",
+      "precio": 105000,
+      "stock": 0,
+      "familia": "colgante"
+    },
+    "miles-morales": {
+      "tipo": "charm",
+      "precio": 105000,
+      "stock": 0,
+      "familia": "colgante"
+    },
+    "arana": {
+      "tipo": "charm",
+      "precio": 105000,
+      "stock": 0,
+      "familia": "colgante"
+    },
     "virgen-de-fatima": {
       "tipo": "charm",
       "precio": 104000,
