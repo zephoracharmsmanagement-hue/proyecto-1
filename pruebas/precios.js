@@ -220,10 +220,18 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     ok(ant.subtotal >= R.envioGratisDesde, 'el carrito de prueba pasa del umbral',
       cop(ant.subtotal));
     ok(ant.envio === 0, 'anticipado por encima del umbral: envío gratis');
-    ok(con.envio === R.envio.contraentrega,
-      'contraentrega por encima del umbral: sigue pagando envío', cop(con.envio));
-    ok(con.total - ant.total === R.envio.contraentrega,
-      'la diferencia entre ambos es exactamente el envío de contraentrega');
+    /* Desde el 2026-11-20 la contraentrega tampoco paga envío con
+       `contraentregaGratisDesde` piezas o más (2). Con menos, lo paga. */
+    const D = R.contraentregaGratisDesde;
+    ok(D === 2, 'la contraentrega es gratis desde 2 piezas', String(D));
+    ok(con.envio === 0 && con.total === ant.total,
+      `contraentrega con ${gordo.charms.length + 1} piezas: envío gratis, mismo total que pagando en línea`, cop(con.envio));
+    const dos = calcular(leerPedido({ charms: ['mickey-mouse', 'stitch'], pago: 'contraentrega' }));
+    const brzUno = calcular(leerPedido({ base: gordo.base, charms: ['mickey-mouse'], pago: 'contraentrega' }));
+    ok(dos.envio === 0 && brzUno.envio === 0, 'justo en 2 piezas (dos charms, o brazalete + charm) ya es gratis',
+      cop(dos.envio) + ' / ' + cop(brzUno.envio));
+    const soloB = calcular(leerPedido({ base: gordo.base, charms: [], pago: 'contraentrega' }));
+    ok(soloB.envio === R.envio.contraentrega, 'un brazalete solo, contraentrega: paga el envío', cop(soloB.envio));
 
     /* El carrito más chico posible: un solo charm. Con umbral 0 ya no existe
        el «por debajo del mínimo», y eso es justo lo que hay que comprobar —el
@@ -238,9 +246,70 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
         ? 'por debajo del umbral el anticipado paga su tarifa'
         : 'sin umbral, el carrito más chico también lleva envío gratis anticipado',
       cop(fa.envio));
-    ok(fc.envio === R.envio.contraentrega,
-      'la contraentrega paga su tarifa sin importar el tamaño del carrito',
+    ok(fc.envio === R.envio.contraentrega && fc.total - fa.total === R.envio.contraentrega,
+      'con una sola pieza la contraentrega paga su tarifa, y es la única diferencia con el prepago',
       cop(fc.envio));
+  }
+
+  /* Oferta de temporada (Black Friday 2026). catalogo.json trae `precios`
+     (lista − %) y `lista`; cuál se cobra lo decide la fecha, igual en la página
+     (OFERTA en tienda.js) que en el servidor. Si no hay oferta, este bloque
+     comprueba solo que las dos tablas sean la misma. */
+  console.log('\nOferta de temporada: lista, descuento y vuelta a la lista al vencer');
+  {
+    const CAT = require(path.join(__dirname, '..', 'assets', 'catalogo.json'));
+    const P = require(path.join(__dirname, '..', 'netlify', 'functions', '_precios.js'));
+    const of = CAT.reglas.oferta;
+    const ids = Object.keys(CAT.precios);
+    ok(CAT.lista && ids.length === Object.keys(CAT.lista).length && ids.every(id => CAT.lista[id] > 0),
+      'cada pieza tiene precio y precio de lista');
+    if (!of) {
+      ok(ids.every(id => CAT.lista[id] === CAT.precios[id]), 'sin oferta, se cobra la lista');
+    } else {
+      const pct = id => (CAT.pulseras.includes(id) ? of.brazaletes : of.charms);
+      const mal = ids.filter(id => CAT.precios[id] * 100 !== CAT.lista[id] * (100 - pct(id)));
+      ok(mal.length === 0, `con oferta, cada precio es la lista menos su porcentaje exacto (−${of.charms} % charms y anillos, −${of.brazaletes} % brazaletes)`,
+        mal.slice(0, 3).join(', '));
+      const fin = Date.parse(of.hasta + 'T23:59:59-05:00');
+      const kit = { base: { id: 'pulsera-avengers', talla: null }, charms: ['capitan-america', 'iron-man', 'hulk'], pago: 'anticipado' };
+      const suma = t => t['pulsera-avengers'] + 3 * t['capitan-america'] - Math.min(t['pulsera-avengers'], t['capitan-america']);
+      ok(P.calcular(kit, fin - 1000).total === suma(CAT.precios), 'un segundo antes del cierre el servidor cobra con oferta',
+        cop(P.calcular(kit, fin - 1000).total));
+      ok(P.calcular(kit, fin + 10 * 60000).total === suma(CAT.precios), 'diez minutos después todavía (media hora de gracia, solo del servidor)');
+      ok(P.calcular(kit, fin + 31 * 60000).total === suma(CAT.lista) && P.detallar(kit, fin + 31 * 60000)[0].precio === CAT.lista['pulsera-avengers'],
+        'pasada la gracia cobra el precio de lista, sin desplegar nada', cop(P.calcular(kit, fin + 31 * 60000).total));
+      ok(P.calcular(kit, fin + 31 * 60000).gratis.length === 1, 'y la promo de piezas sigue igual después del cierre');
+
+      /* La página: lo que se ve hoy y lo que se verá el día después, con el
+         reloj del navegador adelantado. */
+      const visto = await p.evaluate(() => {
+        const t = document.querySelector('.pc[data-id="mickey-mouse"] .pc-price');
+        return { html: t.innerHTML, texto: t.textContent.replace(/\s+/g, ' ').trim(), ann: document.querySelector('.ann').textContent.replace(/\s+/g, ' ') };
+      });
+      const L = cop(CAT.lista['mickey-mouse']), H = cop(CAT.precios['mickey-mouse']);
+      ok(visto.html.includes('<s class="pr-lista">' + L + '</s>') && visto.texto.includes(H) && visto.texto.includes('−' + of.charms),
+        `la tarjeta muestra la lista tachada (${L}), el precio (${H}) y −${of.charms} %`, visto.texto);
+      ok(!/antes|anterior/i.test(visto.texto), 'sin «antes» ni «precio anterior»: solo tachado y porcentaje');
+      const dia = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Bogota' })
+        .format(new Date(fin)).replace(',', '');
+      ok(visto.ann.includes(dia) && /termina en \d/.test(visto.ann) && visto.ann.toUpperCase().includes(of.nombre.toUpperCase()),
+        `la barra de arriba dice ${of.nombre}, «hasta el ${dia}» y lleva la cuenta regresiva`, visto.ann.trim());
+      const escrito = require('fs').readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+      ok(escrito.includes('<span class="ann-hasta">' + dia + '</span>'), 'y la fecha escrita en index.html es la de OFERTA');
+
+      const q = await p.context().browser().newPage();
+      await q.addInitScript(t => { const D = Date; const d = t - D.now();
+        Date = class extends D { constructor(...a) { a.length ? super(...a) : super(D.now() + d); } static now() { return D.now() + d; } }; }, fin + 60000);
+      await q.goto(p.url().split('#')[0], { waitUntil: 'load' });
+      await q.waitForTimeout(800);
+      const despues = await q.evaluate(() => ({
+        t: document.querySelector('.pc[data-id="mickey-mouse"] .pc-price').textContent.trim(),
+        s: document.querySelectorAll('.pc .pr-lista, .pc .pr-off, .tier .pr-off').length,
+        ann: document.querySelector('.ann').textContent.replace(/\s+/g, ' ') }));
+      ok(despues.t === L && despues.s === 0, 'el día después la página muestra el precio de lista, sin tachado ni etiqueta', despues.t + ' · ' + despues.s);
+      ok(!/black friday|termina en/i.test(despues.ann) && /PAGA 3 Y LLÉVATE 1 GRATIS/.test(despues.ann), 'y la barra vuelve al aviso de siempre', despues.ann.trim());
+      await q.close();
+    }
   }
 
   /* La promo de la portada es HTML escrito a mano. Si alguien cambia PROMO y
@@ -258,7 +327,11 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     ok(/menor valor/i.test(caja) && /GRATIS/.test(caja), 'y que la de menor valor sale gratis');
     ok(!(await p.$('#esc')), 'la cuadrícula de tramos viejos ya no está');
     const banner = (await p.textContent('.ann')).replace(/\s+/g, ' ');
-    ok(new RegExp(`PAGA ${p1 - g1} Y LLÉVATE ${g1} GRATIS`).test(banner) && new RegExp(`Paga ${p2 - g2} y llévate ${g2}`).test(banner),
+    /* Con una oferta de temporada el banner es el de la oferta y nombra solo
+       el primer tramo (el segundo sigue en el recuadro de arriba). */
+    ok(R.oferta
+      ? new RegExp(`paga ${p1 - g1} y llévate ${g1} gratis`, 'i').test(banner)
+      : new RegExp(`PAGA ${p1 - g1} Y LLÉVATE ${g1} GRATIS`).test(banner) && new RegExp(`Paga ${p2 - g2} y llévate ${g2}`).test(banner),
       'el banner de arriba dice la misma promo', banner.trim());
 
     const ch = Object.keys(CAT.precios).filter(id => !CAT.pulseras.includes(id));
