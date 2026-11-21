@@ -5,6 +5,35 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Black Friday 2026 — precios y oferta (PR A, en vista previa: NO desplegado)
+
+Pedido del propietario (2026-11-20). **Toca el cobro**: no se despliega sin su «deploy», y antes de
+desplegar hay que avisar al tablero y a la Sesión 5 con la hora (hay anuncios con cifras en pesos).
+
+- **Precio de lista +$10.000 en todas las referencias** (`DATA` en tienda.js y `precio` en stock.json).
+- **`OFERTA` en tienda.js es el único sitio de la oferta**: `{nombre, hasta:"2026-11-30", charms:20,
+  brazaletes:10}`. Mientras está vigente se cobra lista − % y la lista se ve tachada con su etiqueta
+  (`precioHTML()` en tienda.js, `precio_html()` en herramientas/precios_tarjetas.py). Solo tachado y
+  porcentaje: **ni «antes» ni «precio anterior»** en ningún texto (decisión del propietario, por la SIC).
+- **Al vencer (30-nov 23:59, hora Colombia) vuelve sola al precio de lista**, en la página y en el
+  servidor, sin desplegar: `catalogo.json` trae `precios` (con descuento) y `lista`, y `_precios.js`
+  elige por fecha (`ofertaVigente()`, con 30 min de gracia solo en el servidor). El HTML ya generado
+  sigue diciendo el precio rebajado en lo que no pinta tienda.js (totales de los kits, cuota de Addi
+  de la ficha, datos estructurados): **el 1-dic conviene regenerar y desplegar** — poner `OFERTA=null`
+  (o la fecha nueva), y correr la cadena de abajo. La barra de arriba vuelve sola al aviso de siempre.
+- **Cadena al tocar un precio o la oferta:** `extraer_catalogo.py` → `precios_tarjetas.py` (nuevo:
+  escribe el precio de las tarjetas y niveles de index.html) → `gen_colecciones.py --escribir` →
+  `gen_productos.py --escribir`.
+- **Contraentrega: envío gratis desde 2 piezas** (`CONTRA_GRATIS_DESDE` en tienda.js →
+  `reglas.contraentregaGratisDesde`). Con 1 pieza siguen los $20.000. Servidor, carrito, checkout,
+  fichas, preguntas frecuentes, envíos y boletín.
+- **La promo de piezas no cambia** (4 → 1 gratis, 6 → 2) y se aplica sobre el precio final.
+- **Quién más lee precios:** el feed de Meta manda `price` = lista y `sale_price` = oferta;
+  `disponibilidad` devuelve `precio` (lo que se cobra hoy, ya no sale de stock.json) y `precio_lista`
+  (solo con oferta vigente); las fichas llevan `priceValidUntil`; el PDF se arma con el precio del día.
+- `gen_paginas.py` no conoce la línea de Clarity de las páginas legales: al regenerar hay que
+  reponerla a mano (se repuso en envíos y preguntas frecuentes; las otras tres no se tocaron).
+
 ## Campañas y conversión — desplegado el 2026-11-20 (PR #56)
 
 Salió de los clics de Clarity y de la pauta de Marvel. Lo que cambia para quien toque la tienda:

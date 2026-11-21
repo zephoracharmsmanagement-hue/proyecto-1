@@ -190,7 +190,15 @@ console.log(JSON.stringify({
     r = subprocess.run(['node', '-e', guion], cwd=RAIZ, capture_output=True, text=True)
     if r.returncode != 0:
         raise SystemExit('calcular() falló:\n' + r.stderr)
-    return json.loads(r.stdout)
+    p = json.loads(r.stdout)
+    # La nota de envío bajo el combo. Desde el 2026-11-20 la contraentrega no
+    # paga envío con 2 piezas o más, así que el combo cuesta lo mismo de las dos
+    # formas; si la regla cambia y vuelve a costar distinto, se dice cuánto.
+    p['contraentrega'] = ('Precios con envío gratis, pagando en línea o contraentrega.'
+                          if p['contraentrega'] == p['tres'] else
+                          'Precios con pago anticipado y envío gratis. Contraentrega: %s '
+                          '(el envío lo cobra la transportadora al recaudar).' % p['contraentrega'])
+    return p
 
 
 # ── Los escalones del combo ─────────────────────────────────────────────────
@@ -265,8 +273,7 @@ PAGINA = '''<!DOCTYPE html>
   <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
   sale <b>gratis</b>. Con 6 piezas son 2 gratis. Se aplica solo en el carrito.</p>
 {escalera}
-  <p class="col-nota">Precios con pago anticipado y envío gratis. Contraentrega: {contraentrega}
-  (el envío lo cobra la transportadora al recaudar).</p>
+  <p class="col-nota">{contraentrega}</p>
 </section>
 
 <!-- 3 · LAS PIEZAS. Las tarjetas salen de index.html por data-id: misma foto,
@@ -1035,8 +1042,7 @@ PAGINA_CAMPANA = '''<!DOCTYPE html>
     </div>
     <div>
 {escalera}
-      <p class="col-nota">Precios con pago anticipado y envío gratis. Contraentrega: {contraentrega}
-      (el envío lo cobra la transportadora al recaudar).</p>
+      <p class="col-nota">{contraentrega}</p>
     </div>
   </div>
 </section>

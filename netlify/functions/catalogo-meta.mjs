@@ -45,7 +45,7 @@
  * unidades a una talla que el conteo no tenía). pruebas/catalogo-meta.js lo
  * comprueba con un brazalete real.
  */
-import { calcular, nombres, fotos, grupos, inventario as stock } from './_precios.js';
+import { calcular, nombres, fotos, grupos, inventario as stock, ofertaVigente, listaDe } from './_precios.js';
 import { disponibles } from './_inventario.mjs';
 
 const ORIGEN_POR_DEFECTO = 'https://zephoracharms.com';
@@ -94,6 +94,8 @@ function fotoDe(id, origen) {
   return `${origen}/.netlify/images`
     + `?url=${encodeURIComponent('/assets/hd/' + archivo)}&fm=jpg&w=1080`;
 }
+
+const enOferta = (id, it) => ofertaVigente() && listaDe(id) > precioDe(id, it);
 
 const paginaDe = (id, origen) => `${origen}/${encodeURIComponent(`producto-${id}.html`)}`;
 
@@ -144,7 +146,13 @@ export function filas(libres, origen = ORIGEN_POR_DEFECTO) {
       description: describir(tipo, nombreBase.replace(/ · Talla .*$/, ''), grupo, anillo && anillo.talla),
       availability: hay > 0 ? 'in stock' : 'out of stock',
       condition: 'new',
-      price: `${precioDe(id, it)} COP`,
+      /* Con una oferta de temporada vigente (Black Friday 2026), `price` es
+         el de lista y `sale_price` lo que se cobra: así Meta muestra el precio
+         tachado igual que la tienda. Sin oferta, `sale_price` va vacío y
+         `price` es lo que se cobra. La fecha no se manda: este feed se arma en
+         cada lectura y deja de traer `sale_price` solo cuando la oferta vence. */
+      price: `${enOferta(id, it) ? listaDe(id) : precioDe(id, it)} COP`,
+      sale_price: enOferta(id, it) ? `${precioDe(id, it)} COP` : '',
       link: paginaDe(anillo ? anillo.modelo : id, origen),
       image_link: imagen,
       brand: MARCA,
@@ -160,7 +168,7 @@ export function filas(libres, origen = ORIGEN_POR_DEFECTO) {
 }
 
 const COLUMNAS = ['id', 'item_group_id', 'title', 'description', 'availability', 'condition',
-  'price', 'link', 'image_link', 'brand', 'google_product_category', 'product_type', 'size',
+  'price', 'sale_price', 'link', 'image_link', 'brand', 'google_product_category', 'product_type', 'size',
   'custom_label_0', 'custom_label_1'];
 
 const celda = v => {

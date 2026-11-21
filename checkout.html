@@ -746,10 +746,12 @@ function calcular(c){
   const alcanza=subtotal>=R.envioGratisDesde;
   /* Addi y Sistecrédito son pago por adelantado: mismo envío que «Pagar ahora». */
   const pe=c.pago==='contraentrega'?'contraentrega':'anticipado';
-  const gratis=alcanza&&(!R.envioGratisSoloAnticipado||pe==='anticipado');
+  /* Desde `contraentregaGratisDesde` piezas (2), la contraentrega tampoco. */
+  const nPiezas=c.charms.length+(c.base?1:0);
+  const contraLibre=R.contraentregaGratisDesde>0&&nPiezas>=R.contraentregaGratisDesde;
+  const gratis=alcanza&&(!R.envioGratisSoloAnticipado||pe==='anticipado'||contraLibre);
   const envio=(subtotal<=0||gratis)?0:R.envio[pe];
   /* Después de la promo y del envío, como en crear-pago. */
-  const nPiezas=c.charms.length+(c.base?1:0);
   const descSusc=(DESC_SUSC>0&&nPiezas>=DESC_MIN&&subtotal+envio>DESC_SUSC)?DESC_SUSC:0;
   return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(desc),nGratis:libres.length,
     subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,descSusc:descSusc,
@@ -852,7 +854,8 @@ function pintarResumen(){
     /* Le corresponde por monto pero eligió contraentrega. Se le dice aquí,
        con el ahorro en pesos, en vez de dejar que lo descubra en el total. */
     nota.textContent=(umbral>0?'Ya pasas de '+cop(umbral)+'. ':'')
-      +'Pagando por adelantado el envío te sale gratis: '+cop(t.envio)+' menos.';
+      +'Pagando por adelantado el envío te sale gratis: '+cop(t.envio)+' menos.'
+      +(CAT.reglas.contraentregaGratisDesde>0?' Con contraentrega es gratis desde '+CAT.reglas.contraentregaGratisDesde+' piezas.':'');
     nota.className='env-nota';
   }else{
     nota.textContent='Te faltan '+cop(falta)+' para el envío gratis'
@@ -908,12 +911,13 @@ function pintarResumen(){
      este es el momento en que se elige, y una sorpresa de $25.000 en el último
      paso es una compra abandonada. */
   const dc=$('#d-contra');
-  const base='Pagas en efectivo cuando el mensajero te entregue el paquete. '
-    +'El recaudo lo cobra la transportadora, por eso el envío cuesta más.';
-  dc.textContent=(t.alcanza&&CAT.reglas.envioGratisSoloAnticipado)
-    ? base+(umbral>0?' Tu pedido ya pasa de '+cop(umbral)+', pero el':' El')
-      +' envío gratis aplica solo al pagar por adelantado.'
-    : base;
+  const tc=calcular(Object.assign({},c,{pago:'contraentrega'}));
+  const cd=CAT.reglas.contraentregaGratisDesde;
+  const base='Pagas en efectivo cuando el mensajero te entregue el paquete.';
+  dc.textContent=tc.gratis
+    ? base+' Tu pedido lleva envío gratis también con contraentrega.'
+    : base+' El recaudo lo cobra la transportadora, por eso el envío cuesta '+cop(tc.envio)
+      +(cd>0?': desde '+cd+' piezas es gratis.':'.');
 
   pintarPagoElegido(t);
 }
@@ -926,7 +930,7 @@ function pintarPagoElegido(t){
   const contra=carrito.pago==='contraentrega', addi=carrito.pago==='addi';
   const siste=carrito.pago==='sistecredito', credito=CREDITO[carrito.pago];
   $('#pago-elegido-tx').innerHTML=contra
-    ? '<b>Pago contraentrega</b><span>Pagas en efectivo al recibir · envío '+cop(t.envio)+'</span>'
+    ? '<b>Pago contraentrega</b><span>Pagas en efectivo al recibir · envío '+(t.gratis?'gratis':cop(t.envio))+'</span>'
     : addi
     ? '<b>Pagar con Addi</b><span>Hasta 3 cuotas sin interés · apruebas tu cupo en minutos'
       +(t.gratis?' · envío gratis':'')+'</span>'
@@ -1369,6 +1373,11 @@ Promise.all([
   fetch('assets/stock.json',{cache:'no-cache'}).then(r=>r.json()).catch(()=>null)
 ]).then(([cat,geo,inv])=>{
   CAT=cat; GEO=geo; STOCK=inv;
+  /* Oferta de temporada: catalogo.json trae `precios` (con el descuento) y
+     `lista`. Pasado el último día de la oferta, en hora de Colombia, se cobra
+     la lista: la misma cuenta que hace _precios.js, que es quien manda. */
+  const of=CAT.reglas.oferta;
+  if(of&&CAT.lista&&Date.now()>Date.parse(of.hasta+'T23:59:59-05:00')) CAT.precios=CAT.lista;
   /* El enlace manda sobre lo guardado, y se persiste enseguida para que el
      resto del checkout —y el releer() de más abajo— vean lo mismo que se
      pintó. */

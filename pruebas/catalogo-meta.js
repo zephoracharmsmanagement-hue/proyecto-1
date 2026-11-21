@@ -96,9 +96,13 @@ async function main() {
     const p = it.tallas
       ? P.calcular({ base: { id: f.id, talla: null }, charms: [], pago: 'anticipado' }).subtotal
       : P.calcular({ base: null, charms: [f.id], pago: 'anticipado' }).subtotal;
-    return f.price !== `${p} COP` || p !== CAT.precios[f.id];
+    /* Con oferta de temporada vigente: `price` es la lista y `sale_price` lo
+       que se cobra. Sin oferta, `price` es lo que se cobra y no hay sale_price. */
+    const lista = (CAT.lista || CAT.precios)[f.id], enOferta = P.ofertaVigente() && lista > p;
+    return f.price !== `${enOferta ? lista : p} COP` || f.sale_price !== (enOferta ? `${p} COP` : '')
+      || p !== (P.ofertaVigente() ? CAT.precios : CAT.lista || CAT.precios)[f.id];
   });
-  comprobar(malos.length === 0, 'cada precio coincide con calcular() y con catalogo.json', malos.slice(0, 3).map(f => f.id).join(', '));
+  comprobar(malos.length === 0, 'cada precio coincide con calcular() y con catalogo.json (lista en price, oferta en sale_price)', malos.slice(0, 3).map(f => f.id).join(', '));
 
   console.log('\n5 · Brazaletes: se suman tallas, no se lee `stock`');
   const pulsera = Object.keys(items).find(k => items[k].tallas && Object.values(items[k].tallas).some(v => v > 0));

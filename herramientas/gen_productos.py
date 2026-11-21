@@ -44,13 +44,14 @@ import sys
 import urllib.parse
 
 from gen_colecciones import RAIZ, INDEX, COLECCIONES, bloques, tarjetas, arregla_nav, vitrina
+from precios_tarjetas import precio_html, pieza_de
 
 SITIO = 'https://zephoracharms.com/'
 MAX_RELACIONADAS = 8
 MAX_BRAZALETES = 4
 
 # Ids que tienda.js crea él mismo; no tienen que venir en el HTML.
-IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res'}
+IDS_DINAMICOS = {'fx-gal', 'fx-pts', 'sin-res', 'aviso-corto'}
 # Ids de la ficha de producto que tienda.js usa SOLO tras comprobar que
 # existen (las estrellas no existen sin reseñas, por ejemplo).
 # Si se agrega aquí uno que se use sin comprobar, la página se queda sin
@@ -151,7 +152,7 @@ def tarjeta_inicial(html, pid, cat):
             '<div class="pc-body"><h3 class="pc-name">%s</h3><p class="pc-meta">Inicial</p>\n'
             '<div class="pc-foot"><span class="pc-price">%s</span><button class="pc-add" type="button" '
             'data-add="%s" aria-label="Agregar %s">Agregar</button></div></div></article>'
-            % (pid, img, n, sello, n, cop(cat['precios'][pid]), pid, n))
+            % (pid, img, n, sello, n, precio_html(cat, pid), pid, n))
 
 
 # ── Lo que acompaña a la pieza ──────────────────────────────────────────────
@@ -469,7 +470,10 @@ def beneficios(tipo, cat):
              # promete «pide hoy y llega mañana»: se cuenta desde el despacho,
              # igual que la tabla de envios-y-devoluciones.html.
              ('rapido', 'Bogotá: llega en 1 día hábil desde el despacho'),
-             ('contra', 'Pago contraentrega (+%s)' % cop(cat['reglas']['envio']['contraentrega'])),
+             # Desde el 2026-11-20 la contraentrega no paga envío con 2 piezas o más.
+             ('contra', 'Pago contraentrega: envío gratis desde %d piezas' % cat['reglas']['contraentregaGratisDesde']
+              if cat['reglas'].get('contraentregaGratisDesde') else
+              'Pago contraentrega (+%s)' % cop(cat['reglas']['envio']['contraentrega'])),
              ('sello', material),
              ('regalo', 'Empaque de regalo: caja, paño y dedicatoria escrita a mano'),
              ('cambio', 'Cambio de talla o retracto en 5 días hábiles')]
@@ -494,6 +498,10 @@ def acordeones(tipo, meta, grupo, cat, pid=None):
     descripción por familia (#pp-desc) las escribe tienda.js desde el mismo
     specsDe()/FAMILIAS que la ficha emergente."""
     contra = cop(cat['reglas']['envio']['contraentrega'])
+    desde = cat['reglas'].get('contraentregaGratisDesde')
+    contra_tx = ('El envío contraentrega es gratis desde %d piezas; con una sola pieza cuesta %s, que es lo que '
+                 'cobra la transportadora al recaudar.' % (desde, contra) if desde else
+                 'El envío contraentrega cuesta %s: lo cobra la transportadora al recaudar.' % contra)
     # Texto del propietario (2026-09-26): el anterior «sí se oxida» asustaba.
     # En los brazaletes cambia solo el primer párrafo: son baño de plata con
     # e-coating, no Plata 925, y decir lo contrario ya costó una corrección.
@@ -544,8 +552,8 @@ def acordeones(tipo, meta, grupo, cat, pid=None):
                               'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
                               'a Bogotá 1 – 2; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de '
                               'guía por WhatsApp o correo.</p>', False),
-            ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta '
-                              '%s: lo cobra la transportadora al recaudar.</p>' % contra, False),
+            ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. '
+                              '%s</p>' % contra_tx, False),
             ('Consejos y cuidados', '<p>%s</p>%s' % (cuidado, consejos), False),
         ]
         return ('\n'.join('      <details class="pp-acc"%s><summary>%s</summary><div class="pp-acc-in">%s</div></details>'
@@ -561,8 +569,8 @@ def acordeones(tipo, meta, grupo, cat, pid=None):
                           'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
                           'a Bogotá 1 – 2; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de '
                           'guía por WhatsApp o correo.</p>', False),
-        ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. El envío contraentrega cuesta '
-                          '%s: lo cobra la transportadora al recaudar.</p>' % contra, False),
+        ('Contraentrega', '<p>También puedes pagar al recibir, en efectivo al mensajero. '
+                          '%s</p>' % contra_tx, False),
         ('Consejos y cuidados', '<p>%s</p>%s' % (cuidado, consejos), False),
     ]
     return '\n'.join('      <details class="pp-acc"%s><summary>%s</summary><div class="pp-acc-in">%s</div></details>'
@@ -687,7 +695,7 @@ def resenas_con_formulario(bloque, nombre):
     return bloque.replace(ancla, FORM_RESENA.format(nombre=nombre) + ancla)
 
 
-def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
+def jsonld(pid, nombre, imagen, precio, grupo, hay, canon, hasta=None):
     """Datos estructurados de producto. La disponibilidad es la del conteo de
     stock.json al generar, igual que el resto de tienda.js: no ve lo apartado
     en vivo."""
@@ -699,6 +707,9 @@ def jsonld(pid, nombre, imagen, precio, grupo, hay, canon):
         'offers': {'@type': 'Offer', 'price': precio, 'priceCurrency': 'COP', 'url': canon,
                    'availability': 'https://schema.org/' + ('InStock' if hay else 'OutOfStock')},
     }
+    # Con una oferta de temporada, el precio publicado vale hasta su último día.
+    if hasta:
+        d['offers']['priceValidUntil'] = hasta
     return json.dumps(d, ensure_ascii=False).replace('</', '<\\/')
 
 
@@ -712,9 +723,13 @@ def generar(pid, html, cat, stock, b, exigidos):
 
     tarjeta = tarjeta_principal(html, pid, cat)
     # El precio que ve la clienta tiene que ser el que cobra el servidor.
-    visto = re.search(r'<span class="pc-price">([^<]*)</span>', tarjeta).group(1)
-    if visto != cop(precio):
-        raise SystemExit('%s: la tarjeta muestra %s y catalogo.json cobra %s.' % (pid, visto, cop(precio)))
+    # Con oferta la tarjeta trae lista tachada + precio + porcentaje: se compara
+    # el marcado entero con el que sale de catalogo.json (precios_tarjetas.py).
+    visto = re.search(r'<span class="pc-price">(.*?)</span>', tarjeta).group(1)
+    debe = precio_html(cat, pieza_de(cat, pid))
+    if visto != debe:
+        raise SystemExit('%s: la tarjeta muestra «%s» y catalogo.json dice «%s». '
+                         'Corre herramientas/precios_tarjetas.py.' % (pid, visto, debe))
     sello = re.search(r'<span class="pc-mark[^"]*">([^<]*)</span>', tarjeta).group(1)
     meta = re.search(r'<p class="pc-meta">([^<]*)</p>', tarjeta).group(1)
     foto = re.search(r'<img src="([^"]+)"', tarjeta).group(1)
@@ -758,7 +773,9 @@ def generar(pid, html, cat, stock, b, exigidos):
 
     pagina = PAGINA.format(
         titulo=H.escape(titulo), desc=H.escape(desc), canon=canon, imagen=imagen, precio=precio,
-        jsonld=jsonld(pid, nombre, imagen, precio, grupo, hay, canon), pid=pid,
+        jsonld=jsonld(pid, nombre, imagen, precio, grupo, hay, canon,
+                      (cat['reglas'].get('oferta') or {}).get('hasta')
+                      if cat.get('lista', {}).get(pieza_de(cat, pid), precio) != precio else None), pid=pid,
         head=b['head'], ann=b['ann'], header=b['header'], migas=migas(tipo, grupo, nombre),
         tarjeta='    ' + tarjeta, id_rel=id_rel, rel_sub=rel_sub,
         bloque_compra=bloque_compra(pid, tipo, nombre, hay, primeras_anillo(pid, cat, stock) if tipo == 'anillo' else
@@ -870,6 +887,7 @@ def main():
             if not ts:
                 raise SystemExit('El anillo %s no tiene tallas en catalogo.json.' % m)
             cat2['precios'][m] = cat['precios'][ts[0]]
+            cat2.setdefault('lista', {})[m] = cat.get('lista', cat['precios'])[ts[0]]
             cat2['nombres'][m] = re.sub(r' · Talla .*$', '', cat['nombres'][ts[0]])
         for m in modelos:
             pagina, tipo = generar(m, html, cat2, stock, b, exigidos)
