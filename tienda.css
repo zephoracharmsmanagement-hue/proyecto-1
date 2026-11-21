@@ -1921,6 +1921,11 @@ button.col-paso::after{content:'›';position:absolute;right:15px;top:50%;transf
   padding:11px 16px;border-radius:3px;box-shadow:0 8px 24px rgba(42,31,46,.25);
   transition:opacity .25s,transform .25s}
 .aviso-corto.is-on{opacity:1;transform:translate(-50%,0)}
+/* «Agregado · Ir a pagar»: el aviso no estorba los toques, pero su botón sí
+   se puede tocar mientras está a la vista. */
+.aviso-ir{font:inherit;font-weight:600;color:#fff;background:none;border:0;padding:8px 4px;margin:-8px 0;
+  text-decoration:underline;text-underline-offset:3px;cursor:pointer;pointer-events:none}
+.aviso-corto.is-on .aviso-ir{pointer-events:auto}
 /* La sección a la que se llevó a la clienta parpadea un instante. */
 .is-pide:not(.tallas):not(.anillo-tallas){animation:pide-sec 1.1s ease}
 @keyframes pide-sec{0%,100%{box-shadow:none}35%{box-shadow:0 0 0 3px var(--rose)}}

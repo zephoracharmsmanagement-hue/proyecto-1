@@ -34,6 +34,27 @@ desplegar hay que avisar al tablero y a la Sesión 5 con la hora (hay anuncios c
 - `gen_paginas.py` no conoce la línea de Clarity de las páginas legales: al regenerar hay que
   reponerla a mano (se repuso en envíos y preguntas frecuentes; las otras tres no se tocaron).
 
+## Black Friday 2026 — pago y página «Inicial y signo» (PR B, en vista previa: NO desplegado)
+
+Del estudio de conversión (2026-11-20). Va montado sobre el PR A: se despliega después de él.
+
+- **Checkout:** los medios de pago van todos a la vista (Wompi, contraentrega, Addi), sin «Cambiar»
+  (`#pago-elegido` sigue en el HTML, oculto: de ahí leen las pruebas). Sistecrédito no se muestra
+  mientras `SISTE_PAUSADO`. La caja de la promo ya no dice «agrega N piezas»: solo aparece para
+  celebrar una pieza gratis ya ganada (el aviso de sumar se queda en el carrito). Plazo de entrega
+  a la vista (`#env-plazo`, mismas cifras de la ficha). El celular acepta +57 / 57 delante.
+  «Intentar de nuevo» encuentra el formulario lleno (sale de `zephora.pedido`, sessionStorage).
+- **Medición:** `InitiateCheckout` una vez por carrito y sesión (`zephora.ic` en sessionStorage), no
+  en cada carga del checkout: **el conteo baja frente a antes sin que baje la intención**; no
+  comparar semanas de un lado y otro del despliegue. `AddToCart` lleva el parámetro propio
+  `origen` (grilla, pagina-pieza, vitrina, ficha-emergente, barra, kit).
+- **Aviso «✓ Agregado · Ir a pagar»** al agregar una pieza o elegir talla (`avisoAgregado()` en
+  tienda.js); el botón va al pago por `comprar()`.
+- **`campana-inicial-signo.html`** (campanas.json, `tipo: inicial-signo`): tarjeta de iniciales, 12
+  signos y todos los brazaletes. La portada con `?cat=Letras` o `?cat=Zodiaco` **y** `fbclid` pasa
+  a esa página (`portada_cat`; el script vive en index.html entre las marcas `redir-campana` y lo
+  escribe `gen_colecciones.py`). Sin fbclid, la portada filtra como siempre.
+
 ## Campañas y conversión — desplegado el 2026-11-20 (PR #56)
 
 Salió de los clics de Clarity y de la pauta de Marvel. Lo que cambia para quien toque la tienda:

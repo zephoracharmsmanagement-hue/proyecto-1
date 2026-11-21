@@ -55,9 +55,11 @@ async function main() {
     comprobar(fs.existsSync(archivo), `existe ${c.archivo}`);
     if (!fs.existsSync(archivo)) continue;
     const h = leer(c.archivo);
-    const tema = new Set(Object.entries(CAT.grupos).filter(([, g]) => g === c.grupo).map(([id]) => id).concat(c.base));
+    const tema = new Set(Object.entries(CAT.grupos).filter(([, g]) => g === c.grupo).map(([id]) => id)
+      /* «Inicial y signo»: la tarjeta de las iniciales, los signos y todos los brazaletes. */
+      .concat(c.tipo === 'inicial-signo' ? ['letras'].concat(CAT.pulseras) : [c.base]));
     const dest = idsEn(h, 'id="destacadas"', '</section>');
-    comprobar(JSON.stringify(dest) === JSON.stringify(c.destacados),
+    comprobar(JSON.stringify(dest) === JSON.stringify(c.tipo === 'inicial-signo' ? ['letras'] : c.destacados),
       'las del anuncio van primero, en el orden de la configuración', dest.join(', '));
     const todas = idsEn(h, 'id="destacadas"', '<section class="talla-sec"');
     const fuera = todas.filter(id => !tema.has(id));
@@ -76,8 +78,14 @@ async function main() {
     comprobar(/<a class="brand" href="index\.html">/.test(h) && (h.match(/href="index\.html"/g) || []).length === 1,
       'el logotipo lleva a la página principal, y es la única salida');
     comprobar(/data-agotadas-final/.test(h), 'las agotadas bajan al final (data-agotadas-final)');
-    comprobar(/data-elegir-base="[^"]+"/.test(h) && (h.match(/data-ir="#piezas"/g) || []).length >= 2,
-      'el combo se puede tocar: brazalete y charms');
+    if (c.tipo === 'inicial-signo') {
+      comprobar((h.match(/id="letras-grid"/g) || []).length === 1 && !/class="letras-ver"/.test(h),
+        'un solo selector de iniciales, y sin el enlace a la página de cada inicial');
+      comprobar(idsEn(h, 'id="brazaletes"', '</section>').length === CAT.pulseras.length, `los ${CAT.pulseras.length} brazaletes están para elegir`);
+    } else {
+      comprobar(/data-elegir-base="[^"]+"/.test(h) && (h.match(/data-ir="#piezas"/g) || []).length >= 2,
+        'el combo se puede tocar: brazalete y charms');
+    }
   }
 
   console.log('\n2 · Kits pautados en modo campaña (kits.json · pagina.campana)');
@@ -210,6 +218,33 @@ async function main() {
     /* Quien llega a la colección desde el anuncio pasa a la campaña (el
        enlace del anuncio no se puede cambiar sin perder su prueba social);
        las demás visitas se quedan en la colección. */
+    /* Portada con ?cat=<grupo>: los anuncios de «Inicial y signo» caen ahí.
+       Con fbclid pasa a su campaña; sin él, la portada filtra como siempre. */
+    for (const c3 of CAMPANAS.filter(x => (x.portada_cat || []).length)) {
+      const hp = leer('index.html');
+      comprobar(hp.indexOf('redir-campana') > 0 && hp.indexOf('redir-campana') < hp.indexOf('fbq('),
+        'index.html: la redirección de la portada va antes del píxel');
+      p = await nueva();
+      for (const g of c3.portada_cat) {
+        await p.goto(BASE + '/index.html?cat=' + g + '&fbclid=IwAR0abc&utm_source=ig', { waitUntil: 'load' });
+        await p.waitForTimeout(700);
+        const u = new URL(p.url());
+        comprobar(u.pathname.endsWith('/' + c3.archivo) && u.searchParams.get('fbclid') === 'IwAR0abc' && u.searchParams.get('utm_source') === 'ig',
+          `portada ?cat=${g} con fbclid → ${c3.archivo}, conservando la consulta`, u.pathname + u.search);
+      }
+      await p.waitForTimeout(900);
+      comprobar(await p.evaluate(() => document.querySelectorAll('#letras-grid .lbtn').length > 20 && document.querySelectorAll('#piezas .pc').length === 12) && !p.errs.length,
+        'y la campaña carga bien: iniciales para tocar, 12 signos, consola limpia', p.errs.join(' | ') || undefined);
+      await p.goto(BASE + '/index.html?cat=' + c3.portada_cat[0], { waitUntil: 'load' });
+      await p.waitForTimeout(500);
+      const u4 = new URL(p.url());
+      await p.goto(BASE + '/index.html?fbclid=IwAR0abc', { waitUntil: 'load' });
+      await p.waitForTimeout(500);
+      comprobar(u4.pathname.endsWith('/index.html') && new URL(p.url()).pathname.endsWith('/index.html'),
+        'sin fbclid, o con fbclid pero sin ese cat, la portada se queda');
+      await p.close();
+    }
+
     for (const c2 of CAMPANAS.filter(x => x.desde && ((x.anuncios || []).length || x.desde_meta))) {
       const h = leer(c2.desde);
       comprobar(h.indexOf('utm_content') > 0 && h.indexOf('utm_content') < h.indexOf('fbq('),

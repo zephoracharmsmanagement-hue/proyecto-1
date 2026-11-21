@@ -215,6 +215,8 @@ button{font-family:inherit}
 .co-t{font-size:clamp(26px,7vw,34px);line-height:1.1;margin:22px 0 16px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .campo[hidden],.ops[hidden]{display:none}
+.env-plazo{font-size:12.5px;line-height:1.45;color:var(--gris);margin:6px 0 0}
+.env-plazo b{font-weight:500;color:var(--ink)}
 /* Lo opcional, plegado: una casilla limpia que abre su campo. */
 .extra{display:grid;gap:10px}
 .extra-t{display:flex;gap:11px;align-items:flex-start;cursor:pointer;padding:2px 0}
@@ -337,6 +339,9 @@ button{font-family:inherit}
         <div id="res-totales"></div>
           <div class="env-bar" id="env-bar" aria-hidden="true"><i></i></div>
           <p class="env-nota" id="env-nota"></p>
+          <!-- El plazo, con las mismas cifras de la ficha y de
+               envios-y-devoluciones.html: no se inventa ninguno. -->
+          <p class="env-plazo" id="env-plazo">Entrega en días hábiles desde el despacho: <b>Bogotá 1 día</b> · municipios cercanos 1 – 2 · ciudades principales 2 – 4 · resto del país 3 – 6.</p>
           <p class="env-nota env-nota--regalo">🎁 Incluye caja, paño para limpiar la plata y dedicatoria escrita a mano — sin costo.</p>
         <a class="res-editar" href="index.html#brazaletes">← Modificar mi selección</a>
       </div>
@@ -390,7 +395,7 @@ button{font-family:inherit}
             <div class="dos">
               <div class="campo" data-c="celular">
                 <label for="celular">Celular <span class="req">*</span></label>
-                <input id="celular" name="celular" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="12" placeholder="300 000 0000" required>
+                <input id="celular" name="celular" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="17" placeholder="300 000 0000" required>
                 <span class="error">Un celular colombiano de 10 dígitos que empiece por 3</span>
               </div>
               <div class="campo" data-c="correo">
@@ -492,14 +497,17 @@ button{font-family:inherit}
         <section class="panel" id="panel-pago" aria-labelledby="t3">
           <h2 id="t3">Pago</h2>
 
-          <!-- La forma de pago ya se eligió en el carrito: aquí solo se
-               confirma, con «Cambiar» para quien quiera la otra. -->
-          <div class="pago-elegido" id="pago-elegido">
+          <!-- Los medios de pago van todos a la vista (estudio de conversión,
+               2026-11-20): antes solo se veía el que venía del carrito y la
+               contraentrega quedaba escondida tras «Cambiar». La línea de
+               abajo se conserva oculta: pintarPagoElegido() la sigue llenando
+               y de ahí leen las pruebas cuál quedó elegido. -->
+          <div class="pago-elegido" id="pago-elegido" hidden>
             <span class="pago-elegido-tx" id="pago-elegido-tx"></span>
             <button type="button" class="cambiar" id="cambiar-pago" aria-controls="ops-pago" aria-expanded="false">Cambiar</button>
           </div>
 
-          <div class="ops" id="ops-pago" role="radiogroup" aria-label="Forma de pago" hidden>
+          <div class="ops" id="ops-pago" role="radiogroup" aria-label="Forma de pago">
             <label class="op">
               <input type="radio" name="pago" value="anticipado" checked>
               <span class="op-tx">
@@ -895,6 +903,9 @@ function pintarResumen(){
   const bajo=SISTE_PAUSADO||ts<SISTE_MIN;
   const rs=document.querySelector('#ops-pago input[value="sistecredito"]');
   rs.disabled=bajo;
+  /* Pausado no se muestra: una opción gris que dice «No disponible por el
+     momento» entre los medios de pago solo resta confianza (2026-11-20). */
+  rs.closest('.op').hidden=SISTE_PAUSADO;
   rs.closest('.op').classList.toggle('op--off',bajo);
   $('#siste-tope').hidden=!bajo;
   $('#siste-tope').textContent=SISTE_PAUSADO
@@ -967,7 +978,11 @@ function pintarPagoElegido(t){
 function pintarDescuento(c,t){
   const caja=$('#dto'), P=CAT.reglas.promo;
   const piezas=c.charms.length+(c.base?1:0);
-  if(!piezas){ caja.hidden=true; return; }
+  /* En el pago ya no se invita a sumar piezas («¡Agrega 2 más y una te sale
+     GRATIS!»): eso saca a la clienta del checkout justo antes de pagar. Ese
+     aviso se queda en el carrito. Aquí la caja solo aparece para celebrar lo
+     que ya ganó (estudio de conversión, 2026-11-20). */
+  if(!piezas||!t.nGratis){ caja.hidden=true; return; }
   caja.hidden=false;
   const sig=P.tramos.find(x=>x[0]>piezas), hechos=P.tramos.filter(x=>x[0]<=piezas);
   const ult=hechos[hechos.length-1], prev=hechos[hechos.length-2];
@@ -983,15 +998,10 @@ function pintarDescuento(c,t){
   const ol=$('#dto-pasos');
   ol.style.setProperty('--n',tr.fin-tr.ini);
   ol.innerHTML=pasos.join('');
+  ol.hidden=!tr.completo;
   caja.classList.toggle('is-max',tr.completo);
   const pz=n=>n+(n===1?' pieza':' piezas');
-  $('#dto-nota').innerHTML=tr.max
-    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>, lo máximo de la promo!'
-    : tr.completo
-    ? '¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b>! Con '+pz(tr.sig[0]-piezas)+' más te salen '+tr.sig[1]+' gratis.'
-    : (t.nGratis?'Ya tienes <b>'+pz(t.nGratis)+' GRATIS</b>. ':'')
-      +(faltan===1?(t.nGratis?'¡Agrega <b>1 pieza más</b> y otra te sale GRATIS!':'¡Agrega <b>1 pieza más</b> para que te salga GRATIS!')
-        :'¡Agrega <b>'+pz(faltan)+' más</b> y una te sale GRATIS!');
+  $('#dto-nota').innerHTML='¡Felicidades, tienes <b>'+pz(t.nGratis)+' GRATIS</b> en este pedido!';
 }
 
 /* ——— geografía ——— */
@@ -1042,6 +1052,10 @@ const marcar=(nombre,mal)=>{
   return !mal;
 };
 const val=id=>$('#'+id).value.trim();
+/* El celular en 10 dígitos. Quien lo escribe o lo autocompleta con el
+   indicativo (+57 300…, 57300…) no se rechaza: se le quita el prefijo. */
+const celular=()=>{ const d=val('celular').replace(/\D/g,'');
+  return d.length===12&&d.slice(0,2)==='57'?d.slice(2):d; };
 
 /* Pregunta si el correo tiene el descuento de suscriptora y repinta. Una vez
    por correo distinto; si la consulta falla, no hay descuento en pantalla (el
@@ -1070,7 +1084,7 @@ const REGLAS={
   apellido:()=>val('apellido').length>=2,
   /* Celular colombiano: 10 dígitos empezando por 3. Se toleran espacios y
      guiones al escribir, pero lo que se valida y se guarda son los dígitos. */
-  celular:()=>/^3\d{9}$/.test(val('celular').replace(/\D/g,'')),
+  celular:()=>/^3\d{9}$/.test(celular()),
   correo:()=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val('correo')),
   depto:()=>!!val('depto'),
   ciudad:()=>!!val('ciudad'),
@@ -1130,7 +1144,7 @@ function datos(){
   const ciu=$('#ciudad').value===OTRO?val('ciudadotra'):val('ciudad');
   return {
     nombre:val('nombre'), apellido:val('apellido'),
-    celular:val('celular').replace(/\D/g,''), correo:val('correo').toLowerCase(),
+    celular:celular(), correo:val('correo').toLowerCase(),
     depto:val('depto'), ciudad:ciu, direccion:val('direccion'),
     adicional:val('adicional'), barrio:val('barrio'),
     /* Lo opcional solo viaja si su casilla está marcada: quien la desmarca
@@ -1457,10 +1471,29 @@ Promise.all([
     carrito.pago=e.target.value;
     guardarCarrito();
     pintarResumen();
-    $('#ops-pago').hidden=true;
-    $('#cambiar-pago').setAttribute('aria-expanded','false');
-    $('#cambiar-pago').textContent='Cambiar';
   });
+  /* Quien vuelve de un pago rechazado («Intentar de nuevo» en gracias.html)
+     encuentra el formulario como lo dejó: los datos salen de `zephora.pedido`,
+     que este mismo checkout guardó en la sesión antes de irse a la pasarela.
+     Solo se llenan campos vacíos, y solo en esta pestaña (sessionStorage). */
+  try{
+    const cl=(JSON.parse(sessionStorage.getItem('zephora.pedido')||'null')||{}).cliente;
+    if(cl){
+      const pon=(id,v)=>{ const el=$('#'+id); if(el&&v&&!el.value){ el.value=v; return true; } return false; };
+      ['nombre','apellido','celular','correo','direccion','adicional','barrio'].forEach(k=>pon(k,cl[k]));
+      pon('cedula',cl.documento);
+      if(cl.depto&&GEO.departamentos[cl.depto]&&pon('depto',cl.depto)){
+        pintarCiudades();
+        if((GEO.departamentos[cl.depto]||[]).indexOf(cl.ciudad)>=0) $('#ciudad').value=cl.ciudad;
+        else if(cl.ciudad){ $('#ciudad').value=OTRO; verOtra(); $('#ciudadotra').value=cl.ciudad; }
+      }
+      if(cl.dedicatoria&&!$('#con-dedicatoria').checked){ const c=$('#con-dedicatoria'); c.checked=true; c.setAttribute('aria-expanded','true'); $('#campo-dedicatoria').hidden=false; $('#dedicatoria').value=cl.dedicatoria; }
+      if(cl.notas&&!$('#con-notas').checked){ const c=$('#con-notas'); c.checked=true; c.setAttribute('aria-expanded','true'); $('#campo-notas').hidden=false; $('#notas').value=cl.notas; }
+      if(cl.optin) $('#optin').checked=true;
+      revisarDescuento();
+    }
+  }catch(_){}
+
   /* La forma de pago que venía del armador manda sobre la marcada por defecto. */
   const previo=document.querySelector('#ops-pago input[value="'+carrito.pago+'"]');
   if(previo){ previo.checked=true; previo.dispatchEvent(new Event('change',{bubbles:true})); }
@@ -1494,11 +1527,20 @@ Promise.all([
      con cantidades, para que Meta sepa QUÉ piezas llegaron al checkout. */
   const ids=(carrito.base?[carrito.base.id]:[]).concat(carrito.charms);
   const cuenta={}; ids.forEach(i=>{ cuenta[i]=(cuenta[i]||0)+1; });
-  track('InitiateCheckout',{value:calcular(carrito).total,num_items:ids.length,
-    content_type:'product',content_ids:Object.keys(cuenta),
-    contents:Object.keys(cuenta).map(i=>({id:i,quantity:cuenta[i]})),
-    content_name:'Checkout'},
-    'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
+  /* Uno por carrito y por sesión, no uno por cada vez que carga la página
+     (2026-11-20): recargar, volver de la pasarela o de «Intentar de nuevo»
+     con las mismas piezas contaba otro inicio de pago. Si el carrito cambia,
+     sí es otro. */
+  const firma=Object.keys(cuenta).sort().map(i=>i+'x'+cuenta[i]).join(',');
+  let enviada=''; try{ enviada=sessionStorage.getItem('zephora.ic')||''; }catch(_){}
+  if(firma&&firma!==enviada){
+    track('InitiateCheckout',{value:calcular(carrito).total,num_items:ids.length,
+      content_type:'product',content_ids:Object.keys(cuenta),
+      contents:Object.keys(cuenta).map(i=>({id:i,quantity:cuenta[i]})),
+      content_name:'Checkout'},
+      'zc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10));
+    try{ sessionStorage.setItem('zephora.ic',firma); }catch(_){}
+  }
 }).catch(()=>{
   /* Sin catálogo no se puede mostrar un precio, y mostrar uno inventado sería
      peor que no mostrar ninguno. Se manda a WhatsApp, que no depende de esto. */

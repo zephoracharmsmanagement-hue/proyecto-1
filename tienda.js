@@ -530,7 +530,7 @@ document.addEventListener('click',e=>{
   if(kp){
     if(kp.dataset.wa){ location.href=kp.dataset.wa; return; }
     const [b,...cs]=kp.dataset.kitPiezas.split(',');
-    cs.forEach(id=>{ if(CH[id]&&!sel.includes(id)) sumarCharm(id); });
+    cs.forEach(id=>{ if(CH[id]&&!sel.includes(id)) sumarCharm(id,true); });
     /* El botón grande de kit-<id>.html está fuera de la tarjeta: data-kit-ir
        dice cuál es, para pedir la talla de su brazalete. */
     const kit=kp.closest('.kit')||document.getElementById(kp.dataset.kitIr||''), caja=kit&&kit.querySelector('.kit-tallas');
@@ -2020,11 +2020,43 @@ function tallaAnillo(id){
   const b=t.querySelector('.abtn:not([aria-disabled="true"])'); if(b) b.focus({preventScroll:true});
 }
 
-function sumarCharm(id){
+/* De dónde salió el último «Agregar», para poder distinguirlo en Meta
+   (estudio de conversión, 2026-11-20): el botón rápido de una grilla no es lo
+   mismo que agregar desde la página de la pieza. Se anota en la fase de
+   captura, antes de que ningún otro manejador agregue nada, y viaja como
+   parámetro propio `origen` del AddToCart. */
+let origenAdd='otro';
+document.addEventListener('click',e=>{
+  const t=e.target.closest&&e.target; if(!t||!t.closest) return;
+  origenAdd=t.closest('#aviso-corto')?origenAdd
+    :t.closest('#ficha')?'ficha-emergente'
+    :t.closest('.vit, .vit-it, .sug, .sug-c')?'vitrina'
+    :t.closest('#dock')?'barra'
+    :t.closest('.pc--pp, .pp-compra')?'pagina-pieza'
+    :t.closest('.kp, [data-kit]')?'kit'
+    :t.closest('.pc')?'grilla'
+    :'otro';
+},true);
+
+/* «Agregado · Ir a pagar»: hasta el 2026-11-20 tocar «Agregar» no daba más
+   señal que un número en la barra de abajo. El botón lleva al pago por el
+   mismo camino que «Comprar» (comprar()). */
+function avisoAgregado(){
+  avisoCorto('');
+  const a=document.getElementById('aviso-corto');
+  a.innerHTML='<span>✓ Agregado</span> · <button type="button" class="aviso-ir" data-ir-pagar>Ir a pagar</button>';
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest||!e.target.closest('[data-ir-pagar]')) return;
+  e.preventDefault(); comprar();
+});
+
+function sumarCharm(id,callado){
   if(agotado(id)||sel.filter(x=>x===id).length>=tope(id)) return;
   sel.push(id); render();
+  if(!callado) avisoAgregado();
   track('AddToCart',{content_type:'product',content_ids:[id],
-    content_name:CH[id].n,value:CH[id].p});
+    content_name:CH[id].n,value:CH[id].p,origen:origenAdd});
 }
 
 /* La página de cada pieza: producto-<id>.html, la misma regla de
@@ -2104,8 +2136,8 @@ document.addEventListener('click',e=>{
     const igual=base&&base.id===id&&base.talla===talla;
     base = igual ? null : {id:id,talla:talla};
     render();
-    if(base) track('AddToCart',{content_type:'product',content_ids:[id],
-      content_name:PU[id].n+' · talla '+talla,value:PU[id].p});
+    if(base){ avisoAgregado(); track('AddToCart',{content_type:'product',content_ids:[id],
+      content_name:PU[id].n+' · talla '+talla,value:PU[id].p,origen:origenAdd}); }
     return;
   }
 
@@ -2127,7 +2159,7 @@ document.addEventListener('click',e=>{
     base = antes===id ? null : {id:id,talla:null};
     render();
     if(base&&base.id!==antes) track('AddToCart',{content_type:'product',content_ids:[id],
-      content_name:PU[id].n,value:PU[id].p});
+      content_name:PU[id].n,value:PU[id].p,origen:origenAdd});
   }
 });
 

@@ -162,10 +162,18 @@ async function llenarDatos(p, d) {
     ok(await p.locator('#nombre').isVisible() && await p.locator('#confirmar').isVisible(),
       'los datos y el botón de pagar están en la misma página');
 
-    /* La forma de pago del carrito se confirma, no se vuelve a preguntar. */
-    ok(!(await p.locator('#ops-pago').isVisible()), 'las dos formas de pago no se muestran de entrada');
-    ok(/Pagar ahora/i.test(await p.locator('#pago-elegido-tx').textContent()),
-      'se ve, en una línea, la que eligió en el carrito');
+    /* Los medios de pago van todos a la vista (2026-11-20): antes la
+       contraentrega quedaba escondida tras «Cambiar». Sistecrédito, en pausa,
+       no se muestra. */
+    const medios = await p.evaluate(() => [...document.querySelectorAll('#ops-pago .op')]
+      .filter(o => o.offsetParent !== null).map(o => o.querySelector('input').value));
+    ok(JSON.stringify(medios) === JSON.stringify(['anticipado', 'contraentrega', 'addi']),
+      'Wompi, contraentrega y Addi se ven de entrada, sin «Cambiar»; Sistecrédito en pausa no aparece', medios.join(', '));
+    ok(!(await p.locator('#cambiar-pago').isVisible()) && await p.evaluate(() => document.querySelector('#ops-pago input[name="pago"]:checked').value === 'anticipado')
+      && /Pagar ahora/i.test(await p.locator('#pago-elegido-tx').textContent()),
+      'y viene marcada la que eligió en el carrito');
+    ok(/Bogotá 1 día/.test(await p.locator('#env-plazo').textContent()) && /3 – 6/.test(await p.locator('#env-plazo').textContent()),
+      'el plazo de entrega está a la vista, con las cifras de la ficha');
     const total = (await p.locator('#res-total').textContent()).trim();
     ok((await p.locator('#confirmar').textContent()).includes(total), 'el botón dice cuánto va a pagar', total);
 
@@ -214,20 +222,20 @@ async function llenarDatos(p, d) {
   // ——— 2ba · la escalera del descuento ———
   out.push('\n2ba · La barra de «paga 3, lleva 1 gratis», visible sin abrir el resumen');
   {
-    /* Lo que sostiene la barra: que se vea en el móvil con el resumen cerrado
-       —si hay que abrirlo, no empuja—, que llene una casilla por pieza de la
-       vuelta en curso (brazalete y charms cuentan igual) y que diga cuántas
-       faltan para la gratis, o la celebre. */
+    /* Desde el 2026-11-20 en el pago no se invita a sumar piezas («¡Agrega 2
+       más y una te sale GRATIS!» sacaba a la clienta del checkout): la caja
+       solo aparece cuando ya hay una pieza gratis, para celebrarla, y nunca
+       dice «agrega». El aviso de sumar se queda en el carrito. */
     const casos = [
       /* 1…4 hasta la primera gratis; después 5…6 (desde el 2026-10-29; antes
          5…7); desde 6, el máximo. */
-      { charms: [], base: true, tramos: 4, llenos: 1, dice: /Agrega 3 piezas más/i },
-      { charms: ['iron-man'], base: true, tramos: 4, llenos: 2, dice: /Agrega 2 piezas más/i },
-      { charms: ['iron-man', 'stitch'], base: true, tramos: 4, llenos: 3, dice: /Agrega 1 pieza más para que te salga GRATIS/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, tramos: 4, llenos: 4, dice: /Felicidades, tienes 1 pieza GRATIS.*te salen 2 gratis/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk'], base: true, tramos: 2, llenos: 1, dice: /Ya tienes 1 pieza GRATIS.*Agrega 1 pieza más y otra/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 2, llenos: 2, dice: /tienes 2 piezas GRATIS, lo máximo/i },
-      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse', 'ariel'], base: true, tramos: 2, llenos: 2, dice: /tienes 2 piezas GRATIS, lo máximo/i },
+      { charms: [], base: true, oculta: true },
+      { charms: ['iron-man'], base: true, oculta: true },
+      { charms: ['iron-man', 'stitch'], base: true, oculta: true },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse'], base: true, tramos: 4, llenos: 4, dice: /Felicidades, tienes 1 pieza GRATIS en este pedido/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk'], base: true, tramos: 2, llenos: 1, dice: /tienes 1 pieza GRATIS en este pedido/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 2, llenos: 2, dice: /tienes 2 piezas GRATIS en este pedido/i },
+      { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse', 'ariel'], base: true, tramos: 2, llenos: 2, dice: /tienes 2 piezas GRATIS en este pedido/i },
     ];
     for (const k of casos) {
       const p = await b.newPage({ viewport: { width: 390, height: 844 } });
@@ -244,6 +252,12 @@ async function llenarDatos(p, d) {
           nota: document.querySelector('#dto-nota').textContent.trim() };
       });
       const n = k.charms.length + ' charm' + (k.charms.length === 1 ? '' : 's') + (k.base ? ' + brazalete' : '');
+      if (k.oculta) {
+        ok(!r.visible && !/agrega/i.test(await p.locator('#res').textContent()), `${n}: sin pieza gratis todavía, el pago no invita a sumar más`);
+        await p.close();
+        continue;
+      }
+      ok(!/agrega/i.test(r.nota), `${n}: celebra lo ganado sin decir «agrega»`, r.nota);
       ok(r.visible && r.cerrado, `${n}: la barra se ve con el resumen cerrado`);
       ok(r.tramos === k.tramos && r.llenos === k.llenos, `${n}: llena ${k.llenos} de ${k.tramos} casillas`, `${r.llenos}/${r.tramos}`);
       ok(k.dice.test(r.nota), `${n}: dice lo que corresponde`, r.nota);
@@ -512,7 +526,6 @@ async function llenarDatos(p, d) {
     await p.waitForTimeout(400);
     await llenarDatos(p, DATOS);
     ok(!(await p.locator('#campo-cedula').isVisible()), 'con «Pagar ahora» no se pide cédula');
-    await p.click('#cambiar-pago');
     ok(await p.locator('#ops-pago input[value="addi"]').count() === 1, '«Cambiar» trae Addi como tercera opción');
     const ant = await p.locator('#p-anticipado').textContent(), add = await p.locator('#p-addi').textContent();
     ok(ant === add, 'Addi cuesta lo mismo que pagar ahora: envío gratis', `${add}`);
@@ -628,14 +641,14 @@ async function llenarDatos(p, d) {
       await ponerCarrito(q, { base: { id: BRZ.id, talla: BRZ.talla }, charms: ['mickey-mouse', 'stitch', 'iron-man'], empaque: false, pago: 'sistecredito' });
       await q.goto(BASE + '/checkout.html?pago=sistecredito', { waitUntil: 'networkidle' });
       await q.waitForTimeout(400);
-      await q.click('#cambiar-pago');
       const e = await q.evaluate(() => ({
         off: document.querySelector('#ops-pago input[value="sistecredito"]').disabled,
         aviso: document.getElementById('siste-tope').hidden ? '' : document.getElementById('siste-tope').textContent,
         elegido: (document.querySelector('#ops-pago input[name="pago"]:checked') || {}).value,
         boton: document.getElementById('confirmar').textContent,
       }));
-      ok(e.off && /No disponible por el momento/.test(e.aviso), 'en pausa: Sistecrédito se ve deshabilitado y dice «No disponible por el momento»', e.aviso);
+      const seVe = await q.evaluate(() => document.querySelector('#ops-pago .op--siste').offsetParent !== null);
+      ok(e.off && !seVe, 'en pausa: Sistecrédito no se muestra entre los medios de pago (y sigue deshabilitado por dentro)', String(seVe));
       ok(e.elegido === 'anticipado' && !/Sistecr/.test(e.boton), 'quien llega con ?pago=sistecredito vuelve a «Pagar ahora»', e.elegido + ' · ' + e.boton);
       await q.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
       const anuncia = await q.evaluate(() => [...document.querySelectorAll('.cuotas-fila[data-siste-checkout], .pe-pie')]
@@ -664,8 +677,7 @@ async function llenarDatos(p, d) {
     await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
     await p.waitForTimeout(400);
     await llenarDatos(p, DATOS);
-    await p.click('#cambiar-pago');
-    ok(await p.locator('#ops-pago input[value="sistecredito"]').count() === 1, '«Cambiar» trae Sistecrédito como cuarta opción');
+    ok(await p.locator('#ops-pago input[value="sistecredito"]').isVisible(), 'activo, Sistecrédito es la cuarta opción a la vista');
     const ant = await p.locator('#p-anticipado').textContent(), sis = await p.locator('#p-sistecredito').textContent();
     ok(ant === sis, 'Sistecrédito cuesta lo mismo que pagar ahora: envío gratis', sis);
     const desc = await p.locator('.op--siste .op-d').first().textContent();
@@ -707,8 +719,7 @@ async function llenarDatos(p, d) {
 
     await llenarDatos(p, DATOS);
     /* Venía con pago anticipado del carrito; «Cambiar» abre las dos. */
-    await p.click('#cambiar-pago');
-    ok(await p.locator('#ops-pago').isVisible(), '«Cambiar» muestra las dos formas de pago');
+    ok(await p.locator('#ops-pago').isVisible(), 'las formas de pago están a la vista');
 
     const antes = await p.locator('#p-anticipado').textContent();
     const contra = await p.locator('#p-contraentrega').textContent();
@@ -722,8 +733,8 @@ async function llenarDatos(p, d) {
     await p.waitForTimeout(200);
     ok((await p.locator('#res-total').textContent()) === contra,
       'elegir contraentrega actualiza el resumen');
-    ok(!(await p.locator('#ops-pago').isVisible()) && /contraentrega/i.test(await p.locator('#pago-elegido-tx').textContent()),
-      'y se vuelve a plegar, con la elegida en su línea');
+    ok(await p.locator('#ops-pago').isVisible() && /contraentrega/i.test(await p.locator('#pago-elegido-tx').textContent()),
+      'y las opciones siguen a la vista, con la contraentrega marcada');
     ok(/Confirmar pedido/.test(await p.locator('#confirmar').textContent()),
       'el botón ya no dice «Pagar»: se paga al recibir');
 
@@ -739,6 +750,55 @@ async function llenarDatos(p, d) {
       'la página de gracias confirma el pedido');
     ok(await p.evaluate(() => localStorage.getItem('zephora.carrito.v1') === null),
       'el carrito se vacía al confirmar, para no repetir el pedido sin querer');
+    await p.close();
+  }
+
+  // ——— 4a2 · estudio de conversión (2026-11-20): +57, reintento con datos, un solo InitiateCheckout ———
+  out.push('\n4a2 · Celular con +57, «Intentar de nuevo» con el formulario lleno, InitiateCheckout una vez');
+  {
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    await p.addInitScript(() => { window.fbq = function () { (window.__fbq = window.__fbq || []).push([].slice.call(arguments)); }; });
+    await ponerCarrito(p, { base: null, charms: ['mickey-mouse', 'stitch'], empaque: false, pago: 'anticipado' });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+    const ic = () => p.evaluate(() => (window.__fbq || []).filter(x => x[1] === 'InitiateCheckout').length);
+    ok(await ic() === 1, 'al llegar al pago sale un InitiateCheckout', String(await ic()));
+    await p.reload({ waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+    ok(await ic() === 0, 'recargar con el mismo carrito no cuenta otro', String(await ic()));
+    /* ponerCarrito solo escribe en la primera carga: el cambio se hace a mano. */
+    await p.evaluate(() => { const c = JSON.parse(localStorage.getItem('zephora.carrito.v1')); c.charms.push('iron-man');
+      localStorage.setItem('zephora.carrito.v1', JSON.stringify(c)); });
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(400);
+    ok(await ic() === 1, 'con otro carrito sí es otro inicio de pago', String(await ic()));
+
+    for (const [escrito, limpio] of [['+57 300 123 4567', '3001234567'], ['573001234567', '3001234567'], ['300 123 4567', '3001234567']]) {
+      await p.fill('#celular', escrito);
+      await p.locator('#celular').blur();
+      await p.waitForTimeout(120);
+      const mal = await p.evaluate(() => document.querySelector('[data-c="celular"]').classList.contains('mal'));
+      ok(!mal && (await p.inputValue('#celular')) === escrito, `celular «${escrito}» se acepta (viaja como ${limpio})`);
+    }
+    await p.fill('#celular', '+57 601 123 4567');
+    await p.locator('#celular').blur();
+    await p.waitForTimeout(120);
+    ok(await p.evaluate(() => document.querySelector('[data-c="celular"]').classList.contains('mal')), 'un fijo con +57 se sigue rechazando');
+
+    /* Vuelve de un pago rechazado: gracias.html manda a checkout.html y los
+       datos que dejó están en sessionStorage (zephora.pedido). */
+    await p.evaluate(() => sessionStorage.setItem('zephora.pedido', JSON.stringify({ referencia: 'ZC-PRUEBA', total: 1, pago: 'anticipado',
+      cliente: { nombre: 'Ana', apellido: 'Prueba', celular: '3001234567', correo: 'ana@example.com', depto: 'Antioquia', ciudad: 'Medellín',
+        direccion: 'Calle 1 # 2-3', adicional: 'Apto 4', barrio: 'Centro', dedicatoria: 'Para ti', notas: '', optin: false } })));
+    await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(500);
+    const f = await p.evaluate(() => ({ n: nombre.value, a: apellido.value, c: celular.value, e: correo.value, d: depto.value, ci: ciudad.value,
+      dir: direccion.value, ded: dedicatoria.value, dedVisible: !document.getElementById('campo-dedicatoria').hidden,
+      y: scrollY, valido: !document.querySelector('.campo.mal') }));
+    ok(f.n === 'Ana' && f.a === 'Prueba' && f.c === '3001234567' && f.e === 'ana@example.com' && f.d === 'Antioquia' && f.ci === 'Medellín' && f.dir === 'Calle 1 # 2-3',
+      '«Intentar de nuevo» encuentra el formulario lleno', JSON.stringify(f));
+    ok(f.ded === 'Para ti' && f.dedVisible && f.valido && f.y === 0, 'con la dedicatoria abierta, todo válido y sin saltar de sitio', JSON.stringify(f));
     await p.close();
   }
 

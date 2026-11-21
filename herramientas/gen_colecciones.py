@@ -1137,8 +1137,77 @@ def solo_tema(pagina, tema, salida='#destacadas'):
     return pagina.replace('</body>', flotante + '</body>', 1)
 
 
+# Cuerpo de la campaña «Inicial y signo» (tipo inicial-signo): la tarjeta de
+# las iniciales, los signos y todos los brazaletes. Reemplaza las secciones
+# 1 a 3 de PAGINA_CAMPANA; el resto de la página es el mismo.
+CUERPO_INICIAL_SIGNO = '''<!-- 1 · LA INICIAL: la tarjeta de letras de la portada, con su selector. -->
+<section class="cp-sec wrap" id="destacadas" aria-label="Tu inicial">
+  <div class="grid">
+{tarjeta_letras}
+  </div>
+</section>
+
+<!-- 2 · EL SIGNO. -->
+<section class="cp-sec wrap" id="piezas">
+  <span class="eyebrow">Zodiaco</span>
+  <h2>Tu signo</h2>
+  <p class="col-sub">Los {n_resto} signos, en Plata Esterlina 925 verificada.</p>
+  <div class="grid" data-agotadas-final>
+{tarjetas_resto}
+  </div>
+</section>
+
+<!-- 3 · LOS BRAZALETES. #b-filters lo exige tienda.js; vacío. -->
+<section class="cp-sec wrap" id="combo">
+  <span class="eyebrow">La base</span>
+  <h2>Elige tu brazalete</h2>
+  <p class="col-sub">Brazalete + 3 charms son <b>4 piezas</b>: pagas 3 y la de menor valor te
+  sale <b>gratis</b>. Con 6 piezas son 2 gratis. Se aplica solo en el carrito.</p>
+  <div class="filters" id="b-filters" hidden></div>
+  <div class="grid" id="brazaletes" data-agotadas-final>
+{tarjetas_base}
+  </div>
+</section>
+
+'''
+
+
+def generar_campana_inicial_signo(c, html, cat, escribir):
+    signos = [pid for pid, g in cat['grupos'].items() if g == c['grupo']]
+    b = bloques(html)
+    ini, fin = PAGINA_CAMPANA.index('<!-- 1 · LAS DEL ANUNCIO'), PAGINA_CAMPANA.index('{talla}')
+    plantilla = PAGINA_CAMPANA[:ini] + CUERPO_INICIAL_SIGNO + PAGINA_CAMPANA[fin:]
+    # La tarjeta de letras trae su propio #letras-grid: el de relleno sobra
+    # (dos elementos con el mismo id).
+    relleno = '  <div class="letras-grid" id="letras-grid" role="group" aria-label="Elegir inicial"></div>\n'
+    if relleno not in plantilla:
+        raise SystemExit('PAGINA_CAMPANA ya no trae el #letras-grid de relleno: revisar generar_campana_inicial_signo.')
+    plantilla = plantilla.replace(relleno, '')
+    desc = '%s: %s' % (c['titulo'], c['texto'])
+    pagina = plantilla.format(
+        id=c['id'], archivo=c['archivo'], eyebrow=c['eyebrow'], titulo=c['titulo'], texto=c['texto'],
+        desc=desc.replace('"', ''), og=c['og'],
+        head=b['head'], ann=b['ann'], header=b['header'], talla=b['talla'],
+        resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'], chrome=b['chrome'],
+        tarjeta_letras='\n'.join('    ' + t for t in tarjetas(html, ['letras'])),
+        tarjetas_resto='\n'.join('    ' + t for t in tarjetas(html, signos)),
+        n_resto=len(signos),
+        tarjetas_base='\n'.join('    ' + t for t in tarjetas(html, cat['pulseras'])),
+        pie=pie_campana(c['eyebrow']),
+    )
+    pagina = solo_tema(pagina, c['eyebrow'])
+    # En esta página «Ver cada inicial en detalle» sacaría del tema.
+    pagina = re.sub(r'<a class="letras-ver"[^>]*>.*?</a>\n?', '', pagina, count=1)
+    if escribir:
+        (RAIZ / c['archivo']).write_text(pagina, encoding='utf-8')
+    print('  %s  %s  (iniciales + %d signos + %d brazaletes, %d KB)' % (
+        'escrito ' if escribir else 'se escribiría', c['archivo'], len(signos), len(cat['pulseras']), len(pagina) // 1024))
+
+
 def generar_campana(c, html, escribir):
     cat = json.loads((RAIZ / 'assets' / 'catalogo.json').read_text(encoding='utf-8'))
+    if c.get('tipo') == 'inicial-signo':
+        return generar_campana_inicial_signo(c, html, cat, escribir)
     grupos = cat['grupos']
     tema = [pid for pid, g in grupos.items() if g == c['grupo']]
     fuera = [d for d in c['destacados'] if grupos.get(d) != c['grupo']]
@@ -1211,9 +1280,46 @@ def redireccion_de_anuncio(archivo):
             'if(d)location.replace(d+location.search)}catch(e){}})()</script>\n' % (json.dumps(reglas), json.dumps(meta)))
 
 
+# La portada no la genera nadie: su redirección se escribe entre estas dos
+# marcas, justo después del <meta viewport> y antes del píxel.
+REDIR_PORTADA = ('<!-- redir-campana: lo escribe gen_colecciones.py desde assets/campanas.json (portada_cat) -->',
+                 '<!-- /redir-campana -->')
+
+
+def redireccion_de_portada():
+    """Quien llega a la portada con ?cat=<grupo> desde Facebook o Instagram
+    (fbclid) pasa a la página de campaña de ese tema, con su consulta intacta.
+    Sin fbclid no pasa nada: el menú y los enlaces internos siguen filtrando la
+    portada como siempre."""
+    reglas = {}
+    for c in json.loads(CAMPANAS_JSON.read_text(encoding='utf-8'))['campanas']:
+        for g in c.get('portada_cat') or []:
+            if g in reglas:
+                raise SystemExit('Dos campañas piden el cat %s de la portada.' % g)
+            reglas[g] = c['archivo']
+    if not reglas:
+        return ''
+    return ('<script>(function(){try{var q=new URLSearchParams(location.search),'
+            'd=q.get("fbclid")&&%s[q.get("cat")];'
+            'if(d)location.replace(d+location.search)}catch(e){}})()</script>' % json.dumps(reglas, ensure_ascii=False))
+
+
+def escribir_redireccion_de_portada(html, escribir):
+    ini, fin = REDIR_PORTADA
+    if ini not in html or fin not in html:
+        raise SystemExit('index.html no tiene las marcas de redir-campana.')
+    a, b = html.index(ini) + len(ini), html.index(fin)
+    nuevo = html[:a] + '\n' + redireccion_de_portada() + '\n' + html[b:]
+    if nuevo != html and escribir:
+        INDEX.write_bytes(nuevo.encode('utf-8'))
+    print('  %s  index.html  (redirección de la portada a campañas)' % (
+        'sin cambios' if nuevo == html else 'escrito ' if escribir else 'se escribiría'))
+
+
 def generar_campanas(html, escribir):
     for c in json.loads(CAMPANAS_JSON.read_text(encoding='utf-8'))['campanas']:
         generar_campana(c, html, escribir)
+    escribir_redireccion_de_portada(INDEX.read_bytes().decode('utf-8'), escribir)
 
 
 def pie_campana(tema):
