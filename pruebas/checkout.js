@@ -754,6 +754,57 @@ async function llenarDatos(p, d) {
     await p.close();
   }
 
+  // ——— 4c · varios brazaletes en un pedido (2026-11-23) ———
+  out.push('\n4c · Dos brazaletes iguales y otro distinto, de punta a punta');
+  {
+    /* Hasta el 2026-11-23 el carrito guardaba un solo brazalete. Aquí se mira el
+       recorrido entero con tres: lo que muestra la página, lo que manda, lo que
+       cobra el servidor y cómo quedan las líneas del pedido. Las piezas salen
+       del inventario: un modelo con 2 unidades de una talla y otro con alguna. */
+    const INVJ = require(path.join(RAIZ, 'assets', 'stock.json')).items;
+    const PR = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
+    let duo = null;
+    for (const id of CAT.pulseras) {
+      const ts = INVJ[id] && INVJ[id].tallas, k = ts && Object.keys(ts).find(x => ts[x] >= 2);
+      if (k) { duo = { id, talla: k }; break; }
+    }
+    const otroId = CAT.pulseras.find(id => duo && id !== duo.id && INVJ[id] && INVJ[id].tallas
+      && Object.values(INVJ[id].tallas).some(x => x > 0));
+    const otro = otroId ? { id: otroId, talla: Object.keys(INVJ[otroId].tallas).find(x => INVJ[otroId].tallas[x] > 0) } : null;
+    ok(!!duo && !!otro, 'el inventario tiene con qué probarlo (un brazalete con 2 de una talla y otro modelo)');
+    if (duo && otro) {
+      const bases = [duo, duo, otro];
+      const esperado = PR.calcular(PR.leerPedido({ bases, charms: ['mickey-mouse'], pago: 'contraentrega' }));
+      const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+      p.on('pageerror', e => errores.push(e.message));
+      const cap = [];
+      await interceptar(p, cap);
+      await ponerCarrito(p, { base: duo, bases, charms: ['mickey-mouse'], empaque: false, pago: 'contraentrega' });
+      await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+      await p.waitForTimeout(500);
+      await llenarDatos(p, DATOS);
+      await p.check('#ops-pago input[value="contraentrega"]');
+      await p.waitForTimeout(200);
+      const enPantalla = await p.locator('#res-total').textContent();
+      ok(enPantalla === cop(esperado.total), `el resumen muestra el total de calcular() con los tres brazaletes (${cop(esperado.total)})`, enPantalla);
+      await p.click('#confirmar');
+      await p.waitForTimeout(900);
+      const c0 = cap[0];
+      ok(c0 && Array.isArray(c0.pedido.bases) && c0.pedido.bases.length === 3 && c0.pedido.base && c0.pedido.base.id === duo.id,
+        'la página manda los tres en `bases` (y el primero en `base`, la forma de antes)', c0 && JSON.stringify(c0.pedido.bases));
+      ok(c0 && c0.codigo === 200 && c0.respuesta.total === esperado.total,
+        'el servidor cobra ese mismo total', c0 && `${c0.codigo} · ${c0.respuesta.total || c0.respuesta.error}`);
+      const ls = (c0 && c0.respuesta.lineas) || [];
+      const deDuo = ls.filter(l => l.id === duo.id);
+      ok(deDuo.length === 1 && deDuo[0].unidades === 2 && String(deDuo[0].talla) === duo.talla,
+        'los dos iguales quedan en una sola línea del pedido, con unidades 2', JSON.stringify(deDuo));
+      ok(ls.reduce((s, l) => s + l.unidades, 0) === 4 && ls.reduce((s, l) => s + (l.gratis || 0), 0) === esperado.gratis.length,
+        'el pedido guarda las 4 piezas y la gratis que le toca');
+      ok(p.url().includes('gracias.html'), 'y termina en la página de confirmación', p.url());
+      await p.close();
+    }
+  }
+
   // ——— 4a2 · estudio de conversión (2026-11-20): +57, reintento con datos, un solo InitiateCheckout ———
   out.push('\n4a2 · Celular con +57, «Intentar de nuevo» con el formulario lleno, InitiateCheckout una vez');
   {

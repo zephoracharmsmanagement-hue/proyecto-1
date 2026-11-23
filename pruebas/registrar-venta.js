@@ -104,6 +104,22 @@ async function main() {
       'con teléfono y correo de la clienta hasheados y el total real');
   }
 
+  console.log('\n2b · Varios brazaletes en una venta (`bases`, 2026-11-23)');
+  {
+    const sku = `${braz}|${talla}`, antesB = await libres(sku);
+    if (antesB >= 2) {
+      const { r, d } = await pedir({ charms: [], bases: [{ id: braz, talla }, { id: braz, talla }], pago: 'transferencia',
+        total: 160000, telefono: '300 123 4567', nombre: 'Clienta Prueba' });
+      comprobar(r.status === 200 && await libres(sku) === antesB - 2, `dos brazaletes iguales bajan 2 de esa talla (${antesB} → ${await libres(sku)})`, d.error);
+      const reg = d.referencia && await ped.leer(d.referencia);
+      comprobar(reg && reg.lineas.length === 1 && reg.lineas[0].unidades === 2, 'y quedan en una línea con unidades 2', reg && JSON.stringify(reg.lineas));
+    } else ok('la talla de prueba tiene menos de 2 unidades: no se prueba la venta doble');
+    const s = await pedir({ bases: [{ id: braz, talla }, { id: braz }], pago: 'nequi', total: 1 });
+    comprobar(s.r.status === 400 && /talla/.test(s.d.error), 'si al segundo brazalete le falta la talla → 400');
+    const m = await pedir({ bases: { id: braz, talla }, pago: 'nequi', total: 1 });
+    comprobar(m.r.status === 400, '`bases` que no es lista → 400');
+  }
+
   console.log('\n3 · No descuenta dos veces');
   {
     const antes = await libres(charm);

@@ -35,7 +35,9 @@ const VIGENCIA_CONFIRMAR_MS = 7 * 24 * 3600 * 1000;
    (decisión del propietario, 2026-10-29). */
 export const DESCUENTO_SUSCRIPTORA = 15000;
 export const MIN_PIEZAS_DESCUENTO = 2;
-const piezasDe = pedido => (pedido && Array.isArray(pedido.charms) ? pedido.charms.length : 0) + (pedido && pedido.base ? 1 : 0);
+/* Los brazaletes pueden ser varios (`bases`); `base` solo es la forma de antes. */
+const piezasDe = pedido => (pedido && Array.isArray(pedido.charms) ? pedido.charms.length : 0)
+  + (pedido && Array.isArray(pedido.bases) ? pedido.bases.length : pedido && pedido.base ? 1 : 0);
 
 let inyectado = null;
 function almacen() {

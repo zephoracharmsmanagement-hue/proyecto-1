@@ -56,6 +56,7 @@
  * secreto nuevo.
  *
  *   Ajustar: { motivo, charms:[ids], base:{id,talla}, nota }
+ *            (o `bases:[{id,talla},…]` para varios brazaletes de una vez)
  *            motivo: faltante | sobrante | reposición | dañada | error de conteo | bloqueo temporal
  *            (acepta mayúsculas, tildes y espacios: sirve tal cual la etiqueta
  *            de un desplegable). base es opcional; un brazalete pide talla.
@@ -182,13 +183,16 @@ export default async (req) => {
   try {
     /* leerPedido valida ids y tallas contra el catálogo; `pago` solo lo
        satisface, aquí no hay cobro. */
-    pedido = leerPedido({ charms: cuerpo.charms, base: cuerpo.base, pago: 'anticipado' });
+    pedido = leerPedido({ charms: cuerpo.charms, base: cuerpo.base, bases: cuerpo.bases, pago: 'anticipado' });
   } catch (e) {
     if (e instanceof PedidoInvalido) return responder(400, { error: e.message });
     throw e;
   }
-  const itemBase = pedido.base && INV && INV.items && INV.items[pedido.base.id];
-  if (itemBase && itemBase.tallas && !pedido.base.talla) {
+  const sinTalla = pedido.bases.some(b => {
+    const it = INV && INV.items && INV.items[b.id];
+    return it && it.tallas && !b.talla;
+  });
+  if (sinTalla) {
     return responder(400, { error: 'El brazalete necesita la talla (17 a 21)' });
   }
 

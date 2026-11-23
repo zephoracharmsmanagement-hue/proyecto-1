@@ -63,7 +63,7 @@ const irA = destino => new Response(null, {
  * y falso el día que alguien reordene `detallar()`. */
 function carritoDe(registro) {
   const items = (stock && stock.items) || {};
-  let base = null;
+  const bases = [];
   const charms = [];
 
   (registro.lineas || []).forEach(l => {
@@ -75,13 +75,17 @@ function carritoDe(registro) {
     const it = items[l.id];
     if (!it) return;                      /* pieza retirada del catálogo */
     if (it.tipo === 'pulsera') {
-      if (!base) base = { id: l.id, talla: l.talla == null ? null : String(l.talla) };
+      /* Una línea de brazalete puede traer `unidades` desde que se pueden
+         llevar varios (2026-11-23): dos iguales son una línea con 2. */
+      for (let i = 0; i < (l.unidades || 1); i++) {
+        bases.push({ id: l.id, talla: l.talla == null ? null : String(l.talla) });
+      }
       return;
     }
     for (let i = 0; i < (l.unidades || 1); i++) charms.push(l.id);
   });
 
-  return { base, charms,
+  return { base: bases[0] || null, bases, charms,
     pago: registro.pago === 'contraentrega' ? 'contraentrega' : 'anticipado' };
 }
 
@@ -98,19 +102,22 @@ function recortar(carrito, libres) {
     return puestos[id] <= (libres[id] || 0);
   });
 
-  let base = carrito.base;
-  if (base) {
-    const sku = base.talla ? `${base.id}|${base.talla}` : base.id;
+  /* Cada brazalete contra lo que queda de su talla, contando los que ya
+     entraron: de dos iguales con una sola unidad, se queda uno. */
+  const entrantes = Array.isArray(carrito.bases) ? carrito.bases : (carrito.base ? [carrito.base] : []);
+  const bases = entrantes.filter(b => {
+    if (b.talla) {
+      const sku = `${b.id}|${b.talla}`;
+      puestos[sku] = (puestos[sku] || 0) + 1;
+      return puestos[sku] <= (libres[sku] || 0);
+    }
     /* Sin talla elegida vale que quede alguna: la talla se confirma después. */
-    const hay = base.talla
-      ? (libres[sku] || 0)
-      : Object.keys(libres).reduce((n, k) =>
-          k === base.id || k.startsWith(base.id + '|') ? n + libres[k] : n, 0);
-    if (hay <= 0) base = null;
-  }
+    return Object.keys(libres).reduce((n, k) =>
+      k === b.id || k.startsWith(b.id + '|') ? n + libres[k] : n, 0) > 0;
+  });
 
-  const cambio = charms.length !== carrito.charms.length || (!!carrito.base !== !!base);
-  return { carrito: Object.assign({}, carrito, { base, charms }), cambio, fuente: 'real' };
+  const cambio = charms.length !== carrito.charms.length || bases.length !== entrantes.length;
+  return { carrito: Object.assign({}, carrito, { base: bases[0] || null, bases, charms }), cambio, fuente: 'real' };
 }
 
 export default async (req) => {
@@ -148,7 +155,7 @@ export default async (req) => {
   }
 
   const carrito = carritoDe(registro);
-  if (!carrito.base && !carrito.charms.length) {
+  if (!carrito.bases.length && !carrito.charms.length) {
     console.log(JSON.stringify({ evento: 'reanudar', referencia: ref, resultado: 'sin-piezas' }));
     return irA(`${tienda}?reanudar=no-encontrado`);
   }
@@ -156,12 +163,12 @@ export default async (req) => {
   /* Qué queda de verdad: el conteo menos lo apartado por pagos en curso. */
   const skus = [];
   carrito.charms.forEach(id => { if (skus.indexOf(id) === -1) skus.push(id); });
-  if (carrito.base) {
+  carrito.bases.forEach(b => {
     const items = (stock && stock.items) || {};
-    const tallas = (items[carrito.base.id] && items[carrito.base.id].tallas) || null;
-    if (tallas) Object.keys(tallas).forEach(t => skus.push(`${carrito.base.id}|${t}`));
-    else skus.push(carrito.base.id);
-  }
+    const tallas = (items[b.id] && items[b.id].tallas) || null;
+    const suyos = tallas ? Object.keys(tallas).map(t => `${b.id}|${t}`) : [b.id];
+    suyos.forEach(s => { if (skus.indexOf(s) === -1) skus.push(s); });
+  });
 
   let libres = null;
   try { libres = await disponibles(skus); }
@@ -169,7 +176,7 @@ export default async (req) => {
 
   const { carrito: final, cambio, fuente } = recortar(carrito, libres);
 
-  if (!final.base && !final.charms.length) {
+  if (!final.bases.length && !final.charms.length) {
     console.log(JSON.stringify({ evento: 'reanudar', referencia: ref, resultado: 'todo-agotado' }));
     return irA(`${tienda}?reanudar=agotado`);
   }
@@ -184,7 +191,7 @@ export default async (req) => {
     evento: 'reanudar', referencia: ref,
     resultado: cambio ? 'ajustado' : 'igual',
     fuente,
-    piezas: final.charms.length + (final.base ? 1 : 0),
+    piezas: final.charms.length + final.bases.length,
   }));
 
   const q = comoUrl(final);

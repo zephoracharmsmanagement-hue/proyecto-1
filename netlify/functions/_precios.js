@@ -42,6 +42,20 @@ const listaDe = id => LISTA[id];
    sin él, un carrito con 10.000 charms genera un cobro absurdo. */
 const MAX_CHARMS = 60;
 
+/* Varios brazaletes por pedido (2026-11-23, pedido del propietario: una clienta
+   quiso dos Mano de Hamsa y hubo que cerrarle la venta por WhatsApp, porque la
+   página solo dejaba uno). El pedido lleva `bases`, una lista de {id, talla};
+   dos iguales van dos veces. `base` —el primero, o null— se conserva porque es
+   la forma de siempre: la mandan el formulario de ventas manuales, el bot y los
+   carritos guardados de antes, y la usan pruebas y herramientas. Quien reciba un
+   pedido lo recorre con brazaletesDe(), nunca con `pedido.base`: leer solo el
+   primero es cobrar o apartar un brazalete de menos sin que nada dé error.
+   El tope es un cortafuegos, como MAX_CHARMS. */
+const MAX_BRAZALETES = 10;
+const brazaletesDe = pedido => (!pedido ? []
+  : Array.isArray(pedido.bases) ? pedido.bases
+  : pedido.base ? [pedido.base] : []);
+
 /* «Paga 3, lleva 1 gratis · paga 4, lleva 2 gratis» (pedido del
    propietario, 2026-10-04). Brazalete y charms cuentan igual como piezas: con
    4 sale gratis la más barata y con 6 las dos más baratas; de ahí no pasa
@@ -50,14 +64,19 @@ const MAX_CHARMS = 60;
    El orden de las piezas importa solo para decir CUÁL sale gratis cuando hay
    empate de precio —el total es el mismo—: se ordenan por precio y, a igual
    precio, los charms antes que el brazalete, así lo gratis suele ser un charm
-   y el brazalete se ve con su precio. La página hace exactamente lo mismo
-   (gratisDe en tienda.js y en checkout.html) y pruebas/precios.js lo compara. */
+   y el brazalete se ve con su precio. Con varios brazaletes van todos después
+   de los charms, en el orden en que se eligieron: entre dos iguales sale gratis
+   el primero. La página hace exactamente lo mismo (gratisDe en tienda.js y en
+   checkout.html) y pruebas/precios.js lo compara. */
 const cuantasGratis = n => reglas.promo.tramos.reduce((g, [p, k]) => (n >= p ? k : g), 0);
 
 function piezasGratis(pedido, ahora) {
   const precios = tabla(ahora);
   const piezas = pedido.charms.map(id => ({ id, precio: precios[id] }));
-  if (pedido.base) piezas.push({ id: pedido.base.id, precio: precios[pedido.base.id] });
+  /* `talla` y `brazalete` viajan para que detallar() sepa a qué línea ponerle
+     el «gratis»: dos del mismo modelo en tallas distintas son dos líneas. */
+  brazaletesDe(pedido).forEach(b => piezas.push({ id: b.id, precio: precios[b.id],
+    talla: b.talla == null ? null : String(b.talla), brazalete: true }));
   const orden = piezas.map((x, i) => [x, i]).sort((a, b) => a[0].precio - b[0].precio || a[1] - b[1]);
   return orden.slice(0, cuantasGratis(piezas.length)).map(([x]) => x);
 }
@@ -75,26 +94,38 @@ function leerPedido(cuerpo) {
     throw new PedidoInvalido(`Máximo ${MAX_CHARMS} charms por pedido`);
   }
   charms.forEach(id => {
-    if (typeof id !== 'string' || !(id in precios)) {
+    /* hasOwnProperty y no `in`: «constructor» o «toString» están `in` cualquier
+       objeto, pasaban por charm y daban un total NaN (visto el 2026-11-23). */
+    if (typeof id !== 'string' || !Object.prototype.hasOwnProperty.call(precios, id)) {
       throw new PedidoInvalido(`Charm desconocido: ${String(id).slice(0, 40)}`);
     }
     if (ESP.has(id)) throw new PedidoInvalido(`${id} es un brazalete, no un charm`);
   });
 
-  let base = null;
-  if (cuerpo.base) {
-    const id = cuerpo.base.id;
+  /* `bases` si trae algo (la lista), y si no `base` (uno solo, la forma de
+     antes). Una lista vacía cuenta como ausente: quien llena `bases: []` por
+     costumbre y manda el brazalete en `base` no puede quedarse sin él. Y si
+     `bases` viene pero no es una lista, se rechaza en vez de ignorarse. */
+  if (cuerpo.bases != null && !Array.isArray(cuerpo.bases)) {
+    throw new PedidoInvalido('`bases` debe ser una lista de brazaletes');
+  }
+  const crudas = (cuerpo.bases && cuerpo.bases.length) ? cuerpo.bases : (cuerpo.base ? [cuerpo.base] : []);
+  if (crudas.length > MAX_BRAZALETES) {
+    throw new PedidoInvalido(`Máximo ${MAX_BRAZALETES} brazaletes por pedido`);
+  }
+  const bases = crudas.map(b => {
+    const id = b && b.id;
     if (typeof id !== 'string' || !ESP.has(id)) {
       throw new PedidoInvalido(`Brazalete desconocido: ${String(id).slice(0, 40)}`);
     }
-    const talla = cuerpo.base.talla == null ? null : String(cuerpo.base.talla);
+    const talla = b.talla == null ? null : String(b.talla);
     if (talla !== null && !/^(17|18|19|20|21)$/.test(talla)) {
       throw new PedidoInvalido(`Talla no válida: ${talla.slice(0, 10)}`);
     }
-    base = { id, talla };
-  }
+    return { id, talla };
+  });
 
-  if (!base && charms.length === 0) throw new PedidoInvalido('El pedido no tiene piezas');
+  if (!bases.length && charms.length === 0) throw new PedidoInvalido('El pedido no tiene piezas');
 
   const pago = cuerpo.pago === 'contraentrega' ? 'contraentrega' : 'anticipado';
   /* El Empaque Premium se retiró el 2026-09-13: ya no hay dónde elegirlo ni
@@ -103,7 +134,7 @@ function leerPedido(cuerpo) {
      navegador de una clienta o un enlace de recuperación de la semana pasada
      todavía puede traerlo en true, y cobrar $40.000 por algo que no aparece en
      ninguna línea del pedido es la clase de cargo que termina en reclamo. */
-  return { base, charms, pago, empaque: false };
+  return { base: bases[0] || null, bases, charms, pago, empaque: false };
 }
 
 /* ¿Hay de verdad lo que se está pidiendo?
@@ -127,18 +158,33 @@ function comprobarInventario(pedido) {
 
   const faltan = [];
 
-  if (pedido.base) {
-    const it = items[pedido.base.id];
-    if (it && it.tallas) {
-      const t = pedido.base.talla;
-      if (!t) faltan.push(`${nombres[pedido.base.id]}: falta elegir la talla`);
-      else if (!(+it.tallas[t] > 0)) {
-        const libres = Object.keys(it.tallas).filter(k => +it.tallas[k] > 0);
-        faltan.push(`${nombres[pedido.base.id]} talla ${t} cm se agotó`
-          + (libres.length ? ` (quedan ${libres.join(', ')} cm)` : ''));
-      }
+  /* Los brazaletes se cuentan por modelo y talla. Hasta el 2026-11-23 solo se
+     miraba que la talla tuviera alguna unidad, que con un brazalete por pedido
+     bastaba; con varios hay que comparar cuántos se piden con cuántos quedan. */
+  const porTalla = new Map();
+  const sinTalla = new Set();
+  brazaletesDe(pedido).forEach(b => {
+    const it = items[b.id];
+    if (!it || !it.tallas) return;
+    if (!b.talla) {
+      if (!sinTalla.has(b.id)) { sinTalla.add(b.id); faltan.push(`${nombres[b.id]}: falta elegir la talla`); }
+      return;
     }
-  }
+    const k = b.id + '|' + b.talla;
+    if (!porTalla.has(k)) porTalla.set(k, { id: b.id, t: String(b.talla), piden: 0 });
+    porTalla.get(k).piden++;
+  });
+  porTalla.forEach(({ id, t, piden }) => {
+    const it = items[id];
+    const hay = +it.tallas[t] > 0 ? +it.tallas[t] : 0;
+    if (hay <= 0) {
+      const libres = Object.keys(it.tallas).filter(k => +it.tallas[k] > 0);
+      faltan.push(`${nombres[id]} talla ${t} cm se agotó`
+        + (libres.length ? ` (quedan ${libres.join(', ')} cm)` : ''));
+    } else if (piden > hay) {
+      faltan.push(`${nombres[id]} talla ${t} cm: pediste ${piden} y queda${hay === 1 ? '' : 'n'} ${hay}`);
+    }
+  });
 
   const cuenta = {};
   pedido.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
@@ -168,7 +214,8 @@ class SinInventario extends Error {}
 function calcular(pedido, ahora) {
   const precios = tabla(ahora);
   const brutoC = pedido.charms.reduce((s, id) => s + precios[id], 0);
-  const brutoB = pedido.base ? precios[pedido.base.id] : 0;
+  const bases = brazaletesDe(pedido);
+  const brutoB = bases.reduce((s, b) => s + precios[b.id], 0);
   const gratis = piezasGratis(pedido, ahora);
   const desc = gratis.reduce((s, x) => s + x.precio, 0);
 
@@ -180,7 +227,7 @@ function calcular(pedido, ahora) {
      la contraentrega tampoco lo paga. Cuenta piezas, no pesos. */
   const subtotal = brutoC + brutoB - desc;
   const alcanza = subtotal >= reglas.envioGratisDesde;
-  const piezas = pedido.charms.length + (pedido.base ? 1 : 0);
+  const piezas = pedido.charms.length + bases.length;
   const contraLibre = reglas.contraentregaGratisDesde > 0 && piezas >= reglas.contraentregaGratisDesde;
   const envioGratis = alcanza
     && (!reglas.envioGratisSoloAnticipado || pedido.pago === 'anticipado' || contraLibre);
@@ -213,17 +260,33 @@ function detallar(pedido, ahora) {
   const precios = tabla(ahora);
   const lineas = [];
   const libres = {};
-  piezasGratis(pedido, ahora).forEach(x => { libres[x.id] = (libres[x.id] || 0) + 1; });
-  if (pedido.base) {
+  /* La clave de un brazalete lleva la talla: lo gratis es de una línea, no de
+     todas las del mismo modelo. */
+  const claveB = (id, talla) => id + '|' + (talla == null ? '' : String(talla));
+  piezasGratis(pedido, ahora).forEach(x => {
+    const k = x.brazalete ? claveB(x.id, x.talla) : x.id;
+    libres[k] = (libres[k] || 0) + 1;
+  });
+  /* Una línea por modelo y talla. Dos iguales van en una sola con `unidades: 2`
+     y el precio de las dos, como los charms repetidos: la hoja de inventario
+     casa sus filas por referencia + id + talla, y dos líneas iguales se
+     pisarían. */
+  const porTalla = new Map();
+  brazaletesDe(pedido).forEach(b => {
+    const k = claveB(b.id, b.talla);
+    if (!porTalla.has(k)) porTalla.set(k, { id: b.id, talla: b.talla, n: 0 });
+    porTalla.get(k).n++;
+  });
+  porTalla.forEach((b, k) => {
     lineas.push({
-      id: pedido.base.id,
-      nombre: nombres[pedido.base.id].replace(/^Pulsera /, 'Brazalete '),
-      talla: pedido.base.talla,
-      unidades: 1,
-      precio: precios[pedido.base.id],
-      gratis: libres[pedido.base.id] || 0,
+      id: b.id,
+      nombre: nombres[b.id].replace(/^Pulsera /, 'Brazalete '),
+      talla: b.talla,
+      unidades: b.n,
+      precio: precios[b.id] * b.n,
+      gratis: libres[k] || 0,
     });
-  }
+  });
   const cuenta = {};
   pedido.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
   Object.entries(cuenta).forEach(([id, n]) => {
@@ -238,6 +301,6 @@ const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
    stock.json por su cuenta: siendo ESM, cargar JSON le obligaría a atributos de
    importación o a createRequire, y las dos formas se comportan distinto según
    si Netlify empaqueta o no. Pasando por aquí, hay un solo sitio que lo lee. */
-module.exports = { leerPedido, comprobarInventario, calcular, detallar, piezasGratis, cop,
+module.exports = { leerPedido, comprobarInventario, calcular, detallar, piezasGratis, brazaletesDe, cop,
   PedidoInvalido, SinInventario, reglas, nombres, fotos, grupos, inventario: INV,
   ofertaVigente, precioDe, listaDe };

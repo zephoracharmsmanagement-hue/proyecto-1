@@ -137,9 +137,12 @@ function tramoPromo(n){
    precio y, a igual precio, los charms (en el orden en que se eligieron) antes
    que el brazalete. El total no depende del desempate, pero la línea que se ve
    tachada tiene que ser la misma que dice el correo. */
-function gratisDe(ids,baseId,precioDe){
+function gratisDe(ids,bs,precioDe){
   const piezas=ids.map(id=>({id,p:precioDe(id)}));
-  if(baseId) piezas.push({id:baseId,p:precioDe(baseId)});
+  /* Los brazaletes (`bs`, lista de {id,talla}) van después de todos los charms
+     y en el orden en que se eligieron, igual que en _precios.js: entre dos
+     iguales sale gratis el primero. `b` y `talla` dicen a qué renglón toca. */
+  (bs||[]).forEach(b=>piezas.push({id:b.id,p:precioDe(b.id),talla:b.talla||null,b:true}));
   return piezas.map((x,i)=>[x,i]).sort((a,b)=>a[0].p-b[0].p||a[1]-b[1])
     .slice(0,cuantasGratis(piezas.length)).map(([x])=>x);
 }
@@ -385,7 +388,35 @@ const FOTOS_HD = new Set((
 ).split(' '));
 const hdDe=src=>{ const m=/assets\/([^/?]+)\.webp/.exec(src||''); return m&&FOTOS_HD.has(m[1])?'assets/hd/'+m[1]+'.webp?v=20261009':src; };
 
-let base=null, sel=[];
+/* Varios brazaletes por pedido (2026-11-23, pedido del propietario: una clienta
+   quiso dos Mano de Hamsa y hubo que cerrarle la venta por WhatsApp). `bases`
+   es la lista, en el orden en que se eligieron: cada uno es {id, talla} y dos
+   iguales van dos veces. Antes era un solo `base`, que cada talla nueva
+   reemplazaba. El tope es el mismo cortafuegos de _precios.js. */
+let bases=[], sel=[];
+const MAX_BRAZALETES=10;
+const basesDe=id=>bases.filter(b=>b.id===id);
+const nBase=(id,talla)=>bases.filter(b=>b.id===id&&b.talla===talla).length;
+/* Cuántos de esa talla se pueden llevar: los que haya. Sin inventario, sin tope. */
+const topeTalla=(id,talla)=>{ const m=tallasDe(id); return m&&talla?(+m[talla]>0?+m[talla]:0):Infinity; };
+/* «18», «18 y 20», «18 ×2»: las tallas elegidas de un modelo, para su botón. */
+function tallasTexto(mios){
+  const c={}; mios.forEach(b=>{ if(b.talla) c[b.talla]=(c[b.talla]||0)+1; });
+  return Object.keys(c).map(x=>x+(c[x]>1?' ×'+c[x]:'')).join(' y ');
+}
+/* Quita uno solo (el último de esa talla que se agregó). */
+function quitarBase(id,talla){
+  for(let i=bases.length-1;i>=0;i--){ if(bases[i].id===id&&bases[i].talla===talla){ bases.splice(i,1); return; } }
+}
+const firmaB=()=>bases.map(b=>b.id+'@'+(b.talla||'')).join();
+function sumarBase(id,talla){
+  if(!PU[id]||bases.length>=MAX_BRAZALETES||nBase(id,talla||null)>=topeTalla(id,talla)) return;
+  bases.push({id:id,talla:talla||null});
+  render();
+  avisoAgregado(bases.length>1?'llevas '+bases.length+' brazaletes':'');
+  track('AddToCart',{content_type:'product',content_ids:[id],
+    content_name:PU[id].n+(talla?' · talla '+talla:''),value:PU[id].p,origen:origenAdd});
+}
 /* Dijes que un kit sugiere (ver `sug=` en delEnlace) — NUNCA se agregan
    solos al carrito, solo resaltan la tarjeta para que la clienta decida. */
 let kitSug=[], kitNombre='';
@@ -464,8 +495,8 @@ function dibujarVit(v,nombre){
 }
 function tallasVit(caja,id){
   const libres=tallasLibres(id)||TALLAS;
-  caja.innerHTML=TALLAS.map(t=>{ const hay=libres.indexOf(t)>=0, on=base&&base.id===id&&base.talla===t;
-    return '<button type="button" class="tbtn'+(on?' is-on':'')+'" data-talla="'+t+'" data-para="'+id+'"'
+  caja.innerHTML=TALLAS.map(t=>{ const hay=libres.indexOf(t)>=0, nb=nBase(id,t), on=nb>0;
+    return '<button type="button" class="tbtn'+(on?' is-on':'')+'" data-talla="'+t+'" data-para="'+id+'"'+(nb>1?' data-n="×'+nb+'"':'')
       +(hay?'':' aria-disabled="true"')+' aria-label="Talla '+t+' centímetros'+(hay?'':', sin unidades')+'">'+t+'</button>'; }).join('');
 }
 /* Estado de cada tarjeta de la vitrina: lo que ya va en el carrito, el tope
@@ -484,9 +515,9 @@ function estadoVit(){
       return;
     }
     if(PU[id]){
-      const on=!!(base&&base.id===id);
+      const mios=basesDe(id), on=mios.length>0, tx=tallasTexto(mios);
       it.classList.toggle('is-sel',on);
-      b.textContent=on?(base.talla?'Talla '+base.talla+' ✓':'Elegido ✓'):'Elegir talla';
+      b.textContent=on?(tx?'Talla '+tx+' ✓':'Elegido ✓'):'Elegir talla';
       const c=it.querySelector('.vit-tallas'); if(c&&!c.hidden) tallasVit(c,id);
       return;
     }
@@ -535,7 +566,7 @@ document.addEventListener('click',e=>{
        dice cuál es, para pedir la talla de su brazalete. */
     const kit=kp.closest('.kit')||document.getElementById(kp.dataset.kitIr||''), caja=kit&&kit.querySelector('.kit-tallas');
     if(kit) kit.querySelectorAll('[data-kit-piezas]').forEach(x=>x.classList.toggle('is-on',x===kp));
-    if(caja&&!(base&&base.id===b&&base.talla)){
+    if(caja&&!bases.some(x=>x.id===b&&x.talla)){
       caja.scrollIntoView({behavior:'smooth',block:'center'});
       caja.classList.remove('is-pide'); void caja.offsetWidth; caja.classList.add('is-pide');
     }
@@ -865,7 +896,9 @@ function pintarTallas(p,id){
     b.textContent=t;
     b.dataset.talla=t; b.dataset.para=id;
     if(!hay){ b.setAttribute('aria-disabled','true'); b.title='Talla '+t+' cm sin unidades'; }
-    if(base&&base.id===id&&base.talla===t) b.classList.add('is-on');
+    const nb=nBase(id,t);
+    if(nb) b.classList.add('is-on');
+    if(nb>1) b.dataset.n='×'+nb;
     b.setAttribute('aria-label','Talla '+t+' centímetros'+(hay?'':', sin unidades'));
     fila.appendChild(b);
   });
@@ -908,7 +941,7 @@ function pintarTarjetas(){
     if(p.classList.contains('pc--anillo')){ pintarAnillo(p); return; }
     const esBrazalete=p.classList.contains('pc--b');
     const veces=sel.filter(x=>x===id).length;
-    const on=(base&&base.id===id)||veces>0;
+    const on=bases.some(x=>x.id===id)||veces>0;
     const sinStock=agotado(id);
     p.classList.toggle('is-sel',on);
     p.classList.toggle('is-out',sinStock);
@@ -933,7 +966,8 @@ function pintarTarjetas(){
       b.removeAttribute('aria-disabled');
       if(enc) enc.remove();
       if(esBrazalete){
-        b.textContent=on?('Elegido ✓'+(base.talla?' · '+base.talla:'')):'Elegir';
+        const tx=tallasTexto(basesDe(id));
+        b.textContent=on?('Elegido ✓'+(tx?' · '+tx:'')):'Elegir';
       }else{
         const lleno=veces>=tope(id);
         b.textContent=on?('Agregado'+(veces>1?' ×'+veces:'')):'Agregar';
@@ -1440,17 +1474,37 @@ $('#fx-add').addEventListener('click',()=>{
 function render(){
   const body=$('#sheet-body');
   body.innerHTML='';
-  if(!base&&!sel.length){
+  if(!bases.length&&!sel.length){
     body.innerHTML='<p class="s-empty">Aún no has elegido nada.<br>Toca "Elegir" en un brazalete o "Agregar" en un charm.</p>';
   }else{
     /* Las unidades que salen gratis van en su propia línea, con el precio
        tachado y «GRATIS»: si de tres Stitch uno es gratis, se ven «Stitch ×2»
        a precio normal y «Stitch» gratis, no un ×3 con un descuento sin dueño. */
     const libres={};
-    gratisDe(sel,base&&base.id,precioPieza).forEach(x=>libres[x.id]=(libres[x.id]||0)+1);
-    if(base) body.appendChild(fila(base.id,PU[base.id].n.replace(/^Pulsera /,''),
-      'Brazalete · Baño de plata'+(base.talla?' · Talla '+base.talla+' cm':''),
-      PU[base.id].p,()=>{base=null;render()},!!libres[base.id]));
+    const kB=b=>b.id+'|'+(b.talla||'');
+    gratisDe(sel,bases,precioPieza).forEach(x=>{ const k=x.b?kB(x):x.id; libres[k]=(libres[k]||0)+1; });
+    /* Los brazaletes: un renglón por cada uno, agrupados por modelo y talla en
+       el orden en que se eligieron; los que salen gratis, al final de su
+       grupo. La ✕ quita uno solo. En el último renglón del grupo, un enlace
+       para llevar otro igual mientras queden unidades de esa talla. */
+    const grupos=[];
+    bases.forEach(b=>{ let g=grupos.find(x=>x.k===kB(b));
+      if(!g){ g={k:kB(b),id:b.id,talla:b.talla,n:0}; grupos.push(g); } g.n++; });
+    grupos.forEach(g=>{
+      const gr=libres[g.k]||0;
+      for(let i=0;i<g.n;i++){
+        const r=fila(g.id,PU[g.id].n.replace(/^Pulsera /,''),
+          'Brazalete · Baño de plata'+(g.talla?' · Talla '+g.talla+' cm':''),
+          PU[g.id].p,()=>{quitarBase(g.id,g.talla);render()},i>=g.n-gr);
+        if(i===g.n-1&&g.talla&&g.n<topeTalla(g.id,g.talla)&&bases.length<MAX_BRAZALETES){
+          const m=document.createElement('button'); m.type='button'; m.className='srow-mas';
+          m.textContent='+ Llevar otro igual';
+          m.onclick=()=>sumarBase(g.id,g.talla);
+          r.querySelector('.srow-n').appendChild(m);
+        }
+        body.appendChild(r);
+      }
+    });
     const cont={};
     sel.forEach(id=>cont[id]=(cont[id]||0)+1);
     Object.entries(cont).forEach(([id,n])=>{
@@ -1463,9 +1517,9 @@ function render(){
 
   const nC=sel.length;
   const brutoC=sel.reduce((s,id)=>s+CH[id].p,0);
-  const brutoB=base?PU[base.id].p:0;
-  const piezas=nC+(base?1:0);
-  const gratisLista=gratisDe(sel,base&&base.id,precioPieza);
+  const brutoB=bases.reduce((s,b)=>s+PU[b.id].p,0);
+  const piezas=nC+bases.length;
+  const gratisLista=gratisDe(sel,bases,precioPieza);
   const nGratis=gratisLista.length;
   const desc=gratisLista.reduce((s,x)=>s+x.p,0);
   /* El umbral de envío gratis se mide sobre la mercancía, no sobre el total:
@@ -1482,10 +1536,10 @@ function render(){
   const envio=(subtotal<=0||libre)?0:ENVIO[pago];
   const total=subtotal+envio;
 
-  $('#l-b').textContent=base
-    ? PU[base.id].n.replace(/^Pulsera /,'Brazalete ')+(base.talla?' · '+base.talla+' cm':'')
-    : 'Brazalete';
-  $('#v-b').textContent=base?cop(brutoB):'—';
+  $('#l-b').textContent=!bases.length ? 'Brazalete'
+    : bases.length>1 ? bases.length+' brazaletes'
+    : PU[bases[0].id].n.replace(/^Pulsera /,'Brazalete ')+(bases[0].talla?' · '+bases[0].talla+' cm':'');
+  $('#v-b').textContent=bases.length?cop(brutoB):'—';
   $('#l-c').textContent=nC?(nC+(nC===1?' charm':' charms')):'Charms';
   $('#v-c').textContent=nC?cop(brutoC):'—';
   $('#row-save').hidden=ahorro<=0;
@@ -1740,9 +1794,9 @@ $('#sug-tira').addEventListener('click',e=>{
    es donde la promo ya está activa; seguir empujando sería pedir por pedir. */
 function pintarCross(piezas){
   const xs=$('#xs'), primera=PROMO.tramos[0][0];
-  if(xsFuera||!base||piezas>=primera){ xs.hidden=true; return; }
+  if(xsFuera||!bases.length||piezas>=primera){ xs.hidden=true; return; }
   const faltan=primera-piezas;
-  $('#xs-tx').innerHTML='Tu brazalete ya está. Suma <b>'+faltan+(faltan===1?' pieza más':' piezas más')
+  $('#xs-tx').innerHTML=(bases.length>1?'Tus brazaletes ya están':'Tu brazalete ya está')+'. Suma <b>'+faltan+(faltan===1?' pieza más':' piezas más')
     +'</b> y la de menor valor te sale <b>GRATIS</b>.';
   xs.hidden=false;
 }
@@ -1796,11 +1850,14 @@ const MAX_CHARMS=60;
    justo «se me borraron las joyas». */
 let tocado=false;
 function guardar(){
-  if(base||sel.length) tocado=true;   /* desde que hay algo, se persiste todo */
+  if(bases.length||sel.length) tocado=true;   /* desde que hay algo, se persiste todo */
   if(!tocado) return;                 /* incluido el vaciado deliberado */
   try{
     localStorage.setItem(LLAVE,JSON.stringify({
-      v:1, base:base, charms:sel,
+      /* `bases` es la lista; `base` —el primero— se sigue escribiendo para un
+         checkout.html que el navegador tenga guardado de antes del 2026-11-23:
+         lee solo ese campo y vería el carrito sin brazalete. */
+      v:1, base:bases[0]||null, bases:bases, charms:sel,
       /* Siempre false. El Empaque Premium se retiró el 2026-09-13 y este
          campo se mantiene para pisar lo que quedó guardado de antes: un
          carrito de ayer trae empaque:true y, sin interfaz que lo muestre,
@@ -1832,16 +1889,16 @@ function delEnlace(){
   try{ q=new URLSearchParams(location.search); }catch(_){ return false; }
   var p=q.get('p');
   if(!p) return false;
-  var b=null, s=[];
+  var bs=[], s=[];
   p.split(',').forEach(function(trozo){
     var t=trozo.trim(); if(!t) return;
     var m=t.match(/^([a-z0-9-]+)(?:([*@])([0-9]{1,2}))?$/);
     if(!m) return;
     var id=m[1], op=m[2], valor=m[3];
     if(PU[id]){
-      /* Un solo brazalete por pedido, igual que armando a mano. Gana el primero. */
-      if(b) return;
-      b={id:id,talla:(op==='@'&&/^(17|18|19|20|21)$/.test(valor))?valor:null};
+      /* Varios brazaletes: cada trozo es uno; dos iguales, dos trozos
+         (2026-11-23; antes ganaba el primero y los demás se perdían). */
+      if(bs.length<MAX_BRAZALETES) bs.push({id:id,talla:(op==='@'&&/^(17|18|19|20|21)$/.test(valor))?valor:null});
       return;
     }
     /* Una talla en un charm es un enlace mal armado: no se adivina. */
@@ -1849,8 +1906,8 @@ function delEnlace(){
     var n=op==='*'?(parseInt(valor,10)||1):1;
     for(var i=0;i<n&&s.length<MAX_CHARMS;i++) s.push(id);
   });
-  if(!b&&!s.length) return false;
-  base=b; sel=s; tocado=true;
+  if(!bs.length&&!s.length) return false;
+  bases=bs; sel=s; tocado=true;
   /* El parámetro «e» (empaque) se ignora desde que se retiró el Premium.
      Los correos de recuperación enviados antes siguen trayéndolo. */
   if(q.get('pago')==='contraentrega'){
@@ -1903,11 +1960,13 @@ function recuperar(){
   let d=null;
   try{ d=JSON.parse(localStorage.getItem(LLAVE)||'null'); }catch(_){ return; }
   if(!d||d.v!==1) return;
-  if(d.base||(Array.isArray(d.charms)&&d.charms.length)) tocado=true;
+  /* `bases` si el carrito es de ahora; `base` (uno solo) si es de antes del 2026-11-23. */
+  const guardadas=Array.isArray(d.bases)?d.bases:(d.base?[d.base]:[]);
+  if(guardadas.length||(Array.isArray(d.charms)&&d.charms.length)) tocado=true;
   /* Una semana. Más allá, los precios y el inventario ya no son los mismos y
      devolver un carrito viejo promete algo que puede no existir. */
   if(!d.cuando||Date.now()-d.cuando>7*24*3600*1000) return;
-  if(d.base&&d.base.id&&PU[d.base.id]) base={id:d.base.id,talla:d.base.talla||null};
+  bases=guardadas.filter(b=>b&&b.id&&PU[b.id]).slice(0,MAX_BRAZALETES).map(b=>({id:b.id,talla:b.talla||null}));
   if(Array.isArray(d.charms)) sel=d.charms.filter(id=>CH[id]);
   if(d.pago==='contraentrega'){
     const b=document.querySelector('.pbtn[data-pago="contraentrega"]');
@@ -1939,7 +1998,7 @@ function destinoVacio(){
   return null;
 }
 function comprar(){
-  if(!base&&!sel.length){
+  if(!bases.length&&!sel.length){
     /* En una página de producto la barra dice «Agregar»: agrega la pieza (o
        pide la talla del brazalete) en vez de mandar a otra sección. */
     const pp=document.body.dataset.producto;
@@ -1995,7 +2054,7 @@ document.addEventListener('click',e=>{
   const a=e.target.closest&&e.target.closest('[data-addi-checkout],[data-siste-checkout]');
   if(!a) return;
   e.preventDefault();
-  if(!base&&!sel.length){ comprar(); return; }
+  if(!bases.length&&!sel.length){ comprar(); return; }
   const antes=pago;
   tocado=true; pago=a.hasAttribute('data-siste-checkout')?'sistecredito':'addi'; guardar(); pago=antes;
   location.href='checkout.html';
@@ -2058,10 +2117,10 @@ document.addEventListener('click',e=>{
 /* «Agregado · Ir a pagar»: hasta el 2026-11-20 tocar «Agregar» no daba más
    señal que un número en la barra de abajo. El botón lleva al pago por el
    mismo camino que «Comprar» (comprar()). */
-function avisoAgregado(){
+function avisoAgregado(nota){
   avisoCorto('');
   const a=document.getElementById('aviso-corto');
-  a.innerHTML='<span>✓ Agregado</span> · <button type="button" class="aviso-ir" data-ir-pagar>Ir a pagar</button>';
+  a.innerHTML='<span>✓ Agregado'+(nota?' · '+nota:'')+'</span> · <button type="button" class="aviso-ir" data-ir-pagar>Ir a pagar</button>';
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest||!e.target.closest('[data-ir-pagar]')) return;
@@ -2113,7 +2172,7 @@ document.addEventListener('click',e=>{
  * (las de menor valor, `est.gratis`) van en esas dos casillas; las demás, en
  * el orden en que se agregaron. `tag` es 'span' o 'li' (el carrito usa <ol>). */
 function escCasillas(est,tag,fantasma){
-  const todas=sel.slice(); if(base) todas.push(base.id);
+  const todas=sel.slice(); bases.forEach(b=>todas.push(b.id));
   const gl=est.gratis.map(x=>x.id), pagas=[], libres=[];
   todas.forEach(id=>{ const j=gl.indexOf(id); if(j>=0){ gl.splice(j,1); libres.push(id); } else pagas.push(id); });
   const orden=[pagas[0],pagas[1],pagas[2],libres[0],pagas[3],libres[1]];
@@ -2144,11 +2203,11 @@ function escMensaje(est){
 var escPpFirma='';
 function pintarEscaleraProducto(est){
   const pp=document.body.dataset.producto, c=pp&&document.querySelector('#pp-compra .promo-caja'); if(!c) return;
-  const enCarrito=sel.indexOf(pp)>=0||sel.some(id=>id.indexOf(pp+'-t')===0)||!!(base&&base.id===pp);
+  const enCarrito=sel.indexOf(pp)>=0||sel.some(id=>id.indexOf(pp+'-t')===0)||bases.some(b=>b.id===pp);
   const ver=!enCarrito&&est.piezas<6&&!agotado(pp);
   /* !!CAT: las fotos de piezas sin tarjeta en la página salen del catálogo, que
      llega después; sin esto la caja se quedaba con <img src=""> rotas. */
-  const firma=[sel.join(),base?base.id:'',ver,!!CAT].join('|');
+  const firma=[sel.join(),firmaB(),ver,!!CAT].join('|');
   if(firma===escPpFirma) return; escPpFirma=firma;
   const og=document.querySelector('meta[property="og:image"]');
   const foto=ver?(imgDe(pp)||(og&&og.content)||''):'';
@@ -2170,7 +2229,7 @@ function pintarEscaleraProducto(est){
 var escSimpleFirma='';
 function pintarEscalerasSimples(est){
   const cajas=document.querySelectorAll('[data-esc-simple]'); if(!cajas.length) return;
-  const firma=[sel.join(),base?base.id:'',est.total,!!CAT].join('|');
+  const firma=[sel.join(),firmaB(),est.total,!!CAT].join('|');
   if(firma===escSimpleFirma) return; escSimpleFirma=firma;
   cajas.forEach(c=>{
     c.querySelector('.cpk-s').innerHTML=escCasillas(est,'span');
@@ -2181,7 +2240,7 @@ function pintarEscalerasSimples(est){
 var escFirma='';
 function pintarEscaleraPortada(est){
   const k=document.getElementById('promo-esc'); if(!k) return;
-  const firma=[sel.join(),base?base.id:'',est.total,est.ahorro,!!CAT].join('|');
+  const firma=[sel.join(),firmaB(),est.total,est.ahorro,!!CAT].join('|');
   if(firma===escFirma) return; escFirma=firma;
   k.querySelector('.cpk-s').innerHTML=escCasillas(est,'span');
   k.querySelector('.cpk-m').innerHTML=escMensaje(est);
@@ -2209,25 +2268,25 @@ function pintarKitCampana(est){
   if(est) kitcEst=est;
   est=kitcEst||{piezas:0,nGratis:0,total:0,ahorro:0,gratis:[]};
   const b=k.dataset.base, cs=PU[b]&&!agotado(b)?kitcCharms(k):null;
-  const B=!!base, c=sel.length, n=est.piezas;
+  const B=bases.length>0, b0=bases[0]||null, c=sel.length, n=est.piezas;
   /* Sin brazalete que regalar, o sin charms con qué completar, no promete nada. */
   if(!PU[b]||(!B&&agotado(b))||(!cs&&c<3)){ k.hidden=true; kitcFirma=''; return; }
   const libres=tallasLibres(b)||TALLAS;
-  const firma=[sel.join(),B?base.id:'',n,est.nGratis,est.total,est.ahorro,kitcTalla,libres.join(),(cs||[]).join(),!!CAT].join('|');
+  const firma=[sel.join(),firmaB(),n,est.nGratis,est.total,est.ahorro,kitcTalla,libres.join(),(cs||[]).join(),!!CAT].join('|');
   if(firma===kitcFirma&&!k.hidden) return;
   kitcFirma=firma;
   const cuenta=(ids,bb)=>ids.reduce((s,id)=>s+precioPieza(id),0)+(bb?precioPieza(bb):0)
-    -gratisDe(ids,bb,precioPieza).reduce((s,x)=>s+x.p,0);
+    -gratisDe(ids,bb?[{id:bb,talla:null}]:[],precioPieza).reduce((s,x)=>s+x.p,0);
   /* ¿Agregar el brazalete ahora no sube el total? Entonces ya se lo ganó. */
   const baseGratis=!B&&c>=3&&cuenta(sel,b)===cuenta(sel,null);
-  const bzGratis=B&&est.gratis.some(x=>x.id===base.id);
+  const bzGratis=B&&est.gratis.some(x=>x.b&&x.id===b0.id);
   const foto=id=>'<img src="'+imgDe(id)+'" alt="" width="440" height="440" decoding="async">';
   const casilla=i=>{
     const regalo=i===4;
     if(sel[i]) return '<span class="cpk-c on'+(regalo&&est.nGratis>=2?' free':'')+'">'+foto(sel[i])+(regalo&&est.nGratis>=2?'<i>GRATIS</i>':'')+'</span>';
     return regalo?'<span class="cpk-c free"><b>GRATIS</b>Charm</span>':'<span class="cpk-c"><b>+</b>Charm</span>';
   };
-  const casB=B?'<span class="cpk-c on'+(bzGratis?' free':'')+'">'+foto(base.id)+(bzGratis?'<i>GRATIS</i>':'')+'</span>'
+  const casB=B?'<span class="cpk-c on'+(bzGratis?' free':'')+'">'+foto(b0.id)+(bzGratis?'<i>GRATIS</i>':'')+'</span>'
     :'<span class="cpk-c free"><b>GRATIS</b>Brazalete</span>';
   const pl=(x,s,pp)=>x+' '+(x===1?s:pp), faltan=x=>'Te falta'+(x===1?'':'n')+' <b>'+pl(x,'charm','charms')+'</b>';
   let m;
@@ -2258,14 +2317,14 @@ document.addEventListener('click',e=>{
   /* Si ya traía charms elegidos, se respetan: solo se completa hasta tres. */
   const completar=()=>(kitcCharms(k)||[]).forEach(id=>{ if(sel.length<3&&!sel.includes(id)) sumarCharm(id,true); });
   if(e.target.closest('[data-kitc-armar]')){
-    if(base&&sel.length>=3){ comprar(); return; }
-    if(base){ completar(); render(); abrir(true); return; }
+    if(bases.length&&sel.length>=3){ comprar(); return; }
+    if(bases.length){ completar(); render(); abrir(true); return; }
     kitcTalla=true; pintarKitCampana(); return;
   }
   const t=e.target.closest('[data-kitc-talla]');
   if(!t||t.getAttribute('aria-disabled')==='true') return;
   const talla=t.dataset.kitcTalla;
-  base={id:b,talla:talla};
+  bases.push({id:b,talla:talla});
   track('AddToCart',{content_type:'product',content_ids:[b],
     content_name:PU[b].n+' · talla '+talla,value:PU[b].p,origen:'kit'});
   completar();
@@ -2350,7 +2409,7 @@ document.addEventListener('click',e=>{
   if(ya){
     const id=ya.dataset.comprar;
     if(ANI[id]){ if(ANI[id].tallas.some(t=>sel.includes(t))) comprar(); else tallaAnillo(id); return; }
-    if(PU[id]){ if(base&&base.id===id) comprar(); else pedirTalla(id); return; }
+    if(PU[id]){ if(bases.some(b=>b.id===id)) comprar(); else pedirTalla(id); return; }
     if(!sel.includes(id)) sumarCharm(id);
     if(sel.includes(id)) comprar();
     return;
@@ -2370,16 +2429,25 @@ document.addEventListener('click',e=>{
     return;
   }
 
-  /* Elegir talla fija el brazalete; volver a tocarla lo quita. */
+  /* Cada talla es un interruptor: tocarla pone ese brazalete en el pedido y
+     volver a tocarla lo quita. Desde el 2026-11-23 ya no reemplaza al que
+     hubiera —se pueden llevar varios, del mismo modelo o de otro—: para
+     cambiar de talla se toca la nueva y se desmarca la anterior. Dos iguales
+     se piden en el carrito («+ Llevar otro igual»). */
   const t=e.target.closest('[data-talla]');
   if(t){
-    if(bloqueado(t)) return;
     const id=t.dataset.para, talla=t.dataset.talla;
-    const igual=base&&base.id===id&&base.talla===talla;
-    base = igual ? null : {id:id,talla:talla};
-    render();
-    if(base){ avisoAgregado(); track('AddToCart',{content_type:'product',content_ids:[id],
-      content_name:PU[id].n+' · talla '+talla,value:PU[id].p,origen:origenAdd}); }
+    /* Desmarcar va antes de mirar si el botón está bloqueado: una talla que se
+       agotó con el brazalete ya en el carrito tiene que poder quitarse. */
+    if(nBase(id,talla)){ bases=bases.filter(b=>!(b.id===id&&b.talla===talla)); render(); return; }
+    if(bloqueado(t)) return;
+    /* Un brazalete de este modelo que no se puede comprar como está —sin
+       talla, o con una que ya no tiene unidades— no se duplica: toma la talla
+       que se acaba de tocar. Era lo que hacía el reemplazo de antes, y sin
+       esto quedaban dos en el carrito y el pago rechazaba uno. */
+    const roto=bases.find(b=>b.id===id&&(!b.talla||topeTalla(id,b.talla)<=0));
+    if(roto){ roto.talla=talla; render(); avisoAgregado(); return; }
+    sumarBase(id,talla);
     return;
   }
 
@@ -2391,16 +2459,17 @@ document.addEventListener('click',e=>{
     if(panel){
       /* Con inventario cargado, el brazalete no entra al carrito sin talla:
          "Elegir" abre el selector y la talla es la que confirma. */
-      if(base&&base.id===id){ base=null; render(); return; }
+      /* Ya no quita el brazalete al tocar «Elegido ✓»: abre las tallas, que
+         es donde se desmarca la que no va o se suma otra (2026-11-23). */
       document.querySelectorAll('.tallas').forEach(x=>{ if(x!==panel) x.hidden=true; });
       panel.hidden=!panel.hidden;
       return;
     }
     /* Sin inventario: comportamiento de siempre, un toque y listo. */
-    const antes=base&&base.id;
-    base = antes===id ? null : {id:id,talla:null};
+    const tenia=bases.some(x=>x.id===id), cabe=bases.length<MAX_BRAZALETES;
+    if(tenia) bases=bases.filter(x=>x.id!==id); else if(cabe) bases.push({id:id,talla:null});
     render();
-    if(base&&base.id!==antes) track('AddToCart',{content_type:'product',content_ids:[id],
+    if(!tenia&&cabe) track('AddToCart',{content_type:'product',content_ids:[id],
       content_name:PU[id].n,value:PU[id].p,origen:origenAdd});
   }
 });
@@ -3013,7 +3082,15 @@ function alLlegarInventario(){
       puestos[id]=(puestos[id]||0)+1;
       return puestos[id]<=tope(id);
     });
-    if(base&&agotado(base.id)) base=null;
+    /* Un modelo agotado sale; de una talla, no quedan más de las que hay
+       (una talla sin unidades se deja, como antes: el aviso lo da el pago). */
+    const dados={};
+    bases=bases.filter(b=>{
+      if(agotado(b.id)) return false;
+      if(!b.talla) return true;
+      const k=b.id+'|'+b.talla; dados[k]=(dados[k]||0)+1;
+      return dados[k]<=Math.max(1,topeTalla(b.id,b.talla));
+    });
     render();
     aplicarFiltro(filtroActual);
     pintarCalculadora();   /* ahora sí puede marcar las tallas sin unidades */
