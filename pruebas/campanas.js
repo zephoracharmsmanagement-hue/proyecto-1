@@ -213,6 +213,23 @@ async function main() {
       comprobar(pormi.carrito.base && pormi.carrito.base.id === c.base && pormi.carrito.charms.length === 3
         && pormi.carrito.charms.every(x => pormi.lista.includes(x)) && pormi.hoja === 'false',
         '«Elegir por mí» pide la talla y arma brazalete + 3 charms de la campaña', JSON.stringify(pormi.carrito));
+      /* Tocar la caja fuera del botón (título, texto, una casilla) lleva a los
+         charms. Desde el PR #61 reventaba: la caja lleva `data-base` y el
+         manejador de «Elegir» de las tarjetas la tomaba por una (2026-11-23). */
+      await q.evaluate(() => localStorage.removeItem('zephora.carrito.v1'));
+      await q.goto(BASE + '/' + c.archivo, { waitUntil: 'load' });
+      await q.waitForTimeout(800);
+      const baja = [];
+      for (const s of ['.cpk-n', '.cpk-m', '.cpk-c:not(.free)', '.cpk-c.free']) {
+        await q.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+        await q.waitForTimeout(100);
+        await q.evaluate(x => document.querySelector('#cp-kit ' + x).click(), s);
+        await q.waitForTimeout(900);
+        baja.push(await q.evaluate(() => { const d = document.getElementById('destacadas').getBoundingClientRect(); return scrollY > 0 && d.top < innerHeight / 2; }));
+      }
+      const tocado = await estado(q);
+      comprobar(baja.every(Boolean) && !q.errs.length, 'tocar el título, el texto o una casilla del kit baja a los charms, sin errores', JSON.stringify(baja) + ' ' + q.errs.join(' | '));
+      comprobar(!(tocado.carrito.charms || []).length && !tocado.carrito.base && tocado.tallas === 0, 'y ese toque no agrega nada ni abre las tallas', JSON.stringify(tocado.carrito));
       comprobar(!q.errs.length, 'consola limpia al armar el kit', q.errs.join(' | ') || undefined);
       await q.close();
     }

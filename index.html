@@ -161,6 +161,53 @@ src="https://www.facebook.com/tr?id=2005297310144764&ev=PageView&noscript=1"/></
 
 <main id="top">
 
+<!-- 1a · BANNER DE BLACK FRIDAY (2026-11-23, pedido del propietario: «algo
+     bien chévere… un video, como Pandora o Swarovski»). Dos caras que se
+     turnan cada 6 s: el video con los descuentos y «BLACK FRIDAY» con el
+     video dentro de las letras y la promo. Mientras esta sección exista, el
+     banner de siempre (abajo) no se pinta; el guion de aquí abajo y tienda.js
+     la quitan al vencer `data-hasta` (la misma fecha de OFERTA en tienda.js;
+     pruebas/banner-bf.js exige que coincidan). El video no viaja con la
+     página: tienda.js lo pide a /media/ cuando ya cargó todo; lo que se ve al
+     entrar es la portada (.bfb-foto), que es su primer cuadro. -->
+<section class="bfb" id="bfb" data-hasta="2026-11-30" aria-label="Black Friday">
+  <div class="bfb-cara bfb-a is-on">
+    <picture>
+      <source media="(min-width:760px)" srcset="assets/bf-portada-escritorio.webp?v=20261123" width="1280" height="560">
+      <img class="bfb-foto" src="assets/bf-portada-celular.webp?v=20261123" alt="Pulsera Zephora con charms azules en la muñeca" width="640" height="1138" fetchpriority="high" decoding="async">
+    </picture>
+    <video class="bfb-v" muted loop playsinline autoplay preload="auto" aria-hidden="true" tabindex="-1" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>
+    <div class="bfb-a-in">
+      <p class="bfb-eye"><b>Black Friday</b><span data-bfb-hasta>hasta el lunes 30 de noviembre</span></p>
+      <h1 class="bfb-t">−<span data-bfb-charms>20</span>&nbsp;% en charms<br><i>−<span data-bfb-brazaletes>10</span>&nbsp;% en brazaletes</i></h1>
+      <p class="bfb-sub">Y además: <b>paga 3 y llévate 1 gratis</b> · paga 4 y llévate 2. Plata 925, compatible con Pandora.</p>
+      <div class="bfb-acc"><a class="bfb-btn" href="#charms">Ver las ofertas</a><span class="bfb-chip" hidden>Termina en <b data-bfb-cuenta></b></span></div>
+    </div>
+  </div>
+  <div class="bfb-cara bfb-c" aria-hidden="true" inert>
+    <p class="bfb-c-top">Termina en <b data-bfb-cuenta></b></p>
+    <div class="bfb-lw">
+      <picture>
+        <source media="(min-width:760px)" srcset="assets/bf-portada-escritorio.webp?v=20261123">
+        <img class="bfb-foto" src="assets/bf-portada-celular.webp?v=20261123" alt="" width="640" height="1138" loading="lazy" decoding="async">
+      </picture>
+      <video class="bfb-v" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1" controlslist="nodownload noplaybackrate noremoteplayback" disablepictureinpicture disableremoteplayback></video>
+      <p class="bfb-let"><span>Black</span> <span>Friday</span></p>
+    </div>
+    <div class="bfb-c-in">
+      <div class="bfb-c-izq">
+        <p class="bfb-t">Paga 3, llévate 1 gratis.<br><i>Paga 4, llévate 2.</i></p>
+        <p class="bfb-sub">Mezcla charms y brazaletes · <span data-bfb-hasta>hasta el lunes 30 de noviembre</span>.</p>
+        <a class="bfb-btn" href="#promo">Armar la mía</a>
+      </div>
+      <div class="bfb-fila" data-bfb-fotos></div>
+    </div>
+    <div class="bfb-cinta" aria-hidden="true"><span>−20 % charms ✦ −10 % brazaletes ✦ paga 4, llévate 2 gratis ✦ hasta el 30 de noviembre ✦</span><span>−20 % charms ✦ −10 % brazaletes ✦ paga 4, llévate 2 gratis ✦ hasta el 30 de noviembre ✦</span><span>−20 % charms ✦ −10 % brazaletes ✦ paga 4, llévate 2 gratis ✦ hasta el 30 de noviembre ✦</span><span>−20 % charms ✦ −10 % brazaletes ✦ paga 4, llévate 2 gratis ✦ hasta el 30 de noviembre ✦</span></div>
+  </div>
+  <div class="bfb-pts"><button type="button" aria-label="Ver los descuentos" aria-pressed="true"></button><button type="button" aria-label="Ver la promoción de piezas gratis" aria-pressed="false"></button></div>
+</section>
+<script>(function(){var s=document.getElementById('bfb');if(!s)return;if(Date.now()>Date.parse(s.getAttribute('data-hasta')+'T23:59:59-05:00')){s.parentNode.removeChild(s);return;}/* El video arranca aquí, apenas se pinta el banner: esperar a que cargara toda la página lo dejaba varios segundos en la foto y parecía trabado. */try{if(matchMedia('(prefers-reduced-motion:reduce)').matches||(navigator.connection&&navigator.connection.saveData))return;var v=s.querySelector('.bfb-a video');v.muted=true;v.addEventListener('playing',function(){v.classList.add('is-viva');},{once:true});v.src='media/bf-portada-'+(matchMedia('(min-width:760px)').matches?'escritorio':'celular')+'-v1.mp4';var p=v.play();if(p&&p.catch)p.catch(function(){});}catch(e){}})();</script>
+
 <!-- 1 · HERO BANNER — antes esto era un layout fijo de dos columnas con una
      sola foto vertical. Ahora es un banner de ancho completo con 2 fotos
      rotando cada 5s (ver @keyframes hbf más abajo). El CTA, el sello de
@@ -169,7 +216,7 @@ src="https://www.facebook.com/tr?id=2005297310144764&ev=PageView&noscript=1"/></
 <section class="hbanner">
   <div class="hbanner-track">
     <div class="hbanner-slide">
-      <img class="hbanner-img" src="assets/avengers-marmol.webp" alt="Pulsera Zephora con charms de la colección Avengers sobre mármol negro" width="1600" height="893" fetchpriority="high" decoding="async">
+      <img class="hbanner-img" src="assets/avengers-marmol.webp" alt="Pulsera Zephora con charms de la colección Avengers sobre mármol negro" width="1600" height="893" loading="lazy" decoding="async">
       <div class="hbanner-copy">
         <span class="eyebrow">Colección nueva</span>
         <h1>Llegó la colección<br><i>de los Avengers</i></h1>
@@ -177,7 +224,7 @@ src="https://www.facebook.com/tr?id=2005297310144764&ev=PageView&noscript=1"/></
       </div>
     </div>
     <div class="hbanner-slide">
-      <img class="hbanner-img" src="assets/hero-marca-ancho.webp?v=20260912" alt="Pulsera Zephora armada con charms en Plata 925, sobre lino con luz natural" width="1280" height="714" decoding="async">
+      <img class="hbanner-img" src="assets/hero-marca-ancho.webp?v=20260912" alt="Pulsera Zephora armada con charms en Plata 925, sobre lino con luz natural" width="1280" height="714" loading="lazy" decoding="async">
       <div class="hbanner-copy">
         <span class="eyebrow">Joyería con significado · Colombia</span>
         <h2>Diseña una historia<br><i>tan única como tú</i></h2>

@@ -2117,3 +2117,106 @@ body:not(.sel-vacia) #dock-send::after{content:' →'}
 .fx-tx--cta-arriba .fx-cta{margin:12px 0 16px;grid-template-columns:1fr}
 .fx-tx--cta-arriba #fx-add{width:100%;white-space:nowrap;padding:15px 16px;font-size:15px;background:var(--pagar);border-color:var(--pagar);color:#fff}
 .fx-tx--cta-arriba #fx-add[aria-disabled="true"]{background:#e9e4ea;border-color:#e9e4ea;color:#6d6070}
+
+/* ── Banner de Black Friday en la portada (2026-11-23) ──────────────────────
+   Dos caras que se turnan cada 6 s (tienda.js): A, el video de las joyas a
+   pantalla completa con los descuentos; C, «BLACK FRIDAY» con el mismo video
+   visto dentro de las letras y la promo de piezas gratis. Mientras exista
+   #bfb, el banner de siempre (.hbanner) no se pinta; al vencer la oferta
+   #bfb se quita solo y vuelve el de siempre. Para retirarlo del todo: borrar
+   la sección de index.html, este bloque y el de tienda.js. */
+.bfb ~ .hbanner{display:none}
+/* El alto descuenta el encabezado y la barra de abajo: el banner cabe entero
+   en el primer pantallazo, con su botón y su cinta a la vista. */
+.bfb{position:relative;overflow:hidden;background:#0f0b11;color:#fff;height:calc(100dvh - 190px);min-height:360px;max-height:760px}
+.bfb-cara{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .8s ease,visibility 0s .8s}
+.bfb-cara.is-on{opacity:1;visibility:visible;transition:opacity .8s ease}
+.bfb-foto,.bfb-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
+.bfb-v{opacity:0;transition:opacity .5s ease;pointer-events:none}
+.bfb-v.is-viva{opacity:1}
+.bfb-eye{font:500 12px/1.3 Jost,sans-serif;letter-spacing:.26em;text-transform:uppercase;color:var(--rose-soft);margin:0}
+.bfb-eye b{display:table;background:#fff;color:#17111a;padding:6px 9px 5px;letter-spacing:.24em;font-weight:600;margin:0 0 9px}
+.bfb-t{font-family:'Cormorant Garamond',Georgia,serif;font-weight:500;letter-spacing:.01em;margin:0;color:#fff}
+.bfb-t i{font-style:italic;color:var(--rose-soft)}
+.bfb-sub{font:400 15px/1.45 Jost,sans-serif;color:#efe6ee;margin:0}
+.bfb-sub b{font-weight:600;color:#fff}
+.bfb-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 26px;background:#fff;color:var(--ink);
+  font:600 14px/1 Jost,sans-serif;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;border-radius:2px}
+.bfb-btn:hover{background:var(--rose-soft)}
+/* Cara A */
+.bfb-a::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(23,17,26,.92) 0,rgba(23,17,26,.55) 38%,rgba(23,17,26,.08) 68%,rgba(23,17,26,.28) 100%)}
+.bfb-a-in{position:absolute;left:0;right:0;bottom:0;z-index:1;max-width:var(--w);margin:0 auto;padding:0 20px 24px;display:grid;gap:12px}
+.bfb-a .bfb-t{font-size:clamp(40px,12.6vw,84px);line-height:.98}
+.bfb-acc{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:4px}
+.bfb-chip{display:inline-flex;gap:8px;align-items:baseline;font:500 12.5px/1 Jost,sans-serif;letter-spacing:.08em;color:#fff;
+  border:1px solid rgba(255,255,255,.45);padding:9px 12px;border-radius:2px;background:rgba(23,17,26,.35)}
+.bfb-chip b{font-variant-numeric:tabular-nums;font-weight:600}
+/* Cara C */
+.bfb-c{display:flex;flex-direction:column;justify-content:center;text-align:center;padding:34px 0 44px}
+.bfb-c-top{font:500 11px/1 Jost,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#cbbccb;margin:0 0 4px;min-height:11px}
+.bfb-c-top b{color:#fff;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.1em}
+.bfb-lw{position:relative;overflow:hidden;margin:6px 0 0;isolation:isolate;flex:none}
+/* Un velo claro bajo las letras: en las tomas oscuras no desaparecen. */
+.bfb-lw::after{content:"";position:absolute;inset:0;background:rgba(243,230,235,.26)}
+/* El video va debajo y las letras encima, blancas sobre el fondo del banner,
+   multiplicadas: lo blanco deja ver el video y lo oscuro lo tapa. */
+.bfb-let{position:relative;z-index:1;margin:0;padding:0 8px;background:#0f0b11;color:#fff;mix-blend-mode:multiply;
+  font:600 30vw/.84 Jost,sans-serif;letter-spacing:-.045em;text-transform:uppercase}
+.bfb-let span{display:block}
+.bfb-c-in{padding:14px 20px 0;display:grid;gap:13px;justify-items:center}
+.bfb-c-izq{display:contents}
+.bfb-c .bfb-t{font-size:clamp(28px,8.2vw,46px);line-height:1.04}
+.bfb-fila{display:flex;gap:10px;justify-content:center;margin-top:2px;min-height:86px}
+.bfb-fila a{position:relative;display:block;text-decoration:none}
+.bfb-fila span{display:block;width:86px;height:86px;border-radius:50%;background:#fff;overflow:hidden;border:2px solid var(--rose-soft)}
+.bfb-fila img{width:100%;height:100%;object-fit:cover}
+.bfb-fila em{position:absolute;right:-6px;top:-4px;z-index:1;background:var(--pagar);color:#fff;font:600 11.5px/1 Jost,sans-serif;font-style:normal;padding:5px 6px;border-radius:2px}
+.bfb-cinta{position:absolute;left:0;right:0;bottom:0;background:var(--rose-soft);color:var(--ink);overflow:hidden;white-space:nowrap;
+  font:600 13px/1 Jost,sans-serif;letter-spacing:.2em;text-transform:uppercase;padding:13px 0}
+.bfb-cinta span{display:inline-block;padding-right:30px;animation:bfbcinta 16s linear infinite}
+@keyframes bfbcinta{to{transform:translateX(-100%)}}
+/* Las dos rayitas: dicen en cuál va y dejan cambiar a mano. */
+.bfb-pts{position:absolute;z-index:3;top:4px;right:8px;display:flex}
+.bfb-pts button{width:38px;height:34px;padding:0;border:0;background:none;cursor:pointer;display:grid;place-items:center}
+.bfb-pts button::before{content:"";width:26px;height:3px;border-radius:2px;background:rgba(255,255,255,.38)}
+.bfb-pts button[aria-pressed="true"]::before{background:#fff}
+/* En celular el alto del banner depende de cuánto dejan las barras del
+   navegador (en un iPhone con Chrome quedan ~530 px de 900): las letras y los
+   charms se miden contra ese alto (cqh), y lo accesorio se quita por orden
+   cuando no cabe. Sin esto «FRIDAY» salía cortado (propietario, 2026-11-23). */
+@media(max-width:759px){
+  .bfb{container-type:size}
+  .bfb-let{font-size:min(30vw,19cqh)}
+  .bfb-fila span{width:min(86px,14cqh);height:min(86px,14cqh)}
+  .bfb-fila{min-height:0}
+  @container (max-height:619px){ .bfb-c .bfb-sub{display:none} }
+  @container (max-height:499px){ .bfb-a .bfb-sub,.bfb-fila{display:none} }
+}
+@supports not (container-type:size){
+  @media(max-height:820px) and (max-width:759px){
+    .bfb-a .bfb-sub,.bfb-c .bfb-sub,.bfb-fila{display:none}
+    .bfb-let{font-size:24vw}
+  }
+}
+@media(min-width:760px){
+  .bfb{height:calc(100vh - 152px);min-height:440px;max-height:640px}
+  .bfb-a::after{background:linear-gradient(to right,rgba(23,17,26,.9) 0,rgba(23,17,26,.6) 36%,rgba(23,17,26,.05) 68%)}
+  .bfb-a-in{top:0;align-content:center;padding:0 16px;gap:16px}
+  .bfb-a-in>*{max-width:640px}
+  .bfb-a .bfb-t{font-size:clamp(52px,5.4vw,70px)}
+  .bfb-eye b{display:inline-block;margin:0 8px 0 0}
+  .bfb-sub{font-size:17px}
+  .bfb-c{padding:30px 0 50px}
+  .bfb-let{font-size:min(12.6vw,172px);line-height:1;letter-spacing:-.04em}
+  .bfb-let span{display:inline}
+  .bfb-c-in{grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:54px;padding:16px 20px 0;text-align:left}
+  .bfb-c-izq{display:grid;gap:14px;justify-items:start}
+  .bfb-c .bfb-t{font-size:44px}
+  .bfb-fila span{width:118px;height:118px}.bfb-fila{min-height:118px}
+  .bfb-cinta{font-size:14px;padding:15px 0}
+  .bfb-pts{top:8px;right:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  .bfb-cara,.bfb-v{transition:none}
+  .bfb-cinta span{animation:none}
+}
