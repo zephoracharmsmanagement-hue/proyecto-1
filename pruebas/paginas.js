@@ -227,8 +227,11 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       const [p1, g1] = cat.reglas.promo.tramos[0];
       const caja = await p.evaluate(() => { const c = document.querySelector('#pp-compra .promo-caja');
         return c ? { t: c.textContent.replace(/\s+/g, ' '), antesDeBotones: !!(c.compareDocumentPosition(document.querySelector('#pp-compra .pp-cta')) & 4) } : null; });
-      ok(caja && new RegExp(`Paga ${p1 - g1} y llévate ${g1}`).test(caja.t) && /menor valor/.test(caja.t) && caja.antesDeBotones,
-        `recuadro «paga ${p1 - g1}, lleva ${g1} gratis» junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
+      /* Desde el 2026-11-22 es la escalera compacta: seis casillas y la condición
+         de la promo (la de menor valor), sin fotos rotas. */
+      const esc = await p.evaluate(() => { const c = document.querySelector('#pp-compra .promo-caja'); return { n: c.querySelectorAll('.cpk-c').length, g: c.querySelectorAll('.cpk-c.free').length, rotas: [...c.querySelectorAll('img')].filter(i => !i.getAttribute('src')).length }; });
+      ok(caja && /GRATIS/.test(caja.t) && /menor valor/i.test(caja.t) && caja.antesDeBotones && esc.n === 6 && esc.g >= g1 && !esc.rotas,
+        `escalera de la promo (${p1} piezas, ${g1} gratis) junto al precio, antes de los botones`, caja && caja.t.trim().slice(0, 50));
       ok(!(await p.$('.pq, .pq-o')), 'sin la cuadrícula de paquetes');
     }
     if (!cat.pulseras.includes(id) && hay(id)) {

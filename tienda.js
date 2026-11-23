@@ -1588,6 +1588,8 @@ function render(){
   const estPromo={piezas:piezas,nGratis:nGratis,total:total,ahorro:desc,gratis:gratisLista};
   pintarKitCampana(estPromo);
   pintarEscaleraPortada(estPromo);
+  pintarEscaleraProducto(estPromo);
+  pintarEscalerasSimples(estPromo);
 
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
      estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
@@ -2100,7 +2102,8 @@ document.querySelectorAll('.filters').forEach(f=>{
    portada, a #charms; en una página de campaña, a sus destacados. */
 document.addEventListener('click',e=>{
   const c=e.target.closest&&e.target.closest('.cpk-s .cpk-c:not(.on)'); if(!c) return;
-  const d=c.closest('#promo-esc')?document.getElementById('charms'):c.closest('#cp-kit')?document.getElementById('destacadas'):null;
+  const d=c.closest('#promo-esc')?document.getElementById('charms'):c.closest('#cp-kit')?document.getElementById('destacadas')
+    :c.closest('[data-esc-simple]')?(document.getElementById('destacadas')||document.getElementById('piezas')||document.querySelector('.mv')):null;
   if(d) d.scrollIntoView({behavior:'smooth',block:'start'});
 });
 
@@ -2109,13 +2112,17 @@ document.addEventListener('click',e=>{
  * cuarta y la sexta son las gratis. Las piezas que la promo regala de verdad
  * (las de menor valor, `est.gratis`) van en esas dos casillas; las demás, en
  * el orden en que se agregaron. `tag` es 'span' o 'li' (el carrito usa <ol>). */
-function escCasillas(est,tag){
+function escCasillas(est,tag,fantasma){
   const todas=sel.slice(); if(base) todas.push(base.id);
   const gl=est.gratis.map(x=>x.id), pagas=[], libres=[];
   todas.forEach(id=>{ const j=gl.indexOf(id); if(j>=0){ gl.splice(j,1); libres.push(id); } else pagas.push(id); });
   const orden=[pagas[0],pagas[1],pagas[2],libres[0],pagas[3],libres[1]];
+  /* `fantasma` (página de producto): la pieza que se está viendo, a medio
+     tono en la primera casilla libre, para que se vea a dónde llega con ella. */
+  const iF=fantasma?orden.findIndex(x=>!x):-1;
   return orden.map((id,i)=>{
     const regalo=i===3||i===5;
+    if(i===iF) return '<'+tag+' class="cpk-c on cpk-c--esta"><img src="'+fantasma+'" alt="" width="440" height="440" decoding="async"><i>ESTA</i></'+tag+'>';
     if(id) return '<'+tag+' class="cpk-c on'+(regalo?' free':'')+'"><img src="'+imgDe(id)+'" alt="" width="440" height="440" decoding="async">'+(regalo?'<i>GRATIS</i>':'')+'</'+tag+'>';
     return regalo?'<'+tag+' class="cpk-c free"><b>GRATIS</b>'+(i===3?'la 4.ª':'la 6.ª')+'</'+tag+'>':'<'+tag+' class="cpk-c"><b>+</b>Pieza</'+tag+'>';
   }).join('');
@@ -2129,11 +2136,52 @@ function escMensaje(est){
   if(n===5) return 'Vas en <strong>'+cop(est.total)+'</strong>, con 1 pieza GRATIS.<br>Agrega 1 más y <b>también te sale GRATIS</b>';
   return '¡Completo! '+n+' piezas por <strong>'+cop(est.total)+'</strong><br><b>'+est.nGratis+' GRATIS · ahorras '+cop(est.ahorro)+'</b>';
 }
+/* En la página de una pieza (propietario, 2026-11-22): la caja de texto de la
+   promo junto al precio pasa a ser la escalera compacta, con ESTA pieza ya
+   puesta a medio tono. Se arma aquí, sobre la caja que trae el HTML, para no
+   regenerar las páginas de producto; sin JavaScript queda el texto de siempre.
+   No dice cuál pieza sale gratis: eso depende del precio de las demás. */
+var escPpFirma='';
+function pintarEscaleraProducto(est){
+  const pp=document.body.dataset.producto, c=pp&&document.querySelector('#pp-compra .promo-caja'); if(!c) return;
+  const enCarrito=sel.indexOf(pp)>=0||sel.some(id=>id.indexOf(pp+'-t')===0)||!!(base&&base.id===pp);
+  const ver=!enCarrito&&est.piezas<6&&!agotado(pp);
+  /* !!CAT: las fotos de piezas sin tarjeta en la página salen del catálogo, que
+     llega después; sin esto la caja se quedaba con <img src=""> rotas. */
+  const firma=[sel.join(),base?base.id:'',ver,!!CAT].join('|');
+  if(firma===escPpFirma) return; escPpFirma=firma;
+  const og=document.querySelector('meta[property="og:image"]');
+  const foto=ver?(imgDe(pp)||(og&&og.content)||''):'';
+  const con=est.piezas+1;
+  const m=!(ver&&foto)?escMensaje(est).replace('<br>',' ')
+    :con===1?'Con esta empiezas tu set: con 4 piezas, <b>1 te sale GRATIS</b>'
+    :con===2?'Con esta llevas 2. Te faltan <b>2</b> y <b>una te sale GRATIS</b>'
+    :con===3?'Con esta llevas 3. <b>¡1 más y te sale GRATIS!</b>'
+    :con===4?'Con esta llevas 4: <b>una te sale GRATIS</b>'
+    :con===5?'Con esta llevas 5. <b>¡1 más y otra te sale GRATIS!</b>'
+    :'Con esta llevas 6: <b>2 te salen GRATIS</b>';
+  c.classList.add('promo-esc','promo-esc--pp');
+  c.innerHTML='<p class="promo-caja-t">✨ Hasta <b>2 piezas GRATIS</b> · la de menor valor</p>'
+    +'<div class="cpk-s" aria-hidden="true">'+escCasillas(est,'span',foto)+'</div>'
+    +'<p class="cpk-m" aria-live="polite">'+m+'</p>';
+}
+/* La compacta de colecciones y campañas sin brazalete fijo ([data-esc-simple],
+   la escribe gen_colecciones.py): casillas y una línea, sin botón. */
+var escSimpleFirma='';
+function pintarEscalerasSimples(est){
+  const cajas=document.querySelectorAll('[data-esc-simple]'); if(!cajas.length) return;
+  const firma=[sel.join(),base?base.id:'',est.total,!!CAT].join('|');
+  if(firma===escSimpleFirma) return; escSimpleFirma=firma;
+  cajas.forEach(c=>{
+    c.querySelector('.cpk-s').innerHTML=escCasillas(est,'span');
+    c.querySelector('.cpk-m').innerHTML=escMensaje(est).replace('<br>',' ');
+  });
+}
 /* En la portada reemplaza el párrafo de «Promoción activa» (#promo-esc). */
 var escFirma='';
 function pintarEscaleraPortada(est){
   const k=document.getElementById('promo-esc'); if(!k) return;
-  const firma=[sel.join(),base?base.id:'',est.total,est.ahorro].join('|');
+  const firma=[sel.join(),base?base.id:'',est.total,est.ahorro,!!CAT].join('|');
   if(firma===escFirma) return; escFirma=firma;
   k.querySelector('.cpk-s').innerHTML=escCasillas(est,'span');
   k.querySelector('.cpk-m').innerHTML=escMensaje(est);
@@ -2165,7 +2213,7 @@ function pintarKitCampana(est){
   /* Sin brazalete que regalar, o sin charms con qué completar, no promete nada. */
   if(!PU[b]||(!B&&agotado(b))||(!cs&&c<3)){ k.hidden=true; kitcFirma=''; return; }
   const libres=tallasLibres(b)||TALLAS;
-  const firma=[sel.join(),B?base.id:'',n,est.nGratis,est.total,est.ahorro,kitcTalla,libres.join(),(cs||[]).join()].join('|');
+  const firma=[sel.join(),B?base.id:'',n,est.nGratis,est.total,est.ahorro,kitcTalla,libres.join(),(cs||[]).join(),!!CAT].join('|');
   if(firma===kitcFirma&&!k.hidden) return;
   kitcFirma=firma;
   const cuenta=(ids,bb)=>ids.reduce((s,id)=>s+precioPieza(id),0)+(bb?precioPieza(bb):0)

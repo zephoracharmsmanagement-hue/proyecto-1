@@ -41,10 +41,21 @@ ficha se abría y se cerraba sin usar «Agregar a mi pulsera».
   fijo: las piezas que la promo regala de verdad (`gratisLista`) van en la cuarta y la sexta
   casilla (`escCasillas()` en tienda.js). Las páginas de producto y kits.html conservan la caja de
   texto de la promo.
+- **Escalera compacta en producto, colecciones e «Inicial y signo» (2026-11-22, rama
+  `claude/pestanas-y-producto`, en vista previa: NO desplegado):** en la página de una pieza la
+  caja de texto de la promo pasa a ser la escalera con ESTA pieza a medio tono
+  (`pintarEscaleraProducto()`, se arma en el navegador: las páginas de producto no se
+  regeneraron). En las tres colecciones y en campana-inicial-signo.html va la compacta sin pieza
+  (`ESC_COMPACTA` en gen_colecciones.py + `pintarEscalerasSimples()`). Kits y checkout, sin
+  escalera a propósito.
+- **Fotos rotas en las escaleras (corregido en la misma rama):** se pintaban antes de que llegara
+  catalogo.json y no se repintaban; en producción se veía en campana-marvel.html al llegar con
+  charms de otra colección en el carrito. Las firmas de repintado ahora incluyen `!!CAT`.
+- **Regalo y WhatsApp como pestañas (misma rama):** en celular (<760 px) son dos pestañas de 30 px
+  pegadas al borde derecho, sobre la barra, regalo encima de WhatsApp; ya no tapan los «Agregar».
+  En computador siguen redondos. Resuelve el pendiente del ícono de WhatsApp.
 - En la barra, el aviso de «una más» pasó a «N piezas · ¡1 más GRATIS!»: con «Tienes» delante se
   cortaba a 375 px.
-- Pendiente de decisión del propietario: en celular el ícono de WhatsApp queda sobre el «Agregar»
-  de alguna tarjeta de la lista (se ve en su captura del 22-nov).
 
 ## Black Friday 2026 — precios y oferta — desplegado el 2026-11-21 (PR #59)
 

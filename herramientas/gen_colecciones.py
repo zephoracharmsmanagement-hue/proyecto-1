@@ -228,6 +228,13 @@ def escalones(base, p, ir='#piezas'):
 # repinta con los precios de hoy y las existencias en vivo, y le pone la
 # talla. El marcado de los dos lados tiene que ser el mismo.
 
+# La escalera compacta (2026-11-22): la misma de la página de producto, sin
+# «esta pieza». Va en las colecciones y en las campañas sin brazalete fijo;
+# tienda.js (pintarEscalerasSimples) la llena con el carrito. Sin llaves: se
+# pega tal cual dentro de las plantillas con .format().
+ESC_COMPACTA = '  <div class="promo-caja promo-esc promo-esc--pp promo-esc--col" data-esc-simple><p class="promo-caja-t">✨ Hasta <b>2 piezas GRATIS</b> · la de menor valor</p><div class="cpk-s" aria-hidden="true"><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 4.ª</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 6.ª</span></div><p class="cpk-m" aria-live="polite">Con 4 piezas, <b>1 te sale GRATIS</b>. Con 6, <b>2 GRATIS</b>.</p></div>\n'
+
+
 def kit_de_campana(html, base, charms, p):
     # Desde la «escalera de regalos» (2026-11-22) la tarjeta llega vacía y no
     # lleva precios escritos: los pone tienda.js con el carrito de cada quien.
@@ -289,6 +296,7 @@ PAGINA = '''<!DOCTYPE html>
     <a class="btn btn--ghost" href="#combo">Armar el combo</a>
   </div>
   <p class="col-envio">Envío <b>GRATIS</b> a toda Colombia pagando en línea · contraentrega disponible</p>
+  <div class="promo-caja promo-esc promo-esc--pp promo-esc--col" data-esc-simple><p class="promo-caja-t">✨ Hasta <b>2 piezas GRATIS</b> · la de menor valor</p><div class="cpk-s" aria-hidden="true"><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 4.ª</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 6.ª</span></div><p class="cpk-m" aria-live="polite">Con 4 piezas, <b>1 te sale GRATIS</b>. Con 6, <b>2 GRATIS</b>.</p></div>
 </section>
 
 <!-- 2 · EL COMBO. Los precios salen de calcular(), no están escritos: los
@@ -929,6 +937,7 @@ MV_CUERPO = '''<section class="col-hero wrap" id="top">
   <h1>Las piezas que más se llevan</h1>
   <p class="col-entrada">Ordenadas por unidades vendidas de verdad, contadas de los pedidos
   de la tienda. Solo aparecen las que tienen 3 unidades o más disponibles.</p>
+  <div class="promo-caja promo-esc promo-esc--pp promo-esc--col" data-esc-simple><p class="promo-caja-t">✨ Hasta <b>2 piezas GRATIS</b> · la de menor valor</p><div class="cpk-s" aria-hidden="true"><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 4.ª</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 6.ª</span></div><p class="cpk-m" aria-live="polite">Con 4 piezas, <b>1 te sale GRATIS</b>. Con 6, <b>2 GRATIS</b>.</p></div>
 </section>
 
 <!-- Lo llena tienda.js («Más vendidos») desde netlify/functions/mas-vendidos:
@@ -1216,7 +1225,7 @@ def generar_campana_inicial_signo(c, html, cat, escribir):
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'], chrome=b['chrome'],
         # La foto del primer pantallazo no espera: con loading="lazy" se
         # quedaba en blanco un momento.
-        hero_kit='', kit='',
+        hero_kit='', kit=ESC_COMPACTA,
         tarjeta_letras='\n'.join('    ' + t for t in tarjetas(html, ['letras'])).replace(
             ' loading="lazy"', ' fetchpriority="high"', 1),
         tarjetas_resto='\n'.join('    ' + t for t in tarjetas(html, signos)),

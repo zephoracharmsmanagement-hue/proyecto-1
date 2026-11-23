@@ -2037,6 +2037,32 @@ body[data-producto] .susc-fab{left:auto;right:14px;bottom:calc(var(--dock) + 78p
 .filters-mas[hidden]{display:none}
 #promo-esc .cpk-c:not(.on),#cp-kit .cpk-c:not(.on){cursor:pointer}
 
+/* ── Regalo y WhatsApp como pestañas (celular, propietario 2026-11-22) ──
+   Los dos círculos de 52 px tapaban el «Agregar» de las tarjetas. En celular
+   pasan a ser dos pestañas de 30 px pegadas al borde derecho, una sobre otra
+   abajo, sobre la barra de pagar: caben en el margen de las tarjetas. A la derecha y no a
+   la izquierda porque en iPhone y en el navegador de Instagram deslizar desde
+   el borde izquierdo es «volver». En computador siguen redondos. */
+@media(max-width:759px){
+  .susc-fab,body[data-producto] .susc-fab,.cp-wa-float{left:auto;right:0;bottom:auto;width:30px;height:50px;
+    border-radius:25px 0 0 25px;padding:0 0 0 3px;box-shadow:0 3px 12px rgba(42,31,46,.22)}
+  .susc-fab,body[data-producto] .susc-fab{top:auto;bottom:calc(var(--dock) + 74px)}
+  .cp-wa-float{top:auto;bottom:calc(var(--dock) + 18px)}
+  .susc-fab svg,.cp-wa-float svg{width:19px;height:19px}
+  .aviso-corto{bottom:calc(var(--dock) + 16px)}
+}
+
+/* La escalera compacta de la página de producto. */
+.promo-esc--pp{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;padding:12px;background:#fff}
+.promo-esc--pp .promo-caja-t{font-size:12px;text-align:left}
+.promo-esc--pp .cpk-m{min-height:0;text-align:left}
+.promo-esc--col{max-width:520px;margin:14px auto 0;text-align:left}
+.cp-hero .promo-esc--col{margin:10px 0 2px}
+.promo-esc--col .cpk-c:not(.on){cursor:pointer}
+.cpk-c--esta{border-style:dashed!important;border-color:#96506A!important}
+.cpk-c--esta img{opacity:.55}
+.cpk-c--esta i{background:#96506A}
+
 /* La escalera general: en la portada (#promo-esc) y en el carrito (.hoja-dto--esc). */
 #promo .promo-esc{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;max-width:520px;padding:16px;background:#fff}
 .promo-esc .promo-caja-t{margin-bottom:0!important;text-align:center}
