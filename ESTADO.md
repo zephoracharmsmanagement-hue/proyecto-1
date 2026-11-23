@@ -12,14 +12,19 @@ Pedido del propietario (2026-11-22), tras ver la maqueta. Sale de Clarity sobre 
 los destacados y solo el 42 % llegaba al combo; ~150 toques en «Agregar» contra 2 en «Comprar»; la
 ficha se abría y se cerraba sin usar «Agregar a mi pulsera».
 
-- **Kit en el primer pantallazo (`#cp-kit`, solo campañas con brazalete):** «Pulsera Avengers + 3
-  charms · $total · una GRATIS · ahorras $X · cuota de Addi». Lo escribe `kit_de_campana()` en
-  `gen_colecciones.py` con `calcular()`, y `pintarKitCampana()` en tienda.js lo repinta con los
-  precios de hoy y las existencias en vivo (los 3 primeros charms disponibles de `data-charms`; sin
-  brazalete o sin 3 charms, se esconde). «Armar mi kit» pide la talla ahí mismo, pone brazalete y
-  charms (respeta los que ya hubiera) y abre el carrito. El párrafo del encabezado se esconde en
-  estas páginas (`.cp-hero--kit`). **Cambia una decisión del 20-nov:** ya no caben los 5 destacados
-  en el primer pantallazo del celular; caben el kit y 2 o 3.
+- **Kit en el primer pantallazo (`#cp-kit`, solo campañas con brazalete): «escalera de regalos».**
+  El propietario vio variantes y escogió esta (2026-11-22) porque la promo de 6 piezas quedaba por
+  fuera. Seis casillas que se llenan con lo que ella agrega: tres charms, el brazalete (GRATIS),
+  otro charm y un sexto charm (GRATIS). El mensaje dice cuánto falta para el siguiente regalo con
+  los números del carrito (`render()` se los pasa a `pintarKitCampana()`): con 3 charms «elige la
+  talla de tu brazalete: te sale GRATIS»; con 4 piezas «agrega 2 más: pagas 1 y la otra es GRATIS»;
+  con 5, «agrega 1 más y también te sale GRATIS»; con 6, total y ahorro. El botón es «Elegir por
+  mí» (pide la talla y completa hasta 3 charms con los primeros disponibles de `data-charms`),
+  «Elegir talla e ir a pagar» (ya tiene 3 charms) o «Ir a pagar». La casilla del brazalete solo
+  dice GRATIS si es de verdad la pieza de menor valor. El HTML llega con la escalera vacía y **sin
+  precios escritos** (`kit_de_campana()` en `gen_colecciones.py`). El párrafo del encabezado se
+  esconde en estas páginas (`.cp-hero--kit`). **Cambia una decisión del 20-nov:** ya no caben los
+  5 destacados en el primer pantallazo del celular; caben el kit y 3 o 4 (2 a 360 px).
 - **Barra fija (toda la tienda):** con piezas dice «Tienes N piezas…», el total con «Ver pedido»
   como enlace y el botón grande «Ir a pagar →» (antes «N piezas», «Ver detalle» y «Comprar»). Solo
   CSS y texto: `.dock-info` pasa a `display:contents`. Vacía, queda como estaba.
@@ -30,8 +35,10 @@ ficha se abría y se cerraba sin usar «Agregar a mi pulsera».
 - `#tot-ahorro` y el cambio de sitio del botón de la ficha los hace `retoquesDePago()` en tienda.js,
   una vez, para no regenerar las ~190 páginas que copian el andamiaje de la portada. Si algún día se
   regenera todo, se pueden pasar al HTML de index.html y quitar de ahí.
-- Como los escalones del combo, el kit lleva precios escritos: entra en la limpieza del 1-dic
-  (regenerar con `OFERTA=null`), aunque tienda.js ya lo repinta solo con el precio del día.
+- En la barra, el aviso de «una más» pasó a «N piezas · ¡1 más GRATIS!»: con «Tienes» delante se
+  cortaba a 375 px.
+- Pendiente de decisión del propietario: en celular el ícono de WhatsApp queda sobre el «Agregar»
+  de alguna tarjeta de la lista (se ve en su captura del 22-nov).
 
 ## Black Friday 2026 — precios y oferta — desplegado el 2026-11-21 (PR #59)
 

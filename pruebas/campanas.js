@@ -143,46 +143,76 @@ async function main() {
       });
     });
     /* Desde el 2026-11-22 lo primero es el kit con la promo (#cp-kit): en
-       Clarity el 37 % se iba tras los destacados sin llegar al combo. Los
-       destacados van justo debajo; en el primer pantallazo caben el kit entero
-       y al menos dos de ellos con su botón. */
+       Clarity el 37 % se iba tras los destacados sin llegar al combo. Es una
+       «escalera de regalos»: seis casillas que se llenan con lo que ella
+       agrega; la del brazalete y la sexta son las dos piezas gratis. Los
+       destacados van justo debajo. */
     const kit = await p.evaluate(() => {
       const k = document.getElementById('cp-kit'), r = k.getBoundingClientRect(), b = k.querySelector('[data-kitc-armar]').getBoundingClientRect();
       return { visible: !k.hidden && r.top >= 0 && b.bottom <= document.getElementById('dock').getBoundingClientRect().top,
         antes: !!(k.compareDocumentPosition(document.getElementById('destacadas')) & Node.DOCUMENT_POSITION_FOLLOWING),
-        tx: k.innerText.replace(/\s+/g, ' ') };
+        casillas: k.querySelectorAll('.cpk-c').length, regalos: k.querySelectorAll('.cpk-c.free').length,
+        boton: k.querySelector('[data-kitc-armar]').textContent, tx: k.innerText.replace(/\s+/g, ' ') };
     });
     comprobar(kit.visible && kit.antes, 'el kit con la promo está entero en el primer pantallazo, arriba de los destacados', kit.tx);
-    comprobar(caben.length === c.destacados.length && caben.filter(Boolean).length >= 2,
-      `y debajo caben al menos 2 de las ${c.destacados.length} del anuncio, con su botón`, caben.filter(Boolean).length + ' de ' + caben.length);
-    /* Los números del kit son los de calcular(): brazalete + los 3 primeros
-       charms disponibles, la de menor valor gratis. */
+    comprobar(kit.casillas === 6 && kit.regalos === 2 && /hasta 2 piezas GRATIS/i.test(kit.tx) && /brazalete te sale GRATIS/.test(kit.tx)
+      && /Con 5, otro charm GRATIS/.test(kit.tx) && kit.boton === 'Elegir por mí',
+      'el kit llega vacío: 6 casillas, 2 de regalo, y dice las dos promos (4 piezas, 1 gratis; 6 piezas, 2 gratis)', JSON.stringify(kit));
+    comprobar(caben.length === c.destacados.length && caben.filter(Boolean).length >= 3,
+      `y debajo caben al menos 3 de las ${c.destacados.length} del anuncio, con su botón`, caben.filter(Boolean).length + ' de ' + caben.length);
+    /* Los números del kit son los del carrito, y los del carrito los de calcular(). */
     {
       const { calcular, cop } = require('../netlify/functions/_precios.js');
-      const ids = await p.evaluate(() => [...document.querySelectorAll('#cp-kit .cpk-f img')].map(i => i.getAttribute('src').replace(/^.*assets\//, '').replace(/\.webp.*$/, '')));
-      const t = calcular({ base: { id: c.base, talla: '18' }, charms: ids.slice(1), pago: 'anticipado' });
-      comprobar(ids[0] === c.base && ids.length === 4 && kit.tx.includes(cop(t.total)) && kit.tx.includes('ahorras ' + cop(t.descuento))
-        && kit.tx.includes(cop(Math.ceil(t.total / 3))),
-        `el kit dice el total de calcular() (${cop(t.total)}), el ahorro (${cop(t.descuento)}) y la cuota de Addi`, kit.tx);
+      const estado = q => q.evaluate(() => { const k = document.getElementById('cp-kit'), n = document.getElementById('dock-n'), ta = document.getElementById('tot-ahorro'), bt = k.querySelector('[data-kitc-armar]');
+        return { carrito: JSON.parse(localStorage.getItem('zephora.carrito.v1') || '{}'), tx: k.innerText.replace(/\s+/g, ' '),
+          llenas: k.querySelectorAll('.cpk-c.on').length, regaladas: k.querySelectorAll('.cpk-c.on.free').length, boton: bt ? bt.textContent : '',
+          tallas: k.querySelectorAll('[data-kitc-talla]').length, hoja: document.getElementById('sheet').getAttribute('aria-hidden'),
+          total: document.getElementById('v-tot').textContent, ahorro: ta && !ta.hidden ? ta.textContent : '',
+          barra: n.textContent, cortada: n.scrollWidth > n.clientWidth, pagar: document.getElementById('dock-send').textContent,
+          lista: k.dataset.charms.split(',') }; });
       const q = await nueva();
       await q.goto(BASE + '/' + c.archivo, { waitUntil: 'load' });
       await q.waitForTimeout(800);
-      await q.click('[data-kitc-armar]');
+      for (let i = 0; i < 3; i++) { await q.evaluate(j => document.querySelectorAll('#destacadas .pc-add:not([aria-disabled="true"])')[j].click(), i); await q.waitForTimeout(150); }
+      const tres = await estado(q);
+      comprobar(tres.llenas === 3 && /Elige la talla de tu brazalete: te sale GRATIS/.test(tres.tx) && tres.boton === 'Elegir talla e ir a pagar',
+        'con 3 charms agregados se llenan 3 casillas y el kit dice que el brazalete ya le sale gratis', JSON.stringify([tres.llenas, tres.tx, tres.boton]));
+      comprobar(/^3 piezas · ¡1 más GRATIS!$/.test(tres.barra) && !tres.cortada, 'la barra dice «3 piezas · ¡1 más GRATIS!» sin cortarse', tres.barra);
+      await q.evaluate(() => document.querySelector('[data-kitc-armar]').click());
       await q.waitForTimeout(200);
-      const tallas = await q.locator('#cp-kit [data-kitc-talla]').count();
-      await q.locator('#cp-kit [data-kitc-talla]:not([aria-disabled="true"])').first().click();
+      const tallas = (await estado(q)).tallas;
+      await q.evaluate(() => document.querySelector('#cp-kit [data-kitc-talla]:not([aria-disabled="true"])').click());
       await q.waitForTimeout(500);
-      const armado = await q.evaluate(() => ({ carrito: JSON.parse(localStorage.getItem('zephora.carrito.v1') || '{}'),
-        hoja: document.getElementById('sheet').getAttribute('aria-hidden'), total: document.getElementById('v-tot').textContent,
-        ahorro: document.getElementById('tot-ahorro').hidden ? '' : document.getElementById('tot-ahorro').textContent,
-        barra: document.getElementById('dock-n').textContent + ' | ' + document.getElementById('dock-send').textContent,
-        boton: document.querySelector('[data-kitc-armar]').textContent }));
-      comprobar(tallas === 5 && armado.carrito.base && armado.carrito.base.id === c.base && !!armado.carrito.base.talla
-        && JSON.stringify(armado.carrito.charms) === JSON.stringify(ids.slice(1)) && armado.hoja === 'false' && armado.total === cop(t.total),
-        '«Armar mi kit» pide la talla ahí mismo y abre el carrito con el brazalete y los 3 charms', JSON.stringify(armado));
-      comprobar(armado.ahorro === 'Te ahorras ' + cop(t.descuento) + ' · 1 pieza gratis' && /^Tienes 4 piezas/.test(armado.barra)
-        && / \| Ir a pagar$/.test(armado.barra) && armado.boton === 'Ir a pagar',
-        'el carrito dice el ahorro junto al total, y la barra y el kit pasan a «Ir a pagar»', armado.ahorro + ' · ' + armado.barra);
+      const armado = await estado(q);
+      const b0 = armado.carrito.base || {}, t = calcular({ base: { id: c.base, talla: b0.talla || '18' }, charms: tres.carrito.charms, pago: 'anticipado' });
+      comprobar(tallas === 5 && b0.id === c.base && !!b0.talla && JSON.stringify(armado.carrito.charms) === JSON.stringify(tres.carrito.charms)
+        && armado.hoja === 'false' && armado.total === cop(t.total),
+        'el botón pide la talla ahí mismo y abre el carrito con el brazalete y sus 3 charms, al total de calcular()', JSON.stringify(armado));
+      comprobar(armado.ahorro === 'Te ahorras ' + cop(t.descuento) + ' · 1 pieza gratis' && /^Tienes 4 piezas/.test(armado.barra) && armado.pagar === 'Ir a pagar'
+        && armado.boton === 'Ir a pagar' && armado.llenas === 4 && armado.regaladas === 1 && armado.tx.includes('¡Brazalete GRATIS! Vas en ' + cop(t.total))
+        && /Agrega 2 piezas más: pagas 1 y la otra es GRATIS/.test(armado.tx),
+        'con 4 piezas: ahorro junto al total, «Ir a pagar», el brazalete marcado GRATIS y la invitación a la segunda gratis', armado.ahorro + ' · ' + armado.barra + ' · ' + armado.tx);
+      /* Seis piezas: las dos de regalo, con el total y el ahorro de calcular(). */
+      const seis = tres.carrito.charms.concat(armado.lista.filter(x => !tres.carrito.charms.includes(x)).slice(0, 2));
+      await q.evaluate(x => localStorage.setItem('zephora.carrito.v1', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('zephora.carrito.v1')), { charms: x, cuando: Date.now() }))), seis);
+      await q.goto(BASE + '/' + c.archivo, { waitUntil: 'load' });
+      await q.waitForTimeout(800);
+      const lleno = await estado(q), t6 = calcular({ base: { id: c.base, talla: b0.talla || '18' }, charms: seis, pago: 'anticipado' });
+      comprobar(lleno.carrito.charms.length === 5 && lleno.llenas === 6 && lleno.regaladas === 2
+        && lleno.tx.includes('¡Completo! 6 piezas por ' + cop(t6.total)) && lleno.tx.includes('2 GRATIS · ahorras ' + cop(t6.descuento)),
+        `con 6 piezas: las 6 casillas llenas, 2 de regalo, ${cop(t6.total)} y el ahorro de calcular() (${cop(t6.descuento)})`, JSON.stringify([lleno.llenas, lleno.regaladas, lleno.tx]));
+      /* «Elegir por mí», con el carrito vacío: talla, brazalete y los 3 primeros que haya. */
+      await q.evaluate(() => localStorage.removeItem('zephora.carrito.v1'));
+      await q.goto(BASE + '/' + c.archivo, { waitUntil: 'load' });
+      await q.waitForTimeout(800);
+      await q.evaluate(() => document.querySelector('[data-kitc-armar]').click());
+      await q.waitForTimeout(200);
+      await q.evaluate(() => document.querySelector('#cp-kit [data-kitc-talla]:not([aria-disabled="true"])').click());
+      await q.waitForTimeout(500);
+      const pormi = await estado(q);
+      comprobar(pormi.carrito.base && pormi.carrito.base.id === c.base && pormi.carrito.charms.length === 3
+        && pormi.carrito.charms.every(x => pormi.lista.includes(x)) && pormi.hoja === 'false',
+        '«Elegir por mí» pide la talla y arma brazalete + 3 charms de la campaña', JSON.stringify(pormi.carrito));
       comprobar(!q.errs.length, 'consola limpia al armar el kit', q.errs.join(' | ') || undefined);
       await q.close();
     }

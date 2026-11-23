@@ -1586,7 +1586,7 @@ function render(){
   pintarTarjetas();
   pintarLetras();
   estadoVit();
-  pintarKitCampana();
+  pintarKitCampana({piezas:piezas,nGratis:nGratis,total:total,ahorro:desc,gratis:gratisLista});
 
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
      estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
@@ -1598,8 +1598,9 @@ function render(){
   /* «Tienes N piezas» + «Ir a pagar» (2026-11-22): con «N piezas» y «Comprar»
      se agregaba ~150 veces y se tocaba «Comprar» 2. */
   $('#dock-n').textContent = piezas
-    ? 'Tienes '+piezas+(piezas===1?' pieza':' piezas')
-      +(unaMas?' · ¡1 más y es GRATIS!'
+    /* Con «1 más» va sin «Tienes»: a 375 px se cortaba en «…es GR…». */
+    ? (unaMas?'':'Tienes ')+piezas+(piezas===1?' pieza':' piezas')
+      +(unaMas?' · ¡1 más GRATIS!'
         :nGratis?' · '+nGratis+' GRATIS'
         :libre?' · envío gratis'
         :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
@@ -2075,52 +2076,84 @@ document.addEventListener('click',e=>{
  * brazalete o sin tres charms disponibles, no se muestra.
  *
  * `var` y no `let`: render() corre antes de que esta línea se ejecute. */
-var kitcTalla=false, kitcFirma='';
+var kitcTalla=false, kitcFirma='', kitcEst=null;
 function kitcCharms(k){
   const l=(k.dataset.charms||'').split(',').filter(id=>CH[id]&&!agotado(id));
   return l.length>=3?l.slice(0,3):null;
 }
-function pintarKitCampana(){
+/* «Escalera de regalos» (propietario, 2026-11-22): la tarjeta deja de ser un
+   kit ya armado y pasa a ser seis casillas que se llenan con lo que ella
+   agrega. La cuarta es el brazalete y la sexta un charm: las dos piezas gratis
+   de la promo (4 piezas, 1 gratis; 6 piezas, 2 gratis), que antes solo se
+   decía en un párrafo más abajo. El mensaje dice cuánto falta para el
+   siguiente regalo con los números del carrito (render() se los pasa en
+   `est`), no con cuentas propias. «Gratis» va en la casilla del brazalete solo
+   si de verdad es la pieza que la promo regala (la de menor valor). */
+function pintarKitCampana(est){
   const k=document.getElementById('cp-kit'); if(!k) return;
+  if(est) kitcEst=est;
+  est=kitcEst||{piezas:0,nGratis:0,total:0,ahorro:0,gratis:[]};
   const b=k.dataset.base, cs=PU[b]&&!agotado(b)?kitcCharms(k):null;
-  if(!cs){ k.hidden=true; kitcFirma=''; return; }
-  const ahorro=gratisDe(cs,b,precioPieza).reduce((s,x)=>s+x.p,0);
-  const total=PU[b].p+cs.reduce((s,id)=>s+CH[id].p,0)-ahorro;
+  const B=!!base, c=sel.length, n=est.piezas;
+  /* Sin brazalete que regalar, o sin charms con qué completar, no promete nada. */
+  if(!PU[b]||(!B&&agotado(b))||(!cs&&c<3)){ k.hidden=true; kitcFirma=''; return; }
   const libres=tallasLibres(b)||TALLAS;
-  const armado=!!(base&&base.id===b&&sel.length>=3);
-  const firma=[cs.join(),total,ahorro,kitcTalla,libres.join(),armado].join('|');
+  const firma=[sel.join(),B?base.id:'',n,est.nGratis,est.total,est.ahorro,kitcTalla,libres.join(),(cs||[]).join()].join('|');
   if(firma===kitcFirma&&!k.hidden) return;
   kitcFirma=firma;
-  const foto=id=>'<img src="'+imgDe(id)+'" alt="'+(PU[id]||CH[id]).n+'" width="440" height="440" decoding="async">';
-  k.innerHTML='<div class="cpk-f">'+foto(b)+cs.map(foto).join('')+'</div>'
-    +'<div class="cpk-tx"><span class="cpk-e">Kit '+PU[b].n.replace(/^Pulsera /,'')+' · 4 piezas</span>'
-    +'<b class="cpk-n">'+PU[b].n+' + 3 charms</b>'
-    +'<span class="cpk-p"><b>'+cop(total)+'</b> <em>una GRATIS · ahorras '+cop(ahorro)+'</em></span>'
-    +'<span class="cpk-a">'+(total>=50000&&total<=600000?'o 3 cuotas de <b>'+cop(Math.ceil(total/3))+'</b> sin interés con Addi · ':'')+'envío gratis</span></div>'
-    +(kitcTalla
+  const cuenta=(ids,bb)=>ids.reduce((s,id)=>s+precioPieza(id),0)+(bb?precioPieza(bb):0)
+    -gratisDe(ids,bb,precioPieza).reduce((s,x)=>s+x.p,0);
+  /* ¿Agregar el brazalete ahora no sube el total? Entonces ya se lo ganó. */
+  const baseGratis=!B&&c>=3&&cuenta(sel,b)===cuenta(sel,null);
+  const bzGratis=B&&est.gratis.some(x=>x.id===base.id);
+  const foto=id=>'<img src="'+imgDe(id)+'" alt="" width="440" height="440" decoding="async">';
+  const casilla=i=>{
+    const regalo=i===4;
+    if(sel[i]) return '<span class="cpk-c on'+(regalo&&est.nGratis>=2?' free':'')+'">'+foto(sel[i])+(regalo&&est.nGratis>=2?'<i>GRATIS</i>':'')+'</span>';
+    return regalo?'<span class="cpk-c free"><b>GRATIS</b>Charm</span>':'<span class="cpk-c"><b>+</b>Charm</span>';
+  };
+  const casB=B?'<span class="cpk-c on'+(bzGratis?' free':'')+'">'+foto(base.id)+(bzGratis?'<i>GRATIS</i>':'')+'</span>'
+    :'<span class="cpk-c free"><b>GRATIS</b>Brazalete</span>';
+  const pl=(x,s,pp)=>x+' '+(x===1?s:pp), faltan=x=>'Te falta'+(x===1?'':'n')+' <b>'+pl(x,'charm','charms')+'</b>';
+  let m;
+  if(!n) m='Con 3 charms, el <b>brazalete te sale GRATIS</b>.<br>Con 5, <b>otro charm GRATIS</b>.';
+  else if(!B&&c<3) m='Llevas '+c+'. '+faltan(3-c)+'<br>y el <b>brazalete te sale GRATIS</b>';
+  else if(baseGratis) m='¡Ya lo ganaste! Elige la talla de tu brazalete:<br><b>te sale GRATIS</b>';
+  else if(n<4) m='Llevas '+pl(n,'pieza','piezas')+'. '+faltan(4-n)+'<br>y <b>'+(B?'el brazalete':'una')+' te sale GRATIS</b>';
+  else if(n===4) m=(bzGratis?'¡Brazalete GRATIS!':'¡1 pieza GRATIS!')+' Vas en <strong>'+cop(est.total)+'</strong>.<br>Agrega 2 piezas más: <b>pagas 1 y la otra es GRATIS</b>';
+  else if(n===5) m='Vas en <strong>'+cop(est.total)+'</strong>, con 1 pieza GRATIS.<br>Agrega 1 más y <b>también te sale GRATIS</b>';
+  else m='¡Completo! '+n+' piezas por <strong>'+cop(est.total)+'</strong><br><b>'+est.nGratis+' GRATIS · ahorras '+cop(est.ahorro)+'</b>';
+  const listo=B&&c>=3, pideTalla=!B&&c>=3;
+  k.innerHTML='<div class="cpk-tx"><span class="cpk-e">Arma tu kit · hasta 2 piezas GRATIS</span>'
+    +'<b class="cpk-n">Tú eliges los charms, nosotros regalamos</b></div>'
+    +'<div class="cpk-s" aria-hidden="true">'+casilla(0)+casilla(1)+casilla(2)+casB+casilla(3)+casilla(4)+'</div>'
+    +'<p class="cpk-m" aria-live="polite">'+m+'</p>'
+    +(kitcTalla&&!B
       ?'<div class="cpk-t"><p>¿Qué talla es tu brazalete? <small>Tu muñeca + 2 cm</small></p><div class="cpk-tr">'
-        +TALLAS.map(t=>'<button type="button" class="tbtn" data-kitc-talla="'+t+'"'
-          +(libres.indexOf(t)<0?' aria-disabled="true" aria-label="Talla '+t+' centímetros, sin unidades"':' aria-label="Talla '+t+' centímetros"')+'>'+t+'</button>').join('')
-        +'</div><p class="cpk-nota">Va con estos 3 charms; los cambias cuando quieras.</p></div>'
-      :'<button type="button" class="btn btn--pagar cpk-b" data-kitc-armar>'+(armado?'Ir a pagar':'Armar mi kit')+'</button>');
+        +TALLAS.map(x=>'<button type="button" class="tbtn" data-kitc-talla="'+x+'"'
+          +(libres.indexOf(x)<0?' aria-disabled="true" aria-label="Talla '+x+' centímetros, sin unidades"':' aria-label="Talla '+x+' centímetros"')+'>'+x+'</button>').join('')
+        +'</div><p class="cpk-nota">'+(c>=3?'Va con los charms que elegiste.':'Lo completamos con '+pl(3-c,'charm','charms')+'; los cambias cuando quieras.')+'</p></div>'
+      :'<button type="button" class="btn btn--pagar cpk-b'+(listo||pideTalla?'':' cpk-b--sec')+'" data-kitc-armar>'
+        +(listo?'Ir a pagar':pideTalla?'Elegir talla e ir a pagar':'Elegir por mí')+'</button>');
   k.hidden=false;
 }
 document.addEventListener('click',e=>{
   const k=e.target.closest&&e.target.closest('#cp-kit'); if(!k) return;
   const b=k.dataset.base;
+  /* Si ya traía charms elegidos, se respetan: solo se completa hasta tres. */
+  const completar=()=>(kitcCharms(k)||[]).forEach(id=>{ if(sel.length<3&&!sel.includes(id)) sumarCharm(id,true); });
   if(e.target.closest('[data-kitc-armar]')){
-    if(base&&base.id===b&&sel.length>=3){ comprar(); return; }
+    if(base&&sel.length>=3){ comprar(); return; }
+    if(base){ completar(); render(); abrir(true); return; }
     kitcTalla=true; pintarKitCampana(); return;
   }
   const t=e.target.closest('[data-kitc-talla]');
   if(!t||t.getAttribute('aria-disabled')==='true') return;
-  const cs=kitcCharms(k); if(!cs) return;
   const talla=t.dataset.kitcTalla;
   base={id:b,talla:talla};
   track('AddToCart',{content_type:'product',content_ids:[b],
     content_name:PU[b].n+' · talla '+talla,value:PU[b].p,origen:'kit'});
-  /* Si ya traía charms elegidos, se respetan: solo se completa hasta tres. */
-  cs.forEach(id=>{ if(sel.length<3&&!sel.includes(id)) sumarCharm(id,true); });
+  completar();
   kitcTalla=false;
   render();
   abrir(true);

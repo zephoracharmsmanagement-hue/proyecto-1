@@ -229,21 +229,17 @@ def escalones(base, p, ir='#piezas'):
 # talla. El marcado de los dos lados tiene que ser el mismo.
 
 def kit_de_campana(html, base, charms, p):
-    def foto(pid):
-        t = tarjetas(html, [pid])[0]
-        m = re.search(r'<img src="([^"]+)" alt="([^"]*)"', t)
-        return '<img src="%s" alt="%s" width="440" height="440" decoding="async">' % (m.group(1), m.group(2))
-    nombre = re.search(r'alt="([^"]*)"', tarjetas(html, [base])[0]).group(1)
-    addi = ('o 3 cuotas de <b>%s</b> sin interés con Addi · ' % p['cuotaTres']) if 50000 <= p['tresNum'] <= 600000 else ''
+    # Desde la «escalera de regalos» (2026-11-22) la tarjeta llega vacía y no
+    # lleva precios escritos: los pone tienda.js con el carrito de cada quien.
+    charm = '<span class="cpk-c"><b>+</b>Charm</span>'
     return ('  <div class="cp-kit" id="cp-kit" data-base="%s" data-charms="%s">'
-            '<div class="cpk-f">%s</div>'
-            '<div class="cpk-tx"><span class="cpk-e">Kit %s · 4 piezas</span>'
-            '<b class="cpk-n">%s + 3 charms</b>'
-            '<span class="cpk-p"><b>%s</b> <em>una GRATIS · ahorras %s</em></span>'
-            '<span class="cpk-a">%senvío gratis</span></div>'
-            '<button type="button" class="btn btn--pagar cpk-b" data-kitc-armar>Armar mi kit</button></div>\n') % (
-        base, ','.join(charms), foto(base) + ''.join(foto(c) for c in charms[:3]),
-        re.sub(r'^Pulsera ', '', nombre), nombre, p['tres'], p['ahorroTres'], addi)
+            '<div class="cpk-tx"><span class="cpk-e">Arma tu kit · hasta 2 piezas GRATIS</span>'
+            '<b class="cpk-n">Tú eliges los charms, nosotros regalamos</b></div>'
+            '<div class="cpk-s" aria-hidden="true">%s<span class="cpk-c free"><b>GRATIS</b>Brazalete</span>'
+            '%s<span class="cpk-c free"><b>GRATIS</b>Charm</span></div>'
+            '<p class="cpk-m" aria-live="polite">Con 3 charms, el <b>brazalete te sale GRATIS</b>.<br>Con 5, <b>otro charm GRATIS</b>.</p>'
+            '<button type="button" class="btn btn--pagar cpk-b cpk-b--sec" data-kitc-armar>Elegir por mí</button></div>\n') % (
+        base, ','.join(charms), charm * 3, charm)
 
 
 # ── La página ───────────────────────────────────────────────────────────────
