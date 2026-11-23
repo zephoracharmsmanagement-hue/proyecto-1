@@ -1545,13 +1545,12 @@ function render(){
   $('#hoja-dto-caja').hidden=!piezas;
   if(piezas){
     const t=tramoPromo(piezas), faltan=t.fin-piezas;
-    let h='';
-    for(let n=t.ini+1;n<=t.fin;n++){
-      const cls=[n<=piezas?'is-on':'', n===t.fin?'is-free':''].join(' ').trim();
-      h+='<li'+(cls?' class="'+cls+'"':'')+'>'+(n===t.fin?'GRATIS':n)+'</li>';
-    }
-    dto.innerHTML=h;
-    dto.style.setProperty('--n',t.fin-t.ini);
+    /* Desde el 2026-11-22 son las seis casillas de la escalera (antes, una
+       barrita por pieza del tramo): se ve de una vez hasta dónde llega la promo. */
+    dto.innerHTML=escCasillas({gratis:gratisLista},'li');
+    dto.classList.add('hoja-dto--esc');
+    dto.style.setProperty('--n',6);
+    const dt=document.querySelector('#hoja-dto-caja .hoja-dto-t'); if(dt) dt.textContent='Arma tu set · hasta 2 piezas GRATIS';
     dto.classList.toggle('is-max',t.completo);
     dn.classList.toggle('is-max',t.completo);
     dn.hidden=false;
@@ -1586,7 +1585,9 @@ function render(){
   pintarTarjetas();
   pintarLetras();
   estadoVit();
-  pintarKitCampana({piezas:piezas,nGratis:nGratis,total:total,ahorro:desc,gratis:gratisLista});
+  const estPromo={piezas:piezas,nGratis:nGratis,total:total,ahorro:desc,gratis:gratisLista};
+  pintarKitCampana(estPromo);
+  pintarEscaleraPortada(estPromo);
 
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
      estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
@@ -2076,6 +2077,45 @@ document.addEventListener('click',e=>{
  * brazalete o sin tres charms disponibles, no se muestra.
  *
  * `var` y no `let`: render() corre antes de que esta línea se ejecute. */
+/* ── La escalera general (portada y carrito, 2026-11-22) ──
+ * La misma idea del kit de campaña, sin brazalete fijo: seis casillas, la
+ * cuarta y la sexta son las gratis. Las piezas que la promo regala de verdad
+ * (las de menor valor, `est.gratis`) van en esas dos casillas; las demás, en
+ * el orden en que se agregaron. `tag` es 'span' o 'li' (el carrito usa <ol>). */
+function escCasillas(est,tag){
+  const todas=sel.slice(); if(base) todas.push(base.id);
+  const gl=est.gratis.map(x=>x.id), pagas=[], libres=[];
+  todas.forEach(id=>{ const j=gl.indexOf(id); if(j>=0){ gl.splice(j,1); libres.push(id); } else pagas.push(id); });
+  const orden=[pagas[0],pagas[1],pagas[2],libres[0],pagas[3],libres[1]];
+  return orden.map((id,i)=>{
+    const regalo=i===3||i===5;
+    if(id) return '<'+tag+' class="cpk-c on'+(regalo?' free':'')+'"><img src="'+imgDe(id)+'" alt="" width="440" height="440" decoding="async">'+(regalo?'<i>GRATIS</i>':'')+'</'+tag+'>';
+    return regalo?'<'+tag+' class="cpk-c free"><b>GRATIS</b>'+(i===3?'la 4.ª':'la 6.ª')+'</'+tag+'>':'<'+tag+' class="cpk-c"><b>+</b>Pieza</'+tag+'>';
+  }).join('');
+}
+function escMensaje(est){
+  const n=est.piezas, pz=x=>x+(x===1?' pieza':' piezas');
+  if(!n) return 'Con 4 piezas, <b>1 te sale GRATIS</b>.<br>Con 6, <b>2 GRATIS</b>.';
+  if(n<3) return 'Llevas '+pz(n)+'. Te faltan <b>'+pz(4-n)+'</b><br>y <b>una te sale GRATIS</b>';
+  if(n===3) return 'Llevas 3 piezas. Agrega 1 más<br>y <b>te sale GRATIS</b>';
+  if(n===4) return '¡1 pieza GRATIS! Vas en <strong>'+cop(est.total)+'</strong>.<br>Agrega 2 piezas más: <b>pagas 1 y la otra es GRATIS</b>';
+  if(n===5) return 'Vas en <strong>'+cop(est.total)+'</strong>, con 1 pieza GRATIS.<br>Agrega 1 más y <b>también te sale GRATIS</b>';
+  return '¡Completo! '+n+' piezas por <strong>'+cop(est.total)+'</strong><br><b>'+est.nGratis+' GRATIS · ahorras '+cop(est.ahorro)+'</b>';
+}
+/* En la portada reemplaza el párrafo de «Promoción activa» (#promo-esc). */
+var escFirma='';
+function pintarEscaleraPortada(est){
+  const k=document.getElementById('promo-esc'); if(!k) return;
+  const firma=[sel.join(),base?base.id:'',est.total,est.ahorro].join('|');
+  if(firma===escFirma) return; escFirma=firma;
+  k.querySelector('.cpk-s').innerHTML=escCasillas(est,'span');
+  k.querySelector('.cpk-m').innerHTML=escMensaje(est);
+  const b=k.querySelector('.cpk-b'), listo=est.piezas>=4;
+  b.textContent=listo?'Ir a pagar':(est.piezas?'Seguir eligiendo':'Elegir mis piezas');
+  b.classList.toggle('cpk-b--sec',!listo);
+  if(listo) b.setAttribute('data-ir-pagar',''); else b.removeAttribute('data-ir-pagar');
+}
+
 var kitcTalla=false, kitcFirma='', kitcEst=null;
 function kitcCharms(k){
   const l=(k.dataset.charms||'').split(',').filter(id=>CH[id]&&!agotado(id));

@@ -2011,7 +2011,7 @@ body[data-producto] .susc-fab{left:auto;right:14px;bottom:calc(var(--dock) + 78p
 .cpk-m b{color:#17654B;font-weight:600}
 .cpk-m strong{color:var(--plum,#5B2A4E);font-weight:600}
 .cpk-b{width:100%;padding:14px 16px;font-size:14px}
-.cp-kit .cpk-b--sec{background:#fff;color:#96506A;border-color:#96506A;padding:10px 16px}
+.cp-kit .cpk-b--sec,.promo-esc .cpk-b--sec{background:#fff;color:#96506A;border-color:#96506A;padding:10px 16px}
 .cpk-t p{margin:0 0 8px;font-size:14px;font-weight:600;color:var(--ink,#2A1F2E)}
 .cpk-t small{font-weight:400;color:#5d5061;margin-left:4px}
 .cpk-t .cpk-nota{margin:8px 0 0;font-size:12px;font-weight:400;color:#5d5061;text-align:center}
@@ -2025,6 +2025,19 @@ body[data-producto] .susc-fab{left:auto;right:14px;bottom:calc(var(--dock) + 78p
   .cpk-c.free b{font-size:12px}
   .cpk-c i{font-size:10px;line-height:17px}
   .cpk-m{font-size:14.5px}
+}
+
+/* La escalera general: en la portada (#promo-esc) y en el carrito (.hoja-dto--esc). */
+#promo .promo-esc{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;max-width:520px;padding:16px;background:#fff}
+.promo-esc .promo-caja-t{margin-bottom:0!important;text-align:center}
+.promo-esc .promo-caja-x{text-align:center;font-size:12.5px;line-height:1.4}
+.promo-esc .cpk-b{text-align:center;text-decoration:none;display:block}
+.hoja-dto--esc{gap:5px}
+.hoja-dto--esc li.cpk-c{font-size:10px;line-height:1.1;white-space:normal;letter-spacing:0}
+.hoja-dto--esc li.cpk-c::before{content:none}
+.hoja-dto--esc li.cpk-c:not(.free){color:#6d6070}
+@media(min-width:760px){
+  .promo-esc .cpk-c{font-size:12px}
 }
 
 /* ── Barra: el paso al pago (2026-11-22) ──

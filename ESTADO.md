@@ -35,6 +35,12 @@ ficha se abría y se cerraba sin usar «Agregar a mi pulsera».
 - `#tot-ahorro` y el cambio de sitio del botón de la ficha los hace `retoquesDePago()` en tienda.js,
   una vez, para no regenerar las ~190 páginas que copian el andamiaje de la portada. Si algún día se
   regenera todo, se pueden pasar al HTML de index.html y quitar de ahí.
+- **Escalera general en la portada y en el carrito (2026-11-22, pedido del propietario tras ver la
+  de Marvel):** en `index.html`, `#promo-esc` reemplaza el párrafo de «Promoción activa»; en el
+  carrito (toda la tienda), las seis casillas reemplazan las barritas de `#hoja-dto`. Sin brazalete
+  fijo: las piezas que la promo regala de verdad (`gratisLista`) van en la cuarta y la sexta
+  casilla (`escCasillas()` en tienda.js). Las páginas de producto y kits.html conservan la caja de
+  texto de la promo.
 - En la barra, el aviso de «una más» pasó a «N piezas · ¡1 más GRATIS!»: con «Tienes» delante se
   cortaba a 375 px.
 - Pendiente de decisión del propietario: en celular el ícono de WhatsApp queda sobre el «Agregar»
