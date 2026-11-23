@@ -120,13 +120,17 @@ export default async (req) => {
   try {
     /* `pago` aquí es solo para que leerPedido no se queje: el medio real va
        aparte. calcular() no se usa: el total es lo que de verdad se cobró. */
-    pedido = leerPedido({ charms: cuerpo.charms, base: cuerpo.base, pago: 'anticipado' });
+    pedido = leerPedido({ charms: cuerpo.charms, base: cuerpo.base, bases: cuerpo.bases, pago: 'anticipado' });
   } catch (e) {
     if (e instanceof PedidoInvalido) return responder(400, { error: e.message });
     throw e;
   }
-  const itemBase = pedido.base && INV && INV.items && INV.items[pedido.base.id];
-  if (itemBase && itemBase.tallas && !pedido.base.talla) {
+  /* Cada brazalete con su talla: `bases` puede traer varios (2026-11-23). */
+  const sinTalla = pedido.bases.some(b => {
+    const it = INV && INV.items && INV.items[b.id];
+    return it && it.tallas && !b.talla;
+  });
+  if (sinTalla) {
     return responder(400, { error: 'El brazalete necesita la talla vendida (17 a 21)' });
   }
 

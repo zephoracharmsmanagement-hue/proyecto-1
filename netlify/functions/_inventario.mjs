@@ -75,7 +75,7 @@
  * en vez de degradarse en silencio en producción, que es justo el cambio que
  * hacía falta. */
 import { getStore } from '@netlify/blobs';
-import { SinInventario, nombres, inventario as INV } from './_precios.js';
+import { SinInventario, nombres, inventario as INV, brazaletesDe } from './_precios.js';
 
 /* En producción, el almacén de verdad —el nombre no cambia, para no perder la
    cuenta que ya lleva—. En cualquier otro contexto (deploy preview, branch
@@ -147,10 +147,11 @@ function existencias(s) {
 /* Qué consume un pedido, en unidades por sku. */
 function itemsDe(pedido) {
   const piden = {};
-  if (pedido.base) {
-    const s = sku(pedido.base.id, pedido.base.talla);
+  /* Cada brazalete, por su talla; dos iguales son dos unidades del mismo sku. */
+  brazaletesDe(pedido).forEach(b => {
+    const s = sku(b.id, b.talla);
     piden[s] = (piden[s] || 0) + 1;
-  }
+  });
   pedido.charms.forEach(id => { piden[id] = (piden[id] || 0) + 1; });
   return piden;
 }

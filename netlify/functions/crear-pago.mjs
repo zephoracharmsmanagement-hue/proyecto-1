@@ -27,7 +27,7 @@
  */
 import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario, fotos } from './_precios.js';
+  PedidoInvalido, SinInventario, fotos, brazaletesDe } from './_precios.js';
 import { reservar, confirmar, liberar } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
@@ -220,7 +220,7 @@ function agenteCliente(headers) {
    cuenta productos, no unidades de inventario. */
 function contenidosDe(pedido) {
   const cuenta = {};
-  if (pedido.base) cuenta[pedido.base.id] = (cuenta[pedido.base.id] || 0) + 1;
+  brazaletesDe(pedido).forEach(b => { cuenta[b.id] = (cuenta[b.id] || 0) + 1; });
   pedido.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
   return Object.entries(cuenta).map(([id, quantity]) => ({ id, quantity }));
 }
@@ -346,7 +346,7 @@ export default async (req) => {
     referencia: ref,
     total: cuentas.total,
     pago: medio || pedido.pago,
-    piezas: pedido.charms.length + (pedido.base ? 1 : 0),
+    piezas: pedido.charms.length + brazaletesDe(pedido).length,
     ciudad: `${cliente.ciudad}, ${cliente.depto}`,
     /* Queda escrito si las unidades se apartaron de verdad o si la reserva se
        saltó por lo que fuera. Al conciliar un sobreventa, esto es lo primero

@@ -24,6 +24,8 @@
  *   p=id*3               tres unidades
  *   p=id@19              brazalete de la talla 19
  *   p=a@19,b*2,c         todo junto, separado por comas
+ *   p=a@19,a@19,d@18     varios brazaletes: uno por trozo; dos iguales, dos
+ *                        veces (un trozo lleva *cantidad o @talla, no las dos)
  *   pago=contraentrega   forma de pago
  *
  * Lo que está en su valor por defecto no se escribe: una URL que viaja en un
@@ -33,16 +35,16 @@
  * enlaces enviados antes lo siguen trayendo; el checkout los lee y lo descarta.
  */
 
-/* De carrito a parámetros. El carrito es `{base, charms, pago}`, la
-   misma forma que guardan las páginas en localStorage y que acepta
-   `leerPedido()` en _precios.js. */
+/* De carrito a parámetros. El carrito es `{bases, charms, pago}` —o
+   `{base, …}`, con un solo brazalete, la forma de antes—: la misma que
+   guardan las páginas en localStorage y que acepta `leerPedido()` en
+   _precios.js. */
 export function comoUrl(carrito) {
   const cuenta = {};
   carrito.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
   const trozos = [];
-  if (carrito.base) {
-    trozos.push(carrito.base.talla ? `${carrito.base.id}@${carrito.base.talla}` : carrito.base.id);
-  }
+  const bases = Array.isArray(carrito.bases) ? carrito.bases : (carrito.base ? [carrito.base] : []);
+  bases.forEach(b => trozos.push(b.talla ? `${b.id}@${b.talla}` : b.id));
   Object.entries(cuenta).forEach(([id, n]) => trozos.push(n > 1 ? `${id}*${n}` : id));
   const q = new URLSearchParams();
   q.set('p', trozos.join(','));

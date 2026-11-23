@@ -647,14 +647,17 @@ function leerCarrito(){
   if(!d||d.v!==1) return null;
   if(!d.cuando||Date.now()-d.cuando>7*24*3600*1000) return null;
   const charms=Array.isArray(d.charms)?d.charms.filter(id=>CAT.precios[id]):[];
-  const base=(d.base&&d.base.id&&CAT.precios[d.base.id])
-    ? {id:d.base.id,talla:d.base.talla||null} : null;
-  if(!base&&!charms.length) return null;
+  /* Varios brazaletes (2026-11-23): `bases` es la lista; un carrito guardado
+     antes trae solo `base`, con uno. */
+  const bases=(Array.isArray(d.bases)?d.bases:(d.base?[d.base]:[]))
+    .filter(b=>b&&b.id&&CAT.precios[b.id]&&(CAT.pulseras||[]).indexOf(b.id)!==-1)
+    .slice(0,MAX_BRAZALETES).map(b=>({id:b.id,talla:b.talla||null}));
+  if(!bases.length&&!charms.length) return null;
   /* empaque siempre false: el Empaque Premium se retiró el 2026-09-13 y hay
      carritos guardados hasta una semana antes que todavía lo traen puesto. Sin
      interfaz que lo muestre ni casilla que lo quite, heredarlo sería cobrar
      $40.000 que la clienta no puede ver. Se pisa aquí, en la puerta. */
-  return {base:base,charms:charms,empaque:false,
+  return {base:bases[0]||null,bases:bases,charms:charms,empaque:false,
     pago:['contraentrega','addi','sistecredito'].includes(d.pago)?d.pago:'anticipado'};
 }
 /* ——— el carrito puede llegar en el enlace ———
@@ -683,7 +686,7 @@ function carritoDeUrl(){
   var p=q.get('p');
   if(!p) return null;
   var pulseras=Array.isArray(CAT.pulseras)?CAT.pulseras:[];
-  var base=null, charms=[];
+  var bases=[], charms=[];
   p.split(',').forEach(function(trozo){
     var t=trozo.trim(); if(!t) return;
     var m=t.match(/^([a-z0-9-]+)(?:([*@])([0-9]{1,2}))?$/);
@@ -693,18 +696,18 @@ function carritoDeUrl(){
        una pieza retirada, y eso no debe dejar a nadie sin checkout. */
     if(!CAT.precios[id]) return;
     if(pulseras.indexOf(id)!==-1){
-      if(base) return;               /* un solo brazalete por pedido; gana el primero */
-      base={id:id,talla:(op==='@'&&/^(17|18|19|20|21)$/.test(valor))?valor:null};
+      /* cada trozo es un brazalete; dos iguales, dos trozos (2026-11-23) */
+      if(bases.length<MAX_BRAZALETES) bases.push({id:id,talla:(op==='@'&&/^(17|18|19|20|21)$/.test(valor))?valor:null});
       return;
     }
     if(op==='@') return;             /* una talla en un charm es un enlace mal armado */
     var n=op==='*'?(parseInt(valor,10)||1):1;
     for(var i=0;i<n&&charms.length<60;i++) charms.push(id);
   });
-  if(!base&&!charms.length) return null;
+  if(!bases.length&&!charms.length) return null;
   /* Igual que arriba: el «e=1» de los correos de recuperación ya enviados se
      lee y se descarta. */
-  return {base:base,charms:charms,empaque:false,
+  return {base:bases[0]||null,bases:bases,charms:charms,empaque:false,
     pago:['contraentrega','addi','sistecredito'].includes(q.get('pago'))?q.get('pago'):'anticipado'};
 }
 
@@ -721,7 +724,7 @@ function limpiarUrl(){
 
 function guardarCarrito(){
   try{
-    localStorage.setItem(LLAVE,JSON.stringify({v:1,base:carrito.base,charms:carrito.charms,
+    localStorage.setItem(LLAVE,JSON.stringify({v:1,base:basesDe(carrito)[0]||null,bases:basesDe(carrito),charms:carrito.charms,
       empaque:false,pago:carrito.pago,cuando:Date.now()}));
   }catch(_){}
 }
@@ -734,10 +737,15 @@ function guardarCarrito(){
    Mismo desempate que piezasGratis() de _precios.js (a igual
    precio, los charms antes que el brazalete), para que la línea tachada aquí
    sea la misma que dice el correo. */
+/* Los brazaletes del carrito, siempre como lista (ver leerCarrito). */
+const MAX_BRAZALETES=10;
+const basesDe=c=>(!c?[]:Array.isArray(c.bases)?c.bases:(c.base?[c.base]:[]));
+const nPiezasDe=c=>c.charms.length+basesDe(c).length;
 function gratisDe(c){
   const P=CAT.reglas.promo;
   const piezas=c.charms.map(id=>({id:id,p:CAT.precios[id]}));
-  if(c.base) piezas.push({id:c.base.id,p:CAT.precios[c.base.id]});
+  /* Después de todos los charms y en su orden, como en _precios.js. */
+  basesDe(c).forEach(b=>piezas.push({id:b.id,p:CAT.precios[b.id],talla:b.talla||null,b:true}));
   const n=P.tramos.reduce((g,t)=>piezas.length>=t[0]?t[1]:g,0);
   return piezas.map((x,i)=>[x,i]).sort((a,b)=>a[0].p-b[0].p||a[1]-b[1]).slice(0,n).map(x=>x[0]);
 }
@@ -748,7 +756,7 @@ let DESC_SUSC=0, DESC_MIN=2, DESC_CORREO='';
 function calcular(c){
   const R=CAT.reglas;
   const brutoC=c.charms.reduce((s,id)=>s+CAT.precios[id],0);
-  const brutoB=c.base?CAT.precios[c.base.id]:0;
+  const brutoB=basesDe(c).reduce((s,b)=>s+CAT.precios[b.id],0);
   const libres=gratisDe(c);
   const desc=libres.reduce((s,x)=>s+x.p,0);
   const subtotal=brutoC+brutoB-desc;
@@ -758,7 +766,7 @@ function calcular(c){
   /* Addi y Sistecrédito son pago por adelantado: mismo envío que «Pagar ahora». */
   const pe=c.pago==='contraentrega'?'contraentrega':'anticipado';
   /* Desde `contraentregaGratisDesde` piezas (2), la contraentrega tampoco. */
-  const nPiezas=c.charms.length+(c.base?1:0);
+  const nPiezas=nPiezasDe(c);
   const contraLibre=R.contraentregaGratisDesde>0&&nPiezas>=R.contraentregaGratisDesde;
   const gratis=alcanza&&(!R.envioGratisSoloAnticipado||pe==='anticipado'||contraLibre);
   const envio=(subtotal<=0||gratis)?0:R.envio[pe];
@@ -771,11 +779,19 @@ function calcular(c){
 
 function lineas(c){
   const out=[], libres={};
-  gratisDe(c).forEach(x=>libres[x.id]=(libres[x.id]||0)+1);
-  if(c.base) out.push({id:c.base.id,
-    n:CAT.nombres[c.base.id].replace(/^Pulsera /,'Brazalete '),
-    m:'Baño de plata'+(c.base.talla?' · Talla '+c.base.talla+' cm':''),
-    p:CAT.precios[c.base.id], gratis:!!libres[c.base.id]});
+  const kB=b=>b.id+'|'+(b.talla||'');
+  gratisDe(c).forEach(x=>{ const k=x.b?kB(x):x.id; libres[k]=(libres[k]||0)+1; });
+  /* Un brazalete por modelo y talla; dos iguales, «×2». Las unidades gratis,
+     en su propia línea, igual que los charms de abajo. */
+  const grupos=[];
+  basesDe(c).forEach(b=>{ let g=grupos.find(x=>x.k===kB(b));
+    if(!g){ g={k:kB(b),id:b.id,talla:b.talla,n:0}; grupos.push(g); } g.n++; });
+  grupos.forEach(g=>{
+    const gr=libres[g.k]||0, pagas=g.n-gr;
+    const n=CAT.nombres[g.id].replace(/^Pulsera /,'Brazalete '), m='Baño de plata'+(g.talla?' · Talla '+g.talla+' cm':'');
+    if(pagas) out.push({id:g.id,n:n+(pagas>1?' ×'+pagas:''),m:m,p:CAT.precios[g.id]*pagas,gratis:false});
+    if(gr) out.push({id:g.id,n:n+(gr>1?' ×'+gr:''),m:m,p:CAT.precios[g.id]*gr,gratis:true});
+  });
   const cuenta={};
   c.charms.forEach(id=>cuenta[id]=(cuenta[id]||0)+1);
   /* Las unidades gratis, en su propia línea con el precio tachado. */
@@ -824,7 +840,7 @@ function pintarResumen(){
      escribe el correo, el recordatorio. A quien no está suscrita no se le
      promete nada. Quien decide de verdad es crear-pago. */
   let suscrita=false; try{ suscrita=!!localStorage.getItem('zephora.suscrita'); }catch(e){}
-  const nP=c.charms.length+(c.base?1:0);
+  const nP=nPiezasDe(c);
   if(DESC_SUSC>0&&nP<DESC_MIN) h+='<p class="susc-ck">🎁 Agrega '+(DESC_MIN-nP)+' pieza más y se descuentan '+cop(DESC_SUSC)+' por estar suscrita.</p>';
   else if(!DESC_CORREO&&suscrita) h+='<p class="susc-ck">🎁 Escribe el correo con el que te suscribiste y se descuentan $15.000 de tu primera compra.</p>';
   $('#res-totales').innerHTML=h;
@@ -980,7 +996,7 @@ function pintarPagoElegido(t){
  * por la cuarta. */
 function pintarDescuento(c,t){
   const caja=$('#dto'), P=CAT.reglas.promo;
-  const piezas=c.charms.length+(c.base?1:0);
+  const piezas=nPiezasDe(c);
   /* En el pago ya no se invita a sumar piezas («¡Agrega 2 más y una te sale
      GRATIS!»): eso saca a la clienta del checkout justo antes de pagar. Ese
      aviso se queda en el carrito. Aquí la caja solo aparece para celebrar lo
@@ -1192,7 +1208,7 @@ async function confirmar(){
     return;
   }
   track('AddPaymentInfo',{value:calcular(carrito).total,
-    num_items:carrito.charms.length+(carrito.base?1:0)});
+    num_items:nPiezasDe(carrito)});
 
   enviando=true;
   const btn=$('#confirmar');
@@ -1202,7 +1218,7 @@ async function confirmar(){
   error(null);
 
   const cuerpo={
-    base:carrito.base, charms:carrito.charms,
+    base:basesDe(carrito)[0]||null, bases:basesDe(carrito), charms:carrito.charms,
     pago:carrito.pago, cliente:datos(),
     fbp:cookie('_fbp'), fbc:cookie('_fbc'),
     via:viaWa()?'wa':''
@@ -1257,7 +1273,7 @@ async function confirmar(){
       /* Contraentrega no pasa por Wompi y por tanto no hay webhook, así que su
          Purchase de servidor lo manda crear-pago al registrar el pedido. Este
          y aquel se deduplican por la referencia, igual que en el flujo Wompi. */
-      track('Purchase',{value:d.total,num_items:carrito.charms.length+(carrito.base?1:0),
+      track('Purchase',{value:d.total,num_items:nPiezasDe(carrito),
         content_name:'Contraentrega'},d.referencia);
       try{ localStorage.removeItem(LLAVE); }catch(_){}
       location.href='gracias.html?ref='+encodeURIComponent(d.referencia)+'&modo=contraentrega';
@@ -1528,7 +1544,7 @@ Promise.all([
   /* El único InitiateCheckout del sitio (tienda.js dejó de mandarlo al tocar
      pagar: contaba doble). Lleva los ids de catalogo.json de todo el carrito,
      con cantidades, para que Meta sepa QUÉ piezas llegaron al checkout. */
-  const ids=(carrito.base?[carrito.base.id]:[]).concat(carrito.charms);
+  const ids=basesDe(carrito).map(b=>b.id).concat(carrito.charms);
   const cuenta={}; ids.forEach(i=>{ cuenta[i]=(cuenta[i]||0)+1; });
   /* Uno por carrito y por sesión, no uno por cada vez que carga la página
      (2026-11-20): recargar, volver de la pasarela o de «Intentar de nuevo»

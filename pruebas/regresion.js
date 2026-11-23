@@ -534,7 +534,8 @@ const U = BASE + '/index.html';
         wa: (() => { const w = document.querySelectorAll('.cp-wa-float'); if (w.length !== 1) return 'hay ' + w.length;
           const a = w[0].getBoundingClientRect(), d = document.getElementById('dock').getBoundingClientRect(), g = document.querySelector('.susc-fab');
           if (w[0].dataset.waEvento !== 'Contact' || !/^https:\/\/wa\.me\/573018990672\?text=/.test(w[0].href)) return 'enlace o evento mal';
-          if (a.width !== 52 || a.left < innerWidth / 2 || a.right > innerWidth || a.bottom > d.top) return 'mal puesto';
+          /* En celular es una pestaña de 30 px en el borde (2026-11-22); en computador, el círculo de 52. */
+          if (a.width !== (innerWidth < 760 ? 30 : 52) || a.left < innerWidth / 2 || a.right > innerWidth || a.bottom > d.top) return 'mal puesto';
           if (g && !g.hidden) { const c = g.getBoundingClientRect(); if (!(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top)) return 'encima del regalo'; }
           return 'ok'; })(),
         contacto: (document.querySelector('#menu-panel .menu-contacto') || {}).textContent || '',

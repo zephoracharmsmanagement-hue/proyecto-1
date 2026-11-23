@@ -5,6 +5,50 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Varios brazaletes por pedido — rama `claude/varios-brazaletes`, en vista previa: NO desplegado
+
+Pedido del propietario (2026-11-23). Una clienta quiso dos Mano de Hamsa talla 18 y hubo que
+cerrarle la venta por WhatsApp: el carrito guardaba **un solo brazalete** (`base`) y cada talla
+nueva reemplazaba a la anterior.
+
+- **La forma del pedido.** Ahora lleva `bases`, una lista de `{id, talla}` en el orden en que se
+  eligieron; dos iguales van dos veces. `base` —el primero, o `null`— **se sigue escribiendo y
+  aceptando**: lo mandan el formulario de ventas manuales de n8n, el bot (`armar_carrito`) y los
+  carritos guardados en el navegador de antes. Si llegan los dos campos, manda `bases`. Tope: 10
+  (`MAX_BRAZALETES`, cortafuegos como `MAX_CHARMS`).
+- **Regla para quien toque el servidor:** un pedido se recorre con `brazaletesDe(pedido)`
+  (`_precios.js`), **nunca con `pedido.base`**. Leer solo el primero es cobrar, apartar o despachar
+  un brazalete de menos sin que nada dé error.
+- **Cobro (`_precios.js`).** `calcular()` suma todos; para la promo, los brazaletes van después de
+  los charms y en su orden (a igual precio sale gratis un charm antes que un brazalete, y entre dos
+  brazaletes iguales, el primero). `detallar()` da **una línea por modelo y talla**; dos iguales
+  son una línea con `unidades: 2` y el precio de las dos, porque la hoja de inventario casa filas
+  por referencia + id + talla y dos líneas iguales se pisarían. Los pedidos ya guardados no
+  cambian: se guardan por `lineas`, no por `base`.
+- **Inventario.** `comprobarInventario()` ahora compara cuántos se piden de cada talla con cuántos
+  quedan (antes solo miraba que la talla tuviera alguno, que con un brazalete bastaba).
+  `_inventario.itemsDe()` aparta cada talla; `reanudar` reconstruye todos los brazaletes desde las
+  líneas (antes se quedaba con el primero) y recorta a lo que queda.
+- **Enlaces (`_carrito.mjs`, tienda.js, checkout.html).** Un trozo por brazalete; dos iguales, dos
+  trozos: `p=a@18,a@18,b@19,charm*2`. La expresión regular no cambió. Antes «ganaba el primero».
+- **En la tienda.** Cada talla es un interruptor: tocarla agrega ese brazalete y volver a tocarla
+  lo quita; **ya no reemplaza** al que hubiera (cambiar de talla son dos toques: la nueva y
+  desmarcar la vieja). «Elegido ✓» ya no quita el brazalete: abre las tallas. La tarjeta dice
+  «Elegido ✓ · 17 y 19» o «· 18 ×2». En el carrito va un renglón por brazalete, la ✕ quita uno, y
+  «+ Llevar otro igual» suma otro de la misma talla mientras queden unidades. Al cargar el
+  inventario se recorta lo que pase de las existencias de una talla.
+- **Página de pago.** Tiene sus propias copias de `gratisDe`/`calcular`/`lineas`; las tres
+  entienden la lista. Manda `bases` y `base` a `crear-pago`.
+- **Ventas manuales y ajustes** (`registrar-venta`, `ajustar-inventario`): aceptan `bases` además
+  de `base`; cada brazalete pide su talla.
+- **Lo que no se tocó:** el kit de la página Marvel sigue teniendo una sola casilla de brazalete
+  (con dos, cuenta las piezas bien pero dibuja el primero); `pedido-envio` usa la misma caja
+  aunque vayan varios; y la documentación de automatizaciones (`API-REANUDAR.md`, el esquema del
+  bot, el formulario de n8n) sigue describiendo un solo `base` —funciona, pero la Sesión 3 debe
+  actualizarla y decidir si el bot ofrece varios—.
+- **Pruebas:** `pruebas/varios-brazaletes.js` (servidor, tienda, enlace y pago) y la sección 4c de
+  `pruebas/checkout.js` (tres brazaletes de punta a punta).
+
 ## Kit arriba y paso al pago en la página Marvel — rama `claude/marvel-kit-y-pago`, en vista previa: NO desplegado
 
 Pedido del propietario (2026-11-22), tras ver la maqueta. Sale de Clarity sobre `campana-marvel.html`
@@ -41,10 +85,21 @@ ficha se abría y se cerraba sin usar «Agregar a mi pulsera».
   fijo: las piezas que la promo regala de verdad (`gratisLista`) van en la cuarta y la sexta
   casilla (`escCasillas()` en tienda.js). Las páginas de producto y kits.html conservan la caja de
   texto de la promo.
+- **Escalera compacta en producto, colecciones e «Inicial y signo» (2026-11-22, rama
+  `claude/pestanas-y-producto`, en vista previa: NO desplegado):** en la página de una pieza la
+  caja de texto de la promo pasa a ser la escalera con ESTA pieza a medio tono
+  (`pintarEscaleraProducto()`, se arma en el navegador: las páginas de producto no se
+  regeneraron). En las tres colecciones y en campana-inicial-signo.html va la compacta sin pieza
+  (`ESC_COMPACTA` en gen_colecciones.py + `pintarEscalerasSimples()`). Kits y checkout, sin
+  escalera a propósito.
+- **Fotos rotas en las escaleras (corregido en la misma rama):** se pintaban antes de que llegara
+  catalogo.json y no se repintaban; en producción se veía en campana-marvel.html al llegar con
+  charms de otra colección en el carrito. Las firmas de repintado ahora incluyen `!!CAT`.
+- **Regalo y WhatsApp como pestañas (misma rama):** en celular (<760 px) son dos pestañas de 30 px
+  pegadas al borde derecho, sobre la barra, regalo encima de WhatsApp; ya no tapan los «Agregar».
+  En computador siguen redondos. Resuelve el pendiente del ícono de WhatsApp.
 - En la barra, el aviso de «una más» pasó a «N piezas · ¡1 más GRATIS!»: con «Tienes» delante se
   cortaba a 375 px.
-- Pendiente de decisión del propietario: en celular el ícono de WhatsApp queda sobre el «Agregar»
-  de alguna tarjeta de la lista (se ve en su captura del 22-nov).
 
 ## Black Friday 2026 — precios y oferta — desplegado el 2026-11-21 (PR #59)
 

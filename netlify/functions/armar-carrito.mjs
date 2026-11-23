@@ -151,7 +151,7 @@ export default async (req) => {
   console.log(JSON.stringify({
     evento: 'armar_carrito',
     total: cuentas.total,
-    piezas: pedido.charms.length + (pedido.base ? 1 : 0),
+    piezas: pedido.charms.length + pedido.bases.length,
     disponibilidad: faltan === null ? 'sin-lectura' : 'real',
     lineas: lineas.map(l => ({ id: l.id, talla: l.talla, unidades: l.unidades })),
   }));
@@ -167,7 +167,7 @@ export default async (req) => {
     descuento: cuentas.descuento,
     envio: cuentas.envio,
     envioGratis: cuentas.envioGratis,
-    piezas: pedido.charms.length + (pedido.base ? 1 : 0),
+    piezas: pedido.charms.length + pedido.bases.length,
     /* Con nombre legible: el bot tiene que poder repetirle a la clienta qué
        lleva el pedido sin traducir identificadores por su cuenta. */
     lineas: lineas.map(l => ({
