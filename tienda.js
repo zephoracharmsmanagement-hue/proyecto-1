@@ -1493,6 +1493,13 @@ function render(){
   $('#v-save').textContent='− '+cop(ahorro);
   $('#v-tot').textContent=cop(total);
   pintarCuotasAddi(total);
+  /* Lo que se ahorra por la promo, pegado al total: el total solo asustaba
+     (2026-11-22). Solo la pieza gratis; el descuento de temporada ya se ve
+     tachado en cada pieza. */
+  retoquesDePago();
+  const ta=document.getElementById('tot-ahorro');
+  if(ta){ ta.hidden=ahorro<=0;
+    if(ahorro>0) ta.innerHTML='Te ahorras <b>'+cop(ahorro)+'</b> · '+nGratis+(nGratis===1?' pieza gratis':' piezas gratis'); }
 
   const ship=$('#v-ship'), nota=$('#ship-note'), barra=$('#ship-bar');
   /* La barra de progreso solo tiene sentido mientras haya un umbral que
@@ -1579,6 +1586,7 @@ function render(){
   pintarTarjetas();
   pintarLetras();
   estadoVit();
+  pintarKitCampana();
 
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
      estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
@@ -1587,8 +1595,10 @@ function render(){
   /* La promo manda sobre el envío en la barra fija: el envío gratis ya se dice
      en el banner y en la hoja, y «1 más y es GRATIS» es lo que hace sumar una. */
   const unaMas=piezas&&tramoPromo(piezas).fin-piezas===1&&!tramoPromo(piezas).completo;
+  /* «Tienes N piezas» + «Ir a pagar» (2026-11-22): con «N piezas» y «Comprar»
+     se agregaba ~150 veces y se tocaba «Comprar» 2. */
   $('#dock-n').textContent = piezas
-    ? piezas+(piezas===1?' pieza':' piezas')
+    ? 'Tienes '+piezas+(piezas===1?' pieza':' piezas')
       +(unaMas?' · ¡1 más y es GRATIS!'
         :nGratis?' · '+nGratis+' GRATIS'
         :libre?' · envío gratis'
@@ -1606,7 +1616,10 @@ function render(){
   /* Con la selección vacía el botón no puede decir «Comprar»: en Clarity las
      clientas lo tocaban con $0 y en kits.html no hacía nada (2026-11-20). Dice
      qué hacer y lleva ahí (ver destinoVacio). */
-  $('#dock-send').textContent=ppVacio?(PU[pp]||ANI[pp]?'Elegir talla':'Agregar'):(piezas?'Comprar':'Elige tu primera pieza');
+  $('#dock-send').textContent=ppVacio?(PU[pp]||ANI[pp]?'Elegir talla':'Agregar'):(piezas?'Ir a pagar':'Elige tu primera pieza');
+  /* El rótulo de «Ver detalle» pasa a «Ver pedido» y queda como enlace junto
+     al total (tienda.css, «Barra: el paso al pago»). */
+  const dv=$('#dock-open'); if(dv&&dv.firstChild&&dv.firstChild.nodeType===3) dv.firstChild.textContent='Ver pedido ';
   document.body.classList.toggle('sel-vacia',!piezas);
 
   const dbar=$('#dock-bar');
@@ -2033,7 +2046,7 @@ document.addEventListener('click',e=>{
     :t.closest('.vit, .vit-it, .sug, .sug-c')?'vitrina'
     :t.closest('#dock')?'barra'
     :t.closest('.pc--pp, .pp-compra')?'pagina-pieza'
-    :t.closest('.kp, [data-kit]')?'kit'
+    :t.closest('.kp, [data-kit], #cp-kit')?'kit'
     :t.closest('.pc')?'grilla'
     :'otro';
 },true);
@@ -2050,6 +2063,87 @@ document.addEventListener('click',e=>{
   if(!e.target.closest||!e.target.closest('[data-ir-pagar]')) return;
   e.preventDefault(); comprar();
 });
+
+/* ── El kit de la campaña, en el primer pantallazo (2026-11-22) ──
+ *
+ * Clarity, 291 visitas a campana-marvel.html: el 37 % se iba después de los
+ * destacados y solo el 42 % llegaba al combo (#combo), que es donde está la
+ * promo. La tarjeta #cp-kit sube la oferta arriba: brazalete + 3 charms, una
+ * gratis, el total y un botón que lo arma. La escribe gen_colecciones.py con
+ * los precios del último despliegue y aquí se repinta con los de hoy y con las
+ * existencias en vivo: los tres primeros charms de data-charms que haya. Sin
+ * brazalete o sin tres charms disponibles, no se muestra.
+ *
+ * `var` y no `let`: render() corre antes de que esta línea se ejecute. */
+var kitcTalla=false, kitcFirma='';
+function kitcCharms(k){
+  const l=(k.dataset.charms||'').split(',').filter(id=>CH[id]&&!agotado(id));
+  return l.length>=3?l.slice(0,3):null;
+}
+function pintarKitCampana(){
+  const k=document.getElementById('cp-kit'); if(!k) return;
+  const b=k.dataset.base, cs=PU[b]&&!agotado(b)?kitcCharms(k):null;
+  if(!cs){ k.hidden=true; kitcFirma=''; return; }
+  const ahorro=gratisDe(cs,b,precioPieza).reduce((s,x)=>s+x.p,0);
+  const total=PU[b].p+cs.reduce((s,id)=>s+CH[id].p,0)-ahorro;
+  const libres=tallasLibres(b)||TALLAS;
+  const armado=!!(base&&base.id===b&&sel.length>=3);
+  const firma=[cs.join(),total,ahorro,kitcTalla,libres.join(),armado].join('|');
+  if(firma===kitcFirma&&!k.hidden) return;
+  kitcFirma=firma;
+  const foto=id=>'<img src="'+imgDe(id)+'" alt="'+(PU[id]||CH[id]).n+'" width="440" height="440" decoding="async">';
+  k.innerHTML='<div class="cpk-f">'+foto(b)+cs.map(foto).join('')+'</div>'
+    +'<div class="cpk-tx"><span class="cpk-e">Kit '+PU[b].n.replace(/^Pulsera /,'')+' · 4 piezas</span>'
+    +'<b class="cpk-n">'+PU[b].n+' + 3 charms</b>'
+    +'<span class="cpk-p"><b>'+cop(total)+'</b> <em>una GRATIS · ahorras '+cop(ahorro)+'</em></span>'
+    +'<span class="cpk-a">'+(total>=50000&&total<=600000?'o 3 cuotas de <b>'+cop(Math.ceil(total/3))+'</b> sin interés con Addi · ':'')+'envío gratis</span></div>'
+    +(kitcTalla
+      ?'<div class="cpk-t"><p>¿Qué talla es tu brazalete? <small>Tu muñeca + 2 cm</small></p><div class="cpk-tr">'
+        +TALLAS.map(t=>'<button type="button" class="tbtn" data-kitc-talla="'+t+'"'
+          +(libres.indexOf(t)<0?' aria-disabled="true" aria-label="Talla '+t+' centímetros, sin unidades"':' aria-label="Talla '+t+' centímetros"')+'>'+t+'</button>').join('')
+        +'</div><p class="cpk-nota">Va con estos 3 charms; los cambias cuando quieras.</p></div>'
+      :'<button type="button" class="btn btn--pagar cpk-b" data-kitc-armar>'+(armado?'Ir a pagar':'Armar mi kit')+'</button>');
+  k.hidden=false;
+}
+document.addEventListener('click',e=>{
+  const k=e.target.closest&&e.target.closest('#cp-kit'); if(!k) return;
+  const b=k.dataset.base;
+  if(e.target.closest('[data-kitc-armar]')){
+    if(base&&base.id===b&&sel.length>=3){ comprar(); return; }
+    kitcTalla=true; pintarKitCampana(); return;
+  }
+  const t=e.target.closest('[data-kitc-talla]');
+  if(!t||t.getAttribute('aria-disabled')==='true') return;
+  const cs=kitcCharms(k); if(!cs) return;
+  const talla=t.dataset.kitcTalla;
+  base={id:b,talla:talla};
+  track('AddToCart',{content_type:'product',content_ids:[b],
+    content_name:PU[b].n+' · talla '+talla,value:PU[b].p,origen:'kit'});
+  /* Si ya traía charms elegidos, se respetan: solo se completa hasta tres. */
+  cs.forEach(id=>{ if(sel.length<3&&!sel.includes(id)) sumarCharm(id,true); });
+  kitcTalla=false;
+  render();
+  abrir(true);
+});
+
+/* Retoques del pago que no viven en el HTML (2026-11-22, mismos datos de
+   Clarity: ~150 «Agregar» y 2 «Comprar»; 26 fichas cerradas y casi ningún
+   «Agregar a mi pulsera»). Se hacen aquí, una vez, para no regenerar las ~190
+   páginas que copian el andamiaje de la portada:
+   - en la ficha, el botón de agregar sube bajo el precio (antes quedaba
+     debajo de la tabla de medidas, fuera de la pantalla del celular);
+   - sobre el total del carrito, una línea con lo que se ahorra por la promo. */
+var retocado=false;
+function retoquesDePago(){
+  if(retocado) return; retocado=true;
+  const tx=document.querySelector('#ficha .fx-tx'), cta=tx&&tx.querySelector('.fx-cta'), est=document.getElementById('fx-est');
+  if(cta&&est){ tx.insertBefore(cta,est.nextSibling); tx.classList.add('fx-tx--cta-arriba'); }
+  const tb=document.querySelector('.sheet-tot .tot-big');
+  if(tb&&!document.getElementById('tot-ahorro')){
+    const p=document.createElement('p'); p.className='tot-ahorro'; p.id='tot-ahorro'; p.hidden=true;
+    tb.parentNode.insertBefore(p,tb);
+  }
+}
 
 function sumarCharm(id,callado){
   if(agotado(id)||sel.filter(x=>x===id).length>=tope(id)) return;

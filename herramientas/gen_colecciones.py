@@ -182,6 +182,8 @@ console.log(JSON.stringify({
   dos: cop(dos.total),
   tres: cop(tres.total),
   ahorroTres: cop(tres.descuento),
+  tresNum: tres.total,
+  cuotaTres: cop(Math.ceil(tres.total / 3)),
   ahorroDos: cop(dos.descuento),
   tercerCharm: cop(tres.total - dos.total),
   contraentrega: cop(calcular({base, charms: charms.slice(0, 3), pago: 'contraentrega'}).total),
@@ -215,6 +217,33 @@ def escalones(base, p, ir='#piezas'):
     <button type="button" class="col-paso col-paso--best" data-ir="{ir}" data-aviso="Elige 3 charms: con el brazalete son 4 piezas y la de menor valor te sale gratis."><span class="col-paso-n">+ 3 charms · 4 piezas</span><b>{tres}</b>
       <span class="col-paso-ahorro">una GRATIS · ahorras {ahorro}</span><span class="col-paso-ir">Elegir mis 3 charms</span></button>
   </div>'''.format(base=base, ir=ir, sola=p['pulseraSola'], dos=p['dos'], tres=p['tres'], ahorro=p['ahorroTres'])
+
+
+# ── El kit de la campaña, en el primer pantallazo ───────────────────────────
+#
+# 2026-11-22, de Clarity: el 37 % de quien llega a campana-marvel.html se va
+# después de los destacados y solo el 42 % ve el combo, que es donde está la
+# promo. Esta tarjeta la sube arriba del todo. Aquí se escribe con los precios
+# de calcular() y los tres primeros charms; tienda.js (pintarKitCampana) la
+# repinta con los precios de hoy y las existencias en vivo, y le pone la
+# talla. El marcado de los dos lados tiene que ser el mismo.
+
+def kit_de_campana(html, base, charms, p):
+    def foto(pid):
+        t = tarjetas(html, [pid])[0]
+        m = re.search(r'<img src="([^"]+)" alt="([^"]*)"', t)
+        return '<img src="%s" alt="%s" width="440" height="440" decoding="async">' % (m.group(1), m.group(2))
+    nombre = re.search(r'alt="([^"]*)"', tarjetas(html, [base])[0]).group(1)
+    addi = ('o 3 cuotas de <b>%s</b> sin interés con Addi · ' % p['cuotaTres']) if 50000 <= p['tresNum'] <= 600000 else ''
+    return ('  <div class="cp-kit" id="cp-kit" data-base="%s" data-charms="%s">'
+            '<div class="cpk-f">%s</div>'
+            '<div class="cpk-tx"><span class="cpk-e">Kit %s · 4 piezas</span>'
+            '<b class="cpk-n">%s + 3 charms</b>'
+            '<span class="cpk-p"><b>%s</b> <em>una GRATIS · ahorras %s</em></span>'
+            '<span class="cpk-a">%senvío gratis</span></div>'
+            '<button type="button" class="btn btn--pagar cpk-b" data-kitc-armar>Armar mi kit</button></div>\n') % (
+        base, ','.join(charms), foto(base) + ''.join(foto(c) for c in charms[:3]),
+        re.sub(r'^Pulsera ', '', nombre), nombre, p['tres'], p['ahorroTres'], addi)
 
 
 # ── La página ───────────────────────────────────────────────────────────────
@@ -1014,11 +1043,11 @@ PAGINA_CAMPANA = '''<!DOCTYPE html>
 
 {header}
 
-<section class="cp-hero wrap" id="top">
+<section class="cp-hero wrap{hero_kit}" id="top">
   <span class="eyebrow">{eyebrow}</span>
   <h1>{titulo}</h1>
   <p>{texto}</p>
-</section>
+{kit}</section>
 
 <!-- 1 · LAS DEL ANUNCIO, en el primer pantallazo. -->
 <section class="cp-sec wrap" id="destacadas" aria-label="Las del anuncio">
@@ -1191,6 +1220,7 @@ def generar_campana_inicial_signo(c, html, cat, escribir):
         resenas=b['resenas'], pagos=b['pagos'], confianza=b['confianza'], chrome=b['chrome'],
         # La foto del primer pantallazo no espera: con loading="lazy" se
         # quedaba en blanco un momento.
+        hero_kit='', kit='',
         tarjeta_letras='\n'.join('    ' + t for t in tarjetas(html, ['letras'])).replace(
             ' loading="lazy"', ' fetchpriority="high"', 1),
         tarjetas_resto='\n'.join('    ' + t for t in tarjetas(html, signos)),
@@ -1238,6 +1268,7 @@ def generar_campana(c, html, escribir):
         tarjeta_base='\n'.join('      ' + t for t in tarjetas(html, [c['base']])),
         tarjetas_resto='\n'.join('    ' + t for t in tarjetas(html, resto)),
         n_resto=len(resto), escalera=escalones(c['base'], p, '#piezas'),
+        hero_kit=' cp-hero--kit', kit=kit_de_campana(html, c['base'], c['destacados'] + resto, p),
         contraentrega=p['contraentrega'], pie=pie_campana(c['eyebrow']),
     )
     pagina = solo_tema(pagina, c['eyebrow'])

@@ -142,8 +142,50 @@ async function main() {
         return r.top >= 0 && add.bottom <= dock;
       });
     });
-    comprobar(caben.length === c.destacados.length && caben.every(Boolean),
-      `las ${c.destacados.length} del anuncio caben en el primer pantallazo, con su botón`, caben.map(x => x ? '✓' : '✗').join(''));
+    /* Desde el 2026-11-22 lo primero es el kit con la promo (#cp-kit): en
+       Clarity el 37 % se iba tras los destacados sin llegar al combo. Los
+       destacados van justo debajo; en el primer pantallazo caben el kit entero
+       y al menos dos de ellos con su botón. */
+    const kit = await p.evaluate(() => {
+      const k = document.getElementById('cp-kit'), r = k.getBoundingClientRect(), b = k.querySelector('[data-kitc-armar]').getBoundingClientRect();
+      return { visible: !k.hidden && r.top >= 0 && b.bottom <= document.getElementById('dock').getBoundingClientRect().top,
+        antes: !!(k.compareDocumentPosition(document.getElementById('destacadas')) & Node.DOCUMENT_POSITION_FOLLOWING),
+        tx: k.innerText.replace(/\s+/g, ' ') };
+    });
+    comprobar(kit.visible && kit.antes, 'el kit con la promo está entero en el primer pantallazo, arriba de los destacados', kit.tx);
+    comprobar(caben.length === c.destacados.length && caben.filter(Boolean).length >= 2,
+      `y debajo caben al menos 2 de las ${c.destacados.length} del anuncio, con su botón`, caben.filter(Boolean).length + ' de ' + caben.length);
+    /* Los números del kit son los de calcular(): brazalete + los 3 primeros
+       charms disponibles, la de menor valor gratis. */
+    {
+      const { calcular, cop } = require('../netlify/functions/_precios.js');
+      const ids = await p.evaluate(() => [...document.querySelectorAll('#cp-kit .cpk-f img')].map(i => i.getAttribute('src').replace(/^.*assets\//, '').replace(/\.webp.*$/, '')));
+      const t = calcular({ base: { id: c.base, talla: '18' }, charms: ids.slice(1), pago: 'anticipado' });
+      comprobar(ids[0] === c.base && ids.length === 4 && kit.tx.includes(cop(t.total)) && kit.tx.includes('ahorras ' + cop(t.descuento))
+        && kit.tx.includes(cop(Math.ceil(t.total / 3))),
+        `el kit dice el total de calcular() (${cop(t.total)}), el ahorro (${cop(t.descuento)}) y la cuota de Addi`, kit.tx);
+      const q = await nueva();
+      await q.goto(BASE + '/' + c.archivo, { waitUntil: 'load' });
+      await q.waitForTimeout(800);
+      await q.click('[data-kitc-armar]');
+      await q.waitForTimeout(200);
+      const tallas = await q.locator('#cp-kit [data-kitc-talla]').count();
+      await q.locator('#cp-kit [data-kitc-talla]:not([aria-disabled="true"])').first().click();
+      await q.waitForTimeout(500);
+      const armado = await q.evaluate(() => ({ carrito: JSON.parse(localStorage.getItem('zephora.carrito.v1') || '{}'),
+        hoja: document.getElementById('sheet').getAttribute('aria-hidden'), total: document.getElementById('v-tot').textContent,
+        ahorro: document.getElementById('tot-ahorro').hidden ? '' : document.getElementById('tot-ahorro').textContent,
+        barra: document.getElementById('dock-n').textContent + ' | ' + document.getElementById('dock-send').textContent,
+        boton: document.querySelector('[data-kitc-armar]').textContent }));
+      comprobar(tallas === 5 && armado.carrito.base && armado.carrito.base.id === c.base && !!armado.carrito.base.talla
+        && JSON.stringify(armado.carrito.charms) === JSON.stringify(ids.slice(1)) && armado.hoja === 'false' && armado.total === cop(t.total),
+        '«Armar mi kit» pide la talla ahí mismo y abre el carrito con el brazalete y los 3 charms', JSON.stringify(armado));
+      comprobar(armado.ahorro === 'Te ahorras ' + cop(t.descuento) + ' · 1 pieza gratis' && /^Tienes 4 piezas/.test(armado.barra)
+        && / \| Ir a pagar$/.test(armado.barra) && armado.boton === 'Ir a pagar',
+        'el carrito dice el ahorro junto al total, y la barra y el kit pasan a «Ir a pagar»', armado.ahorro + ' · ' + armado.barra);
+      comprobar(!q.errs.length, 'consola limpia al armar el kit', q.errs.join(' | ') || undefined);
+      await q.close();
+    }
     const menu = await p.evaluate(() => ['.tnav', '.top-lupa', '.top-menu'].map(s => {
       const el = document.querySelector(s); return el ? getComputedStyle(el).display : 'none'; }));
     comprobar(menu.every(d => d === 'none'), 'sin menú, buscador ni hamburguesa', menu.join(','));
@@ -159,9 +201,15 @@ async function main() {
           return c.width > 0 && !(a.right <= c.left || c.right <= a.left || a.bottom <= c.top || c.bottom <= a.top); };
         if (a.right > innerWidth || a.left < innerWidth / 2) return 'no está abajo a la derecha';
         if (cruza(document.getElementById('dock'))) return 'tapa la barra';
-        return [...document.querySelectorAll('.pc-add')].some(cruza) ? 'tapa un Agregar' : '';
+        if (cruza(document.getElementById('cp-kit'))) return 'tapa el kit';
+        /* Con el kit arriba (2026-11-22) los destacados son una lista que
+           sigue bajo el pliegue: en celular el ícono queda sobre alguna
+           tarjeta según el alto de la pantalla, como en cualquier rejilla al
+           rodar. Lo que no puede tapar es el kit ni la barra; en computador,
+           donde todo cabe, tampoco un «Agregar». */
+        return innerWidth >= 760 && [...document.querySelectorAll('.pc-add')].some(cruza) ? 'tapa un Agregar' : '';
       });
-      comprobar(wa === '', `a ${ancho} px el ícono de WhatsApp se ve y no tapa la barra ni un «Agregar»`, wa || undefined);
+      comprobar(wa === '', `a ${ancho} px el ícono de WhatsApp se ve y no tapa la barra ni el kit` + (ancho >= 760 ? ' ni un «Agregar»' : ''), wa || undefined);
     }
     await p.setViewportSize({ width: 375, height: 812 });
     await p.waitForTimeout(200);
@@ -176,7 +224,20 @@ async function main() {
     const primera = c.destacados.find(id => true);
     await p.evaluate(id => document.querySelector('#destacadas .pc[data-id="' + id + '"] .pc-add').click(), primera);
     await p.waitForTimeout(400);
-    comprobar(await p.locator('#dock-send').textContent() === 'Comprar', '«Agregar» la pone en el carrito y la barra pasa a «Comprar»');
+    comprobar(await p.locator('#dock-send').textContent() === 'Ir a pagar' && /^Tienes 1 pieza/.test(await p.locator('#dock-n').textContent()),
+      '«Agregar» la pone en el carrito y la barra pasa a «Tienes 1 pieza» · «Ir a pagar»');
+    const barra = await p.evaluate(() => { const g = s => document.querySelector(s).getBoundingClientRect(), d = g('#dock'), n = document.getElementById('dock-n');
+      return { dentro: ['#dock-n', '#dock-p', '#dock-open', '#dock-send'].every(s => { const r = g(s); return r.width > 0 && r.top >= d.top && r.bottom <= d.bottom && r.left >= 0 && r.right <= innerWidth; }),
+        cortado: n.scrollWidth > n.clientWidth, ver: document.getElementById('dock-open').textContent.trim(), ancho: Math.round(g('#dock-send').width) }; });
+    comprobar(barra.dentro && !barra.cortado && barra.ver === 'Ver pedido' && barra.ancho >= 150,
+      'en la barra caben «Tienes 1 pieza…», el total, «Ver pedido» y el botón grande, sin cortarse', JSON.stringify(barra));
+    /* En la ficha, «Agregar a mi pulsera» queda a la vista sin bajar. */
+    await p.evaluate(() => document.querySelectorAll('#destacadas .pc .pc-img')[1].click());
+    await p.waitForTimeout(700);
+    const fx = await p.evaluate(() => { const a = document.getElementById('fx-add').getBoundingClientRect(); return { top: Math.round(a.top), alto: innerHeight, tx: document.getElementById('fx-add').textContent }; });
+    comprobar(fx.top > 0 && fx.top < fx.alto - 40, 'en la ficha, «Agregar a mi pulsera» se ve sin bajar', JSON.stringify(fx));
+    await p.keyboard.press('Escape');
+    await p.waitForTimeout(300);
     comprobar(!p.errs.length, 'consola limpia', p.errs.join(' | ') || undefined);
     await p.close();
 

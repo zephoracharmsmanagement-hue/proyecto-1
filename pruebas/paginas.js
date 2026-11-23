@@ -285,7 +285,7 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
       ok(atc.length === 1 && atc[0][2].content_ids[0] === id && atc[0][2].value === cat.precios[id],
         `Agregar desde la página → AddToCart [${id}]`);
       const dock = (await p.textContent('#dock-n')).trim();
-      ok(/1 pieza/.test(dock) && (await p.textContent('#dock-send')).trim() === 'Comprar', `el carrito lo recibe: «${dock}», y la barra vuelve a «Comprar»`);
+      ok(/1 pieza/.test(dock) && (await p.textContent('#dock-send')).trim() === 'Ir a pagar', `el carrito lo recibe: «${dock}», y la barra pasa a «Ir a pagar»`);
       if (conDatos) {
         if (process.env.CAPTURAS) await p.screenshot({ path: path.join(process.env.CAPTURAS, `pp-${tipo.replace(/ /g, '-')}-completa.png`), fullPage: true });
         await Promise.all([p.waitForURL(/checkout\.html/, { timeout: 8000 }), p.click(`.pp-cta [data-comprar="${id}"]`)]).catch(() => {});
