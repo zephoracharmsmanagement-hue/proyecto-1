@@ -2128,7 +2128,7 @@ body:not(.sel-vacia) #dock-send::after{content:' →'}
 .bfb ~ .hbanner{display:none}
 /* El alto descuenta el encabezado y la barra de abajo: el banner cabe entero
    en el primer pantallazo, con su botón y su cinta a la vista. */
-.bfb{position:relative;overflow:hidden;background:#0f0b11;color:#fff;height:calc(100dvh - 190px);min-height:440px;max-height:760px}
+.bfb{position:relative;overflow:hidden;background:#0f0b11;color:#fff;height:calc(100dvh - 190px);min-height:360px;max-height:760px}
 .bfb-cara{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .8s ease,visibility 0s .8s}
 .bfb-cara.is-on{opacity:1;visibility:visible;transition:opacity .8s ease}
 .bfb-foto,.bfb-v{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;max-width:none}
@@ -2155,7 +2155,7 @@ body:not(.sel-vacia) #dock-send::after{content:' →'}
 .bfb-c{display:flex;flex-direction:column;justify-content:center;text-align:center;padding:34px 0 44px}
 .bfb-c-top{font:500 11px/1 Jost,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:#cbbccb;margin:0 0 4px;min-height:11px}
 .bfb-c-top b{color:#fff;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.1em}
-.bfb-lw{position:relative;overflow:hidden;margin:6px 0 0;isolation:isolate}
+.bfb-lw{position:relative;overflow:hidden;margin:6px 0 0;isolation:isolate;flex:none}
 /* Un velo claro bajo las letras: en las tomas oscuras no desaparecen. */
 .bfb-lw::after{content:"";position:absolute;inset:0;background:rgba(243,230,235,.26)}
 /* El video va debajo y las letras encima, blancas sobre el fondo del banner,
@@ -2180,9 +2180,23 @@ body:not(.sel-vacia) #dock-send::after{content:' →'}
 .bfb-pts button{width:38px;height:34px;padding:0;border:0;background:none;cursor:pointer;display:grid;place-items:center}
 .bfb-pts button::before{content:"";width:26px;height:3px;border-radius:2px;background:rgba(255,255,255,.38)}
 .bfb-pts button[aria-pressed="true"]::before{background:#fff}
-@media(max-height:700px) and (max-width:759px){
-  .bfb-a .bfb-sub,.bfb-c .bfb-sub,.bfb-fila{display:none}
-  .bfb-let{font-size:25vw}
+/* En celular el alto del banner depende de cuánto dejan las barras del
+   navegador (en un iPhone con Chrome quedan ~530 px de 900): las letras y los
+   charms se miden contra ese alto (cqh), y lo accesorio se quita por orden
+   cuando no cabe. Sin esto «FRIDAY» salía cortado (propietario, 2026-11-23). */
+@media(max-width:759px){
+  .bfb{container-type:size}
+  .bfb-let{font-size:min(30vw,19cqh)}
+  .bfb-fila span{width:min(86px,14cqh);height:min(86px,14cqh)}
+  .bfb-fila{min-height:0}
+  @container (max-height:619px){ .bfb-c .bfb-sub{display:none} }
+  @container (max-height:499px){ .bfb-a .bfb-sub,.bfb-fila{display:none} }
+}
+@supports not (container-type:size){
+  @media(max-height:820px) and (max-width:759px){
+    .bfb-a .bfb-sub,.bfb-c .bfb-sub,.bfb-fila{display:none}
+    .bfb-let{font-size:24vw}
+  }
 }
 @media(min-width:760px){
   .bfb{height:calc(100vh - 152px);min-height:440px;max-height:640px}

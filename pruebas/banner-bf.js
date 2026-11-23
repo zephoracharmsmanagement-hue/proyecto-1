@@ -106,6 +106,26 @@ const comprobar = (c, m, d) => {
     await p.context().close();
   }
 
+  console.log('\n2b · Con las barras del navegador a la vista (iPhone con Chrome: ~717 px de alto útil)');
+  for (const [w, h] of [[414, 717], [375, 553], [320, 568]]) {
+    const p = await nueva(w, h);
+    await p.goto(BASE + '/index.html', { waitUntil: 'load' });
+    await p.waitForTimeout(1200);
+    await p.evaluate(() => document.querySelectorAll('.bfb-pts button')[1].click());
+    await p.waitForTimeout(1100);
+    const m = await p.evaluate(() => {
+      const s = document.getElementById('bfb'), r = s.getBoundingClientRect(), on = s.querySelector('.bfb-cara.is-on');
+      const tope = on.querySelector('.bfb-cinta').getBoundingClientRect().top, l = on.querySelector('.bfb-let'), lw = on.querySelector('.bfb-lw');
+      const fuera = [...on.querySelectorAll('.bfb-c-top,.bfb-let,.bfb-t,.bfb-sub,.bfb-btn,.bfb-fila')].filter(e => getComputedStyle(e).display !== 'none')
+        .filter(e => { const c = e.getBoundingClientRect(); return c.height && (c.top < r.top - 1 || c.bottom > tope + 1); }).map(e => e.className);
+      return { fuera, letras: Math.round(lw.getBoundingClientRect().height) >= Math.round(l.getBoundingClientRect().height),
+        dock: document.getElementById('dock').getBoundingClientRect().top >= r.bottom - 1 };
+    });
+    comprobar(!m.fuera.length && m.letras, `${w}×${h}: «BLACK FRIDAY» y lo demás caben enteros, nada cortado`, m.fuera.join(',') || undefined);
+    comprobar(m.dock, `${w}×${h}: el banner termina antes de la barra de abajo`);
+    await p.context().close();
+  }
+
   console.log('\n3 · Con «reducir movimiento»');
   {
     const p = await nueva(375, 812, { reducedMotion: 'reduce' });
