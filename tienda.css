@@ -2027,6 +2027,16 @@ body[data-producto] .susc-fab{left:auto;right:14px;bottom:calc(var(--dock) + 78p
   .cpk-m{font-size:14.5px}
 }
 
+/* «Más ›» en las filas de filtros: pegado al borde derecho mientras queden
+   filtros por ver; el degradado tapa el que queda cortado debajo. */
+.filters-mas{flex:0 0 auto;position:sticky;right:-16px;z-index:2;margin-left:auto;border:0;cursor:pointer;
+  padding:0 16px 0 34px;min-height:38px;font:600 12px/1 Jost,sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--plum,#5B2A4E);white-space:nowrap;
+  background:linear-gradient(to right,rgba(244,241,243,0),var(--bone,#F4F1F3) 26px)}
+.filters-mas span{font-size:17px;line-height:0;margin-left:2px}
+.filters-mas[hidden]{display:none}
+#promo-esc .cpk-c:not(.on),#cp-kit .cpk-c:not(.on){cursor:pointer}
+
 /* La escalera general: en la portada (#promo-esc) y en el carrito (.hoja-dto--esc). */
 #promo .promo-esc{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;max-width:520px;padding:16px;background:#fff}
 .promo-esc .promo-caja-t{margin-bottom:0!important;text-align:center}

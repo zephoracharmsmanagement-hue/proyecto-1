@@ -2077,6 +2077,33 @@ document.addEventListener('click',e=>{
  * brazalete o sin tres charms disponibles, no se muestra.
  *
  * `var` y no `let`: render() corre antes de que esta línea se ejecute. */
+/* ── «Más ›» en las filas de filtros (propietario, 2026-11-22) ──
+ * Las filas de filtros se deslizan de lado, pero sin barra a la vista nada lo
+ * decía: quien no arrastraba se quedaba con los cuatro primeros. Mientras
+ * queden filtros a la derecha, un botón «Más ›» pegado al borde lo avisa y, al
+ * tocarlo, corre la fila. Al llegar al final se esconde. No lleva la clase
+ * .fbtn: los manejadores de los filtros lo ignoran. */
+document.querySelectorAll('.filters').forEach(f=>{
+  const b=document.createElement('button');
+  b.type='button'; b.className='filters-mas'; b.setAttribute('aria-label','Ver más filtros');
+  b.innerHTML='Más <span aria-hidden="true">›</span>';
+  f.appendChild(b);
+  const ver=()=>{ b.hidden=f.scrollWidth-b.offsetWidth<=f.clientWidth+4||f.scrollLeft+f.clientWidth>=f.scrollWidth-b.offsetWidth-12; };
+  b.addEventListener('click',e=>{ e.stopPropagation(); f.scrollBy({left:Math.round(f.clientWidth*.7),behavior:'smooth'}); });
+  f.addEventListener('scroll',ver,{passive:true});
+  window.addEventListener('resize',ver);
+  ver(); setTimeout(ver,600);
+});
+
+/* Las casillas vacías de la escalera también llevan a elegir (propietario,
+   2026-11-22): quien toca una por curiosidad llega a los charms. En la
+   portada, a #charms; en una página de campaña, a sus destacados. */
+document.addEventListener('click',e=>{
+  const c=e.target.closest&&e.target.closest('.cpk-s .cpk-c:not(.on)'); if(!c) return;
+  const d=c.closest('#promo-esc')?document.getElementById('charms'):c.closest('#cp-kit')?document.getElementById('destacadas'):null;
+  if(d) d.scrollIntoView({behavior:'smooth',block:'start'});
+});
+
 /* ── La escalera general (portada y carrito, 2026-11-22) ──
  * La misma idea del kit de campaña, sin brazalete fijo: seis casillas, la
  * cuarta y la sexta son las gratis. Las piezas que la promo regala de verdad
