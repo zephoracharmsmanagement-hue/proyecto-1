@@ -187,6 +187,81 @@ if(hbPause && hbTrack){
   });
 }
 
+/* Banner de Black Friday de la portada (#bfb, 2026-11-23). Dos caras que se
+   turnan cada 6 s —5 no daban para leer el título y llegar al botón—. Se
+   detiene mientras el mouse está encima o un rato después de tocarlo, y con
+   la pestaña oculta. A quien pidió «reducir movimiento» se le deja la primera
+   cara quieta, sin video. El video no viaja con la página: se pide a /media/
+   (Netlify Blobs) cuando ya cargó todo, uno solo según el ancho, y no se pide
+   con ahorro de datos; hasta entonces se ve la portada, que es su primer
+   cuadro. Al vencer OFERTA la sección se quita y vuelve el banner de siempre. */
+var pintarBannerBF=function(){};
+(function(){
+  const s=$('#bfb'); if(!s) return;
+  if(!ofertaVigente()){ s.remove(); return; }
+  const todos=q=>Array.prototype.slice.call(s.querySelectorAll(q));
+  const caras=todos('.bfb-cara'), pts=todos('.bfb-pts button');
+  const quieto=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  /* Los números salen de OFERTA, no de lo escrito en el HTML. */
+  todos('[data-bfb-charms]').forEach(e=>e.textContent=OFERTA.charms);
+  todos('[data-bfb-brazaletes]').forEach(e=>e.textContent=OFERTA.brazaletes);
+  try{ const f=new Intl.DateTimeFormat('es-CO',{weekday:'long',day:'numeric',month:'long',timeZone:'America/Bogota'})
+    .format(new Date(OFERTA_FIN)).replace(',','');
+    todos('[data-bfb-hasta]').forEach(e=>e.textContent='hasta el '+f); }catch(e){}
+  const dos=n=>String(n).padStart(2,'0');
+  let reloj=0, turno=0;
+  const cuenta=()=>{
+    const f=OFERTA_FIN-Date.now();
+    if(f<=0){ clearInterval(reloj); clearInterval(turno); s.remove(); return; }
+    const m=Math.floor(f/60000), d=Math.floor(m/1440);
+    const tx=(d?d+' d ':'')+dos(Math.floor(m%1440/60))+' h '+dos(m%60)+' min';
+    todos('[data-bfb-cuenta]').forEach(e=>e.textContent=tx);
+    todos('.bfb-chip').forEach(e=>e.hidden=false);
+  };
+  cuenta(); reloj=setInterval(cuenta,20000);
+
+  let i=0, pausa=false, suelta=0;
+  const ver=n=>{ i=n;
+    caras.forEach((c,j)=>{ const on=j===i; c.classList.toggle('is-on',on); c.inert=!on;
+      if(on) c.removeAttribute('aria-hidden'); else c.setAttribute('aria-hidden','true'); });
+    pts.forEach((b,j)=>b.setAttribute('aria-pressed',j===i?'true':'false')); };
+  const andar=()=>{ clearInterval(turno); if(quieto||caras.length<2) return;
+    turno=setInterval(()=>{ if(!pausa&&!document.hidden) ver((i+1)%caras.length); },6000); };
+  pts.forEach((b,j)=>b.addEventListener('click',()=>{ ver(j); andar(); }));
+  s.addEventListener('pointerenter',e=>{ if(e.pointerType==='mouse') pausa=true; });
+  s.addEventListener('pointerleave',e=>{ if(e.pointerType==='mouse') pausa=false; });
+  s.addEventListener('touchstart',()=>{ pausa=true; clearTimeout(suelta); suelta=setTimeout(()=>{ pausa=false; },8000); },{passive:true});
+  s.addEventListener('focusin',()=>{ pausa=true; });
+  s.addEventListener('focusout',()=>{ pausa=false; });
+  andar();
+
+  /* Tres charms con existencias, con su foto de la tienda y el descuento. */
+  let firma='';
+  pintarBannerBF=function(){
+    const f=s.querySelector('[data-bfb-fotos]'); if(!f||!s.isConnected) return;
+    const ids=Array.prototype.slice.call(document.querySelectorAll('#charms .pc[data-id]'))
+      .filter(c=>!c.classList.contains('is-out')&&c.querySelector('img')).slice(0,3).map(c=>c.dataset.id);
+    const fm=ids.join(',')+'|'+!!CAT; if(fm===firma) return; firma=fm;
+    f.innerHTML=ids.map(id=>'<a href="#charms" tabindex="-1"><em>−'+OFERTA.charms+' %</em><span><img src="'+imgDe(id)+'" alt="" width="440" height="440" loading="lazy" decoding="async"></span></a>').join('');
+  };
+
+  const ahorro=navigator.connection&&navigator.connection.saveData;
+  if(quieto||ahorro) return;
+  const vids=todos('video');
+  const arrancar=()=>{
+    if(!s.isConnected) return;
+    const src='media/bf-portada-'+(matchMedia('(min-width:760px)').matches?'escritorio':'celular')+'-v1.mp4';
+    vids.forEach(v=>{ v.muted=true; v.src=src;
+      v.addEventListener('playing',()=>v.classList.add('is-viva'),{once:true});
+      const p=v.play(); if(p&&p.catch) p.catch(()=>{}); });
+    /* Fuera de pantalla no gasta batería ni datos. */
+    if('IntersectionObserver' in window) new IntersectionObserver(es=>{ const a=es[0].isIntersecting;
+      vids.forEach(v=>{ if(a){ const p=v.play(); if(p&&p.catch) p.catch(()=>{}); } else v.pause(); }); },{threshold:.05}).observe(s);
+  };
+  if(document.readyState==='complete') setTimeout(arrancar,500);
+  else addEventListener('load',()=>setTimeout(arrancar,500),{once:true});
+})();
+
 /* Videos de clientas: no se descargan hasta que la seccion entra en pantalla.
  *
  * Los tres suman 4,5 MB contra los 300 KB del resto de la pagina, asi que
@@ -1641,6 +1716,7 @@ function render(){
   estadoVit();
   const estPromo={piezas:piezas,nGratis:nGratis,total:total,ahorro:desc,gratis:gratisLista};
   pintarKitCampana(estPromo);
+  pintarBannerBF();
   pintarEscaleraPortada(estPromo);
   pintarEscaleraProducto(estPromo);
   pintarEscalerasSimples(estPromo);

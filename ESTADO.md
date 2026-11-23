@@ -5,6 +5,37 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Banner de Black Friday en la portada y arreglo del kit Marvel — rama `claude/arreglo-kit-marvel`: NO desplegado
+
+Pedido del propietario (2026-11-23): «en los banners principales, tener algo de Black Friday… un
+video, así como los tiene Pandora o Swarovski». Eligió dos de tres maquetas y que se turnaran.
+
+- **`#bfb` en `index.html`**, antes del banner de siempre. Dos caras que se turnan **cada 6 s**
+  (decisión del propietario; 5 no daban para leer y llegar al botón): A, video de las joyas a
+  pantalla completa con «−20 % en charms / −10 % en brazaletes»; C, «BLACK FRIDAY» con el video
+  visto dentro de las letras, la promo de piezas gratis, tres charms con existencias y una cinta.
+  Se detiene con el mouse encima, unos segundos después de tocarlo y con la pestaña oculta. Con
+  «reducir movimiento» queda la cara A quieta y sin video.
+- **Los números y la fecha salen de `OFERTA`** (`tienda.js`), y `data-hasta` tiene que ser la misma
+  fecha: lo exige `pruebas/banner-bf.js`. Al vencer, un guion en línea y `tienda.js` quitan la
+  sección y vuelve `.hbanner` (CSS: `.bfb ~ .hbanner{display:none}`). Las fotos de `.hbanner`
+  quedaron con `loading="lazy"` para que no se descarguen mientras está oculto.
+- **El video no está en git**: `media/bf-portada-celular-v1.mp4` (1,7 MB, 9 tomas) y
+  `media/bf-portada-escritorio-v1.mp4` (1,3 MB), en Netlify Blobs (`herramientas/subir_media.mjs`).
+  Son tomas originales del propietario (carpeta `videos-pauta-2026-11-21/originales`), sin IA.
+  `tienda.js` pide uno solo según el ancho, medio segundo después de cargar la página, y no lo
+  pide con ahorro de datos. Lo que se ve al entrar es su primer cuadro
+  (`assets/bf-portada-*.webp`). **Hay que subirlos a Blobs antes de publicar**; sin ellos se ve la
+  portada quieta, sin error.
+- **Al retirar la oferta (1-dic):** borrar la sección `#bfb` y su guion de `index.html`, el bloque
+  «Banner de Black Friday» de `tienda.css` y de `tienda.js` (y la llamada `pintarBannerBF()` en
+  `render`), `pruebas/banner-bf.js` y su nombre en `correr.sh`, y devolver
+  `fetchpriority="high"` a la primera foto de `.hbanner`.
+- **Kit de Marvel:** la caja `#cp-kit` lleva `data-base` y el manejador de «Elegir» de las tarjetas
+  la tomaba por una (`closest('.pc')` daba null): cualquier toque fuera del botón reventaba desde
+  el PR #61. Ahora ese manejador solo actúa dentro de una `.pc`, y tocar el título, el texto o una
+  casilla del kit baja a los destacados. Lo cubre `pruebas/campanas.js`.
+
 ## Varios brazaletes por pedido — rama `claude/varios-brazaletes`, en vista previa: NO desplegado
 
 Pedido del propietario (2026-11-23). Una clienta quiso dos Mano de Hamsa talla 18 y hubo que
