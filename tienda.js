@@ -2322,7 +2322,16 @@ document.addEventListener('click',e=>{
     kitcTalla=true; pintarKitCampana(); return;
   }
   const t=e.target.closest('[data-kitc-talla]');
-  if(!t||t.getAttribute('aria-disabled')==='true') return;
+  if(!t){
+    /* Un toque en el resto de la caja (título, texto, casillas ya llenas)
+       lleva a elegir los charms. Las casillas vacías ya lo hacen arriba. */
+    if(!e.target.closest('.cpk-s .cpk-c:not(.on), a, button')){
+      const d=document.getElementById('destacadas')||document.getElementById('piezas');
+      if(d) d.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+    return;
+  }
+  if(t.getAttribute('aria-disabled')==='true') return;
   const talla=t.dataset.kitcTalla;
   bases.push({id:b,talla:talla});
   track('AddToCart',{content_type:'product',content_ids:[b],
@@ -2451,8 +2460,11 @@ document.addEventListener('click',e=>{
     return;
   }
 
+  /* Solo el botón de una tarjeta: la caja #cp-kit también lleva `data-base`
+     (el brazalete del kit) y no está dentro de ninguna `.pc`; sin esta
+     comprobación, cualquier toque en ella reventaba aquí (2026-11-23). */
   const b=e.target.closest('[data-base]');
-  if(b){
+  if(b&&b.closest('.pc')){
     if(bloqueado(b)) return;
     const id=b.dataset.base;
     const panel=b.closest('.pc').querySelector('.tallas');
