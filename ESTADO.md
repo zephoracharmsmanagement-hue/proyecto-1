@@ -23,7 +23,7 @@ video, así como los tiene Pandora o Swarovski». Eligió dos de tres maquetas y
 - **El video no está en git**: `media/bf-portada-celular-v1.mp4` (1,7 MB, 9 tomas) y
   `media/bf-portada-escritorio-v1.mp4` (1,3 MB), en Netlify Blobs (`herramientas/subir_media.mjs`).
   Son tomas originales del propietario (carpeta `videos-pauta-2026-11-21/originales`), sin IA.
-  `tienda.js` pide uno solo según el ancho, medio segundo después de cargar la página, y no lo
+  Se pide uno solo según el ancho, apenas se pinta el banner (guion en línea de `index.html`; el propietario vio que esperando a la carga completa parecía trabado), y no se
   pide con ahorro de datos. Lo que se ve al entrar es su primer cuadro
   (`assets/bf-portada-*.webp`). **Hay que subirlos a Blobs antes de publicar**; sin ellos se ve la
   portada quieta, sin error.

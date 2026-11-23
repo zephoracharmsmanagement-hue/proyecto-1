@@ -191,10 +191,12 @@ if(hbPause && hbTrack){
    turnan cada 6 s —5 no daban para leer el título y llegar al botón—. Se
    detiene mientras el mouse está encima o un rato después de tocarlo, y con
    la pestaña oculta. A quien pidió «reducir movimiento» se le deja la primera
-   cara quieta, sin video. El video no viaja con la página: se pide a /media/
-   (Netlify Blobs) cuando ya cargó todo, uno solo según el ancho, y no se pide
-   con ahorro de datos; hasta entonces se ve la portada, que es su primer
-   cuadro. Al vencer OFERTA la sección se quita y vuelve el banner de siempre. */
+   cara quieta, sin video. El video está en /media/ (Netlify Blobs), uno solo
+   según el ancho, y no se pide con ahorro de datos. Lo arranca el guion en
+   línea de index.html apenas se pinta el banner —esperando a que cargara toda
+   la página se quedaba varios segundos en la foto y parecía trabado
+   (propietario, 2026-11-23)—; mientras llega se ve la portada, que es su
+   primer cuadro. Al vencer OFERTA la sección se quita y vuelve el de siempre. */
 var pintarBannerBF=function(){};
 (function(){
   const s=$('#bfb'); if(!s) return;
@@ -233,7 +235,11 @@ var pintarBannerBF=function(){};
   s.addEventListener('touchstart',()=>{ pausa=true; clearTimeout(suelta); suelta=setTimeout(()=>{ pausa=false; },8000); },{passive:true});
   s.addEventListener('focusin',()=>{ pausa=true; });
   s.addEventListener('focusout',()=>{ pausa=false; });
-  andar();
+  /* El turno empieza cuando el video ya corre (o a los 2,5 s si no va a
+     correr): que los 6 s de la primera cara sean de video, no de espera. */
+  { const v0=s.querySelector('.bfb-a video'); let ya=false; const ir=()=>{ if(!ya){ ya=true; andar(); } };
+    if(!v0||quieto||(!v0.paused&&v0.readyState>2)) ir();
+    else { v0.addEventListener('playing',ir,{once:true}); setTimeout(ir,2500); } }
 
   /* Tres charms con existencias, con su foto de la tienda y el descuento. */
   let firma='';
@@ -248,18 +254,20 @@ var pintarBannerBF=function(){};
   const ahorro=navigator.connection&&navigator.connection.saveData;
   if(quieto||ahorro) return;
   const vids=todos('video');
-  const arrancar=()=>{
-    if(!s.isConnected) return;
-    const src='media/bf-portada-'+(matchMedia('(min-width:760px)').matches?'escritorio':'celular')+'-v1.mp4';
-    vids.forEach(v=>{ v.muted=true; v.src=src;
-      v.addEventListener('playing',()=>v.classList.add('is-viva'),{once:true});
-      const p=v.play(); if(p&&p.catch) p.catch(()=>{}); });
-    /* Fuera de pantalla no gasta batería ni datos. */
-    if('IntersectionObserver' in window) new IntersectionObserver(es=>{ const a=es[0].isIntersecting;
-      vids.forEach(v=>{ if(a){ const p=v.play(); if(p&&p.catch) p.catch(()=>{}); } else v.pause(); }); },{threshold:.05}).observe(s);
-  };
-  if(document.readyState==='complete') setTimeout(arrancar,500);
-  else addEventListener('load',()=>setTimeout(arrancar,500),{once:true});
+  /* La cara A ya viene andando desde index.html; por si acaso se le pone lo
+     que le falte. A la cara C se le da el mismo archivo cuando la primera ya
+     corre: sale del caché y no le compite la descarga. */
+  const va=vids[0];
+  const src=(va&&va.getAttribute('src'))||'media/bf-portada-'+(matchMedia('(min-width:760px)').matches?'escritorio':'celular')+'-v1.mp4';
+  const corre=v=>!v.paused&&v.readyState>2;
+  const pon=v=>{ if(!v.getAttribute('src')){ v.muted=true; v.src=src; }
+    if(corre(v)) v.classList.add('is-viva'); else v.addEventListener('playing',()=>v.classList.add('is-viva'),{once:true});
+    const p=v.play(); if(p&&p.catch) p.catch(()=>{}); };
+  let dado=false; const resto=()=>{ if(dado) return; dado=true; vids.slice(1).forEach(pon); };
+  if(va){ pon(va); if(corre(va)) resto(); else { va.addEventListener('playing',resto,{once:true}); setTimeout(resto,4000); } }
+  /* Fuera de pantalla no gasta batería ni datos. */
+  if('IntersectionObserver' in window) new IntersectionObserver(es=>{ const a=es[0].isIntersecting;
+    vids.forEach(v=>{ if(!v.getAttribute('src')) return; if(a){ const p=v.play(); if(p&&p.catch) p.catch(()=>{}); } else v.pause(); }); },{threshold:.05}).observe(s);
 })();
 
 /* Videos de clientas: no se descargan hasta que la seccion entra en pantalla.

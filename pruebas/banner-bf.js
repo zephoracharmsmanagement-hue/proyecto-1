@@ -49,8 +49,8 @@ const comprobar = (c, m, d) => {
     'no dice «antes» ni «precio anterior»');
   for (const f of ['bf-portada-celular.webp', 'bf-portada-escritorio.webp'])
     comprobar(fs.existsSync(path.join(RAIZ, 'assets', f)), `existe la portada assets/${f}`);
-  comprobar(/media\/bf-portada-'\+\(.*\)\+'-v1\.mp4/.test(js) && !/\.mp4/.test((/<section class="bfb"[\s\S]*?<\/section>/.exec(html) || [''])[0]),
-    'el video se pide desde tienda.js a /media/, no viaja escrito en la página');
+  comprobar(/media\/bf-portada-'\+\(.*\)\+'-v1\.mp4/.test(js) && /<\/section>\s*<script>[^\n]*media\/bf-portada-'\+\(.*\)\+'-v1\.mp4/.test(html),
+    'el video sale de /media/ y lo arranca el guion pegado al banner, sin esperar a que cargue toda la página');
 
   const b = await chromium.launch(process.env.CHROME_EXE ? { executablePath: process.env.CHROME_EXE } : {});
   const nueva = async (w, h, extra) => {
@@ -86,7 +86,12 @@ const comprobar = (c, m, d) => {
     comprobar(/hasta el lunes 30 de noviembre/i.test(a.tx) === (OFERTA.hasta === '2026-11-30') && /hasta el \w+ \d+ de \w+/i.test(a.tx), 'y la fecha de cierre, escrita desde OFERTA', a.tx);
     comprobar(/^(\d+ d )?\d\d h \d\d min$/.test(a.cuenta), 'la cuenta regresiva corre', a.cuenta);
     comprobar(a.boton && !a.desborda && a.href === '#charms', 'el botón «Ver las ofertas» queda a la vista sobre la barra, sin desbordes');
-    await p.waitForTimeout(5600);
+    /* El turno arranca cuando el video corre, o a los 2,5 s si no corre (este
+       navegador no reproduce MP4): la segunda cara llega entre 6 y 9 s. */
+    await p.waitForTimeout(3500);
+    comprobar((await estado(p)).cara === 'A', 'a los 5 s sigue en la primera cara');
+    await p.waitForFunction(() => document.querySelector('#bfb .bfb-c.is-on'), null, { timeout: 6000 }).catch(() => {});
+    await p.waitForTimeout(900);
     const c = await estado(p);
     comprobar(c.cara === 'C' && c.inertes === 1 && c.pulsado === 'false,true', 'a los 6 s pasa sola a la segunda cara', JSON.stringify([c.cara, c.pulsado]));
     comprobar(/Paga 3, llévate 1 gratis/.test(c.tx) && /Paga 4, llévate 2/.test(c.tx) && /BLACK\s+FRIDAY/i.test(c.tx), 'que dice BLACK FRIDAY y la promo de piezas gratis', c.tx);
@@ -105,7 +110,7 @@ const comprobar = (c, m, d) => {
   {
     const p = await nueva(375, 812, { reducedMotion: 'reduce' });
     await p.goto(BASE + '/index.html', { waitUntil: 'load' });
-    await p.waitForTimeout(7200);
+    await p.waitForTimeout(9500);
     const a = await estado(p);
     comprobar(a.cara === 'A' && !p.videos.length, 'se queda en la primera cara y no pide el video', JSON.stringify([a.cara, p.videos]));
     comprobar(!p.errs.length, 'consola limpia', p.errs.join(' | ') || undefined);
