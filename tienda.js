@@ -1493,6 +1493,13 @@ function render(){
   $('#v-save').textContent='− '+cop(ahorro);
   $('#v-tot').textContent=cop(total);
   pintarCuotasAddi(total);
+  /* Lo que se ahorra por la promo, pegado al total: el total solo asustaba
+     (2026-11-22). Solo la pieza gratis; el descuento de temporada ya se ve
+     tachado en cada pieza. */
+  retoquesDePago();
+  const ta=document.getElementById('tot-ahorro');
+  if(ta){ ta.hidden=ahorro<=0;
+    if(ahorro>0) ta.innerHTML='Te ahorras <b>'+cop(ahorro)+'</b> · '+nGratis+(nGratis===1?' pieza gratis':' piezas gratis'); }
 
   const ship=$('#v-ship'), nota=$('#ship-note'), barra=$('#ship-bar');
   /* La barra de progreso solo tiene sentido mientras haya un umbral que
@@ -1538,13 +1545,12 @@ function render(){
   $('#hoja-dto-caja').hidden=!piezas;
   if(piezas){
     const t=tramoPromo(piezas), faltan=t.fin-piezas;
-    let h='';
-    for(let n=t.ini+1;n<=t.fin;n++){
-      const cls=[n<=piezas?'is-on':'', n===t.fin?'is-free':''].join(' ').trim();
-      h+='<li'+(cls?' class="'+cls+'"':'')+'>'+(n===t.fin?'GRATIS':n)+'</li>';
-    }
-    dto.innerHTML=h;
-    dto.style.setProperty('--n',t.fin-t.ini);
+    /* Desde el 2026-11-22 son las seis casillas de la escalera (antes, una
+       barrita por pieza del tramo): se ve de una vez hasta dónde llega la promo. */
+    dto.innerHTML=escCasillas({gratis:gratisLista},'li');
+    dto.classList.add('hoja-dto--esc');
+    dto.style.setProperty('--n',6);
+    const dt=document.querySelector('#hoja-dto-caja .hoja-dto-t'); if(dt) dt.textContent='Arma tu set · hasta 2 piezas GRATIS';
     dto.classList.toggle('is-max',t.completo);
     dn.classList.toggle('is-max',t.completo);
     dn.hidden=false;
@@ -1579,6 +1585,9 @@ function render(){
   pintarTarjetas();
   pintarLetras();
   estadoVit();
+  const estPromo={piezas:piezas,nGratis:nGratis,total:total,ahorro:desc,gratis:gratisLista};
+  pintarKitCampana(estPromo);
+  pintarEscaleraPortada(estPromo);
 
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
      estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
@@ -1587,9 +1596,12 @@ function render(){
   /* La promo manda sobre el envío en la barra fija: el envío gratis ya se dice
      en el banner y en la hoja, y «1 más y es GRATIS» es lo que hace sumar una. */
   const unaMas=piezas&&tramoPromo(piezas).fin-piezas===1&&!tramoPromo(piezas).completo;
+  /* «Tienes N piezas» + «Ir a pagar» (2026-11-22): con «N piezas» y «Comprar»
+     se agregaba ~150 veces y se tocaba «Comprar» 2. */
   $('#dock-n').textContent = piezas
-    ? piezas+(piezas===1?' pieza':' piezas')
-      +(unaMas?' · ¡1 más y es GRATIS!'
+    /* Con «1 más» va sin «Tienes»: a 375 px se cortaba en «…es GR…». */
+    ? (unaMas?'':'Tienes ')+piezas+(piezas===1?' pieza':' piezas')
+      +(unaMas?' · ¡1 más GRATIS!'
         :nGratis?' · '+nGratis+' GRATIS'
         :libre?' · envío gratis'
         :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
@@ -1606,7 +1618,10 @@ function render(){
   /* Con la selección vacía el botón no puede decir «Comprar»: en Clarity las
      clientas lo tocaban con $0 y en kits.html no hacía nada (2026-11-20). Dice
      qué hacer y lleva ahí (ver destinoVacio). */
-  $('#dock-send').textContent=ppVacio?(PU[pp]||ANI[pp]?'Elegir talla':'Agregar'):(piezas?'Comprar':'Elige tu primera pieza');
+  $('#dock-send').textContent=ppVacio?(PU[pp]||ANI[pp]?'Elegir talla':'Agregar'):(piezas?'Ir a pagar':'Elige tu primera pieza');
+  /* El rótulo de «Ver detalle» pasa a «Ver pedido» y queda como enlace junto
+     al total (tienda.css, «Barra: el paso al pago»). */
+  const dv=$('#dock-open'); if(dv&&dv.firstChild&&dv.firstChild.nodeType===3) dv.firstChild.textContent='Ver pedido ';
   document.body.classList.toggle('sel-vacia',!piezas);
 
   const dbar=$('#dock-bar');
@@ -2033,7 +2048,7 @@ document.addEventListener('click',e=>{
     :t.closest('.vit, .vit-it, .sug, .sug-c')?'vitrina'
     :t.closest('#dock')?'barra'
     :t.closest('.pc--pp, .pp-compra')?'pagina-pieza'
-    :t.closest('.kp, [data-kit]')?'kit'
+    :t.closest('.kp, [data-kit], #cp-kit')?'kit'
     :t.closest('.pc')?'grilla'
     :'otro';
 },true);
@@ -2050,6 +2065,185 @@ document.addEventListener('click',e=>{
   if(!e.target.closest||!e.target.closest('[data-ir-pagar]')) return;
   e.preventDefault(); comprar();
 });
+
+/* ── El kit de la campaña, en el primer pantallazo (2026-11-22) ──
+ *
+ * Clarity, 291 visitas a campana-marvel.html: el 37 % se iba después de los
+ * destacados y solo el 42 % llegaba al combo (#combo), que es donde está la
+ * promo. La tarjeta #cp-kit sube la oferta arriba: brazalete + 3 charms, una
+ * gratis, el total y un botón que lo arma. La escribe gen_colecciones.py con
+ * los precios del último despliegue y aquí se repinta con los de hoy y con las
+ * existencias en vivo: los tres primeros charms de data-charms que haya. Sin
+ * brazalete o sin tres charms disponibles, no se muestra.
+ *
+ * `var` y no `let`: render() corre antes de que esta línea se ejecute. */
+/* ── «Más ›» en las filas de filtros (propietario, 2026-11-22) ──
+ * Las filas de filtros se deslizan de lado, pero sin barra a la vista nada lo
+ * decía: quien no arrastraba se quedaba con los cuatro primeros. Mientras
+ * queden filtros a la derecha, un botón «Más ›» pegado al borde lo avisa y, al
+ * tocarlo, corre la fila. Al llegar al final se esconde. No lleva la clase
+ * .fbtn: los manejadores de los filtros lo ignoran. */
+document.querySelectorAll('.filters').forEach(f=>{
+  const b=document.createElement('button');
+  b.type='button'; b.className='filters-mas'; b.setAttribute('aria-label','Ver más filtros');
+  b.innerHTML='Más <span aria-hidden="true">›</span>';
+  f.appendChild(b);
+  const ver=()=>{ b.hidden=f.scrollWidth-b.offsetWidth<=f.clientWidth+4||f.scrollLeft+f.clientWidth>=f.scrollWidth-b.offsetWidth-12; };
+  b.addEventListener('click',e=>{ e.stopPropagation(); f.scrollBy({left:Math.round(f.clientWidth*.7),behavior:'smooth'}); });
+  f.addEventListener('scroll',ver,{passive:true});
+  window.addEventListener('resize',ver);
+  ver(); setTimeout(ver,600);
+});
+
+/* Las casillas vacías de la escalera también llevan a elegir (propietario,
+   2026-11-22): quien toca una por curiosidad llega a los charms. En la
+   portada, a #charms; en una página de campaña, a sus destacados. */
+document.addEventListener('click',e=>{
+  const c=e.target.closest&&e.target.closest('.cpk-s .cpk-c:not(.on)'); if(!c) return;
+  const d=c.closest('#promo-esc')?document.getElementById('charms'):c.closest('#cp-kit')?document.getElementById('destacadas'):null;
+  if(d) d.scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+/* ── La escalera general (portada y carrito, 2026-11-22) ──
+ * La misma idea del kit de campaña, sin brazalete fijo: seis casillas, la
+ * cuarta y la sexta son las gratis. Las piezas que la promo regala de verdad
+ * (las de menor valor, `est.gratis`) van en esas dos casillas; las demás, en
+ * el orden en que se agregaron. `tag` es 'span' o 'li' (el carrito usa <ol>). */
+function escCasillas(est,tag){
+  const todas=sel.slice(); if(base) todas.push(base.id);
+  const gl=est.gratis.map(x=>x.id), pagas=[], libres=[];
+  todas.forEach(id=>{ const j=gl.indexOf(id); if(j>=0){ gl.splice(j,1); libres.push(id); } else pagas.push(id); });
+  const orden=[pagas[0],pagas[1],pagas[2],libres[0],pagas[3],libres[1]];
+  return orden.map((id,i)=>{
+    const regalo=i===3||i===5;
+    if(id) return '<'+tag+' class="cpk-c on'+(regalo?' free':'')+'"><img src="'+imgDe(id)+'" alt="" width="440" height="440" decoding="async">'+(regalo?'<i>GRATIS</i>':'')+'</'+tag+'>';
+    return regalo?'<'+tag+' class="cpk-c free"><b>GRATIS</b>'+(i===3?'la 4.ª':'la 6.ª')+'</'+tag+'>':'<'+tag+' class="cpk-c"><b>+</b>Pieza</'+tag+'>';
+  }).join('');
+}
+function escMensaje(est){
+  const n=est.piezas, pz=x=>x+(x===1?' pieza':' piezas');
+  if(!n) return 'Con 4 piezas, <b>1 te sale GRATIS</b>.<br>Con 6, <b>2 GRATIS</b>.';
+  if(n<3) return 'Llevas '+pz(n)+'. Te faltan <b>'+pz(4-n)+'</b><br>y <b>una te sale GRATIS</b>';
+  if(n===3) return 'Llevas 3 piezas. Agrega 1 más<br>y <b>te sale GRATIS</b>';
+  if(n===4) return '¡1 pieza GRATIS! Vas en <strong>'+cop(est.total)+'</strong>.<br>Agrega 2 piezas más: <b>pagas 1 y la otra es GRATIS</b>';
+  if(n===5) return 'Vas en <strong>'+cop(est.total)+'</strong>, con 1 pieza GRATIS.<br>Agrega 1 más y <b>también te sale GRATIS</b>';
+  return '¡Completo! '+n+' piezas por <strong>'+cop(est.total)+'</strong><br><b>'+est.nGratis+' GRATIS · ahorras '+cop(est.ahorro)+'</b>';
+}
+/* En la portada reemplaza el párrafo de «Promoción activa» (#promo-esc). */
+var escFirma='';
+function pintarEscaleraPortada(est){
+  const k=document.getElementById('promo-esc'); if(!k) return;
+  const firma=[sel.join(),base?base.id:'',est.total,est.ahorro].join('|');
+  if(firma===escFirma) return; escFirma=firma;
+  k.querySelector('.cpk-s').innerHTML=escCasillas(est,'span');
+  k.querySelector('.cpk-m').innerHTML=escMensaje(est);
+  const b=k.querySelector('.cpk-b'), listo=est.piezas>=4;
+  b.textContent=listo?'Ir a pagar':(est.piezas?'Seguir eligiendo':'Elegir mis piezas');
+  b.classList.toggle('cpk-b--sec',!listo);
+  if(listo) b.setAttribute('data-ir-pagar',''); else b.removeAttribute('data-ir-pagar');
+}
+
+var kitcTalla=false, kitcFirma='', kitcEst=null;
+function kitcCharms(k){
+  const l=(k.dataset.charms||'').split(',').filter(id=>CH[id]&&!agotado(id));
+  return l.length>=3?l.slice(0,3):null;
+}
+/* «Escalera de regalos» (propietario, 2026-11-22): la tarjeta deja de ser un
+   kit ya armado y pasa a ser seis casillas que se llenan con lo que ella
+   agrega. La cuarta es el brazalete y la sexta un charm: las dos piezas gratis
+   de la promo (4 piezas, 1 gratis; 6 piezas, 2 gratis), que antes solo se
+   decía en un párrafo más abajo. El mensaje dice cuánto falta para el
+   siguiente regalo con los números del carrito (render() se los pasa en
+   `est`), no con cuentas propias. «Gratis» va en la casilla del brazalete solo
+   si de verdad es la pieza que la promo regala (la de menor valor). */
+function pintarKitCampana(est){
+  const k=document.getElementById('cp-kit'); if(!k) return;
+  if(est) kitcEst=est;
+  est=kitcEst||{piezas:0,nGratis:0,total:0,ahorro:0,gratis:[]};
+  const b=k.dataset.base, cs=PU[b]&&!agotado(b)?kitcCharms(k):null;
+  const B=!!base, c=sel.length, n=est.piezas;
+  /* Sin brazalete que regalar, o sin charms con qué completar, no promete nada. */
+  if(!PU[b]||(!B&&agotado(b))||(!cs&&c<3)){ k.hidden=true; kitcFirma=''; return; }
+  const libres=tallasLibres(b)||TALLAS;
+  const firma=[sel.join(),B?base.id:'',n,est.nGratis,est.total,est.ahorro,kitcTalla,libres.join(),(cs||[]).join()].join('|');
+  if(firma===kitcFirma&&!k.hidden) return;
+  kitcFirma=firma;
+  const cuenta=(ids,bb)=>ids.reduce((s,id)=>s+precioPieza(id),0)+(bb?precioPieza(bb):0)
+    -gratisDe(ids,bb,precioPieza).reduce((s,x)=>s+x.p,0);
+  /* ¿Agregar el brazalete ahora no sube el total? Entonces ya se lo ganó. */
+  const baseGratis=!B&&c>=3&&cuenta(sel,b)===cuenta(sel,null);
+  const bzGratis=B&&est.gratis.some(x=>x.id===base.id);
+  const foto=id=>'<img src="'+imgDe(id)+'" alt="" width="440" height="440" decoding="async">';
+  const casilla=i=>{
+    const regalo=i===4;
+    if(sel[i]) return '<span class="cpk-c on'+(regalo&&est.nGratis>=2?' free':'')+'">'+foto(sel[i])+(regalo&&est.nGratis>=2?'<i>GRATIS</i>':'')+'</span>';
+    return regalo?'<span class="cpk-c free"><b>GRATIS</b>Charm</span>':'<span class="cpk-c"><b>+</b>Charm</span>';
+  };
+  const casB=B?'<span class="cpk-c on'+(bzGratis?' free':'')+'">'+foto(base.id)+(bzGratis?'<i>GRATIS</i>':'')+'</span>'
+    :'<span class="cpk-c free"><b>GRATIS</b>Brazalete</span>';
+  const pl=(x,s,pp)=>x+' '+(x===1?s:pp), faltan=x=>'Te falta'+(x===1?'':'n')+' <b>'+pl(x,'charm','charms')+'</b>';
+  let m;
+  if(!n) m='Con 3 charms, el <b>brazalete te sale GRATIS</b>.<br>Con 5, <b>otro charm GRATIS</b>.';
+  else if(!B&&c<3) m='Llevas '+c+'. '+faltan(3-c)+'<br>y el <b>brazalete te sale GRATIS</b>';
+  else if(baseGratis) m='¡Ya lo ganaste! Elige la talla de tu brazalete:<br><b>te sale GRATIS</b>';
+  else if(n<4) m='Llevas '+pl(n,'pieza','piezas')+'. '+faltan(4-n)+'<br>y <b>'+(B?'el brazalete':'una')+' te sale GRATIS</b>';
+  else if(n===4) m=(bzGratis?'¡Brazalete GRATIS!':'¡1 pieza GRATIS!')+' Vas en <strong>'+cop(est.total)+'</strong>.<br>Agrega 2 piezas más: <b>pagas 1 y la otra es GRATIS</b>';
+  else if(n===5) m='Vas en <strong>'+cop(est.total)+'</strong>, con 1 pieza GRATIS.<br>Agrega 1 más y <b>también te sale GRATIS</b>';
+  else m='¡Completo! '+n+' piezas por <strong>'+cop(est.total)+'</strong><br><b>'+est.nGratis+' GRATIS · ahorras '+cop(est.ahorro)+'</b>';
+  const listo=B&&c>=3, pideTalla=!B&&c>=3;
+  k.innerHTML='<div class="cpk-tx"><span class="cpk-e">Arma tu kit · hasta 2 piezas GRATIS</span>'
+    +'<b class="cpk-n">Tú eliges los charms, nosotros regalamos</b></div>'
+    +'<div class="cpk-s" aria-hidden="true">'+casilla(0)+casilla(1)+casilla(2)+casB+casilla(3)+casilla(4)+'</div>'
+    +'<p class="cpk-m" aria-live="polite">'+m+'</p>'
+    +(kitcTalla&&!B
+      ?'<div class="cpk-t"><p>¿Qué talla es tu brazalete? <small>Tu muñeca + 2 cm</small></p><div class="cpk-tr">'
+        +TALLAS.map(x=>'<button type="button" class="tbtn" data-kitc-talla="'+x+'"'
+          +(libres.indexOf(x)<0?' aria-disabled="true" aria-label="Talla '+x+' centímetros, sin unidades"':' aria-label="Talla '+x+' centímetros"')+'>'+x+'</button>').join('')
+        +'</div><p class="cpk-nota">'+(c>=3?'Va con los charms que elegiste.':'Lo completamos con '+pl(3-c,'charm','charms')+'; los cambias cuando quieras.')+'</p></div>'
+      :'<button type="button" class="btn btn--pagar cpk-b'+(listo||pideTalla?'':' cpk-b--sec')+'" data-kitc-armar>'
+        +(listo?'Ir a pagar':pideTalla?'Elegir talla e ir a pagar':'Elegir por mí')+'</button>');
+  k.hidden=false;
+}
+document.addEventListener('click',e=>{
+  const k=e.target.closest&&e.target.closest('#cp-kit'); if(!k) return;
+  const b=k.dataset.base;
+  /* Si ya traía charms elegidos, se respetan: solo se completa hasta tres. */
+  const completar=()=>(kitcCharms(k)||[]).forEach(id=>{ if(sel.length<3&&!sel.includes(id)) sumarCharm(id,true); });
+  if(e.target.closest('[data-kitc-armar]')){
+    if(base&&sel.length>=3){ comprar(); return; }
+    if(base){ completar(); render(); abrir(true); return; }
+    kitcTalla=true; pintarKitCampana(); return;
+  }
+  const t=e.target.closest('[data-kitc-talla]');
+  if(!t||t.getAttribute('aria-disabled')==='true') return;
+  const talla=t.dataset.kitcTalla;
+  base={id:b,talla:talla};
+  track('AddToCart',{content_type:'product',content_ids:[b],
+    content_name:PU[b].n+' · talla '+talla,value:PU[b].p,origen:'kit'});
+  completar();
+  kitcTalla=false;
+  render();
+  abrir(true);
+});
+
+/* Retoques del pago que no viven en el HTML (2026-11-22, mismos datos de
+   Clarity: ~150 «Agregar» y 2 «Comprar»; 26 fichas cerradas y casi ningún
+   «Agregar a mi pulsera»). Se hacen aquí, una vez, para no regenerar las ~190
+   páginas que copian el andamiaje de la portada:
+   - en la ficha, el botón de agregar sube bajo el precio (antes quedaba
+     debajo de la tabla de medidas, fuera de la pantalla del celular);
+   - sobre el total del carrito, una línea con lo que se ahorra por la promo. */
+var retocado=false;
+function retoquesDePago(){
+  if(retocado) return; retocado=true;
+  const tx=document.querySelector('#ficha .fx-tx'), cta=tx&&tx.querySelector('.fx-cta'), est=document.getElementById('fx-est');
+  if(cta&&est){ tx.insertBefore(cta,est.nextSibling); tx.classList.add('fx-tx--cta-arriba'); }
+  const tb=document.querySelector('.sheet-tot .tot-big');
+  if(tb&&!document.getElementById('tot-ahorro')){
+    const p=document.createElement('p'); p.className='tot-ahorro'; p.id='tot-ahorro'; p.hidden=true;
+    tb.parentNode.insertBefore(p,tb);
+  }
+}
 
 function sumarCharm(id,callado){
   if(agotado(id)||sel.filter(x=>x===id).length>=tope(id)) return;

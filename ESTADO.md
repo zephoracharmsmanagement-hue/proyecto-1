@@ -5,7 +5,48 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## Black Friday 2026 — precios y oferta (PR A, en vista previa: NO desplegado)
+## Kit arriba y paso al pago en la página Marvel — rama `claude/marvel-kit-y-pago`, en vista previa: NO desplegado
+
+Pedido del propietario (2026-11-22), tras ver la maqueta. Sale de Clarity sobre `campana-marvel.html`
+(291 visitas en 3 días, 80 % desde el navegador de Instagram o Facebook): el 37 % se iba después de
+los destacados y solo el 42 % llegaba al combo; ~150 toques en «Agregar» contra 2 en «Comprar»; la
+ficha se abría y se cerraba sin usar «Agregar a mi pulsera».
+
+- **Kit en el primer pantallazo (`#cp-kit`, solo campañas con brazalete): «escalera de regalos».**
+  El propietario vio variantes y escogió esta (2026-11-22) porque la promo de 6 piezas quedaba por
+  fuera. Seis casillas que se llenan con lo que ella agrega: tres charms, el brazalete (GRATIS),
+  otro charm y un sexto charm (GRATIS). El mensaje dice cuánto falta para el siguiente regalo con
+  los números del carrito (`render()` se los pasa a `pintarKitCampana()`): con 3 charms «elige la
+  talla de tu brazalete: te sale GRATIS»; con 4 piezas «agrega 2 más: pagas 1 y la otra es GRATIS»;
+  con 5, «agrega 1 más y también te sale GRATIS»; con 6, total y ahorro. El botón es «Elegir por
+  mí» (pide la talla y completa hasta 3 charms con los primeros disponibles de `data-charms`),
+  «Elegir talla e ir a pagar» (ya tiene 3 charms) o «Ir a pagar». La casilla del brazalete solo
+  dice GRATIS si es de verdad la pieza de menor valor. El HTML llega con la escalera vacía y **sin
+  precios escritos** (`kit_de_campana()` en `gen_colecciones.py`). El párrafo del encabezado se
+  esconde en estas páginas (`.cp-hero--kit`). **Cambia una decisión del 20-nov:** ya no caben los
+  5 destacados en el primer pantallazo del celular; caben el kit y 3 o 4 (2 a 360 px).
+- **Barra fija (toda la tienda):** con piezas dice «Tienes N piezas…», el total con «Ver pedido»
+  como enlace y el botón grande «Ir a pagar →» (antes «N piezas», «Ver detalle» y «Comprar»). Solo
+  CSS y texto: `.dock-info` pasa a `display:contents`. Vacía, queda como estaba.
+- **Carrito (toda la tienda):** sobre el total, «Te ahorras $X · N pieza(s) gratis» (`#tot-ahorro`).
+  Cuenta solo la promo, no el descuento de temporada.
+- **Ficha emergente (toda la tienda):** «Agregar a mi pulsera» sube bajo el precio, en color de
+  compra. En celular quedaba a ~1.200 px, fuera de la pantalla.
+- `#tot-ahorro` y el cambio de sitio del botón de la ficha los hace `retoquesDePago()` en tienda.js,
+  una vez, para no regenerar las ~190 páginas que copian el andamiaje de la portada. Si algún día se
+  regenera todo, se pueden pasar al HTML de index.html y quitar de ahí.
+- **Escalera general en la portada y en el carrito (2026-11-22, pedido del propietario tras ver la
+  de Marvel):** en `index.html`, `#promo-esc` reemplaza el párrafo de «Promoción activa»; en el
+  carrito (toda la tienda), las seis casillas reemplazan las barritas de `#hoja-dto`. Sin brazalete
+  fijo: las piezas que la promo regala de verdad (`gratisLista`) van en la cuarta y la sexta
+  casilla (`escCasillas()` en tienda.js). Las páginas de producto y kits.html conservan la caja de
+  texto de la promo.
+- En la barra, el aviso de «una más» pasó a «N piezas · ¡1 más GRATIS!»: con «Tienes» delante se
+  cortaba a 375 px.
+- Pendiente de decisión del propietario: en celular el ícono de WhatsApp queda sobre el «Agregar»
+  de alguna tarjeta de la lista (se ve en su captura del 22-nov).
+
+## Black Friday 2026 — precios y oferta — desplegado el 2026-11-21 (PR #59)
 
 Pedido del propietario (2026-11-20). **Toca el cobro**: no se despliega sin su «deploy», y antes de
 desplegar hay que avisar al tablero y a la Sesión 5 con la hora (hay anuncios con cifras en pesos).
@@ -34,7 +75,7 @@ desplegar hay que avisar al tablero y a la Sesión 5 con la hora (hay anuncios c
 - `gen_paginas.py` no conoce la línea de Clarity de las páginas legales: al regenerar hay que
   reponerla a mano (se repuso en envíos y preguntas frecuentes; las otras tres no se tocaron).
 
-## Black Friday 2026 — pago y página «Inicial y signo» (PR B, en vista previa: NO desplegado)
+## Black Friday 2026 — pago y página «Inicial y signo» — desplegado el 2026-11-21 (PR #60)
 
 Del estudio de conversión (2026-11-20). Va montado sobre el PR A: se despliega después de él.
 

@@ -238,9 +238,15 @@ src="https://www.facebook.com/tr?id=2005297310144764&ev=PageView&noscript=1"/></
      brazalete) que obligaba a hacer cuentas; ahora es una sola regla, en un
      recuadro. La misma caja va en cada página de producto, junto al precio. -->
 <section class="promo wrap" id="promo">
-  <div class="promo-caja">
-    <p class="promo-caja-t">✨ PROMOCIÓN ACTIVA: <b>Paga 3 y llévate 1&nbsp;gratis.</b></p>
-    <p class="promo-caja-x">Mezcla charms y brazaletes: con 4 piezas la de menor valor te sale totalmente <b>GRATIS</b>, y con 6 piezas te salen <b>2 gratis</b>. <span>(Se aplica automáticamente).</span></p>
+  <!-- «Escalera de regalos» (propietario, 2026-11-22): las seis casillas en
+       vez del párrafo. tienda.js (pintarEscaleraPortada) las llena con lo que
+       haya en el carrito. -->
+  <div class="promo-caja promo-esc" id="promo-esc">
+    <p class="promo-caja-t">✨ Arma tu set: <b>hasta 2 piezas GRATIS</b></p>
+    <div class="cpk-s" aria-hidden="true"><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 4.ª</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 6.ª</span></div>
+    <p class="cpk-m" aria-live="polite">Con 4 piezas, <b>1 te sale GRATIS</b>.<br>Con 6, <b>2 GRATIS</b>.</p>
+    <a class="btn btn--pagar cpk-b cpk-b--sec" href="#charms">Elegir mis piezas</a>
+    <p class="promo-caja-x"><span>Mezcla charms y brazaletes: salen gratis las de menor valor. Se aplica automáticamente.</span></p>
   </div>
   <!-- Addi a la vista (pedido del propietario, 2026-10-08: «mejor visibilidad
        del método de pago para más conversión»). «Sin interés» es el plan Addi

@@ -137,7 +137,9 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
         descNota: dn.hidden ? null : dn.textContent.trim(),
         /* La barra de la promo: casillas llenas, o null si no se pinta. */
         dto: document.getElementById('hoja-dto').hidden ? null
-          : document.querySelectorAll('#hoja-dto li.is-on').length,
+          : document.querySelectorAll('#hoja-dto li.on').length,
+        /* De esas, las marcadas GRATIS (la cuarta y la sexta casilla). */
+        dtoGratis: document.querySelectorAll('#hoja-dto li.on.free').length,
         /* Las líneas que salen GRATIS: lo tachado en cada una. */
         tachado: [...document.querySelectorAll('#sheet-body .srow--gratis .srow-p s')]
           .map(s => +s.textContent.replace(/\D/g, '')),
@@ -170,7 +172,13 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
       const max = !sig, completo = max || (ult && ult[0] === piezas);
       const fin = max ? ult[0] : (completo ? piezas : sig[0]);
       const ini = completo ? (prev ? prev[0] : 0) : (ult ? ult[0] : 0);
-      const llenas = piezas ? Math.min(piezas, fin) - ini : null;
+      /* Desde el 2026-11-22 la barra son las seis casillas de la escalera:
+         una por pieza hasta seis, y las gratis van en la cuarta y la sexta. */
+      const llenas = piezas ? Math.min(piezas, 6) : null;
+      if (piezas && enPantalla.dtoGratis !== servidor.gratis.length) {
+        fallas++;
+        console.log(`  ✗ ${piezas} piezas: la escalera marca ${enPantalla.dtoGratis} casillas GRATIS y el servidor regala ${servidor.gratis.length}`);
+      }
       const tachado = enPantalla.tachado.reduce((a, b) => a + b, 0);
       if (tachado !== servidor.descuento) {
         fallas++;
@@ -322,8 +330,12 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
     const CAT = require(path.join(__dirname, '..', 'assets', 'catalogo.json'));
     const [p1, g1] = R.promo.tramos[0], [p2, g2] = R.promo.tramos[R.promo.tramos.length - 1];
     const caja = (await p.textContent('#promo .promo-caja')).replace(/\s+/g, ' ');
-    ok(new RegExp(`Paga ${p1 - g1} y llévate ${g1} gratis`, 'i').test(caja) && new RegExp(`con ${p1} piezas`).test(caja) && new RegExp(`con ${p2} piezas te salen ${g2} gratis`).test(caja),
-      `el recuadro anuncia «paga ${p1 - g1}, lleva ${g1} gratis» con ${p1} piezas y ${g2} gratis con ${p2}`, caja.slice(0, 60));
+    /* Desde el 2026-11-22 el recuadro es la escalera: seis casillas, dos de regalo. */
+    const esc = await p.evaluate(() => ({ n: document.querySelectorAll('#promo-esc .cpk-c').length, g: document.querySelectorAll('#promo-esc .cpk-c.free').length }));
+    /* El mensaje cambia con lo que haya en el carrito; lo fijo son el título y las casillas. */
+    ok(new RegExp(`hasta ${g2} piezas GRATIS`, 'i').test(caja)
+      && esc.n === p2 && esc.g === g2,
+      `el recuadro anuncia ${g1} gratis con ${p1} piezas y ${g2} gratis con ${p2}, en ${p2} casillas`, caja.slice(0, 60));
     ok(/menor valor/i.test(caja) && /GRATIS/.test(caja), 'y que la de menor valor sale gratis');
     ok(!(await p.$('#esc')), 'la cuadrícula de tramos viejos ya no está');
     const banner = (await p.textContent('.ann')).replace(/\s+/g, ' ');
