@@ -126,8 +126,13 @@ const comprobar = (c, m, d) => {
       await p.evaluate(() => document.querySelectorAll('#charms .pc:not(.is-out) .pc-add:not([aria-disabled="true"])')[1].click());
       await p.waitForTimeout(600);
       const a2 = await p.evaluate(() => { const a = document.getElementById('aviso-corto'), r = a.getBoundingClientRect(); return { tx: a.textContent, dentro: r.left >= 0 && r.right <= innerWidth }; });
-      comprobar(/con 1 más el envío es GRATIS/.test(a1) && /Ir a pagar/.test(a1) && !/envío/.test(a2.tx) && a2.dentro,
-        'al agregar la primera pieza el aviso dice «con 1 más el envío es GRATIS»; con la segunda ya no', `${a1} → ${a2.tx}`);
+      comprobar(a1 === '✓ Agregado · con 1 más el envío es GRATIS' && a2.tx === '' && a2.dentro,
+        'al agregar la primera pieza el aviso dice «con 1 más el envío es GRATIS», sin «Ir a pagar»; con la segunda, en la grilla, ya no sale', `${a1} → «${a2.tx}»`);
+      /* Y vuelve cuando hay otra noticia: la pieza que completa la promo. */
+      await p.evaluate(async () => { for (const i of [2, 3]) { document.querySelectorAll('#charms .pc:not(.is-out) .pc-add:not([aria-disabled="true"])')[i].click(); await new Promise(r => setTimeout(r, 300)); } });
+      await p.waitForTimeout(400);
+      const a4 = await p.evaluate(() => ({ tx: document.getElementById('aviso-corto').textContent, on: document.getElementById('aviso-corto').classList.contains('is-on'), ir: !!document.querySelector('#aviso-corto [data-ir-pagar]') }));
+      comprobar(a4.tx === '✓ Agregado · ya tienes 1 pieza GRATIS' && a4.on && !a4.ir, 'con la cuarta pieza avisa que ya tiene 1 pieza GRATIS', a4.tx);
       await p.context().close();
     }
 

@@ -45,7 +45,10 @@ osea pago anticipado y contraentrega despues de 2 piezas antes, si el cliente pi
     se viera por qué.
   - *Cinta de arriba*: un segundo aviso (`.ann-slide--envio`, `.ann-track--dos`) que se turna
     cada 6 s con el de la oferta. Al quitar la oferta sigue turnándose con el aviso de siempre.
-  - *Al agregar la primera pieza*: `avisoAgregado()` añade «con 1 más el envío es GRATIS».
+  - *Aviso «✓ Agregado»*: ya **no lleva «Ir a pagar»** (propietario, 2026-11-25; en Clarity se
+    tocó 2 veces en ~550 «Agregar») y dura 2,6 s. En las grillas solo sale con una noticia: con
+    la primera pieza «con 1 más el envío es GRATIS», y al completar un tramo de la promo «ya
+    tienes 1 pieza GRATIS». En la ficha, las sugerencias y los kits se conserva siempre.
   - *Sugerencias del carrito*: con una pieza el título pasa a «Suma una más y el envío es gratis».
   En `checkout.html` no se invita a sumar piezas (decisión anterior, la vigila `pruebas/checkout.js`):
   solo se dice la regla.
