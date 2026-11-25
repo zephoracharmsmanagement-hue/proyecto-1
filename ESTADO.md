@@ -49,6 +49,13 @@ osea pago anticipado y contraentrega despues de 2 piezas antes, si el cliente pi
   - *Sugerencias del carrito*: con una pieza el título pasa a «Suma una más y el envío es gratis».
   En `checkout.html` no se invita a sumar piezas (decisión anterior, la vigila `pruebas/checkout.js`):
   solo se dice la regla.
+- **Pantalla de pago en celular: resumen corto al llegar** (`#res-corto`, maqueta B aprobada el
+  2026-11-25). De Clarity (3 días, 57 vistas de `checkout.html`): un tercio se iba sin bajar, y lo
+  más tocado era «Ver pedido». Ahora se ven las fotos (hasta 5, y «+N»), las cuentas y el total, y
+  el campo «Nombre» queda a la vista. Va en el flujo de la página, no pegado: al bajar queda la
+  barra de siempre con el total y la escalera de la promo, que **ya no se muestra al llegar** (el
+  propietario lo sabe). «Ver detalle» abre la lista completa y esconde el corto. En computador no
+  cambia nada. Lo vigila `pruebas/checkout.js`.
 - `gen_productos.py` vuelve a correr desde `main`: faltaban seis ids opcionales en
   `IDS_OPCIONALES` (`bfb`, `cp-kit`, `destacadas`, `piezas`, `promo-esc`, `tot-ahorro`).
 - **Al publicar:** los anuncios y mensajes de Black Friday prometen «envío gratis» sin condición

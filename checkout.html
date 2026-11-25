@@ -239,7 +239,25 @@ button{font-family:inherit}
 /* En el celular el resumen pegado arriba ocupaba un tercio de la pantalla
    mientras se llenan los datos. Al bajar queda compacto: total y escalera del
    descuento, sin el texto, que ya se leyó al entrar. */
+.res-corto{display:none}
 @media(max-width:759px){
+  /* Al llegar: la barra solo titula y el resumen corto va debajo, en el flujo
+     de la página. Al bajar (.is-compacto) vuelve la barra de siempre —total y
+     escalera de la promo— y el corto ya quedó atrás. */
+  .res-corto{display:block;background:var(--white);border-bottom:1px solid var(--line);padding:2px 16px 12px}
+  .res-corto[hidden]{display:none}
+  .rc-fotos{display:flex;gap:8px;margin:0 0 10px}
+  .rc-fotos img,.rc-fotos .rc-nof,.rc-fotos .rc-mas{flex:0 1 54px;min-width:0;width:54px;height:auto;aspect-ratio:1;border:1px solid var(--line);
+    border-radius:3px;background:#fff}
+  .rc-fotos img{object-fit:contain;padding:3px}
+  .rc-fotos .rc-nof,.rc-fotos .rc-mas{display:grid;place-items:center;font-size:15px;color:var(--gris)}
+  .rc-fotos .rc-mas{font-size:13.5px;background:#fbf9fa}
+  .res-corto .susc-ck{display:none}
+  .rc-fin{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px;padding-top:8px;border-top:1px solid var(--line)}
+  .rc-fin span{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink)}
+  .rc-fin b{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500;line-height:1.1}
+  .res:not(.is-compacto):not(.is-on) .res-p,.res:not(.is-compacto):not(.is-on) .dto{display:none}
+  .res:not(.is-compacto):not(.is-on){border-bottom:0}
   .res.is-compacto .dto-nota{display:none}
   .res.is-compacto .res-bar{padding-top:7px;padding-bottom:5px}
   .res.is-compacto .res-p{font-size:19px}
@@ -318,14 +336,25 @@ button{font-family:inherit}
 
 <main id="app" hidden>
 
+  <!-- Resumen corto, solo en celular y al llegar (2026-11-25). En Clarity lo
+       más tocado de esta página era «Ver pedido»: quien llega quiere ver qué
+       lleva y cuánto es antes de escribir sus datos. Fotos, cuentas y total,
+       sin esconder el formulario. No es pegajoso: al bajar queda la barra de
+       siempre. La lista completa sigue en «Ver detalle». -->
+  <section class="res-corto" id="res-corto" aria-label="Tu pedido">
+    <div class="rc-fotos" id="rc-fotos"></div>
+    <div id="rc-totales"></div>
+    <div class="rc-fin"><span>Total</span><b id="rc-total"></b></div>
+  </section>
+
   <!-- resumen: barra plegable en móvil, columna fija en escritorio -->
   <div class="res" id="res">
     <button class="res-bar" type="button" id="res-bar" aria-expanded="false" aria-controls="res-caja">
       <span>
-        <span class="res-t">Resumen del pedido</span>
+        <span class="res-t" id="res-t">Resumen del pedido</span>
         <span class="res-p" id="res-total">$0</span>
       </span>
-      <span class="res-ver">Ver pedido
+      <span class="res-ver">Ver detalle
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
       </span>
     </button>
@@ -840,6 +869,18 @@ function pintarResumen(){
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
     : '<div class="tot-row"><span>Envío ('+(t.especial?'destino especial':c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
   if(t.descSusc>0) h+='<div class="tot-row save tot-susc"><span>🎁 Descuento de suscriptora</span><b>− '+cop(t.descSusc)+'</b></div>';
+  /* El resumen corto del celular: las mismas cuentas, las fotos en fila y el
+     total. Hasta 5 fotos; si hay más piezas, las que faltan van como «+N». */
+  $('#rc-totales').innerHTML=h;
+  $('#rc-total').textContent=cop(t.total);
+  { const ls=lineas(c), caben=ls.length>5?4:5;
+    $('#rc-fotos').innerHTML=ls.slice(0,caben).map(l=>{
+      const ini=esc(l.n.trim().charAt(0).toUpperCase());
+      return '<img src="'+esc((l.foto||('assets/'+l.id+'.webp'))+'?v=20260822')+'" alt="'+esc(l.n)+'" loading="lazy" onerror="this.outerHTML='
+        +'&quot;<span class=\\&quot;rc-nof\\&quot; aria-hidden=\\&quot;true\\&quot;>'+ini+'</span>&quot;">';
+    }).join('')+(ls.length>caben?'<span class="rc-mas">+'+(ls.length-caben)+'</span>':'');
+    const nP0=nPiezasDe(c);
+    $('#res-t').textContent='Tu pedido · '+nP0+(nP0===1?' pieza':' piezas'); }
   h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
   /* El aviso del descuento de suscriptora. Con el correo ya revisado, lo que
      falta (si falta) para aplicarlo; si este navegador se suscribió pero aún no
@@ -1466,7 +1507,8 @@ Promise.all([
   $('#res-bar').addEventListener('click',()=>{
     const on=$('#res').classList.toggle('is-on');
     $('#res-bar').setAttribute('aria-expanded',on?'true':'false');
-    $('#res-bar').querySelector('.res-ver').firstChild.textContent=on?'Ocultar ':'Ver pedido ';
+    $('#res-bar').querySelector('.res-ver').firstChild.textContent=on?'Ocultar ':'Ver detalle ';
+    $('#res-corto').hidden=on;
   });
 
   /* Elegir departamento repuebla las ciudades y deja la ciudad en blanco otra

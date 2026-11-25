@@ -826,6 +826,9 @@ const ids = h => new Set([...h.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
           const cs = getComputedStyle(el), rc = el.getBoundingClientRect();
           if (!rc.width || !rc.height || cs.visibility === 'hidden' || opac(el) < 0.05) continue;
           if (el.closest('[hidden],script,style,.hbanner,.susc,.lb,[aria-disabled="true"],[disabled]')) continue;
+          /* La cinta de arriba turna dos avisos con un fundido (2026-11-25): el que
+             va entrando o saliendo no es un texto ilegible, es medio segundo de paso. */
+          if (el.closest('.ann-track--dos') && opac(el) < 1) continue;
           const bg = fondo(el); if (!bg) continue;
           let c = rgb(cs.color); c.a *= opac(el); c = mezcla(c, bg);
           const L1 = lum(c), L2 = lum(bg), r = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);
