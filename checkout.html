@@ -812,6 +812,12 @@ function calcular(c){
     total:Math.round(subtotal+envio-descSusc)};
 }
 
+/* La foto de una pieza sale del catálogo, no del id: un anillo se llama
+   `anillo-…-t6` y su foto no lleva la talla, y hay charms cuyo archivo no
+   coincide con el id (`lilo-stitch` → `lilo-y-stitch.webp`). Adivinar el nombre
+   dejaba esas piezas con una letra en vez de la foto (propietario, 2026-11-25). */
+const fotoDe=id=>'assets/'+((CAT.fotos||{})[id]||id+'.webp');
+
 function lineas(c){
   const out=[], libres={};
   const kB=b=>b.id+'|'+(b.talla||'');
@@ -849,7 +855,7 @@ function pintarResumen(){
   $('#res-lineas').innerHTML=lineas(c).map(l=>{
     /* Los charms sin foto van con la inicial, igual que en el catálogo, en vez
        de un <img> roto. */
-    const foto=(l.foto||('assets/'+l.id+'.webp'))+'?v=20260822';
+    const foto=(l.foto||fotoDe(l.id))+'?v=20260822';
     const ini=esc(l.n.trim().charAt(0).toUpperCase());
     const img=foto
       ? '<img src="'+esc(foto)+'" alt="" loading="lazy" onerror="this.outerHTML='
@@ -876,7 +882,7 @@ function pintarResumen(){
   { const ls=lineas(c), caben=ls.length>5?4:5;
     $('#rc-fotos').innerHTML=ls.slice(0,caben).map(l=>{
       const ini=esc(l.n.trim().charAt(0).toUpperCase());
-      return '<img src="'+esc((l.foto||('assets/'+l.id+'.webp'))+'?v=20260822')+'" alt="'+esc(l.n)+'" loading="lazy" onerror="this.outerHTML='
+      return '<img src="'+esc((l.foto||fotoDe(l.id))+'?v=20260822')+'" alt="'+esc(l.n)+'" loading="lazy" onerror="this.outerHTML='
         +'&quot;<span class=\\&quot;rc-nof\\&quot; aria-hidden=\\&quot;true\\&quot;>'+ini+'</span>&quot;">';
     }).join('')+(ls.length>caben?'<span class="rc-mas">+'+(ls.length-caben)+'</span>':'');
     const nP0=nPiezasDe(c);
