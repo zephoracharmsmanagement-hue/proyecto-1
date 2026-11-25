@@ -33,6 +33,21 @@ const comprobar = (c, m, d) => {
     .map(([id]) => id).slice(0, 2);
   comprobar(charms.length === 2, 'hay dos charms con existencias para probar', charms.join(', '));
 
+  /* El servidor no acepta contraentrega a un destino especial aunque alguien
+     la mande saltándose la página. Se rechaza antes de apartar o guardar nada,
+     así que se puede llamar a la función de verdad sin almacén. */
+  {
+    const { pathToFileURL } = require('url');
+    const fn = (await import(pathToFileURL(path.join(RAIZ, 'netlify', 'functions', 'crear-pago.mjs')).href)).default;
+    const r = await fn(new Request('https://zephoracharms.com/.netlify/functions/crear-pago', { method: 'POST',
+      headers: { 'content-type': 'application/json', origin: 'https://zephoracharms.com' },
+      body: JSON.stringify({ charms: charms.slice(0, 1), pago: 'contraentrega', cliente: { nombre: 'Prueba', apellido: 'Interna',
+        celular: '3001234567', correo: 'prueba.interna@example.com', depto: ESP, ciudad: 'Leticia', direccion: 'Calle 10 # 20-30' } }) }), {});
+    const tx = await r.text();
+    comprobar(r.status === 400 && /solo enviamos con pago anticipado/.test(tx),
+      `crear-pago rechaza la contraentrega a ${ESP} con un 400 que lo explica`, r.status + ' ' + tx.slice(0, 90));
+  }
+
   const b = await chromium.launch({ executablePath: process.env.CHROME_EXE || undefined });
   for (const [w, h, nombre] of [[390, 844, 'celular'], [1366, 768, 'computador']]) {
     console.log(`\n${nombre} (${w}×${h})`);
