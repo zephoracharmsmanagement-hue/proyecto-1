@@ -839,13 +839,21 @@
     ]
    ]
   },
-  "envioGratisDesde": 0,
-  "envioGratisSoloAnticipado": true,
   "envio": {
    "anticipado": 15000,
-   "contraentrega": 20000
+   "contraentrega": 25000
   },
-  "contraentregaGratisDesde": 2,
+  "envioGratisDesdePiezas": 2,
+  "envioEspecial": {
+   "precio": 38000,
+   "departamentos": [
+    "Amazonas",
+    "Guainía",
+    "San Andrés y Providencia",
+    "Vaupés",
+    "Vichada"
+   ]
+  },
   "oferta": {
    "nombre": "Black Friday",
    "hasta": "2026-11-30",

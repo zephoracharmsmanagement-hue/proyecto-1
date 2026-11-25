@@ -27,7 +27,7 @@
  */
 import crypto from 'node:crypto';
 import { leerPedido, comprobarInventario, calcular, detallar, cop,
-  PedidoInvalido, SinInventario, fotos, brazaletesDe } from './_precios.js';
+  PedidoInvalido, SinInventario, fotos, brazaletesDe, esDestinoEspecial } from './_precios.js';
 import { reservar, confirmar, liberar } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
@@ -258,8 +258,14 @@ export default async (req) => {
         throw new PedidoInvalido(`Para pagar con ${addi ? 'Addi' : 'Sistecrédito'} necesitamos tu cédula (solo números)`);
       }
     }
+    /* Destinos especiales: la transportadora no recauda allá, y el envío se
+       cobra completo por adelantado. La página ya no ofrece la contraentrega
+       para esos departamentos; esto es por si alguien la manda igual. */
+    if (pedido.pago === 'contraentrega' && esDestinoEspecial(cliente.depto)) {
+      throw new PedidoInvalido('A ese departamento solo enviamos con pago anticipado');
+    }
     comprobarInventario(pedido);
-    cuentas = calcular(pedido);
+    cuentas = calcular(pedido, undefined, cliente.depto);
   } catch (e) {
     if (e instanceof PedidoInvalido) return responder(400, { error: e.message });
     /* 409, no 400: el pedido está bien formado, es el mundo el que cambió. El

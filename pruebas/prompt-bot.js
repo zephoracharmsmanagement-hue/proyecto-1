@@ -158,11 +158,10 @@ function main() {
      descuento contra _suscriptores.mjs; cualquier otro $15.000 sigue en rojo. */
   const enElPrompt = platas(prompt.split('\n')
     .filter(l => !/DESCUENTO POR SUSCRIBIRSE|de descuento en su primera compra|se descuentan los 15\.000|los 15\.000 los resta el checkout/i.test(l)).join('\n'));
-  /* Lo único que la tienda cobra hoy por envío. El anticipado es gratis
-     (envioGratisDesde 0 y solo para anticipado), así que su tarifa NO debe
-     aparecer: nombrarla es cobrarla de palabra. */
-  const permitidas = new Set([reglas.envio.contraentrega]);
-  if (reglas.envioGratisDesde > 0) permitidas.add(reglas.envioGratisDesde);
+  /* Lo que la tienda cobra por envío (por zonas, desde el 2026-11-25): una
+     pieza paga según el pago, los destinos especiales su precio fijo. Cualquier
+     otra cifra es cobrar de palabra algo que el checkout no cobra. */
+  const permitidas = new Set([reglas.envio.anticipado, reglas.envio.contraentrega, reglas.envioEspecial.precio]);
   if (reglas.empaque) permitidas.add(reglas.empaque);
 
   const intrusas = [...enElPrompt].filter(n => !permitidas.has(n));
@@ -170,14 +169,19 @@ function main() {
     'ninguna cifra del prompt contradice catalogo.json',
     intrusas.length ? 'sobra: ' + intrusas.map(n => '$' + n.toLocaleString('es-CO')).join(', ') : undefined);
 
-  comprobar(enElPrompt.has(reglas.envio.contraentrega),
-    'dice la tarifa de contraentrega que de verdad se cobra',
-    '$' + reglas.envio.contraentrega.toLocaleString('es-CO'));
-
-  const gratisSinMinimo = reglas.envioGratisDesde === 0 && reglas.envioGratisSoloAnticipado;
-  if (gratisSinMinimo) {
-    comprobar(/GRATIS/i.test(prompt) && /SIN MONTO MINIMO|sin monto m[ií]nimo/i.test(prompt),
-      'anuncia el envío gratis sin mínimo, que es argumento de venta');
+  for (const [que, n] of [['una pieza con pago anticipado', reglas.envio.anticipado],
+    ['una pieza contraentrega', reglas.envio.contraentrega], ['destinos especiales', reglas.envioEspecial.precio]]) {
+    comprobar(enElPrompt.has(n), `dice lo que de verdad se cobra por envío: ${que}`, '$' + n.toLocaleString('es-CO'));
+  }
+  comprobar(new RegExp(reglas.envioGratisDesdePiezas + ' PIEZAS O MAS el envio es GRATIS', 'i').test(prompt),
+    `anuncia el envío gratis desde ${reglas.envioGratisDesdePiezas} piezas, que es argumento de venta`);
+  comprobar(!/SIN MONTO MINIMO|sin monto m[ií]nimo|GRATIS a toda Colombia/i.test(prompt),
+    'ya no promete envío gratis sin condición');
+  {
+    const sinTildes = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const faltan = reglas.envioEspecial.departamentos.filter(d => !sinTildes(prompt).includes(sinTildes(d)));
+    comprobar(faltan.length === 0 && /SOLO con pago anticipado/i.test(prompt),
+      'nombra los destinos especiales y que allá no hay contraentrega', faltan.join(', ') || undefined);
   }
 
   console.log('\n3 · No ofrece lo que la tienda retiró');

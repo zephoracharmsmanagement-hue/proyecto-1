@@ -1,17 +1,18 @@
 (function(){
-const WA='573018990672', LIBRE=0;
-/* Envío con tarifa plana nacional. La contraentrega cuesta más porque la
-   transportadora cobra el recaudo. Gratis a partir de LIBRE en ambos casos. */
-const ENVIO={anticipado:15000, contraentrega:20000};
-/* El envío gratis premia el prepago y solo el prepago. La contraentrega le
-   cuesta a la tienda la comisión de recaudo de la transportadora y el riesgo
-   de que el paquete se devuelva sin cobrar: regalar ese envío es subsidiar la
-   opción más cara. Se dice de frente en el carrito, no en letra chica. */
-const LIBRE_SOLO_ANTICIPADO=true;
-/* …salvo desde este número de piezas (propietario, 2026-11-20): con 2 o más,
-   la contraentrega tampoco paga envío. Con 1 pieza se siguen cobrando los
-   $20.000. Cuenta piezas —brazalete o charm—, no pesos. 0 lo apaga. */
-const CONTRA_GRATIS_DESDE=2;
+const WA='573018990672';
+/* Envío (propietario, 2026-11-25). Dos zonas:
+   · Nacional: con 1 pieza se cobra ENVIO según el pago —la contraentrega
+     cuesta más porque la transportadora cobra el recaudo y la protección—; con
+     ENVIO_GRATIS_DESDE piezas o más es gratis en las dos modalidades. Cuenta
+     piezas —brazalete, charm o anillo, cada unidad—, no pesos.
+   · Destinos especiales: los departamentos apartados, donde la guía vale
+     mucho más (cotizado el 2026-11-25). Ahí el envío vale ENVIO_ESPECIAL.precio
+     siempre, sin gratis por piezas, y no hay contraentrega.
+   El carrito no sabe a dónde va el pedido: muestra la zona nacional. El
+   destino se elige en checkout.html, y quien cobra es _precios.js. */
+const ENVIO={anticipado:15000, contraentrega:25000};
+const ENVIO_GRATIS_DESDE=2;
+const ENVIO_ESPECIAL={precio:38000, departamentos:["Amazonas","Guainía","San Andrés y Providencia","Vaupés","Vichada"]};
 let pago='anticipado';
 const DATA={"charms": [{"id": "mickey-mouse", "n": "Mickey Mouse", "p": 105000}, {"id": "minnie-mouse", "n": "Minnie Mouse", "p": 105000}, {"id": "dalmata", "n": "Dálmata", "p": 105000}, {"id": "ariel", "n": "Ariel", "p": 105000}, {"id": "jasmine", "n": "Jasmine", "p": 105000}, {"id": "blancanieves", "n": "Blancanieves", "p": 105000}, {"id": "princesa-bella", "n": "Princesa Bella", "p": 105000}, {"id": "olaf-de-frozen", "n": "Olaf de Frozen", "p": 105000}, {"id": "stitch-azul", "n": "Stitch Plateado", "p": 105000}, {"id": "stitch", "n": "Stitch", "p": 105000}, {"id": "angel", "n": "Angel", "p": 105000}, {"id": "lilo-stitch", "n": "Lilo & Stitch", "p": 105000}, {"id": "gato-cheshire", "n": "Gato Cheshire", "p": 105000}, {"id": "jack-sally", "n": "Jack & Sally", "p": 105000}, {"id": "buzz-lightyear", "n": "Buzz Lightyear", "p": 105000}, {"id": "casa-de-los-globos", "n": "Casa de los Globos", "p": 105000}, {"id": "mike-wazowski", "n": "Mike Wazowski", "p": 105000}, {"id": "sulley", "n": "Sulley", "p": 105000}, {"id": "walle", "n": "WALL·E", "p": 105000}, {"id": "capitan-america", "n": "Capitán América", "p": 105000}, {"id": "escudo-capitan-america", "n": "Escudo Capitán América", "p": 105000}, {"id": "spider-man", "n": "Spider-Man", "p": 105000}, {"id": "wolverine", "n": "Wolverine", "p": 105000}, {"id": "hulk", "n": "Hulk", "p": 105000}, {"id": "guantelete-del-infinito", "n": "Guantelete del Infinito", "p": 105000}, {"id": "iron-man", "n": "Iron Man", "p": 105000}, {"id": "deadpool", "n": "Deadpool", "p": 105000}, {"id": "mjolnir-martillo-de-thor", "n": "Mjolnir – Martillo de Thor", "p": 105000}, {"id": "groot-bebe", "n": "Groot Bebé", "p": 105000}, {"id": "casco-iron-man", "n": "Casco Iron Man", "p": 105000}, {"id": "mascara-un-gran-poder", "n": "Máscara Un Gran Poder", "p": 105000}, {"id": "esfera-telarana-spider-man", "n": "Esfera Telaraña Spider-Man", "p": 105000}, {"id": "spider-man-pave", "n": "Spider-Man Pavé", "p": 105000}, {"id": "mascara-spider-man-roja", "n": "Máscara Spider-Man Roja", "p": 105000}, {"id": "corazon-de-filigrana", "n": "Corazón de Filigrana", "p": 98000}, {"id": "clip-orquideas-moradas", "n": "Clip Orquídeas Moradas", "p": 88000}, {"id": "clip-mariposas-de-colores", "n": "Clip Mariposas de Colores", "p": 88000}, {"id": "clip-forever-multicolor", "n": "Clip Forever Multicolor", "p": 88000}, {"id": "clip-infinito-con-corazon", "n": "Clip Infinito con Corazón", "p": 88000}, {"id": "cadena-seguridad-love-forever", "n": "Cadena Seguridad Love Forever", "p": 85000}, {"id": "cadena-seguridad-hamsa-y-ojo", "n": "Cadena Seguridad Hamsa y Ojo", "p": 85000}, {"id": "cadena-seguridad-luna-y-sol", "n": "Cadena Seguridad Luna y Sol", "p": 85000}, {"id": "bola-rosa-con-flores", "n": "Murano Rosa con Flores", "p": 92000}, {"id": "osito-pave-con-corazon", "n": "Osito Pavé con Corazón", "p": 100000}, {"id": "angel-guardian", "n": "Ángel Guardián", "p": 96000}, {"id": "pulpo-azul-cristal", "n": "Pulpo Azul Cristal", "p": 104000}, {"id": "osito-graduacion", "n": "Osito Graduación", "p": 104000}, {"id": "caballo-herradura", "n": "Caballo Herradura", "p": 92000}, {"id": "manos-orando-con-cruz", "n": "Manos Orando con Cruz", "p": 96000}, {"id": "trebol-verde-giratorio", "n": "Trébol Verde Giratorio", "p": 104000}, {"id": "torre-eiffel-y-camara", "n": "Torre Eiffel y Cámara", "p": 92000}, {"id": "gatito-con-corazon-azul", "n": "Gatito con Corazón Azul", "p": 92000}, {"id": "huella-con-huesito", "n": "Huella con Huesito", "p": 92000}, {"id": "atrapasuenos-azul", "n": "Atrapasueños Azul", "p": 92000}, {"id": "tortuga-marina-cristal", "n": "Tortuga Marina Cristal", "p": 92000}, {"id": "osito-con-rosa-y-corazon", "n": "Osito con Rosa y Corazón", "p": 96000}, {"id": "atrapasuenos-corazon-multicolor", "n": "Atrapasueños Corazón Multicolor", "p": 92000}, {"id": "mariposas-tricolor-colgantes", "n": "Mariposas Tricolor Colgantes", "p": 92000}, {"id": "avion-globo-y-pasaporte", "n": "Avión, Globo y Pasaporte", "p": 92000}, {"id": "sol-y-luna-con-cristales", "n": "Sol y Luna con Cristales", "p": 92000}, {"id": "bola-roja-remolino", "n": "Murano Fucsia Remolino", "p": 92000}, {"id": "libelula-morada", "n": "Libélula Morada", "p": 92000}, {"id": "virgen-maria", "n": "Virgen María", "p": 96000}, {"id": "bola-azul-con-flor-rosa", "n": "Murano Azul con Flor Rosa", "p": 92000}, {"id": "elefantito-rosa", "n": "Elefantito Rosa", "p": 98000}, {"id": "conejita-con-corazon-rosa", "n": "Conejita con Corazón Rosa", "p": 96000}, {"id": "flor-azul-con-cristales", "n": "Flor Azul con Cristales", "p": 92000}, {"id": "camaleon-verde", "n": "Camaleón Verde", "p": 92000}, {"id": "esfera-azul-con-cristales", "n": "Esfera Azul con Cristales", "p": 92000}, {"id": "luciernaga-you-are-my-light", "n": "Luciérnaga Evangeline", "p": 92000}, {"id": "corazon-arbol-de-la-vida", "n": "Corazón Árbol de la Vida", "p": 98000}, {"id": "charm-psicologia", "n": "Charm Psicología", "p": 92000}, {"id": "charm-odontologia", "n": "Charm Odontología", "p": 92000}, {"id": "charm-fisioterapia", "n": "Charm Fisioterapia", "p": 92000}, {"id": "charm-medicina", "n": "Charm Medicina", "p": 92000}, {"id": "carrusel-rosado", "n": "Carrusel Rosado", "p": 102000}, {"id": "aries", "n": "Aries", "p": 96000}, {"id": "tauro", "n": "Tauro", "p": 96000}, {"id": "geminis", "n": "Géminis", "p": 96000}, {"id": "cancer", "n": "Cáncer", "p": 96000}, {"id": "leo", "n": "Leo", "p": 96000}, {"id": "virgo", "n": "Virgo", "p": 96000}, {"id": "libra", "n": "Libra", "p": 96000}, {"id": "escorpio", "n": "Escorpio", "p": 96000}, {"id": "sagitario", "n": "Sagitario", "p": 96000}, {"id": "capricornio", "n": "Capricornio", "p": 96000}, {"id": "acuario", "n": "Acuario", "p": 96000}, {"id": "piscis", "n": "Piscis", "p": 96000}, {"id": "cenicienta", "n": "Cenicienta", "p": 105000}, {"id": "corazon-mama-e-hija", "n": "Corazón Mamá e Hija", "p": 88000}, {"id": "letra-a", "n": "Letra A", "p": 96000}, {"id": "letra-b", "n": "Letra B", "p": 96000}, {"id": "letra-c", "n": "Letra C", "p": 96000}, {"id": "letra-d", "n": "Letra D", "p": 96000}, {"id": "letra-e", "n": "Letra E", "p": 96000}, {"id": "letra-f", "n": "Letra F", "p": 96000}, {"id": "letra-g", "n": "Letra G", "p": 96000}, {"id": "letra-h", "n": "Letra H", "p": 96000}, {"id": "letra-i", "n": "Letra I", "p": 96000}, {"id": "letra-j", "n": "Letra J", "p": 96000}, {"id": "letra-k", "n": "Letra K", "p": 96000}, {"id": "letra-l", "n": "Letra L", "p": 96000}, {"id": "letra-m", "n": "Letra M", "p": 96000}, {"id": "letra-n", "n": "Letra N", "p": 96000}, {"id": "letra-ñ", "n": "Letra Ñ", "p": 96000}, {"id": "letra-o", "n": "Letra O", "p": 96000}, {"id": "letra-p", "n": "Letra P", "p": 96000}, {"id": "letra-q", "n": "Letra Q", "p": 96000}, {"id": "letra-r", "n": "Letra R", "p": 96000}, {"id": "letra-s", "n": "Letra S", "p": 96000}, {"id": "letra-t", "n": "Letra T", "p": 96000}, {"id": "letra-u", "n": "Letra U", "p": 96000}, {"id": "letra-v", "n": "Letra V", "p": 96000}, {"id": "letra-w", "n": "Letra W", "p": 96000}, {"id": "letra-x", "n": "Letra X", "p": 96000}, {"id": "letra-y", "n": "Letra Y", "p": 96000}, {"id": "letra-z", "n": "Letra Z", "p": 96000}, {"id": "black-panther", "n": "Black Panther", "p": 105000}, {"id": "virgen-de-fatima", "n": "Virgen de Fátima", "p": 104000}, {"id": "virgen-aparecida", "n": "Virgen Aparecida", "p": 104000}, {"id": "simbolo-de-la-medicina", "n": "Símbolo de la Medicina", "p": 104000}, {"id": "maquina-de-coser", "n": "Máquina de Coser", "p": 104000}, {"id": "graduacion-diploma-y-flores", "n": "Graduación con Diploma y Flores", "p": 104000}, {"id": "brindis-cheers", "n": "Brindis Cheers", "p": 104000}, {"id": "mano-rock-y-guitarra", "n": "Mano Rock y Guitarra", "p": 104000}, {"id": "anillo-corazon-elevado-blanco-t5", "n": "Anillo Corazón Elevado Blanco · Talla 5", "p": 125000}, {"id": "anillo-corazon-elevado-blanco-t6", "n": "Anillo Corazón Elevado Blanco · Talla 6", "p": 125000}, {"id": "anillo-corazon-elevado-blanco-t7", "n": "Anillo Corazón Elevado Blanco · Talla 7", "p": 125000}, {"id": "anillo-corazon-elevado-blanco-t8", "n": "Anillo Corazón Elevado Blanco · Talla 8", "p": 125000}, {"id": "anillo-corazon-elevado-rojo-t5", "n": "Anillo Corazón Elevado Rojo · Talla 5", "p": 125000}, {"id": "anillo-corazon-elevado-rojo-t6", "n": "Anillo Corazón Elevado Rojo · Talla 6", "p": 125000}, {"id": "anillo-corazon-elevado-rojo-t7", "n": "Anillo Corazón Elevado Rojo · Talla 7", "p": 125000}, {"id": "anillo-corazon-elevado-rojo-t8", "n": "Anillo Corazón Elevado Rojo · Talla 8", "p": 125000}, {"id": "anillo-doble-corazon-t5", "n": "Anillo Doble Corazón · Talla 5", "p": 125000}, {"id": "anillo-doble-corazon-t6", "n": "Anillo Doble Corazón · Talla 6", "p": 125000}, {"id": "anillo-doble-corazon-t7", "n": "Anillo Doble Corazón · Talla 7", "p": 125000}, {"id": "anillo-doble-corazon-t8", "n": "Anillo Doble Corazón · Talla 8", "p": 125000}, {"id": "corazon-liso-plateado", "n": "Corazón Liso Plateado", "p": 102000}, {"id": "corazon-liso-rojo", "n": "Corazón Liso Rojo", "p": 102000}, {"id": "estetoscopio-con-corazon", "n": "Estetoscopio con Corazón", "p": 102000}, {"id": "paleta-de-pintor", "n": "Paleta de Pintor", "p": 102000}, {"id": "corazon-mom-rosa", "n": "Corazón Mom Rosa", "p": 102000}, {"id": "pesa-rosa-con-corazon", "n": "Pesa Rosa con Corazón", "p": 102000}, {"id": "avion-globo-y-maleta", "n": "Avión, Globo y Maleta", "p": 102000}], "pulseras": [{"id": "pulsera-corona-con-cristales", "n": "Pulsera Corona con Cristales", "p": 92000}, {"id": "pulsera-avengers", "n": "Pulsera Avengers", "p": 88000}, {"id": "pulsera-corazon-con-diamante", "n": "Pulsera Corazón con Diamante", "p": 88000}, {"id": "pulsera-corazon-liso", "n": "Pulsera Corazón Liso", "p": 88000}, {"id": "pulsera-clasica-cierre-barril", "n": "Pulsera Clásica Cierre Barril", "p": 88000}, {"id": "pulsera-corazon-pave", "n": "Pulsera Corazón Pavé", "p": 92000}, {"id": "pulsera-corazon-pave-pequeno", "n": "Pulsera Corazón Pavé Pequeño", "p": 88000}, {"id": "pulsera-sol-con-cadena-seguridad", "n": "Pulsera Sol con Cadena Seguridad", "p": 98000}, {"id": "pulsera-corona-pave", "n": "Pulsera Corona Pavé", "p": 92000}, {"id": "pulsera-mano-de-hamsa", "n": "Pulsera Mano de Hamsa", "p": 92000}, {"id": "pulsera-corazon-rosado-con-cadena", "n": "Pulsera Corazón Rosado con Cadena", "p": 98000}, {"id": "pulsera-corazon-luminoso", "n": "Pulsera Corazón Luminoso", "p": 92000}, {"id": "pulsera-copo-de-nieve", "n": "Pulsera Copo de Nieve", "p": 88000}, {"id": "pulsera-mickey-mouse-pave", "n": "Pulsera Mickey Mouse Pavé", "p": 92000}, {"id": "pulsera-candado-rosa-con-cadena", "n": "Pulsera Candado Rosa con Cadena", "p": 98000}, {"id": "pulsera-trebol-verde", "n": "Pulsera Trébol Verde", "p": 88000}, {"id": "pulsera-mono-rosa-con-cadena", "n": "Pulsera Moño Rosa con Cadena", "p": 98000}, {"id": "pulsera-rosa-clasica", "n": "Pulsera Rosa Clásica", "p": 88000}, {"id": "pulsera-corazon-abierto", "n": "Pulsera Corazón Abierto", "p": 92000}, {"id": "pulsera-corazon-infinito", "n": "Pulsera Corazón Infinito", "p": 92000}, {"id": "pulsera-corazon-arbol-de-la-vida", "n": "Pulsera Corazón Árbol de la Vida", "p": 92000}, {"id": "pulsera-barril-pandora", "n": "Pulsera Barril Pandora", "p": 92000}]};
 /* OFERTA — el único sitio donde vive el descuento de temporada y su fecha de
@@ -1609,13 +1610,9 @@ function render(){
      de lo contrario el propio envío ayudaría a alcanzarlo. */
   const subtotal=brutoC+brutoB-desc;
   const ahorro=desc;
-  /* alcanza: llegó al umbral. libre: además le corresponde el beneficio.
-     Se separan para poder decirle a quien eligió contraentrega que ya alcanzó
-     el monto pero el envío gratis es del pago anticipado — callarlo sería
-     prometer algo en la barra de progreso y quitarlo al final. */
-  const alcanza=subtotal>=LIBRE;
-  const contraLibre=CONTRA_GRATIS_DESDE>0&&piezas>=CONTRA_GRATIS_DESDE;
-  const libre=alcanza&&(!LIBRE_SOLO_ANTICIPADO||pago==='anticipado'||contraLibre);
+  /* libre: con ENVIO_GRATIS_DESDE piezas o más no se paga envío, sea cual sea
+     el pago. */
+  const libre=piezas>=ENVIO_GRATIS_DESDE;
   const envio=(subtotal<=0||libre)?0:ENVIO[pago];
   const total=subtotal+envio;
 
@@ -1639,36 +1636,22 @@ function render(){
     if(ahorro>0) ta.innerHTML='Te ahorras <b>'+cop(ahorro)+'</b> · '+nGratis+(nGratis===1?' pieza gratis':' piezas gratis'); }
 
   const ship=$('#v-ship'), nota=$('#ship-note'), barra=$('#ship-bar');
-  /* La barra de progreso solo tiene sentido mientras haya un umbral que
-     alcanzar. Con LIBRE=0 no falta nada: medir el avance hacia cero es
-     dividir por cero —NaN en el ancho— y, peor, insinuar una condición que
-     ya no existe. Se esconde y en su lugar se dice el beneficio de frente. */
-  const conUmbral=LIBRE>0;
-  barra.hidden=!conUmbral;
+  /* La barra de progreso era del umbral en pesos, que ya no existe: el envío
+     gratis se gana por piezas y se dice con palabras. */
+  barra.hidden=true;
   const relleno=barra.firstElementChild;
+  const faltanEnvio=ENVIO_GRATIS_DESDE-piezas;
   if(subtotal<=0){
     ship.textContent='—'; ship.className='';
     nota.textContent=''; nota.className='ship-note'; relleno.style.width='0';
   }else if(libre){
     ship.textContent='Gratis'; ship.className='ship-ok';
-    nota.textContent='✓ Tu pedido tiene envío gratis a toda Colombia';
+    nota.textContent='✓ Tu pedido tiene envío gratis';
     nota.className='ship-note ship-ok'; relleno.style.width='100%';
-  }else if(alcanza){
-    /* Le corresponde envío gratis por monto pero eligió contraentrega. Se le
-       dice aquí, con el ahorro en pesos y un botón que lo aplica, en vez de
-       dejar que lo descubra en el último paso. */
-    ship.textContent=cop(envio); ship.className='';
-    nota.innerHTML=(conUmbral?'Tu pedido ya pasa de '+cop(LIBRE)+'. ':'')
-      +(CONTRA_GRATIS_DESDE>0?'Con contraentrega el envío es gratis desde '+CONTRA_GRATIS_DESDE+' piezas. O paga '
-        :'El envío gratis aplica al pagar ')
-      +'por adelantado: <button type="button" class="ship-cta" id="ship-cta">'
-      +'cámbiate y ahórrate '+cop(envio)+'</button>';
-    nota.className='ship-note ship-casi'; relleno.style.width='100%';
   }else{
     ship.textContent=cop(envio); ship.className='';
-    nota.textContent='Agrega '+cop(LIBRE-subtotal)+' más y el envío es gratis'
-      +(LIBRE_SOLO_ANTICIPADO?' con pago anticipado':'');
-    nota.className='ship-note'; relleno.style.width=Math.min(100,subtotal/LIBRE*100)+'%';
+    nota.textContent='Agrega '+(faltanEnvio===1?'1 pieza':faltanEnvio+' piezas')+' más y el envío te sale gratis';
+    nota.className='ship-note ship-casi'; relleno.style.width='0';
   }
 
   /* Barra de progreso de la promo (pedido del propietario).
@@ -1709,14 +1692,12 @@ function render(){
      la diferencia se vea antes de elegir y no después. */
   const ant=$('#pb-ant'), con=$('#pb-con');
   if(subtotal<=0){
-    ant.textContent='Envío '+cop(ENVIO.anticipado);
-    con.textContent=CONTRA_GRATIS_DESDE>0?'Envío gratis desde '+CONTRA_GRATIS_DESDE+' piezas':'Envío '+cop(ENVIO.contraentrega);
+    ant.textContent=con.textContent='Envío gratis desde '+ENVIO_GRATIS_DESDE+' piezas';
     ant.className=''; con.className='';
   }else{
-    ant.textContent=alcanza?'Envío GRATIS':'Envío '+cop(ENVIO.anticipado);
-    ant.className=alcanza?'pb-gratis':'';
-    con.textContent=(alcanza&&contraLibre)?'Envío GRATIS':'Envío '+cop(ENVIO.contraentrega);
-    con.className=(alcanza&&contraLibre)?'pb-gratis':'';
+    ant.textContent=libre?'Envío GRATIS':'Envío '+cop(ENVIO.anticipado);
+    con.textContent=libre?'Envío GRATIS':'Envío '+cop(ENVIO.contraentrega);
+    ant.className=con.className=libre?'pb-gratis':'';
   }
 
   pintarTarjetas();
@@ -1730,9 +1711,8 @@ function render(){
   pintarEscalerasSimples(estPromo);
 
   /* Lo que falta para el envío gratis, en la barra fija. Dentro de la hoja ya
-     estaba, pero solo lo veía quien abría el detalle: el resto armaba sin
-     saber que le faltaban $20.000 para no pagar envío. */
-  const falta=Math.max(0,LIBRE-subtotal);
+     estaba, pero solo lo veía quien abría el detalle. */
+  const unaEnvio=subtotal>0&&faltanEnvio===1;
   /* La promo manda sobre el envío en la barra fija: el envío gratis ya se dice
      en el banner y en la hoja, y «1 más y es GRATIS» es lo que hace sumar una. */
   const unaMas=piezas&&tramoPromo(piezas).fin-piezas===1&&!tramoPromo(piezas).completo;
@@ -1740,11 +1720,12 @@ function render(){
      se agregaba ~150 veces y se tocaba «Comprar» 2. */
   $('#dock-n').textContent = piezas
     /* Con «1 más» va sin «Tienes»: a 375 px se cortaba en «…es GR…». */
-    ? (unaMas?'':'Tienes ')+piezas+(piezas===1?' pieza':' piezas')
+    /* …y también con «1 más: envío gratis» (2026-11-25), por lo mismo. */
+    ? (unaMas||unaEnvio?'':'Tienes ')+piezas+(piezas===1?' pieza':' piezas')
       +(unaMas?' · ¡1 más GRATIS!'
         :nGratis?' · '+nGratis+' GRATIS'
         :libre?' · envío gratis'
-        :(subtotal>0&&falta>0?' · '+cop(falta)+' para envío gratis':''))
+        :(unaEnvio?' · 1 más: envío gratis':''))
     /* Corto a propósito: al lado de «Elige tu primera pieza», «Tu selección
        está vacía» se cortaba a 375 px. */
     : 'Sin piezas aún';
@@ -1766,7 +1747,7 @@ function render(){
 
   const dbar=$('#dock-bar');
   dbar.classList.toggle('is-ok',libre);
-  dbar.firstElementChild.style.width=subtotal>0?Math.min(100,subtotal/LIBRE*100)+'%':'0';
+  dbar.firstElementChild.style.width=subtotal>0?Math.min(100,piezas/ENVIO_GRATIS_DESDE*100)+'%':'0';
 
   pintarSug();
   pintarCross(piezas);

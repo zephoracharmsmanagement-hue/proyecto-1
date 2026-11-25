@@ -33,7 +33,7 @@ export const CAMPANAS = {
     titulo: 'Hoy estrenamos anillos',
     entrada: 'Hola. Hoy estrenamos anillos en la tienda, y con ellos llegaron charms nuevas y brazaletes con cierre de corazón. Aquí te contamos todo.',
     /* Lo que el texto de abajo promete de la promo y el envío. */
-    reglas: { tramos: [[4, 1], [6, 2]], envioGratisSoloAnticipado: true },
+    reglas: { tramos: [[4, 1], [6, 2]], envioGratisDesdePiezas: 2 },
     anillos: ['anillo-corazon-elevado-blanco', 'anillo-corazon-elevado-rojo', 'anillo-doble-corazon'],
     charms: ['black-panther', 'virgen-de-fatima', 'virgen-aparecida', 'simbolo-de-la-medicina', 'maquina-de-coser',
       'graduacion-diploma-y-flores', 'brindis-cheers', 'mano-rock-y-guitarra',
@@ -53,9 +53,9 @@ export function verificarReglas(campana, disp) {
   const tramos = JSON.stringify((r.promo && r.promo.tramos) || null);
   const problemas = [];
   if (tramos !== JSON.stringify(campana.reglas.tramos)) problemas.push(`la promo del sitio es ${tramos}, el correo dice ${JSON.stringify(campana.reglas.tramos)}`);
-  if (Boolean(r.envioGratisSoloAnticipado) !== campana.reglas.envioGratisSoloAnticipado || Number(r.envioGratisDesde) !== 0)
-    problemas.push('el envío gratis del sitio ya no es «gratis pagando en línea»');
-  if (!(r.envio && Number(r.envio.contraentrega) > 0)) problemas.push('no se sabe cuánto cuesta la contraentrega');
+  if (Number(r.envioGratisDesdePiezas) !== campana.reglas.envioGratisDesdePiezas)
+    problemas.push(`el envío gratis del sitio ya no es «gratis desde ${campana.reglas.envioGratisDesdePiezas} piezas»`);
+  if (!(r.envio && Number(r.envio.contraentrega) > 0 && Number(r.envio.anticipado) > 0)) problemas.push('no se sabe cuánto cuesta el envío de una pieza');
   return problemas;
 }
 
@@ -99,7 +99,8 @@ export function seleccionar(campana, disp) {
 
   return { anillos, charms, brazaletes, volvieron, signos, omitidas,
     contraentrega: Number(disp.reglas.envio.contraentrega),
-    contraGratisDesde: Number(disp.reglas.contraentregaGratisDesde) || 0 };
+    anticipado: Number(disp.reglas.envio.anticipado),
+    gratisDesde: Number(disp.reglas.envioGratisDesdePiezas) };
 }
 
 /* ── HTML ── */
@@ -180,7 +181,7 @@ export function armar(campana, sel, { baja, descuento = false }) {
 
   const beneficios = [
     '<b>Arma tu set: paga 3 y llévate 1 gratis · paga 4 y llévate 2.</b> Con 4 piezas sale gratis la de menor valor; con 6, las 2 de menor valor. Charms, anillos y brazaletes cuentan igual.',
-    `Envío gratis a toda Colombia pagando en línea. ${sel.contraGratisDesde ? `Contraentrega también es gratis desde ${sel.contraGratisDesde} piezas; con una sola pieza cuesta ${esc(cop(sel.contraentrega))}.` : `Contraentrega cuesta ${esc(cop(sel.contraentrega))}.`}`,
+    `Envío gratis desde ${sel.gratisDesde} piezas, pagando en línea o contraentrega. Con una sola pieza cuesta ${esc(cop(sel.anticipado))} en línea y ${esc(cop(sel.contraentrega))} contraentrega.`,
     'Hasta 3 cuotas sin interés con Addi.',
     'Cada pedido va con caja, paño para limpiar la plata y dedicatoria escrita a mano.',
   ];

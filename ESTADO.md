@@ -5,7 +5,45 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## Banner de Black Friday en la portada y arreglo del kit Marvel — rama `claude/arreglo-kit-marvel`: NO desplegado
+## Envío por zonas — rama `claude/envio-por-zonas`, en vista previa: NO desplegado
+
+Pedido del propietario (2026-11-24/25): «quiero que dejemos el envio gratis en cualquier modalidad
+osea pago anticipado y contraentrega despues de 2 piezas antes, si el cliente pide una pieza. precio
+15.000 anticipado y 25.000 contra entrega», y después «Vamos por zonas» / «Sí, dos zonas».
+
+- **Zona nacional:** 1 pieza paga $15.000 (anticipado) o $25.000 (contraentrega); con 2 piezas o
+  más el envío es gratis en las dos modalidades. Cuenta cada unidad de brazalete, charm o anillo;
+  las que salen gratis por la promo también cuentan (solo aparecen desde 4 piezas).
+- **Destinos especiales:** Amazonas, Guainía, San Andrés y Providencia, Vaupés y Vichada. $38.000
+  siempre, sin gratis por piezas, y **sin contraentrega** (la página la deshabilita y `crear-pago`
+  responde 400 si llega igual).
+- **De dónde sale la lista:** de las guías reales y de cotizaciones del 2026-11-25 en el panel de
+  la transportadora (las cifras no van aquí: el repo es público; están en las notas de la sesión
+  de tienda). La ciudad casi no cambia lo que vale una guía; lo que la cambia es la modalidad y
+  estos pocos departamentos, por eso son dos zonas y no una tabla por ciudad. **Mitú no aparece
+  en el cotizador**: Vaupés va en la lista por parecido, sin cotización.
+- **Fuente única:** `ENVIO`, `ENVIO_GRATIS_DESDE` y `ENVIO_ESPECIAL` en `tienda.js` →
+  `extraer_catalogo.py` → `reglas.envio`, `reglas.envioGratisDesdePiezas`, `reglas.envioEspecial`
+  en `catalogo.json`. **Ya no existen** `envioGratisDesde`, `envioGratisSoloAnticipado` ni
+  `contraentregaGratisDesde`: quien lea `reglas` desde `disponibilidad` (el bot, el boletín) tiene
+  que usar las nuevas. La zona se decide por el **departamento**, con el nombre de
+  `assets/codigos-dane.json`.
+- **Quién cobra:** `calcular(pedido, ahora, destino)` en `_precios.js`; `crear-pago` le pasa
+  `cliente.depto`. Sin destino (carrito, `armar-carrito`, catálogo) calcula la zona nacional. El
+  carrito de la tienda no sabe a dónde va el pedido: el precio especial aparece en `checkout.html`
+  al elegir el departamento (`destinoEspecial()`), y ahí se repinta el total.
+- **Textos:** franja de confianza de la portada, fichas (lista y acordeones «Envíos» y
+  «Contraentrega»), kits, colecciones, envíos y devoluciones, preguntas frecuentes, boletín y hoja
+  del asesor. `envios-y-devoluciones.html` y `preguntas-frecuentes.html` se editaron **a mano**:
+  `gen_paginas.py` va atrasado respecto del HTML publicado (no conoce Clarity ni la sección «Pagos
+  y compra») y regenerarlas las daña; el generador quedó con el mismo texto nuevo.
+- `gen_productos.py` vuelve a correr desde `main`: faltaban seis ids opcionales en
+  `IDS_OPCIONALES` (`bfb`, `cp-kit`, `destacadas`, `piezas`, `promo-esc`, `tot-ahorro`).
+- **Al publicar:** los anuncios y mensajes de Black Friday prometen «envío gratis» sin condición
+  hasta el 30-nov; el propietario decide la fecha. Avisar a la Sesión 3 (prompt del bot: lee
+  `reglas`) y a la Sesión 5 (anuncios).
+
+## Banner de Black Friday en la portada y arreglo del kit Marvel — desplegado el 2026-11-23 (PR #64)
 
 Pedido del propietario (2026-11-23): «en los banners principales, tener algo de Black Friday… un
 video, así como los tiene Pandora o Swarovski». Eligió dos de tres maquetas y que se turnaran.

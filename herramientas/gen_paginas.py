@@ -310,16 +310,19 @@ ENVIOS = '''  <p>Aquí encuentras cómo enviamos, cuánto cuesta y qué hacer si
   <table>
     <tr><th>Concepto</th><th>Condición</th></tr>
     <tr><td>Cobertura</td><td>Todo el territorio nacional colombiano</td></tr>
-    <tr><td>Pago anticipado (en línea)</td><td><b>Envío gratis</b> a cualquier ciudad, sin
-      monto mínimo</td></tr>
-    <tr><td>Pago contraentrega</td><td><b>Envío gratis desde 2 piezas</b>. Con una sola pieza cuesta
-      <b>$20.000 COP</b>, tarifa plana, porque la
+    <tr><td>2 piezas o más</td><td><b>Envío gratis</b>, pagando en línea o contraentrega.
+      Cuenta cada pieza: brazalete, charm o anillo</td></tr>
+    <tr><td>1 pieza, pago anticipado (en línea)</td><td><b>$15.000 COP</b></td></tr>
+    <tr><td>1 pieza, pago contraentrega</td><td><b>$25.000 COP</b>, porque la
       transportadora cobra por recaudar el dinero en la entrega. Disponible en las ciudades donde
       la transportadora lo permite; lo confirmamos por WhatsApp antes de despachar</td></tr>
+    <tr><td>Destinos especiales</td><td>A Amazonas, Guainía, San Andrés y Providencia, Vaupés y
+      Vichada el envío cuesta <b>$38.000 COP</b> con cualquier número de piezas, y solo con pago
+      anticipado: la guía a esos destinos vale mucho más y allá no hay contraentrega</td></tr>
   </table>
-  <p>La tarifa es la misma para todo el país: no cotizamos por ciudad ni cobramos recargos por
-  destino. El costo del envío aparece en el total de tu carrito y en la pantalla de pago, así
-  que lo que ves en la página es lo que pagas.</p>
+  <p>Fuera de los destinos especiales la tarifa es la misma para todo el país. El costo del envío
+  aparece en la pantalla de pago apenas eliges tu departamento, así que lo que ves ahí es lo que
+  pagas.</p>
   <p>Todos los pedidos llegan en su <b>caja</b>, con un <b>paño para limpiar la plata</b> y, si
   la pides al pagar, una <b>dedicatoria escrita a mano</b>, sin costo.</p>
 
@@ -459,31 +462,14 @@ FAQS = [
      '<p>Al despachar tu compra te enviamos el <b>número de guía</b> por WhatsApp o correo, para '
      'que consultes el estado directamente en la web oficial de Inter Rapidísimo.</p>'),
     ('¿Cuánto cuesta el envío?',
-     '<p>Pagando en línea, el envío es <b>gratis a toda Colombia, sin monto mínimo</b>. '
-     'Contraentrega también es <b>gratis desde 2 piezas</b>; con una sola pieza cuesta <b>$20.000</b>, '
-     'tarifa plana —es lo que cobra la transportadora por '
-     'recaudar el dinero en la entrega—. No cotizamos por ciudad: el costo ya viene en el total '
-     'que ves en tu carrito.</p>'),
-    ('¿Hacen envíos internacionales?',
-     '<p>Por el momento realizamos envíos únicamente dentro de Colombia.</p>'),
- ]),
- ('Pagos y compra', [
-    ('¿Qué medios de pago aceptan?',
-     '<p>En la pantalla de pago puedes pagar con <b>Nequi, Bancolombia, PSE, Daviplata</b> y '
-     '<b>tarjetas de crédito y débito</b> (hasta 36 cuotas), a través de <b>Wompi '
-     '(Bancolombia)</b>. Con <b>Addi</b> puedes dividir tu compra en hasta 3 cuotas sin interés: '
-     'lo eliges en la pantalla de pago y apruebas tu cupo en minutos con tu cédula. '
-     'Si tienes crédito <b>Sistecrédito</b>, también puedes pagar a cuotas con él: lo eliges '
-     'en la pantalla de pago y confirmas con tu cédula y un código que te llega al celular. '
-     'También puedes pagar <b>contraentrega</b> en las ciudades '
-     'donde la transportadora lo permite.</p>'),
-    ('¿Cómo compro?',
-     '<p>Eliges tus piezas aquí en la página —el precio se calcula solo, con la promoción y el '
-     'envío ya incluidos—, tocas <b>Comprar</b> y en una sola pantalla escribes tus datos de '
-     'envío y pagas. Si prefieres, escríbenos por WhatsApp y te asesoramos desde cero.</p>'),
+     '<p>Con <b>2 piezas o más el envío es gratis</b>, pagando en línea o contraentrega. '
+     'Con una sola pieza cuesta <b>$15.000</b> pagando en línea y <b>$25.000</b> contraentrega '
+     '—la diferencia es lo que cobra la transportadora por recaudar el dinero en la entrega—. '
+     'A Amazonas, Guainía, San Andrés y Providencia, Vaupés y Vichada cuesta <b>$38.000</b> y solo '
+     'con pago anticipado. El costo ya viene en el total que ves en la pantalla de pago.</p>'),
     ('¿Puedo pagar contraentrega?',
      '<p>Sí, en las ciudades donde la transportadora lo permite. El envío contraentrega es <b>gratis desde 2 piezas</b>; '
-     'con una sola pieza cuesta <b>$20.000</b> (pagando en línea es gratis), porque la transportadora cobra por recaudar el '
+     'con una sola pieza cuesta <b>$25.000</b> ($15.000 pagando en línea), porque la transportadora cobra por recaudar el '
      'dinero. Te confirmamos la disponibilidad en tu ciudad por WhatsApp antes de despachar.</p>'),
     ('¿Emiten factura?',
      '<p>No emitimos factura electrónica. Con tu pedido adjuntamos el <b>comprobante digital de '

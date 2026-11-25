@@ -509,7 +509,7 @@ button{font-family:inherit}
               <input type="radio" name="pago" value="anticipado" checked>
               <span class="op-tx">
                 <span class="op-t"><b>Pagar ahora</b><span class="precio" id="p-anticipado">—</span></span>
-                <span class="op-d">Pasarela segura de Wompi (Bancolombia): Nequi, Bancolombia, PSE, Daviplata, tarjetas, hasta 36 cuotas. Envío gratis.</span>
+                <span class="op-d">Pasarela segura de Wompi (Bancolombia): Nequi, Bancolombia, PSE, Daviplata, tarjetas, hasta 36 cuotas.</span>
               </span>
             </label>
             <label class="op">
@@ -517,6 +517,7 @@ button{font-family:inherit}
               <span class="op-tx">
                 <span class="op-t"><b>Pago contraentrega</b><span class="precio" id="p-contraentrega">—</span></span>
                 <span class="op-d" id="d-contra">Pagas en efectivo cuando el mensajero te entregue el paquete. El recaudo lo cobra la transportadora, por eso el envío cuesta más.</span>
+                <span class="op-d op-tope" id="contra-tope" hidden></span>
               </span>
             </label>
             <!-- Addi entre los pagos principales (pedido del propietario,
@@ -529,7 +530,7 @@ button{font-family:inherit}
               <input type="radio" name="pago" value="addi">
               <span class="op-tx">
                 <span class="op-t"><b>Pagar con Addi</b><span class="precio" id="p-addi">—</span></span>
-                <span class="op-d">Hasta 3 cuotas sin interés. Te llevamos a Addi y apruebas tu cupo en minutos, solo con tu cédula. Envío gratis.</span>
+                <span class="op-d">Hasta 3 cuotas sin interés. Te llevamos a Addi y apruebas tu cupo en minutos, solo con tu cédula.</span>
                 <span class="op-d op-tope" id="addi-tope" hidden></span>
               </span>
             </label>
@@ -542,7 +543,7 @@ button{font-family:inherit}
               <input type="radio" name="pago" value="sistecredito">
               <span class="op-tx">
                 <span class="op-t"><b>Pagar con Sistecrédito</b><span class="precio" id="p-sistecredito">—</span></span>
-                <span class="op-d">Paga a cuotas con tu crédito Sistecrédito. Te llevamos a Sistecrédito y confirmas con tu cédula y un código a tu celular. Envío gratis.</span>
+                <span class="op-d">Paga a cuotas con tu crédito Sistecrédito. Te llevamos a Sistecrédito y confirmas con tu cédula y un código a tu celular.</span>
                 <span class="op-d op-tope" id="siste-tope" hidden></span>
               </span>
             </label>
@@ -753,6 +754,12 @@ function gratisDe(c){
    descuento-suscripcion (0 o 15000) y crear-pago lo vuelve a decidir con el
    mismo correo. Aplica desde 2 piezas, charms y brazaletes por igual. */
 let DESC_SUSC=0, DESC_MIN=2, DESC_CORREO='';
+/* ¿El departamento elegido es de los destinos especiales (San Andrés, Amazonas…)?
+   Mientras no se elija ninguno, se muestra la zona nacional. */
+function destinoEspecial(){
+  const d=(document.getElementById('depto')||{}).value||'';
+  return ((CAT.reglas.envioEspecial||{}).departamentos||[]).indexOf(d)>=0;
+}
 function calcular(c){
   const R=CAT.reglas;
   const brutoC=c.charms.reduce((s,id)=>s+CAT.precios[id],0);
@@ -760,20 +767,19 @@ function calcular(c){
   const libres=gratisDe(c);
   const desc=libres.reduce((s,x)=>s+x.p,0);
   const subtotal=brutoC+brutoB-desc;
-  /* El envío gratis es solo del pago anticipado; la contraentrega lo paga
-     siempre. Misma regla que index.html y que _precios.js, que es quien cobra. */
-  const alcanza=subtotal>=R.envioGratisDesde;
+  /* Envío por zonas, la misma regla de _precios.js, que es quien cobra.
+     Nacional: 1 pieza paga según el pago; desde `envioGratisDesdePiezas` es
+     gratis. Destino especial (según el departamento elegido): precio fijo. */
   /* Addi y Sistecrédito son pago por adelantado: mismo envío que «Pagar ahora». */
   const pe=c.pago==='contraentrega'?'contraentrega':'anticipado';
-  /* Desde `contraentregaGratisDesde` piezas (2), la contraentrega tampoco. */
   const nPiezas=nPiezasDe(c);
-  const contraLibre=R.contraentregaGratisDesde>0&&nPiezas>=R.contraentregaGratisDesde;
-  const gratis=alcanza&&(!R.envioGratisSoloAnticipado||pe==='anticipado'||contraLibre);
-  const envio=(subtotal<=0||gratis)?0:R.envio[pe];
+  const especial=destinoEspecial();
+  const gratis=!especial&&nPiezas>=R.envioGratisDesdePiezas;
+  const envio=subtotal<=0?0:especial?R.envioEspecial.precio:gratis?0:R.envio[pe];
   /* Después de la promo y del envío, como en crear-pago. */
   const descSusc=(DESC_SUSC>0&&nPiezas>=DESC_MIN&&subtotal+envio>DESC_SUSC)?DESC_SUSC:0;
   return {brutoC:brutoC,brutoB:brutoB,descuento:Math.round(desc),nGratis:libres.length,
-    subtotal:Math.round(subtotal),envio:envio,gratis:gratis,alcanza:alcanza,descSusc:descSusc,
+    subtotal:Math.round(subtotal),envio:envio,gratis:gratis,especial:especial,nPiezas:nPiezas,descSusc:descSusc,
     total:Math.round(subtotal+envio-descSusc)};
 }
 
@@ -832,7 +838,7 @@ function pintarResumen(){
     +' · promo</span><b>− '+cop(t.descuento)+'</b></div>';
   h+=t.gratis
     ? '<div class="tot-row ok"><span>Envío</span><b>Gratis</b></div>'
-    : '<div class="tot-row"><span>Envío ('+(c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
+    : '<div class="tot-row"><span>Envío ('+(t.especial?'destino especial':c.pago==='contraentrega'?'contraentrega':'anticipado')+')</span><b>'+cop(t.envio)+'</b></div>';
   if(t.descSusc>0) h+='<div class="tot-row save tot-susc"><span>🎁 Descuento de suscriptora</span><b>− '+cop(t.descSusc)+'</b></div>';
   h+='<div class="tot-fin"><span>Total</span><b>'+cop(t.total)+'</b></div>';
   /* El aviso del descuento de suscriptora. Con el correo ya revisado, lo que
@@ -859,34 +865,23 @@ function pintarResumen(){
    * el umbral es 0 —envío gratis siempre con pago anticipado—, así que lo que
    * queda por decir no es cuánto falta sino a qué forma de pago le toca. */
   const bar=$('#env-bar'), nota=$('#env-nota');
-  /* Con umbral 0 no hay progreso que medir: `t.subtotal/0` es Infinity y, si
-     el carrito llegara vacío, NaN — un ancho roto justo en el checkout. La
-     barra solo existe mientras exista un mínimo que alcanzar. */
-  const umbral=CAT.reglas.envioGratisDesde;
-  const falta=Math.max(0, umbral - t.subtotal);
-  if(t.subtotal<=0 || umbral<=0){
-    bar.hidden=true;
-    bar.firstElementChild.style.width='0';
-  }else{
-    bar.hidden=false;
-    bar.classList.toggle('is-ok', t.gratis);
-    bar.firstElementChild.style.width=Math.min(100, t.subtotal/umbral*100)+'%';
-  }
+  /* La barra medía el avance hacia un umbral en pesos que ya no existe: el
+     envío gratis se gana por piezas y se dice con palabras. */
+  bar.hidden=true;
+  bar.firstElementChild.style.width='0';
   if(t.subtotal<=0){
     nota.textContent=''; nota.className='env-nota';
   }else if(t.gratis){
     nota.textContent='✓ Tu pedido lleva envío gratis';
     nota.className='env-nota is-ok';
-  }else if(t.alcanza){
-    /* Le corresponde por monto pero eligió contraentrega. Se le dice aquí,
-       con el ahorro en pesos, en vez de dejar que lo descubra en el total. */
-    nota.textContent=(umbral>0?'Ya pasas de '+cop(umbral)+'. ':'')
-      +'Pagando por adelantado el envío te sale gratis: '+cop(t.envio)+' menos.'
-      +(CAT.reglas.contraentregaGratisDesde>0?' Con contraentrega es gratis desde '+CAT.reglas.contraentregaGratisDesde+' piezas.':'');
+  }else if(t.especial){
+    nota.textContent='El envío a '+$('#depto').value+' cuesta '+cop(t.envio)
+      +': es un destino especial y la guía vale más. Solo con pago anticipado.';
     nota.className='env-nota';
   }else{
-    nota.textContent='Te faltan '+cop(falta)+' para el envío gratis'
-      +(CAT.reglas.envioGratisSoloAnticipado?' con pago anticipado':'')+'.';
+    /* Sin «agrega»: en el pago no se invita a sumar piezas (pruebas/checkout.js);
+       se dice la regla y ya. */
+    nota.textContent='Con '+CAT.reglas.envioGratisDesdePiezas+' piezas o más el envío es gratis.';
     nota.className='env-nota';
   }
 
@@ -936,15 +931,29 @@ function pintarResumen(){
     guardarCarrito();
   }
 
+  /* Destinos especiales: sin contraentrega. Se deshabilita y dice por qué,
+     como Addi fuera de sus topes; el servidor lo vuelve a exigir. */
+  const rc=document.querySelector('#ops-pago input[value="contraentrega"]');
+  rc.disabled=t.especial;
+  rc.closest('.op').classList.toggle('op--off',t.especial);
+  $('#contra-tope').hidden=!t.especial;
+  $('#contra-tope').textContent=t.especial?'A '+$('#depto').value+' solo enviamos con pago anticipado.':'';
+  if(t.especial&&carrito.pago==='contraentrega'){
+    carrito.pago='anticipado';
+    document.querySelector('#ops-pago input[value="anticipado"]').checked=true;
+    guardarCarrito();
+    return pintarResumen();
+  }
+
   /* Si el carrito alcanza el umbral, la contraentrega dice por qué su envío no
      es gratis. Es la misma advertencia que da el carrito: se repite aquí porque
      este es el momento en que se elige, y una sorpresa de $25.000 en el último
      paso es una compra abandonada. */
   const dc=$('#d-contra');
   const tc=calcular(Object.assign({},c,{pago:'contraentrega'}));
-  const cd=CAT.reglas.contraentregaGratisDesde;
+  const cd=CAT.reglas.envioGratisDesdePiezas;
   const base='Pagas en efectivo cuando el mensajero te entregue el paquete.';
-  dc.textContent=tc.gratis
+  dc.textContent=t.especial ? base : tc.gratis
     ? base+' Tu pedido lleva envío gratis también con contraentrega.'
     : base+' El recaudo lo cobra la transportadora, por eso el envío cuesta '+cop(tc.envio)
       +(cd>0?': desde '+cd+' piezas es gratis.':'.');
@@ -1462,7 +1471,7 @@ Promise.all([
 
   /* Elegir departamento repuebla las ciudades y deja la ciudad en blanco otra
      vez: se le quita el rojo porque es un campo nuevo, no uno mal llenado. */
-  $('#depto').addEventListener('change',()=>{ pintarCiudades(); marcar('ciudad',false); });
+  $('#depto').addEventListener('change',()=>{ pintarCiudades(); marcar('ciudad',false); pintarResumen(); });
   $('#ciudad').addEventListener('change',verOtra);
   $('#confirmar').addEventListener('click',confirmar);
   addEventListener('scroll',()=>{ $('#res').classList.toggle('is-compacto',scrollY>140); },{passive:true});
@@ -1502,7 +1511,7 @@ Promise.all([
       ['nombre','apellido','celular','correo','direccion','adicional','barrio'].forEach(k=>pon(k,cl[k]));
       pon('cedula',cl.documento);
       if(cl.depto&&GEO.departamentos[cl.depto]&&pon('depto',cl.depto)){
-        pintarCiudades();
+        pintarCiudades(); pintarResumen();
         if((GEO.departamentos[cl.depto]||[]).indexOf(cl.ciudad)>=0) $('#ciudad').value=cl.ciudad;
         else if(cl.ciudad){ $('#ciudad').value=OTRO; verOtra(); $('#ciudadotra').value=cl.ciudad; }
       }

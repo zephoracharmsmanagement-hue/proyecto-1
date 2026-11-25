@@ -97,16 +97,17 @@ def main():
     pct_c = oferta['charms'] if oferta else 0
     pct_b = oferta['brazaletes'] if oferta else 0
 
-    libre = int(saca(r'LIBRE\s*=\s*(\d+)', motor, 'el umbral de envío gratis LIBRE', 'tienda.js'))
-    solo_ant = saca(r'const LIBRE_SOLO_ANTICIPADO=(true|false);', motor,
-                    'la regla LIBRE_SOLO_ANTICIPADO', 'tienda.js') == 'true'
     envio_txt = saca(r'const ENVIO=\{([^}]+)\}', motor, 'las tarifas de envío ENVIO', 'tienda.js')
     envio = {
         k.strip(): int(v)
         for k, v in (par.split(':') for par in envio_txt.split(','))
     }
-    contra_desde = int(saca(r'const CONTRA_GRATIS_DESDE=(\d+);', motor,
-                            'la regla CONTRA_GRATIS_DESDE', 'tienda.js'))
+    gratis_desde = int(saca(r'const ENVIO_GRATIS_DESDE=(\d+);', motor,
+                            'la regla ENVIO_GRATIS_DESDE', 'tienda.js'))
+    esp = re.search(r'const ENVIO_ESPECIAL=\{precio:(\d+), departamentos:(\[[^\]]*\])\};', motor)
+    if not esp:
+        sys.exit('No encontré ENVIO_ESPECIAL en tienda.js')
+    especial = {'precio': int(esp.group(1)), 'departamentos': json.loads(esp.group(2))}
 
 
     # data-g en cada tarjeta lleva la categoría; .pc--top marca los destacados.
@@ -198,11 +199,12 @@ def main():
         'fotos': fotos,
         'reglas': {
             'promo': promo,
-            'envioGratisDesde': libre,
-            'envioGratisSoloAnticipado': solo_ant,
+            # Zona nacional: lo que paga 1 pieza según el pago, y desde cuántas
+            # piezas el envío es gratis en las dos modalidades.
             'envio': envio,
-            # Desde cuántas piezas la contraentrega tampoco paga envío (0 = nunca).
-            'contraentregaGratisDesde': contra_desde,
+            'envioGratisDesdePiezas': gratis_desde,
+            # Destinos especiales: precio fijo, sin gratis y sin contraentrega.
+            'envioEspecial': especial,
             **({'oferta': oferta} if oferta else {}),
         },
     }
@@ -225,8 +227,8 @@ def main():
     print(f'{DESTINO.relative_to(RAIZ)}: {n} piezas con precio y foto')
     print('  promo: ' + ' · '.join(f'{p} piezas → {g} gratis' for p, g in promo['tramos']) + ' (las más baratas; tope)')
     tarifas = ' · '.join(f'{k} ${v:,}'.replace(',', '.') for k, v in envio.items())
-    print(f'  envío {tarifas}'
-          + f' · gratis desde ${libre:,}'.replace(',', '.'))
+    print(f'  envío {tarifas} · gratis desde {gratis_desde} piezas'
+          + f" · destinos especiales ${especial['precio']:,}".replace(',', '.'))
 
 
 if __name__ == '__main__':

@@ -265,16 +265,16 @@ def main():
         '$3.000.000. Nunca digas que no lo manejamos.', P))
 
     A(Paragraph('Envíos', H2))
-    gratis = reglas['envioGratisDesde'] == 0
+    esp = reglas['envioEspecial']
     A(Paragraph(
         'Transportadora <b>Inter Rapidísimo</b>, a todo el territorio nacional. '
-        + ('Con <b>pago anticipado el envío es GRATIS</b> a toda Colombia, '
-           '<b>sin monto mínimo</b>. Es argumento de venta, no letra pequeña. '
-           if gratis else
-           f'Con pago anticipado cuesta {pesos(reglas["envio"]["anticipado"])}. ')
-        + f'Con <b>contraentrega cuesta {pesos(reglas["envio"]["contraentrega"])}</b>, '
-        'tarifa plana: es lo que cobra la transportadora por recaudar el dinero '
-        'en la entrega, y solo aplica donde ella lo permite.', P))
+        f'Con <b>{reglas["envioGratisDesdePiezas"]} piezas o más el envío es GRATIS</b>, '
+        'pagando en línea o contraentrega. Es argumento de venta, no letra pequeña. '
+        f'Con una sola pieza cuesta {pesos(reglas["envio"]["anticipado"])} pagando en línea y '
+        f'<b>{pesos(reglas["envio"]["contraentrega"])} contraentrega</b>: la diferencia es lo que cobra '
+        'la transportadora por recaudar el dinero en la entrega, y solo aplica donde ella lo permite. '
+        f'<b>Destinos especiales</b> ({", ".join(esp["departamentos"])}): {pesos(esp["precio"])} con '
+        'cualquier número de piezas, y solo con pago anticipado.', P))
     A(Paragraph(
         '<b>Tiempos</b>, en días hábiles desde el despacho: Bogotá y alrededores '
         '1 a 2 · ciudades principales 2 a 4 · resto del país y reexpedidos 3 a 6. '
