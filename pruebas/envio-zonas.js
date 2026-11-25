@@ -93,6 +93,44 @@ const comprobar = (c, m, d) => {
       }
     }
 
+    /* ── Dónde se dice «con 2 piezas el envío es gratis» (2026-11-25) ── */
+    {
+      /* En el carrito, pegado al total y a la vista sin bajar. */
+      for (const n of [1, 2]) {
+        const p = await abrir('index.html', { v: 1, cuando: Date.now(), charms: charms.slice(0, n), bases: [], base: null, pago: 'anticipado' });
+        await p.evaluate(() => document.getElementById('dock-open').click()); await p.waitForTimeout(900);
+        const v = await p.evaluate(() => { const ve = s => { const e = document.querySelector(s); if (!e || e.hidden) return false; const r = e.getBoundingClientRect(); return r.height > 0 && r.top >= 0 && r.bottom <= innerHeight; };
+          const bot = document.getElementById('send').getBoundingClientRect(), caja = document.querySelector('.tot-env').getBoundingClientRect();
+          return { aviso: ve('.tot-env-aviso'), avisoTx: document.querySelector('.tot-env-aviso').textContent, filas: [...document.querySelectorAll('.tot-env-fila')].map(x => x.textContent),
+            cajaVisible: ve('.tot-env'), sobreBoton: caja.bottom <= bot.top, boton: ve('#send'), titulo: document.querySelector('#sug .sug-h b').textContent,
+            desborda: document.documentElement.scrollWidth > innerWidth + 1 }; });
+        const t = calcular({ charms: charms.slice(0, n), bases: [], pago: 'anticipado' });
+        comprobar(v.cajaVisible && v.sobreBoton && v.boton && !v.desborda
+          && v.filas[0] === 'Piezas' + cop(t.subtotal) && v.filas[1] === 'Envío' + (t.envio ? cop(t.envio) : 'Gratis'),
+          `carrito con ${n} pieza(s): las cuentas «Piezas» y «Envío» se ven junto al total, encima del botón`, v.filas.join(' · '));
+        comprobar(n === 1 ? v.aviso && /1 pieza más.*GRATIS/.test(v.avisoTx) : !v.aviso,
+          n === 1 ? 'y el aviso «Agrega 1 pieza más y el envío te sale GRATIS» está a la vista' : 'con el envío ya gratis no se muestra el aviso', v.avisoTx);
+        comprobar(v.titulo === (n === 1 ? 'Suma una más y el envío es gratis' : 'Te puede interesar'), 'el título de las sugerencias acompaña', v.titulo);
+        await p.context().close();
+      }
+      /* La cinta de arriba se turna con el aviso del envío, sin cambiar de alto. */
+      const p = await abrir('index.html', { v: 1, cuando: Date.now(), charms: [], bases: [], base: null, pago: 'anticipado' });
+      const c = await p.evaluate(() => { const s = [...document.querySelectorAll('.ann-slide')], e = document.querySelector('.ann-slide--envio');
+        return { n: s.length, tx: e ? e.textContent : '', dos: !!document.querySelector('.ann-track--dos'), anim: s.map(x => getComputedStyle(x).animationName).join(',') }; });
+      comprobar(c.n === 2 && c.dos && c.tx.includes('ENVÍO GRATIS desde ' + R.envioGratisDesdePiezas + ' piezas') && c.anim === 'annd,annd',
+        'la cinta de arriba tiene dos avisos que se turnan: la oferta y el envío gratis', c.tx);
+      /* Al agregar la primera pieza, el aviso dice lo que gana con la segunda. */
+      await p.evaluate(() => document.querySelector('#charms .pc:not(.is-out) .pc-add:not([aria-disabled="true"])').click());
+      await p.waitForTimeout(600);
+      const a1 = await p.evaluate(() => document.getElementById('aviso-corto').textContent);
+      await p.evaluate(() => document.querySelectorAll('#charms .pc:not(.is-out) .pc-add:not([aria-disabled="true"])')[1].click());
+      await p.waitForTimeout(600);
+      const a2 = await p.evaluate(() => { const a = document.getElementById('aviso-corto'), r = a.getBoundingClientRect(); return { tx: a.textContent, dentro: r.left >= 0 && r.right <= innerWidth }; });
+      comprobar(/con 1 más el envío es GRATIS/.test(a1) && /Ir a pagar/.test(a1) && !/envío/.test(a2.tx) && a2.dentro,
+        'al agregar la primera pieza el aviso dice «con 1 más el envío es GRATIS»; con la segunda ya no', `${a1} → ${a2.tx}`);
+      await p.context().close();
+    }
+
     /* ── La pantalla de pago ── */
     const leer = p => p.evaluate(() => ({ tx: document.body.textContent.replace(/\s+/g, ' '),
       nota: document.getElementById('env-nota').textContent, boton: document.getElementById('confirmar').textContent,

@@ -37,6 +37,18 @@ osea pago anticipado y contraentrega despues de 2 piezas antes, si el cliente pi
   del asesor. `envios-y-devoluciones.html` y `preguntas-frecuentes.html` se editaron **a mano**:
   `gen_paginas.py` va atrasado respecto del HTML publicado (no conoce Clarity ni la sección «Pagos
   y compra») y regenerarlas las daña; el generador quedó con el mismo texto nuevo.
+- **Dónde se le dice a la clienta** (maquetas A–D, aprobadas por el propietario el 2026-11-25:
+  «las cuatro»), todo desde `tienda.js`, sin tocar el HTML de las páginas:
+  - *Carrito, pegado al total* (`pintarEnvioEnTotal()`, bloque `.tot-env` creado al vuelo): las
+    cuentas «Piezas» y «Envío» y, si falta una pieza, «Agrega 1 pieza más y el envío te sale
+    GRATIS». Antes el renglón del envío quedaba en la parte que rueda y el total subía sin que
+    se viera por qué.
+  - *Cinta de arriba*: un segundo aviso (`.ann-slide--envio`, `.ann-track--dos`) que se turna
+    cada 6 s con el de la oferta. Al quitar la oferta sigue turnándose con el aviso de siempre.
+  - *Al agregar la primera pieza*: `avisoAgregado()` añade «con 1 más el envío es GRATIS».
+  - *Sugerencias del carrito*: con una pieza el título pasa a «Suma una más y el envío es gratis».
+  En `checkout.html` no se invita a sumar piezas (decisión anterior, la vigila `pruebas/checkout.js`):
+  solo se dice la regla.
 - `gen_productos.py` vuelve a correr desde `main`: faltaban seis ids opcionales en
   `IDS_OPCIONALES` (`bfb`, `cp-kit`, `destacadas`, `piezas`, `promo-esc`, `tot-ahorro`).
 - **Al publicar:** los anuncios y mensajes de Black Friday prometen «envío gratis» sin condición

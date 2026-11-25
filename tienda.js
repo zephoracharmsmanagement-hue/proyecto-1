@@ -154,6 +154,15 @@ const $=s=>document.querySelector(s);
    la haya cambiado a mano en index.html. Cuando vence, vuelve el aviso de
    siempre. La cuenta es contra el cierre real (fin del día en Colombia), no
    un reloj que se reinicia. */
+/* …y un segundo aviso, el del envío (2026-11-25), que se turna con ese. Se
+   agrega aquí y no en el HTML para que valga en todas las páginas; la cinta
+   no cambia de alto porque los dos avisos ocupan la misma celda. */
+(function(){
+  const tr=$('.ann-track'); if(!tr||tr.querySelector('.ann-slide--envio')) return;
+  const e=document.createElement('a'); e.className='ann-slide ann-slide--envio'; e.href='envios-y-devoluciones.html';
+  e.innerHTML='<b>ENVÍO GRATIS desde '+ENVIO_GRATIS_DESDE+' piezas</b> · pagando en línea o contraentrega';
+  tr.appendChild(e); tr.classList.add('ann-track--dos');
+})();
 (function(){
   const a=$('.ann-slide--oferta'); if(!a) return;
   const normal=()=>{ a.classList.remove('ann-slide--oferta');
@@ -1654,6 +1663,8 @@ function render(){
     nota.className='ship-note ship-casi'; relleno.style.width='0';
   }
 
+  pintarEnvioEnTotal(subtotal,envio,libre,faltanEnvio);
+
   /* Barra de progreso de la promo (pedido del propietario).
    *
    * Una casilla por pieza del tramo en curso —1, 2, 3, GRATIS hasta la
@@ -1810,6 +1821,10 @@ function pintarSug(){
   caja.hidden=false;
   /* El «por qué» se escribe siempre, antes de la salida de abajo: puede
      cambiar (sumó un charm de otra categoría) sin que cambien las piezas. */
+  /* Con una sola pieza, el título dice lo que se gana con la segunda. */
+  const sugT=caja.querySelector('.sug-h b');
+  if(sugT) sugT.textContent=(sel.length+bases.length===ENVIO_GRATIS_DESDE-1)
+    ? 'Suma una más y el envío es gratis' : 'Te puede interesar';
   $('#sug-por').textContent = categorias.length
     ? '· parecidos a '+categorias.slice(0,2).join(' y ')
     : '· los favoritos de las clientas';
@@ -2182,7 +2197,34 @@ document.addEventListener('click',e=>{
 /* «Agregado · Ir a pagar»: hasta el 2026-11-20 tocar «Agregar» no daba más
    señal que un número en la barra de abajo. El botón lleva al pago por el
    mismo camino que «Comprar» (comprar()). */
+/* El envío, pegado al total del carrito (propietario, 2026-11-25). El renglón
+   «Envío» y su nota viven más abajo, en la parte que rueda: con una sola pieza
+   el total subía $15.000 y no se veía por qué. Aquí van las dos cuentas —piezas
+   y envío— y, si falta una pieza para el envío gratis, se dice. El bloque se
+   crea al vuelo, sin id, para que valga en todas las páginas sin regenerarlas. */
+let cajaEnvioTotal=null;
+function pintarEnvioEnTotal(subtotal,envio,libre,faltan){
+  const tb=document.querySelector('.sheet-tot .tot-big'); if(!tb) return;
+  if(!cajaEnvioTotal||!cajaEnvioTotal.isConnected){
+    cajaEnvioTotal=document.createElement('div'); cajaEnvioTotal.className='tot-env';
+    cajaEnvioTotal.innerHTML='<p class="tot-env-aviso"></p>'
+      +'<div class="tot-env-fila"><span>Piezas</span><span data-te="piezas"></span></div>'
+      +'<div class="tot-env-fila"><span>Envío</span><span data-te="envio"></span></div>';
+    tb.parentNode.insertBefore(cajaEnvioTotal,tb);
+  }
+  cajaEnvioTotal.hidden=subtotal<=0;
+  if(subtotal<=0) return;
+  const av=cajaEnvioTotal.querySelector('.tot-env-aviso');
+  av.hidden=libre;
+  if(!libre) av.innerHTML='Agrega <b>'+(faltan===1?'1 pieza':faltan+' piezas')+' más</b> y el envío te sale <b>GRATIS</b>';
+  cajaEnvioTotal.querySelector('[data-te="piezas"]').textContent=cop(subtotal);
+  const e=cajaEnvioTotal.querySelector('[data-te="envio"]');
+  e.textContent=libre?'Gratis':cop(envio); e.className=libre?'tot-env-ok':'';
+}
+
 function avisoAgregado(nota){
+  /* Con la primera pieza, el aviso dice lo que gana con la segunda. */
+  if(!nota&&sel.length+bases.length===ENVIO_GRATIS_DESDE-1) nota='con 1 más el envío es GRATIS';
   avisoCorto('');
   const a=document.getElementById('aviso-corto');
   a.innerHTML='<span>✓ Agregado'+(nota?' · '+nota:'')+'</span> · <button type="button" class="aviso-ir" data-ir-pagar>Ir a pagar</button>';
