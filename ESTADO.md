@@ -5,7 +5,7 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## Pago en celular con resumen corto y aviso «Agregado» sin «Ir a pagar» — rama `claude/pago-resumen-corto`: NO desplegado
+## Pago en celular con resumen corto y aviso «Agregado» sin «Ir a pagar» — desplegado el 2026-11-25 (PR #66)
 
 Salió de leer Clarity el 2026-11-25 (3 días, 57 vistas de `checkout.html`): un tercio se iba sin
 bajar y lo más tocado de la página era «Ver pedido». El propietario eligió la maqueta B y pidió
@@ -16,6 +16,9 @@ quitar el «Ir a pagar» del aviso («¿no se siente el cliente acosado?»).
   el flujo de la página, no pegado: al bajar queda la barra de siempre con el total y la escalera
   de la promo, que **ya no se muestra al llegar** (el propietario lo sabe). «Ver detalle» abre la
   lista completa y esconde el corto. En computador no cambia nada. Lo vigila `pruebas/checkout.js`.
+- **Fotos del resumen:** salen de `CAT.fotos` (`fotoDe()`), no del id. Los anillos (`anillo-…-t6`)
+  y Lilo y Stitch, WALL-E y Jack y Sally salían con una letra en vez de la foto, también en la
+  lista de «Ver detalle» que ya estaba en vivo.
 - **Aviso «✓ Agregado»** (`avisoAgregado()` en `tienda.js`): sin «Ir a pagar» (en Clarity se tocó
   2 veces en ~550 «Agregar») y dura 2,6 s. En las grillas solo sale con una noticia —al completar
   un tramo de la promo, «ya tienes 1 pieza GRATIS»—; en la ficha, las sugerencias y los kits se
