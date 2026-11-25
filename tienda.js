@@ -2202,9 +2202,22 @@ document.addEventListener('click',e=>{
    señal que un número en la barra de abajo. El botón lleva al pago por el
    mismo camino que «Comprar» (comprar()). */
 function avisoAgregado(nota){
-  avisoCorto('');
-  const a=document.getElementById('aviso-corto');
-  a.innerHTML='<span>✓ Agregado'+(nota?' · '+nota:'')+'</span> · <button type="button" class="aviso-ir" data-ir-pagar>Ir a pagar</button>';
+  /* Sin «Ir a pagar» (propietario, 2026-11-25: «¿no se siente el cliente
+     acosado?»). El botón grande de la barra ya lo dice, y en Clarity el del
+     aviso se tocó 2 veces en ~550 «Agregar». El aviso queda para cuando trae
+     una noticia: al completar un tramo de la promo, que ya tiene una pieza
+     gratis. */
+  const n=sel.length+bases.length, tramo=PROMO.tramos.find(x=>x[0]===n);
+  if(!nota&&tramo) nota='ya tienes '+(tramo[1]===1?'1 pieza':tramo[1]+' piezas')+' GRATIS';
+  /* En una grilla, sin noticia no hace falta: el botón pasa a «Agregado», la
+     tarjeta se marca y la barra sube la cuenta. En la ficha, las sugerencias
+     y los kits no hay otra señal tan clara, y ahí se conserva. */
+  if(!nota&&origenAdd==='grilla'){
+    const a=document.getElementById('aviso-corto');
+    if(a){ a.textContent=''; a.classList.remove('is-on'); clearTimeout(avisoCorto.t); }
+    return;
+  }
+  avisoCorto('✓ Agregado'+(nota?' · '+nota:''),2600);
 }
 document.addEventListener('click',e=>{
   if(!e.target.closest||!e.target.closest('[data-ir-pagar]')) return;
@@ -3222,12 +3235,12 @@ function agotadasAlFinal(){
      [data-elegir-base="id"]  pide la talla de ese brazalete, en su tarjeta.
      [data-ir="#sel"]         lleva a esa sección.
      [data-aviso="…"]         y deja un aviso corto de qué hacer ahí. */
-function avisoCorto(txt){
+function avisoCorto(txt,ms){
   let a=document.getElementById('aviso-corto');
   if(!a){ a=document.createElement('div'); a.id='aviso-corto'; a.className='aviso-corto';
     a.setAttribute('role','status'); a.setAttribute('aria-live','polite'); document.body.appendChild(a); }
   a.textContent=txt; a.hidden=false; a.classList.remove('is-on'); void a.offsetWidth; a.classList.add('is-on');
-  clearTimeout(avisoCorto.t); avisoCorto.t=setTimeout(()=>{ a.classList.remove('is-on'); },4200);
+  clearTimeout(avisoCorto.t); avisoCorto.t=setTimeout(()=>{ a.classList.remove('is-on'); },ms||4200);
 }
 document.addEventListener('click',e=>{
   const el=e.target.closest('[data-elegir-base],[data-ir]'); if(!el) return;

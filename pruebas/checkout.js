@@ -244,6 +244,22 @@ async function llenarDatos(p, d) {
       await ponerCarrito(p, { base: k.base ? { id: BRZ.id, talla: BRZ.talla } : null, charms: k.charms, empaque: false, pago: 'anticipado' });
       await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
       await p.waitForTimeout(300);
+      /* Al llegar, en celular, manda el resumen corto (2026-11-25): fotos,
+         cuentas y total a la vista, y el formulario sin tener que bajar. La
+         escalera de la promo queda para cuando se baja (barra pegada arriba). */
+      const corto = await p.evaluate(() => { const c = document.getElementById('res-corto').getBoundingClientRect(), n = document.getElementById('nombre').getBoundingClientRect(),
+        f = document.getElementById('rc-fotos');
+        return { visible: c.height > 0 && c.top >= 0 && c.bottom <= innerHeight, fotos: f.children.length, cabe: f.scrollWidth <= f.clientWidth + 1,
+          total: document.getElementById('rc-total').textContent, barra: document.getElementById('res-total').textContent, titulo: document.getElementById('res-t').textContent,
+          cuentas: document.getElementById('rc-totales').textContent, nombreALaVista: n.top > 0 && n.bottom <= innerHeight,
+          dto: getComputedStyle(document.getElementById('dto')).display }; });
+      const nPz = k.charms.length + (k.base ? 1 : 0);
+      ok(corto.visible && corto.total === corto.barra && corto.fotos >= 1 && corto.fotos <= 5 && corto.cabe && /Subtotal/.test(corto.cuentas) && /Envío/.test(corto.cuentas)
+        && corto.titulo === 'Tu pedido · ' + nPz + (nPz === 1 ? ' pieza' : ' piezas'),
+        `${nPz} pieza(s): al llegar se ve el resumen corto, con fotos, cuentas y el mismo total`, `${corto.titulo} · ${corto.fotos} fotos · ${corto.total}`);
+      ok(corto.nombreALaVista && corto.dto === 'none', 'y el campo «Nombre» queda a la vista sin bajar');
+      await p.evaluate(() => scrollTo(0, 420));
+      await p.waitForTimeout(300);
       const r = await p.evaluate(() => {
         const d = document.querySelector('#dto'), caja = d.getBoundingClientRect();
         return { visible: !d.hidden && caja.height > 0 && caja.bottom <= innerHeight,

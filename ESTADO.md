@@ -5,7 +5,27 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## Banner de Black Friday en la portada y arreglo del kit Marvel — rama `claude/arreglo-kit-marvel`: NO desplegado
+## Pago en celular con resumen corto y aviso «Agregado» sin «Ir a pagar» — rama `claude/pago-resumen-corto`: NO desplegado
+
+Salió de leer Clarity el 2026-11-25 (3 días, 57 vistas de `checkout.html`): un tercio se iba sin
+bajar y lo más tocado de la página era «Ver pedido». El propietario eligió la maqueta B y pidió
+quitar el «Ir a pagar» del aviso («¿no se siente el cliente acosado?»).
+
+- **`#res-corto` en `checkout.html`, solo en celular y al llegar:** «Tu pedido · N piezas», las
+  fotos en fila (hasta 5, y «+N»), las cuentas y el total, con el campo «Nombre» a la vista. Va en
+  el flujo de la página, no pegado: al bajar queda la barra de siempre con el total y la escalera
+  de la promo, que **ya no se muestra al llegar** (el propietario lo sabe). «Ver detalle» abre la
+  lista completa y esconde el corto. En computador no cambia nada. Lo vigila `pruebas/checkout.js`.
+- **Aviso «✓ Agregado»** (`avisoAgregado()` en `tienda.js`): sin «Ir a pagar» (en Clarity se tocó
+  2 veces en ~550 «Agregar») y dura 2,6 s. En las grillas solo sale con una noticia —al completar
+  un tramo de la promo, «ya tienes 1 pieza GRATIS»—; en la ficha, las sugerencias y los kits se
+  conserva siempre. Lo vigila `pruebas/campanas.js`.
+- **El envío por zonas va aparte**, en `claude/envio-por-zonas` (PR #65), para el 1 de diciembre:
+  los anuncios de Black Friday dicen «envío gratis pagando en línea» sin condición y no se pueden
+  editar sin perder la prueba social. Esa rama trae estas dos mejoras también; al publicarla hay
+  que traerle `main` primero.
+
+## Banner de Black Friday en la portada y arreglo del kit Marvel — desplegado el 2026-11-23 (PR #64)
 
 Pedido del propietario (2026-11-23): «en los banners principales, tener algo de Black Friday… un
 video, así como los tiene Pandora o Swarovski». Eligió dos de tres maquetas y que se turnaran.
