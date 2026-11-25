@@ -238,6 +238,25 @@ async function llenarDatos(p, d) {
       { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse'], base: true, tramos: 2, llenos: 2, dice: /tienes 2 piezas GRATIS en este pedido/i },
       { charms: ['iron-man', 'stitch', 'mickey-mouse', 'hulk', 'minnie-mouse', 'ariel'], base: true, tramos: 2, llenos: 2, dice: /tienes 2 piezas GRATIS en este pedido/i },
     ];
+    /* Las fotos del resumen salen de catalogo.json, no del id: un anillo
+       (`anillo-…-t6`) y los charms cuyo archivo no coincide con el id salían
+       con una letra en vez de la foto (propietario, 2026-11-25). */
+    {
+      const CATF = require(path.join(__dirname, '..', 'assets', 'catalogo.json'));
+      const raros = Object.keys(CATF.precios).filter(id => CATF.fotos[id] && CATF.fotos[id] !== id + '.webp' && !CATF.pulseras.includes(id));
+      const anillo = raros.find(id => /^anillo-/.test(id)), otro = raros.find(id => !/^anillo-/.test(id));
+      const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+      await ponerCarrito(p, { base: null, charms: [anillo, otro].filter(Boolean), empaque: false, pago: 'anticipado' });
+      await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+      await p.waitForTimeout(600);
+      const corto = await p.evaluate(() => [...document.querySelectorAll('#rc-fotos > *')].map(e => e.tagName === 'IMG' && e.naturalWidth > 0));
+      await p.evaluate(() => document.getElementById('res-bar').click());
+      await p.waitForTimeout(900);
+      const lista = await p.evaluate(() => [...document.querySelectorAll('#res-lineas .rrow')].map(r => { const i = r.querySelector('img'); return !!i && i.naturalWidth > 0; }));
+      ok(!!anillo && corto.length === lista.length && corto.length >= 1 && corto.every(Boolean) && lista.every(Boolean),
+        'un anillo y un charm con foto de otro nombre salen con su foto en el resumen corto y en la lista', `${anillo}, ${otro}: ${JSON.stringify([corto, lista])}`);
+      await p.close();
+    }
     for (const k of casos) {
       const p = await b.newPage({ viewport: { width: 390, height: 844 } });
       p.on('pageerror', e => errores.push(e.message));
