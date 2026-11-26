@@ -5,6 +5,33 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## «Tu pago no pasó» con salidas de un toque — desplegado el 2026-11-25 (PR #67)
+
+Primer paso de «arreglemos el pago» (propietario, 2026-11-25). De los 102 intentos web reales:
+«Pagar ahora» termina pagado el 37 % de las veces (contraentrega 92 %, Addi 60 %); tras un pago
+rechazado 17 de 26 clientas no volvieron, y ninguna de las que volvieron cambió de medio. La
+pantalla de antes ofrecía un solo camino, «Intentar de nuevo», de vuelta al formulario.
+
+- **`gracias.html`, `pintarFallo()`:** cuando Wompi, Addi o Sistecrédito rechazan, sale «Tu pago
+  no pasó», «No se te cobró nada», el pedido en una línea y las salidas, cada una con lo que
+  costaría: «Pagar con Nequi o tarjeta», «Pagar al recibir» (con el envío a la vista si lo hay),
+  «Pagar a cuotas con Addi» (solo dentro de sus topes y si no fue Addi quien rechazó) y WhatsApp
+  con la referencia escrita.
+- **Aquí no se crea ningún cobro.** Cada salida lleva a `checkout.html?retomar=<pago>`: el pago
+  deja esa forma elegida, los datos ya están (salen de `zephora.pedido` en `sessionStorage`) y la
+  clienta cae en el botón de siempre, con el aviso «Tus datos ya están puestos». Ese toque es la
+  confirmación —también para quien eligió contraentrega— y sigue habiendo un solo sitio que crea
+  pedidos (`confirmar()` → `crear-pago`).
+- **Los precios de las salidas no se calculan en `gracias.html`:** `confirmar()` guarda en
+  `zephora.pedido` un bloque `salidas` (lo que da `calcular()` con cada forma de pago) y las
+  `piezas`. Sin eso —quien abre el enlace en otro navegador— sale la pantalla de antes.
+- **Sin confirmar:** no se sabe si a Wompi se puede llegar con el medio ya elegido; por eso el
+  botón dice «Nequi o tarjeta» y es la clienta quien lo escoge allá.
+- Lo vigila `pruebas/checkout.js` §3a, en celular y computador, hasta crear el pedido
+  contraentrega con el servidor de verdad.
+- Diagnóstico completo y lo que sigue (aviso por WhatsApp, elegir medio antes de Wompi, Nequi sin
+  salir de la tienda): notas de la sesión de tienda, `sesion2-arreglar-el-pago-diagnostico-2026-11-25.md`.
+
 ## Pago en celular con resumen corto y aviso «Agregado» sin «Ir a pagar» — desplegado el 2026-11-25 (PR #66)
 
 Salió de leer Clarity el 2026-11-25 (3 días, 57 vistas de `checkout.html`): un tercio se iba sin
