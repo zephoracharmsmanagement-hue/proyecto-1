@@ -5,7 +5,7 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## «Tu pago no pasó» con salidas de un toque — rama `claude/pago-fallido-salidas`, en vista previa: NO desplegado
+## «Tu pago no pasó» con salidas de un toque — desplegado el 2026-11-25 (PR #67)
 
 Primer paso de «arreglemos el pago» (propietario, 2026-11-25). De los 102 intentos web reales:
 «Pagar ahora» termina pagado el 37 % de las veces (contraentrega 92 %, Addi 60 %); tras un pago
