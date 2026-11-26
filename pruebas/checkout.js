@@ -524,6 +524,93 @@ async function llenarDatos(p, d) {
     await p.close();
   }
 
+  // ——— 3a · El pago no pasó: salidas de un toque ———
+  out.push('\n3a · «Tu pago no pasó»: otras salidas, con los datos ya puestos');
+  {
+    /* De los pedidos reales (2026-11-25): 17 de 26 clientas con un pago
+       rechazado no volvieron, y ninguna de las que volvieron cambió de medio.
+       La página de resultado les ofrecía un solo camino, de vuelta al
+       formulario. Ahora pone las salidas a un toque, cada una con su precio, y
+       todas llegan al botón de siempre con los datos puestos. */
+    const PR = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
+    for (const [w, h, nombre] of [[390, 844, 'celular'], [1366, 768, 'computador']]) {
+      for (const charms of [['mickey-mouse'], ['mickey-mouse', 'stitch']]) {
+        const ctx = await b.newContext({ viewport: { width: w, height: h } });
+        const p = await ctx.newPage();
+        p.on('pageerror', e => errores.push(e.message));
+        const cap = [];
+        await interceptar(p, cap);
+        await p.route('https://checkout.wompi.co/**', r => r.fulfill({ status: 200, contentType: 'text/html', body: '<p>pasarela</p>' }));
+        /* Wompi dice que el banco rechazó el PSE. */
+        await p.route('**/v1/transactions/**', r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
+          body: JSON.stringify({ data: { status: 'DECLINED', reference: (cap[0] && cap[0].respuesta.referencia) || 'ZC-X', amount_in_cents: ((cap[0] && cap[0].respuesta.total) || 0) * 100, payment_method_type: 'PSE' } }) }));
+        await ponerCarrito(p, { base: null, charms, empaque: false, pago: 'anticipado' });
+        await p.goto(BASE + '/checkout.html', { waitUntil: 'networkidle' });
+        await p.waitForTimeout(400);
+        await llenarDatos(p, DATOS);
+        await p.click('#confirmar');
+        await p.waitForTimeout(900);
+        await p.goto(BASE + '/gracias.html?id=tx-prueba&env=prod', { waitUntil: 'networkidle' });
+        await p.waitForTimeout(700);
+
+        const ant = PR.calcular(PR.leerPedido({ charms, pago: 'anticipado' })), con = PR.calcular(PR.leerPedido({ charms, pago: 'contraentrega' }));
+        const v = await p.evaluate(() => ({ titulo: document.getElementById('titulo').textContent, entrada: document.getElementById('entrada').textContent,
+          salidas: [...document.querySelectorAll('#fallo .salida')].map(a => ({ k: a.dataset.salida, href: a.getAttribute('href'), tx: a.textContent.replace(/\s+/g, ' '),
+            visible: a.getBoundingClientRect().height >= 44 && a.getBoundingClientRect().right <= innerWidth + 1 })),
+          viejo: !document.querySelector('.btns').hidden, primeraALaVista: (() => { const r = document.querySelector('#fallo .salida').getBoundingClientRect(); return r.top > 0 && r.bottom <= innerHeight; })(),
+          carrito: !!localStorage.getItem('zephora.carrito.v1'), desborda: document.documentElement.scrollWidth > innerWidth + 1,
+          foto: (() => { const i = document.querySelector('.fallo-ped img'); return !!i && i.naturalWidth > 0; })() }));
+        const de = k => v.salidas.find(s => s.k === k) || { tx: '', href: '' };
+        const caso = `${nombre}, ${charms.length} pieza(s)`;
+        ok(v.titulo === 'Tu pago no pasó' && /No se te cobró nada/.test(v.entrada) && /PSE/.test(v.entrada) && !v.viejo,
+          `${caso}: dice que no se cobró nada y qué medio falló`, v.entrada);
+        ok(v.salidas.length >= 3 && v.salidas.every(s => s.visible) && !v.desborda && v.carrito && v.foto && (h < 800 || v.primeraALaVista),
+          'las salidas se ven completas, con la foto del pedido, y el carrito sigue intacto', v.salidas.map(s => s.k).join(', '));
+        ok(de('anticipado').tx.includes(cop(ant.total)) && de('anticipado').href === 'checkout.html?retomar=anticipado',
+          `«Pagar con Nequi o tarjeta» muestra ${cop(ant.total)}, lo que cobraría el servidor`, de('anticipado').tx);
+        ok(de('contraentrega').tx.includes(cop(con.total)) && (con.envio > 0) === /envío/.test(de('contraentrega').tx),
+          `«Pagar al recibir» muestra ${cop(con.total)}${con.envio ? ' y dice cuánto es el envío' : ', sin recargo'}`, de('contraentrega').tx);
+        ok(/^https:\/\/wa\.me\//.test(de('wa').href) && decodeURIComponent(de('wa').href).includes(cap[0].respuesta.referencia),
+          'WhatsApp abre con la referencia del pedido ya escrita');
+        ok((ant.total >= 50000) === !!de('addi').href, 'Addi solo se ofrece dentro de sus topes');
+
+        /* Un toque en «Pagar al recibir»: llega al botón con todo puesto. */
+        await p.click('#fallo .salida[data-salida="contraentrega"]');
+        await p.waitForLoadState('networkidle');
+        await p.waitForTimeout(900);
+        const c = await p.evaluate(() => { const bt = document.getElementById('confirmar').getBoundingClientRect(), av = document.getElementById('retomar-aviso');
+          return { pago: (document.querySelector('#ops-pago input:checked') || {}).value, nombre: document.getElementById('nombre').value, dir: document.getElementById('direccion').value,
+            boton: document.getElementById('confirmar').textContent.trim(), botonALaVista: bt.top >= 0 && bt.bottom <= innerHeight + 400,
+            aviso: av.hidden ? '' : av.textContent, url: location.search, rojos: document.querySelectorAll('.campo.mal').length }; });
+        ok(c.pago === 'contraentrega' && c.nombre === DATOS.nombre && c.dir === DATOS.direccion && c.rojos === 0,
+          'al tocar «Pagar al recibir» vuelve al pago con sus datos puestos y contraentrega elegida', JSON.stringify([c.pago, c.nombre]));
+        ok(c.boton.includes(cop(con.total)) && /ya están puestos/.test(c.aviso) && !/retomar/.test(c.url),
+          `y el botón dice «Confirmar pedido · ${cop(con.total)}», con el aviso de que solo falta confirmar`, c.boton);
+        /* El pedido no se crea solo: hace falta ese último toque. */
+        ok(cap.length === 1, 'llegar ahí no crea ningún pedido: falta el toque de confirmar');
+        await p.click('#confirmar');
+        await p.waitForTimeout(900);
+        ok(cap.length === 2 && cap[1].pedido.pago === 'contraentrega' && !cap[1].respuesta.error && cap[1].respuesta.total === con.total
+          && cap[1].respuesta.referencia !== cap[0].respuesta.referencia,
+          'un toque más y el pedido contraentrega queda creado, con referencia nueva y el total del servidor', cap[1] && JSON.stringify(cap[1].respuesta).slice(0, 90));
+        await ctx.close();
+      }
+    }
+    /* Sin lo que dejó el checkout (otro navegador, otra pestaña) se muestra
+       la pantalla de antes, que no depende de nada guardado. */
+    const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+    p.on('pageerror', e => errores.push(e.message));
+    await p.route('**/v1/transactions/**', r => r.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({ data: { status: 'DECLINED', reference: 'ZC-261125-ABCDEF12', amount_in_cents: 8400000, payment_method_type: 'PSE' } }) }));
+    await p.goto(BASE + '/gracias.html?id=tx-otra&env=prod', { waitUntil: 'networkidle' });
+    await p.waitForTimeout(600);
+    const v = await p.evaluate(() => ({ titulo: document.getElementById('titulo').textContent, fallo: !!document.getElementById('fallo'),
+      reintentar: !!document.querySelector('.btns a[href="checkout.html"]'), botones: !document.querySelector('.btns').hidden }));
+    ok(v.titulo === 'El pago no se completó' && !v.fallo && v.reintentar && v.botones,
+      'sin datos guardados en esta pestaña sigue saliendo la pantalla de antes, con «Intentar de nuevo»', v.titulo);
+    await p.close();
+  }
+
   // ——— 3b · Addi, entre los pagos principales ———
   out.push('\n3b · Addi: tercera opción, va a Addi con la cédula');
   {
