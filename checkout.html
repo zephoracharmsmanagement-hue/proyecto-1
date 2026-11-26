@@ -141,6 +141,10 @@ button{font-family:inherit}
 .aval-e{display:flex;gap:1px;flex:0 0 auto}
 
 .res-editar{display:inline-block;margin-top:12px;font-size:12.5px}
+/* Quien vuelve de un pago que no pasó: sus datos ya están, solo confirma. */
+.retomar-aviso{margin:0 0 14px;padding:10px 13px;border-radius:3px;background:#e9f5f0;border:1px solid #c6e5d9;
+  color:#1a6049;font-size:13.5px;line-height:1.45}
+.retomar-aviso[hidden]{display:none}
 
 /* ——— paneles ——— */
 .panel{background:var(--white);border:1px solid var(--line);border-radius:3px;
@@ -522,6 +526,7 @@ button{font-family:inherit}
         <!-- ——— pago ——— -->
         <section class="panel" id="panel-pago" aria-labelledby="t3">
           <h2 id="t3">Pago</h2>
+          <p class="retomar-aviso" id="retomar-aviso" role="status" hidden></p>
 
           <!-- Los medios de pago van todos a la vista (estudio de conversión,
                2026-11-20): antes solo se veía el que venía del carrito y la
@@ -747,7 +752,7 @@ function carritoDeUrl(){
 function limpiarUrl(){
   try{
     var u=new URL(location.href);
-    ['p','e','pago','reanudar','ref'].forEach(function(k){ u.searchParams.delete(k); });
+    ['p','e','pago','reanudar','ref','retomar'].forEach(function(k){ u.searchParams.delete(k); });
     history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
   }catch(_){}
 }
@@ -1320,8 +1325,16 @@ async function confirmar(){
         +cop(d.total)+'). Vuelve a revisar tu selección.');
     }
 
+    /* `salidas`: lo que costaría este mismo pedido con cada forma de pago, y
+       sus piezas. Lo lee gracias.html si el pago no pasa, para ofrecer las
+       otras salidas con su precio sin volver a calcular nada allá. */
+    const costaria=f=>{ const x=calcular(Object.assign({},carrito,{pago:f})); return x.total; };
+    const tAddi=costaria('addi');
     sessionStorage.setItem('zephora.pedido',JSON.stringify({
-      referencia:d.referencia, total:d.total, pago:carrito.pago, cliente:cuerpo.cliente
+      referencia:d.referencia, total:d.total, pago:carrito.pago, cliente:cuerpo.cliente,
+      salidas:{anticipado:costaria('anticipado'),contraentrega:costaria('contraentrega'),
+        addi:(tAddi>=ADDI_TOPES.min&&tAddi<=ADDI_TOPES.max)?tAddi:null},
+      piezas:lineas(carrito).map(l=>({n:l.n,foto:l.foto||fotoDe(l.id)})), nPiezas:nPiezasDe(carrito)
     }));
 
     if(carrito.pago==='contraentrega'){
@@ -1570,9 +1583,34 @@ Promise.all([
     }
   }catch(_){}
 
+  /* «Retomar» (2026-11-25): quien viene de «Tu pago no pasó» ya eligió allá
+     cómo terminar. Se le pone esa forma de pago y, si sus datos siguen
+     completos, se le lleva directo al botón: revisa y confirma, sin volver a
+     llenar nada. El pedido lo sigue creando el mismo botón de siempre, que es
+     además la confirmación de quien eligió contraentrega. */
+  let retomar='';
+  try{ retomar=new URLSearchParams(location.search).get('retomar')||''; }catch(_){}
+  if(['anticipado','contraentrega','addi'].includes(retomar)){
+    const op=document.querySelector('#ops-pago input[value="'+retomar+'"]');
+    if(op&&!op.disabled){ carrito.pago=retomar; guardarCarrito(); }
+  }else retomar='';
+
   /* La forma de pago que venía del armador manda sobre la marcada por defecto. */
   const previo=document.querySelector('#ops-pago input[value="'+carrito.pago+'"]');
   if(previo){ previo.checked=true; previo.dispatchEvent(new Event('change',{bubbles:true})); }
+
+  if(retomar){
+    limpiarUrl();
+    const completo=Object.keys(REGLAS).every(n=>REGLAS[n]());
+    const av=$('#retomar-aviso');
+    av.hidden=false;
+    av.textContent=completo
+      ? 'Tus datos ya están puestos. Revisa y toca el botón para terminar.'
+      : (CREDITO[carrito.pago]?'Solo falta tu cédula para pagar con '+CREDITO[carrito.pago]+'.':'Revisa tus datos y toca el botón para terminar.');
+    /* Después de pintar: el resumen y las opciones cambian de alto al cargar. */
+    setTimeout(()=>{ const d=completo?$('#panel-pago'):(document.querySelector('.campo.mal')||$('#panel-datos')||$('#panel-pago'));
+      d.scrollIntoView({block:'start'}); },350);
+  }
 
   /* El carrito se arma en otra página, así que esta puede quedarse mirando una
      copia vieja. Dos casos reales:

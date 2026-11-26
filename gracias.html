@@ -85,6 +85,29 @@ h1{font-size:clamp(30px,8vw,44px);line-height:1.1;margin-bottom:12px}
 @media(min-width:620px){
   .btns{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
 }
+/* «Tu pago no pasó»: el pedido en una línea y las salidas, cada una con su
+   precio (2026-11-25). */
+.fallo{margin-top:22px}
+.fallo-ped{display:flex;align-items:center;gap:12px;margin:0 0 18px;padding:12px 14px;background:var(--white);
+  border:1px solid var(--line);border-radius:3px}
+.fallo-ped img,.fallo-ped i{flex:0 0 auto;width:54px;height:54px;border:1px solid var(--line);border-radius:3px;background:#fff}
+.fallo-ped img{object-fit:contain;padding:3px}
+.fallo-ped i{display:grid;place-items:center;font-style:normal;font-size:13.5px;color:#6d6070}
+.fallo-ped span{flex:1;min-width:0;font-size:14px;line-height:1.35}
+.fallo-ped small{display:block;font-size:12.5px;color:#6d6070}
+.fallo-ped b{font:500 20px/1 'Cormorant Garamond',serif;white-space:nowrap}
+.fallo-t{margin:0 0 10px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6d6070}
+.salida{display:flex;align-items:center;gap:12px;padding:14px 16px;margin:0 0 10px;border-radius:3px;text-decoration:none;
+  background:var(--white);color:var(--ink);border:1px solid #d9cfdd}
+.salida span{flex:1;min-width:0}
+.salida b{display:block;font-size:15.5px;font-weight:600;line-height:1.3;letter-spacing:.02em}
+.salida small{display:block;font-size:13px;line-height:1.4;margin-top:2px;color:#584a5c}
+.salida em{flex:0 0 auto;text-align:right;font-style:normal;font-size:14px;font-weight:500;line-height:1.3;white-space:nowrap}
+.salida em small{font-size:11.5px;margin:0;font-weight:400}
+.salida--uno{background:var(--pagar,#A04D68);border-color:var(--pagar,#A04D68);color:#fff}
+.salida--uno small{color:#fff;opacity:.9}
+.fallo-otro{text-align:center;margin:14px 0 0;font-size:13px}
+@media(hover:hover){.salida:hover{border-color:var(--ink)}.salida--uno:hover{filter:brightness(.94)}}
 </style>
 <script src="/assets/clarity.js" defer></script>
 </head>
@@ -179,6 +202,58 @@ function pintarFicha(ref,total,extra){
     '<div class="par"><span>'+esc(k)+'</span><b>'+v+'</b></div>').join('');
 }
 
+/* «Tu pago no pasó» (propietario, 2026-11-25). De los pedidos reales: 17 de
+   26 clientas con un pago rechazado no volvieron, y ninguna de las que
+   volvieron cambió de medio. La pantalla de antes ofrecía un solo camino
+   —«Intentar de nuevo», de vuelta al formulario—. Esta pone las salidas a un
+   toque, cada una con lo que costaría, y todas llegan al mismo botón de
+   siempre en checkout.html con los datos ya puestos (`?retomar=`): aquí no se
+   crea ningún cobro.
+
+   `fallo`: 'ADDI', 'SISTECREDITO' o el medio que devolvió Wompi (PSE, NEQUI,
+   CARD, BANCOLOMBIA_TRANSFER…). Sin lo que dejó el checkout en esta pestaña
+   —quien abre el enlace en otro navegador— devuelve false y se muestra la
+   pantalla de antes. */
+const MEDIOS={PSE:'PSE',NEQUI:'Nequi',CARD:'la tarjeta',BANCOLOMBIA_TRANSFER:'Bancolombia',BANCOLOMBIA_QR:'Bancolombia',
+  DAVIPLATA:'Daviplata',ADDI:'Addi',SISTECREDITO:'Sistecrédito'};
+function pintarFallo(ref,fallo){
+  const s=pedido&&pedido.salidas;
+  let hayCarrito=false; try{ hayCarrito=!!localStorage.getItem('zephora.carrito.v1'); }catch(_){}
+  if(!s||!hayCarrito||!s.anticipado) return false;
+  const credito=fallo==='ADDI'||fallo==='SISTECREDITO', medio=MEDIOS[fallo]||'';
+  $('#sello').className='sello sello--mal'; $('#sello').innerHTML=SELLOS.mal;
+  $('#titulo').textContent='Tu pago no pasó';
+  $('#entrada').innerHTML='<b>No se te cobró nada.</b> '
+    +(credito?esc(medio)+' no aprobó la compra.':medio?'El banco no aprobó el pago con '+esc(medio)+'.':'El banco no aprobó el pago.')
+    +' Tu pedido sigue listo: termínalo con otro medio, en un toque.';
+  $('#ficha').hidden=true; $('#siguiente').hidden=true;
+  document.querySelector('.btns').hidden=true;
+  const pz=pedido.piezas||[], n=pedido.nPiezas||pz.length;
+  const foto=pz[0]&&pz[0].foto
+    ? '<img src="'+esc(pz[0].foto)+'" alt="" onerror="this.outerHTML=\'<i>'+n+'</i>\'">' : '<i>'+n+'</i>';
+  const nombre=pz.length===1&&n===1?pz[0].n:(pz[0]?pz[0].n+' y '+(n-1)+' más':'Tu pedido');
+  const salida=(pago,titulo,sub,precio,uno)=>'<a class="salida'+(uno?' salida--uno':'')+'" data-salida="'+pago+'" href="'
+    +(pago==='wa'?esc(waTexto(ref,(medio?'Mi pago con '+medio:'Mi pago')+' no pasó y quiero terminar el pedido por aquí.'))
+      :'checkout.html?retomar='+pago)+'">'
+    +'<span><b>'+titulo+'</b><small>'+sub+'</small></span>'+(precio?'<em>'+precio+'</em>':'')+'</a>';
+  const extraContra=s.contraentrega-s.anticipado;
+  let h='<div class="fallo-ped">'+foto+'<span>'+esc(nombre)+'<small>'+n+(n===1?' pieza':' piezas')+'</small></span><b>'+esc(cop(s.anticipado))+'</b></div>'
+    +'<p class="fallo-t">Elige cómo terminar</p>';
+  h+=salida('anticipado','Pagar con Nequi o tarjeta',
+    fallo==='CARD'?'Prueba con Nequi o con otra tarjeta':fallo==='NEQUI'?'Prueba con tarjeta, o revisa tu saldo de Nequi'
+      :'Los que mejor funcionan desde el celular',esc(cop(s.anticipado)),true);
+  if(s.contraentrega) h+=salida('contraentrega','Pagar al recibir','Contraentrega: confirmas ahora y pagas en efectivo al mensajero',
+    esc(cop(s.contraentrega))+(extraContra>0?'<small>envío '+esc(cop(extraContra))+'</small>':''));
+  if(s.addi&&!credito) h+=salida('addi','Pagar a cuotas con Addi','Hasta 3 cuotas sin interés, solo con tu cédula','3 × '+esc(cop(Math.ceil(s.addi/3))));
+  h+=salida('wa','Que me ayuden por WhatsApp','Te respondemos y lo cerramos por ahí','');
+  h+='<p class="fallo-otro"><a href="checkout.html">Cambiar mis datos o mi pedido</a></p>';
+  let caja=document.getElementById('fallo');
+  if(!caja){ caja=document.createElement('div'); caja.id='fallo'; caja.className='fallo';
+    document.querySelector('.btns').parentNode.insertBefore(caja,document.querySelector('.btns')); }
+  caja.innerHTML=h;
+  return true;
+}
+
 function waTexto(ref,asunto){
   return 'https://wa.me/'+WA+'?text='+encodeURIComponent(
     'Hola, Zephora Charms. '+asunto+(ref?' Mi referencia es '+ref+'.':''));
@@ -240,6 +315,7 @@ if(modo==='contraentrega'){
           $('#wa').href=waTexto(ref,'Acabo de pagar mi pedido con '+NOM+'.');
         }else if(estado==='rechazado'){
           listo=true;
+          if(pintarFallo(ref,modo==='addi'?'ADDI':'SISTECREDITO')) return;
           pintar('mal',NOM+' no aprobó la compra',
             'No se te cobró nada. Puedes intentar con otro medio de pago o pedirlo contraentrega.',
             ['Vuelve al checkout y elige otro medio.',
@@ -296,6 +372,7 @@ if(modo==='contraentrega'){
            'No repitas el pago: si al final se aprueban los dos, hay que devolver uno.']);
         $('#wa').href=waTexto(rr,'Mi pago quedó en proceso y quiero saber cómo va.');
       }else{
+        if(pintarFallo(rr,metodo)) return;
         pintar('mal','El pago no se completó',
           'El banco no aprobó la transacción, así que no se te cobró nada. '
           +'Puedes intentar con otro medio de pago, o pedirlo contraentrega.',
