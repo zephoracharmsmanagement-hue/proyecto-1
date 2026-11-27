@@ -163,6 +163,12 @@ function main() {
      otra cifra es cobrar de palabra algo que el checkout no cobra. */
   const permitidas = new Set([reglas.envio.anticipado, reglas.envio.contraentrega, reglas.envioEspecial.precio]);
   if (reglas.empaque) permitidas.add(reglas.empaque);
+  /* El mínimo de Sistecrédito («compras desde $50.000», de vuelta el
+     2026-11-27): sale de _sistecredito.mjs, que es quien lo exige. */
+  const minSiste = /SISTECREDITO_MINIMO\) \|\| (\d+)/.exec(
+    fs.readFileSync(path.join(__dirname, '..', 'netlify', 'functions', '_sistecredito.mjs'), 'utf8'));
+  comprobar(!!minSiste, 'se encuentra el mínimo de Sistecrédito en _sistecredito.mjs', minSiste && minSiste[1]);
+  if (minSiste) permitidas.add(Number(minSiste[1]));
 
   /* Los precios de ejemplo («84.000 en Black Friday, precio de lista
      105.000», el pie de una foto) son precios de verdad: valen si están en el
