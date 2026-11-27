@@ -164,7 +164,12 @@ function main() {
   const permitidas = new Set([reglas.envio.anticipado, reglas.envio.contraentrega, reglas.envioEspecial.precio]);
   if (reglas.empaque) permitidas.add(reglas.empaque);
 
-  const intrusas = [...enElPrompt].filter(n => !permitidas.has(n));
+  /* Los precios de ejemplo («84.000 en Black Friday, precio de lista
+     105.000», el pie de una foto) son precios de verdad: valen si están en el
+     catálogo y la línea no habla de envío, que es lo que esta sección cuida. */
+  const deCatalogo = new Set([...Object.values(CAT.precios), ...Object.values(CAT.lista || {})]);
+  const enLineasDeEnvio = platas(prompt.split('\n').filter(l => /env[ií]o|contraentrega/i.test(l)).join('\n'));
+  const intrusas = [...enElPrompt].filter(n => !permitidas.has(n) && !(deCatalogo.has(n) && !enLineasDeEnvio.has(n)));
   comprobar(intrusas.length === 0,
     'ninguna cifra del prompt contradice catalogo.json',
     intrusas.length ? 'sobra: ' + intrusas.map(n => '$' + n.toLocaleString('es-CO')).join(', ') : undefined);
@@ -381,8 +386,12 @@ function main() {
     (avisoCondicionado && /no te calles ni dejes de responder/i.test(prompt)),
     'el propio prompt le explica a la IA qué puede prometer y qué no');
 
-  comprobar(/en breve (te )?escribe|en breve te escriben/i.test(prompt),
-    'ofrece la alternativa honesta: el equipo revisa el chat y escribe en breve');
+  /* Hasta el 2026-11-25 el prompt decía «en breve te escriben». Se cambió: el
+     bot no sabe cuándo responde el equipo, así que no promete plazo y da el
+     horario si le preguntan. */
+  comprobar(/NUNCA PROMETAS CUANDO TE ESCRIBE EL EQUIPO/i.test(prompt) && /lunes a sabado/i.test(prompt)
+    && /el equipo (revisa|le confirma|lo verifica)/i.test(prompt),
+    'ofrece la alternativa honesta: el equipo responde por el chat, sin prometer cuándo, y con su horario');
 
   console.log('\n10 · El saludo no repite su propia pregunta');
 

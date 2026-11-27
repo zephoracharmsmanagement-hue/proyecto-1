@@ -26,9 +26,9 @@
  * sistecredito-enlace y el resultado llega a sistecredito-aviso.
  */
 import crypto from 'node:crypto';
-import { leerPedido, comprobarInventario, calcular, detallar, cop,
+import { leerPedido, comprobarInventario, skusDeInventario, calcular, detallar, cop,
   PedidoInvalido, SinInventario, fotos, brazaletesDe, esDestinoEspecial } from './_precios.js';
-import { reservar, confirmar, liberar } from './_inventario.mjs';
+import { reservar, confirmar, liberar, disponibles } from './_inventario.mjs';
 import { anotarVenta } from './_hoja.mjs';
 import { guardar, marcar } from './_pedidos.mjs';
 import { pedidoRecibido, avisoTienda } from './_correo.js';
@@ -264,7 +264,10 @@ export default async (req) => {
     if (pedido.pago === 'contraentrega' && esDestinoEspecial(cliente.depto)) {
       throw new PedidoInvalido('A ese departamento solo enviamos con pago anticipado');
     }
-    comprobarInventario(pedido);
+    /* Con lo que hay disponible ahora, no con el último conteo: es la misma
+       cuenta que le mostró la página. Si el almacén no responde, `disponibles`
+       devuelve null y se revisa contra el conteo. */
+    comprobarInventario(pedido, await disponibles(skusDeInventario(pedido)));
     cuentas = calcular(pedido, undefined, cliente.depto);
   } catch (e) {
     if (e instanceof PedidoInvalido) return responder(400, { error: e.message });

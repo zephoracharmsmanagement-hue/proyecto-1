@@ -49,6 +49,11 @@ function almacenFalso({ latencia = 0 } = {}) {
       if (!guardado) return null;
       return { data: copia(guardado.valor), etag: guardado.etag, metadata: {} };
     },
+    /* `disponibles()` lee con get(), sin etag: no escribe. */
+    async get() {
+      await pausa(latencia);
+      return guardado ? copia(guardado.valor) : null;
+    },
     async setJSON(clave, valor, opciones = {}) {
       await pausa(latencia);
       if (opciones.onlyIfNew && guardado) return { modified: false };
@@ -394,6 +399,74 @@ async function main() {
       comprobar(mod.handler === undefined,
         `${archivo} ya no exporta el handler v1 — con v1, Blobs no se configura`);
     }
+  }
+
+  console.log('\nEl pago revisa contra el inventario vivo, no contra el último conteo');
+  {
+    /* 2026-11-27, Black Friday: la Cadena Hamsa y Ojo estaba en 0 en stock.json
+       y repuesta con un ajuste (+3). La página la mostraba disponible, pero
+       crear-pago y armar-carrito la rechazaban con «se agotó», porque
+       comprobarInventario() leía solo el conteo. Al revés, una pieza con conteo
+       3 y 3 vendidas pasaba esa revisión (la frenaba después `reservar`). */
+    const P = require(path.join(RAIZ, 'netlify', 'functions', '_precios.js'));
+    const items = INV.items;
+    const enCero = Object.keys(items).find(id => items[id].stock === 0 && P.nombres && P.nombres[id])
+      || Object.keys(items).find(id => items[id].stock === 0);
+    const conTres = Object.keys(items).find(id => items[id].stock >= 2 && id !== enCero);
+    const brz = Object.keys(items).find(id => items[id].tallas && Object.values(items[id].tallas).some(n => +n === 0) && Object.values(items[id].tallas).some(n => +n > 0));
+    comprobar(!!enCero && !!conTres, 'hay en stock.json una pieza en 0 y otra con unidades para el caso', `${enCero} / ${conTres}`);
+
+    const almacen = almacenFalso();
+    inventario._interno.usarAlmacen(almacen);
+    const estado = inventario._interno.vacio();
+    /* La de 0 se repuso con un ajuste; de la otra se vendieron todas. */
+    estado.sumas = { 'AJ-PRUEBA': { items: { [enCero]: 3 }, cuando: Date.now() } };
+    estado.vendido = { [conTres]: items[conTres].stock };
+    let tallaCero = null;
+    if (brz) { tallaCero = Object.keys(items[brz].tallas).find(k => +items[brz].tallas[k] === 0); estado.sumas['AJ-PRUEBA'].items[brz + '|' + tallaCero] = 2; }
+    await almacen.setJSON('estado', estado, { onlyIfNew: true });
+
+    const lanza = f => { try { f(); return null; } catch (e) { return e; } };
+    const pedA = P.leerPedido({ charms: [enCero], pago: 'anticipado' });
+    const pedB = P.leerPedido({ charms: [conTres], pago: 'anticipado' });
+    const libresA = await inventario.disponibles(P.skusDeInventario(pedA));
+    const libresB = await inventario.disponibles(P.skusDeInventario(pedB));
+
+    comprobar(lanza(() => P.comprobarInventario(pedA)) instanceof SinInventario,
+      'solo con el conteo, la pieza repuesta se rechazaba (así fallaba)', enCero);
+    comprobar(libresA[enCero] === 3 && lanza(() => P.comprobarInventario(pedA, libresA)) === null,
+      'con el inventario vivo, la pieza repuesta con un ajuste pasa', `${enCero}: ${libresA[enCero]} disponibles`);
+    const tres = P.leerPedido({ charms: [enCero, enCero, enCero, enCero], pago: 'anticipado' });
+    const eTres = lanza(() => P.comprobarInventario(tres, libresA));
+    comprobar(eTres instanceof SinInventario && /pediste 4 y quedan 3/.test(eTres.message),
+      'y pedir más de las que hay se sigue rechazando, con la cuenta viva', eTres && eTres.message.slice(0, 90));
+    const eB = lanza(() => P.comprobarInventario(pedB, libresB));
+    comprobar(libresB[conTres] === 0 && eB instanceof SinInventario && /se agotó/.test(eB.message),
+      'la pieza con conteo pero ya vendida se rechaza desde la revisión', `${conTres}: ${libresB[conTres]} disponibles`);
+    comprobar(lanza(() => P.comprobarInventario(pedB)) === null,
+      'que solo con el conteo pasaba de largo');
+    let r = null; try { await inventario.reservar('ZC-VIVO-1', pedB); } catch (e) { r = e; }
+    comprobar(r instanceof SinInventario, 'y `reservar` también la frena: no se puede vender dos veces');
+    const okA = await inventario.reservar('ZC-VIVO-2', pedA);
+    comprobar(okA.modo === 'reservado', 'la repuesta sí se puede apartar');
+    if (brz) {
+      const pb = P.leerPedido({ bases: [{ id: brz, talla: tallaCero }], charms: [], pago: 'anticipado' });
+      const lb = await inventario.disponibles(P.skusDeInventario(pb));
+      comprobar(lanza(() => P.comprobarInventario(pb)) instanceof SinInventario && lanza(() => P.comprobarInventario(pb, lb)) === null,
+        'lo mismo con un brazalete: una talla en 0 en el conteo y repuesta pasa con el inventario vivo', `${brz} talla ${tallaCero}: ${lb[brz + '|' + tallaCero]}`);
+    }
+    /* Si el almacén no responde, se revisa con el conteo, como antes. */
+    inventario._interno.usarAlmacen({ get: async () => { throw new Error('caído'); } });
+    const sin = await inventario.disponibles([conTres]);
+    comprobar(sin === null && lanza(() => P.comprobarInventario(pedB, sin)) === null,
+      'si el inventario vivo no responde, la revisión sigue con el conteo y no bloquea la venta');
+    /* crear-pago y armar-carrito usan la revisión viva. */
+    for (const archivo of ['crear-pago.mjs', 'armar-carrito.mjs']) {
+      const codigo = require('fs').readFileSync(path.join(RAIZ, 'netlify', 'functions', archivo), 'utf8');
+      comprobar(/comprobarInventario\(pedido, await disponibles\(skusDeInventario\(pedido\)\)\)/.test(codigo),
+        `${archivo} revisa con el inventario vivo`);
+    }
+    inventario._interno.usarAlmacen(null);
   }
 
   console.log(fallos ? `\nReserva de inventario: ${fallos} en rojo` : '\nReserva de inventario en verde ✓');

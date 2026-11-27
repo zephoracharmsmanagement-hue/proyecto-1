@@ -64,6 +64,23 @@ osea pago anticipado y contraentrega despues de 2 piezas antes, si el cliente pi
 - **Al publicar:** los anuncios y mensajes de Black Friday prometen «envío gratis» sin condición
   hasta el 30-nov; el propietario decide la fecha. Avisar a la Sesión 3 (prompt del bot: lee
   `reglas`) y a la Sesión 5 (anuncios).
+## El pago revisa el inventario vivo, no el último conteo — desplegado el 2026-11-27 (PR #69)
+
+Falla encontrada el 2026-11-27 (Black Friday): la página mostraba disponibles piezas que el pago
+rechazaba con «se agotó». `comprobarInventario()` (`_precios.js`) leía solo `assets/stock.json`
+—el último conteo a mano—, mientras `/disponibilidad` y `reservar()` cuentan conteo + ajustes −
+vendido − apartado. Una pieza en 0 en el conteo y repuesta con un ajuste (Cadena Hamsa y Ojo, +3)
+quedaba bloqueada en `crear-pago` y en `armar-carrito` (el bot).
+
+- `comprobarInventario(pedido, libres)`: `libres` es lo que devuelve `disponibles()` de
+  `_inventario.mjs` para los skus de `skusDeInventario(pedido)`. Con eso revisa contra el
+  inventario vivo; sin eso (el almacén no respondió) sigue con el conteo, como antes.
+- `crear-pago.mjs` y `armar-carrito.mjs` la llaman así. **No se tocó `stock.json`.**
+- Al revés ya estaba cubierto: una pieza con conteo pero vendida la frenaba `reservar()`; ahora la
+  frena además la revisión, con el mismo mensaje.
+- Lo vigila `pruebas/inventario.js` (bloque «El pago revisa contra el inventario vivo»).
+- Pendiente aparte: qué pasa si un pago llega después de vencido su apartado de 30 minutos.
+
 ## «Tu pago no pasó» con salidas de un toque — desplegado el 2026-11-25 (PR #67)
 
 Primer paso de «arreglemos el pago» (propietario, 2026-11-25). De los 102 intentos web reales:
