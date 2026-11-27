@@ -5,7 +5,7 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
-## El pago revisa el inventario vivo, no el último conteo — rama `claude/inventario-vivo-en-pago`: NO desplegado
+## El pago revisa el inventario vivo, no el último conteo — desplegado el 2026-11-27 (PR #69)
 
 Falla encontrada el 2026-11-27 (Black Friday): la página mostraba disponibles piezas que el pago
 rechazaba con «se agotó». `comprobarInventario()` (`_precios.js`) leía solo `assets/stock.json`
