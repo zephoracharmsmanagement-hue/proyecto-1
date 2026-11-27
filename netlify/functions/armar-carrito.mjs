@@ -66,7 +66,7 @@
  * hace nunca es devolver un enlace con un precio inventado: si el cálculo falla,
  * falla la respuesta.
  */
-import { leerPedido, comprobarInventario, calcular, detallar, cop,
+import { leerPedido, comprobarInventario, skusDeInventario, calcular, detallar, cop,
   PedidoInvalido, SinInventario } from './_precios.js';
 import { disponibles, _interno as inv } from './_inventario.mjs';
 import { comoUrl } from './_carrito.mjs';
@@ -118,7 +118,8 @@ export default async (req) => {
   let pedido, cuentas;
   try {
     pedido = leerPedido(cuerpo);
-    comprobarInventario(pedido);
+    /* Con el inventario vivo, igual que `crear-pago` (2026-11-27). */
+    comprobarInventario(pedido, await disponibles(skusDeInventario(pedido)));
     cuentas = calcular(pedido);
   } catch (e) {
     if (e instanceof PedidoInvalido) return responder(400, { error: e.message });
