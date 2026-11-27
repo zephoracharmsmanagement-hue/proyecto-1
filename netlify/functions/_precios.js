@@ -150,11 +150,44 @@ function leerPedido(cuerpo) {
  * con estado. Sí cierra el caso corriente, que es pagar algo agotado desde
  * hace rato o pedir tres de algo que tiene uno.
  */
-function comprobarInventario(pedido) {
+/* Qué hay que preguntarle al inventario vivo para revisar este pedido: cada
+   charm, y cada brazalete con TODAS sus tallas —para poder decir cuáles quedan
+   si la que pidió se agotó—. Con la misma clave que usa _inventario.mjs
+   (`id` o `id|talla`). */
+function skusDeInventario(pedido) {
   const items = (INV && INV.items) || {};
+  const s = new Set(pedido.charms);
+  brazaletesDe(pedido).forEach(b => {
+    const it = items[b.id];
+    if (it && it.tallas) Object.keys(it.tallas).forEach(t => s.add(b.id + '|' + t));
+    if (b.talla) s.add(b.id + '|' + b.talla);
+  });
+  return [...s];
+}
+
+/* `libres`: lo que hay disponible AHORA por sku, de `disponibles()` en
+   _inventario.mjs (conteo + ajustes − vendido − apartado), que es la misma
+   cuenta de /disponibilidad. Hasta el 2026-11-27 esta revisión leía solo
+   stock.json, el último conteo a mano: una pieza repuesta con un ajuste seguía
+   «agotada» aquí aunque la página la mostrara disponible, y el pago la
+   rechazaba (Cadena Hamsa y Ojo, en pleno Black Friday). Sin `libres` —el
+   almacén no respondió— se usa el conteo, como antes: una lectura fallida no
+   puede bloquear la venta. */
+function comprobarInventario(pedido, libres) {
+  const items = (INV && INV.items) || {};
+  const vivo = libres && typeof libres === 'object' ? libres : null;
   /* Sin inventario cargado se deja pasar: una lectura fallida no puede
      bloquear la venta, igual que en la tienda. */
-  if (!Object.keys(items).length) return;
+  if (!vivo && !Object.keys(items).length) return;
+  /* Cuántas hay de una pieza (o de una talla). Infinity = sin conteo. */
+  const hayDe = (id, talla) => {
+    const k = talla ? id + '|' + talla : id;
+    if (vivo && typeof vivo[k] === 'number') return vivo[k];
+    const it = items[id];
+    if (!it) return Infinity;
+    if (talla) return it.tallas && +it.tallas[talla] > 0 ? +it.tallas[talla] : 0;
+    return typeof it.stock === 'number' ? it.stock : Infinity;
+  };
 
   const faltan = [];
 
@@ -176,11 +209,11 @@ function comprobarInventario(pedido) {
   });
   porTalla.forEach(({ id, t, piden }) => {
     const it = items[id];
-    const hay = +it.tallas[t] > 0 ? +it.tallas[t] : 0;
+    const hay = hayDe(id, t);
     if (hay <= 0) {
-      const libres = Object.keys(it.tallas).filter(k => +it.tallas[k] > 0);
+      const quedan = Object.keys(it.tallas).filter(k => hayDe(id, k) > 0);
       faltan.push(`${nombres[id]} talla ${t} cm se agotó`
-        + (libres.length ? ` (quedan ${libres.join(', ')} cm)` : ''));
+        + (quedan.length ? ` (quedan ${quedan.join(', ')} cm)` : ''));
     } else if (piden > hay) {
       faltan.push(`${nombres[id]} talla ${t} cm: pediste ${piden} y queda${hay === 1 ? '' : 'n'} ${hay}`);
     }
@@ -189,11 +222,11 @@ function comprobarInventario(pedido) {
   const cuenta = {};
   pedido.charms.forEach(id => { cuenta[id] = (cuenta[id] || 0) + 1; });
   Object.entries(cuenta).forEach(([id, piden]) => {
-    const it = items[id];
-    if (!it || typeof it.stock !== 'number') return;   // pieza sin conteo: pasa
-    if (it.stock <= 0) faltan.push(`${nombres[id]} se agotó`);
-    else if (piden > it.stock) {
-      faltan.push(`${nombres[id]}: pediste ${piden} y queda${it.stock === 1 ? '' : 'n'} ${it.stock}`);
+    const hay = hayDe(id, null);
+    if (!Number.isFinite(hay)) return;   // pieza sin conteo: pasa
+    if (hay <= 0) faltan.push(`${nombres[id]} se agotó`);
+    else if (piden > hay) {
+      faltan.push(`${nombres[id]}: pediste ${piden} y queda${hay === 1 ? '' : 'n'} ${hay}`);
     }
   });
 
@@ -301,6 +334,6 @@ const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
    stock.json por su cuenta: siendo ESM, cargar JSON le obligaría a atributos de
    importación o a createRequire, y las dos formas se comportan distinto según
    si Netlify empaqueta o no. Pasando por aquí, hay un solo sitio que lo lee. */
-module.exports = { leerPedido, comprobarInventario, calcular, detallar, piezasGratis, brazaletesDe, cop,
+module.exports = { leerPedido, comprobarInventario, skusDeInventario, calcular, detallar, piezasGratis, brazaletesDe, cop,
   PedidoInvalido, SinInventario, reglas, nombres, fotos, grupos, inventario: INV,
   ofertaVigente, precioDe, listaDe };
