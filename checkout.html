@@ -640,12 +640,12 @@ const ADDI_TOPES={min:50000,max:3000000};
 /* Desde cuánto se ofrece Sistecrédito (decisión del propietario, 2026-10-15).
    Es el mismo número que SISTECREDITO_MINIMO en crear-pago, que es quien manda. */
 const SISTE_MIN=50000;
-/* Sistecrédito EN PAUSA (pedido del propietario, 2026-10-23): su integración
-   no está funcionando. La opción se ve, pero deshabilitada y con el aviso «No
-   disponible por el momento», con el mismo mecanismo del mínimo: quien llegue
-   con ?pago=sistecredito o lo tuviera elegido vuelve a «Pagar ahora». Para
-   reactivarlo: false aquí y borrar el bloque «EN PAUSA» de tienda.css. */
-const SISTE_PAUSADO=true;
+/* Interruptor de Sistecrédito. Estuvo en pausa del 2026-10-23 al 2026-11-27,
+   mientras su integración no funcionaba. Con true la opción no se muestra y
+   quien llegue con ?pago=sistecredito o lo tuviera elegido vuelve a «Pagar
+   ahora». Para pausarlo otra vez: true aquí y reponer en tienda.css el bloque
+   que lo quita de la portada y las fichas (está en el historial, 2026-10-23). */
+const SISTE_PAUSADO=false;
 /* Los pagos con crédito de un tercero: piden cédula y se van a su página. */
 const CREDITO={addi:'Addi',sistecredito:'Sistecrédito'};
 let STOCK=null;
