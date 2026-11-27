@@ -720,31 +720,35 @@ cambia textos.
 - Pruebas: `regresion.js` (portada y Marvel), `mas-vendidos.js` (ranking) y
   `paginas.js` (cuenta piezas enlazadas, no enlaces). Suite en verde.
 
-## ⏸ Sistecrédito EN PAUSA — desde el 2026-10-23
+## Sistecrédito reactivado — 2026-11-27 (NO desplegado: espera el «deploy» del propietario)
 
-La integración no está funcionando y el propietario lo está arreglando con
-Sistecrédito. Mientras tanto:
+Estuvo en pausa del 2026-10-23 al 2026-11-27 porque su integración no funcionaba.
+Sistecrédito le confirmó al propietario que activó el comercio, y el 27-nov se
+comprobó con las llaves de producción y `_sistecredito.mjs` de main: crear la
+transacción sin modo de pruebas responde bien, queda `Pending` y trae la URL de
+pago; consultarla devuelve `Pending` con el valor correcto. Las dos referencias
+de esa comprobación (`PRUEBA-SISTE-…`) no existen como pedidos y vencen solas.
 
-- **Checkout:** «Pagar con Sistecrédito» se ve, pero deshabilitado, con «No
-  disponible por el momento» (y la sugerencia de Addi si aplica).
-  `SISTE_PAUSADO=true` en `checkout.html`; reutiliza el mecanismo del mínimo,
-  así que quien llega con `?pago=sistecredito` o lo tenía elegido vuelve a
+- **Checkout:** `SISTE_PAUSADO=false` en `checkout.html`. «Pagar con Sistecrédito»
+  vuelve como cuarta opción (desde $50.000, pide cédula). El interruptor se
+  queda: con `true` la opción desaparece y quien la traía elegida vuelve a
   «Pagar ahora».
-- **Portada y fichas:** no se anuncia. Un bloque «EN PAUSA» en `tienda.css`
-  oculta la fila del recuadro de cuotas, la línea «o a cuotas con tu crédito»
-  de las 143 fichas y el párrafo de medios de pago (`:has(.mp-siste)`). La frase
-  «Addi o Sistecrédito a cuotas» de la franja de garantías sigue: es texto
-  plano repetido en todas las páginas, y el checkout ya avisa en el momento de
-  elegir.
-- **Bot de WhatsApp:** dice que está en pausa y ofrece Addi (n8n `3beca3e2`,
-  copia en `automatizaciones/n8n/prompt-asesora.md`).
-- `pruebas/checkout.js` §3c prueba la pausa con la página real y el flujo
-  completo con una copia reactivada.
+- **Portada y fichas:** se borró de `tienda.css` el bloque que lo escondía (la
+  fila del recuadro de cuotas, «o a cuotas con tu crédito» de las fichas y el
+  párrafo de medios de pago). Para pausarlo otra vez hay que reponerlo: está en
+  el historial de `tienda.css`, 2026-10-23.
+- **Bot de WhatsApp:** su texto todavía dice que está en pausa. Lo cambia la
+  Sesión 3 al tiempo con el despliegue (el párrafo de Sistecrédito está en el
+  historial de `prompt-asesora.md`, versión `e9838f6b`); la copia del
+  repositorio se actualiza cuando ellos publiquen.
+- **Pruebas:** `pruebas/checkout.js` §3 exige los cuatro medios a la vista y §3c
+  exige que esté activo, que la portada lo anuncie y recorre el flujo completo
+  con la página real.
+- Las funciones del servidor y las variables de Netlify no se tocaron.
 
-**Para reactivarlo:** `SISTE_PAUSADO=false` en `checkout.html`, borrar el bloque
-«EN PAUSA» de `tienda.css` y devolverle al bot el párrafo de Sistecrédito (está
-en el historial de `prompt-asesora.md`, versión `e9838f6b`). Las funciones del
-servidor no se tocaron.
+**Pendiente — la primera venta real:** cuando entre, confirmar que llegó el
+correo «PAGADO — despachar», que se descontó el inventario y que el `Purchase`
+aparece una sola vez en el píxel `2005297310144764` (el único desde el 10-nov).
 
 ## Sistecrédito como medio de pago — DESPLEGADO el 2026-10-16 (PR #29, `9554ce8`)
 
@@ -790,7 +794,7 @@ Aprobado por el propietario el 2026-10-15.
 1. **La primera venta real con Sistecrédito.** Todo lo probado fue en modo de
    pruebas. Cuando entre, confirmar que llegó el correo «PAGADO — despachar»,
    que se descontó el inventario y que el `Purchase` aparece una sola vez en
-   el píxel `1029982529813994`.
+   el píxel `2005297310144764` (el `1029982529813994` de entonces ya no se usa).
 2. **Logo en vector.** El de `assets/pagos/sistecredito.webp` sale de un PNG de
    288×35 px a doble tamaño; en pantallas muy nítidas se ve un poco suave. Si
    llega el SVG o el AI original, se cambia.

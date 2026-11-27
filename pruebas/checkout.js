@@ -163,12 +163,12 @@ async function llenarDatos(p, d) {
       'los datos y el botón de pagar están en la misma página');
 
     /* Los medios de pago van todos a la vista (2026-11-20): antes la
-       contraentrega quedaba escondida tras «Cambiar». Sistecrédito, en pausa,
-       no se muestra. */
+       contraentrega quedaba escondida tras «Cambiar». Sistecrédito volvió el
+       2026-11-27 y es la cuarta. */
     const medios = await p.evaluate(() => [...document.querySelectorAll('#ops-pago .op')]
       .filter(o => o.offsetParent !== null).map(o => o.querySelector('input').value));
-    ok(JSON.stringify(medios) === JSON.stringify(['anticipado', 'contraentrega', 'addi']),
-      'Wompi, contraentrega y Addi se ven de entrada, sin «Cambiar»; Sistecrédito en pausa no aparece', medios.join(', '));
+    ok(JSON.stringify(medios) === JSON.stringify(['anticipado', 'contraentrega', 'addi', 'sistecredito']),
+      'Wompi, contraentrega, Addi y Sistecrédito se ven de entrada, sin «Cambiar»', medios.join(', '));
     ok(!(await p.locator('#cambiar-pago').isVisible()) && await p.evaluate(() => document.querySelector('#ops-pago input[name="pago"]:checked').value === 'anticipado')
       && /Pagar ahora/i.test(await p.locator('#pago-elegido-tx').textContent()),
       'y viene marcada la que eligió en el carrito');
@@ -749,13 +749,25 @@ async function llenarDatos(p, d) {
     });
     const enlace = await cargar('sistecredito-enlace.mjs');
 
-    /* Sistecrédito EN PAUSA (2026-10-23): mientras SISTE_PAUSADO=true en
-       checkout.html, la opción se ve pero deshabilitada y la portada no lo
-       anuncia. Eso se prueba con la página real. El flujo completo se sigue
-       probando abajo con una copia del checkout reactivado, para que el día que
-       se quite la pausa no haya que reescribir nada. */
+    /* Sistecrédito estuvo en pausa del 2026-10-23 al 2026-11-27. Activo, la
+       página real lo ofrece y la portada lo anuncia; eso es lo que se exige.
+       Si algún día se vuelve a pausar (SISTE_PAUSADO=true), fallan las dos
+       comprobaciones de abajo a propósito: pausarlo es una decisión, no un
+       descuido. El bloque `if (pausado)` queda para ese día. */
     const htmlCheckout = require('fs').readFileSync(path.join(__dirname, '..', 'checkout.html'), 'utf8');
     const pausado = /const SISTE_PAUSADO=true;/.test(htmlCheckout);
+    ok(/const SISTE_PAUSADO=false;/.test(htmlCheckout), 'Sistecrédito está activo en checkout.html (SISTE_PAUSADO=false)');
+    {
+      const q = await b.newPage({ viewport: { width: 390, height: 844 } });
+      q.on('pageerror', e => errores.push(e.message));
+      await q.goto(BASE + '/index.html', { waitUntil: 'domcontentloaded' });
+      const anuncia = await q.evaluate(() => [...document.querySelectorAll('.cuotas-fila[data-siste-checkout], .pe-pie')]
+        .filter(el => el.querySelector('.siste-logo, .mp-siste') && el.offsetParent !== null).length);
+      ok(anuncia >= 1, 'activo: la portada vuelve a anunciar Sistecrédito', anuncia + ' visibles');
+      const css = require('fs').readFileSync(path.join(__dirname, '..', 'tienda.css'), 'utf8');
+      ok(!/\.pp-siste,\s*\.cuotas-fila\[data-siste-checkout\]/.test(css), 'y tienda.css ya no esconde la línea de Sistecrédito de las fichas');
+      await q.close();
+    }
     if (pausado) {
       const q = await b.newPage({ viewport: { width: 390, height: 844 } });
       q.on('pageerror', e => errores.push(e.message));
