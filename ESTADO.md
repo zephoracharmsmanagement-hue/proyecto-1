@@ -720,7 +720,7 @@ cambia textos.
 - Pruebas: `regresion.js` (portada y Marvel), `mas-vendidos.js` (ranking) y
   `paginas.js` (cuenta piezas enlazadas, no enlaces). Suite en verde.
 
-## Sistecrédito reactivado — 2026-11-27 (NO desplegado: espera el «deploy» del propietario)
+## Sistecrédito reactivado — desplegado el 2026-11-27, 2:51 p. m. (PR #70)
 
 Estuvo en pausa del 2026-10-23 al 2026-11-27 porque su integración no funcionaba.
 Sistecrédito le confirmó al propietario que activó el comercio, y el 27-nov se
