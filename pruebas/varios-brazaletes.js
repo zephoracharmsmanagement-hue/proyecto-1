@@ -107,8 +107,7 @@ async function servidor({ duo, otro, charms }) {
       'un pedido de un solo brazalete da lo mismo por `base` que pasando por leerPedido()', cop(uno.total));
     /* Dos brazaletes son 2 piezas para la regla del envío en contraentrega. */
     const R = CAT.reglas, dos = calcular(leerPedido({ bases: [A, C], charms: [], pago: 'contraentrega' }));
-    const espera = dos.subtotal >= R.envioGratisDesde
-      && (!R.envioGratisSoloAnticipado || (R.contraentregaGratisDesde > 0 && 2 >= R.contraentregaGratisDesde));
+    const espera = 2 >= R.envioGratisDesdePiezas;
     comprobar(dos.envioGratis === espera && (dos.envio === 0) === espera,
       'dos brazaletes cuentan como 2 piezas para el envío de la contraentrega', `envío ${cop(dos.envio)}`);
     /* Desempate entre brazaletes del mismo precio: sale gratis el primero que se eligió. */

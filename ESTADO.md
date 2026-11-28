@@ -5,6 +5,65 @@ aquí y sigue con el [`README.md`](README.md), que documenta cómo funciona el
 sitio; este archivo cuenta **en qué punto está y qué decisiones no hay que
 deshacer sin querer**.
 
+## Envío por zonas — rama `claude/envio-por-zonas`, en vista previa: NO desplegado
+
+Pedido del propietario (2026-11-24/25): «quiero que dejemos el envio gratis en cualquier modalidad
+osea pago anticipado y contraentrega despues de 2 piezas antes, si el cliente pide una pieza. precio
+15.000 anticipado y 25.000 contra entrega», y después «Vamos por zonas» / «Sí, dos zonas».
+
+- **Zona nacional:** 1 pieza paga $15.000 (anticipado) o $25.000 (contraentrega); con 2 piezas o
+  más el envío es gratis en las dos modalidades. Cuenta cada unidad de brazalete, charm o anillo;
+  las que salen gratis por la promo también cuentan (solo aparecen desde 4 piezas).
+- **Destinos especiales:** Amazonas, Guainía, San Andrés y Providencia, Vaupés y Vichada. $38.000
+  siempre, sin gratis por piezas, y **sin contraentrega** (la página la deshabilita y `crear-pago`
+  responde 400 si llega igual).
+- **De dónde sale la lista:** de las guías reales y de cotizaciones del 2026-11-25 en el panel de
+  la transportadora (las cifras no van aquí: el repo es público; están en las notas de la sesión
+  de tienda). La ciudad casi no cambia lo que vale una guía; lo que la cambia es la modalidad y
+  estos pocos departamentos, por eso son dos zonas y no una tabla por ciudad. **Mitú no aparece
+  en el cotizador**: Vaupés va en la lista por parecido, sin cotización.
+- **Fuente única:** `ENVIO`, `ENVIO_GRATIS_DESDE` y `ENVIO_ESPECIAL` en `tienda.js` →
+  `extraer_catalogo.py` → `reglas.envio`, `reglas.envioGratisDesdePiezas`, `reglas.envioEspecial`
+  en `catalogo.json`. **Ya no existen** `envioGratisDesde`, `envioGratisSoloAnticipado` ni
+  `contraentregaGratisDesde`: quien lea `reglas` desde `disponibilidad` (el bot, el boletín) tiene
+  que usar las nuevas. La zona se decide por el **departamento**, con el nombre de
+  `assets/codigos-dane.json`.
+- **Quién cobra:** `calcular(pedido, ahora, destino)` en `_precios.js`; `crear-pago` le pasa
+  `cliente.depto`. Sin destino (carrito, `armar-carrito`, catálogo) calcula la zona nacional. El
+  carrito de la tienda no sabe a dónde va el pedido: el precio especial aparece en `checkout.html`
+  al elegir el departamento (`destinoEspecial()`), y ahí se repinta el total.
+- **Textos:** franja de confianza de la portada, fichas (lista y acordeones «Envíos» y
+  «Contraentrega»), kits, colecciones, envíos y devoluciones, preguntas frecuentes, boletín y hoja
+  del asesor. `envios-y-devoluciones.html` y `preguntas-frecuentes.html` se editaron **a mano**:
+  `gen_paginas.py` va atrasado respecto del HTML publicado (no conoce Clarity ni la sección «Pagos
+  y compra») y regenerarlas las daña; el generador quedó con el mismo texto nuevo.
+- **Dónde se le dice a la clienta** (maquetas A–D, aprobadas por el propietario el 2026-11-25:
+  «las cuatro»), todo desde `tienda.js`, sin tocar el HTML de las páginas:
+  - *Carrito, pegado al total* (`pintarEnvioEnTotal()`, bloque `.tot-env` creado al vuelo): las
+    cuentas «Piezas» y «Envío» y, si falta una pieza, «Agrega 1 pieza más y el envío te sale
+    GRATIS». Antes el renglón del envío quedaba en la parte que rueda y el total subía sin que
+    se viera por qué.
+  - *Cinta de arriba*: un segundo aviso (`.ann-slide--envio`, `.ann-track--dos`) que se turna
+    cada 6 s con el de la oferta. Al quitar la oferta sigue turnándose con el aviso de siempre.
+  - *Aviso «✓ Agregado»*: ya **no lleva «Ir a pagar»** (propietario, 2026-11-25; en Clarity se
+    tocó 2 veces en ~550 «Agregar») y dura 2,6 s. En las grillas solo sale con una noticia: con
+    la primera pieza «con 1 más el envío es GRATIS», y al completar un tramo de la promo «ya
+    tienes 1 pieza GRATIS». En la ficha, las sugerencias y los kits se conserva siempre.
+  - *Sugerencias del carrito*: con una pieza el título pasa a «Suma una más y el envío es gratis».
+  En `checkout.html` no se invita a sumar piezas (decisión anterior, la vigila `pruebas/checkout.js`):
+  solo se dice la regla.
+- **Pantalla de pago en celular: resumen corto al llegar** (`#res-corto`, maqueta B aprobada el
+  2026-11-25). De Clarity (3 días, 57 vistas de `checkout.html`): un tercio se iba sin bajar, y lo
+  más tocado era «Ver pedido». Ahora se ven las fotos (hasta 5, y «+N»), las cuentas y el total, y
+  el campo «Nombre» queda a la vista. Va en el flujo de la página, no pegado: al bajar queda la
+  barra de siempre con el total y la escalera de la promo, que **ya no se muestra al llegar** (el
+  propietario lo sabe). «Ver detalle» abre la lista completa y esconde el corto. En computador no
+  cambia nada. Lo vigila `pruebas/checkout.js`.
+- `gen_productos.py` vuelve a correr desde `main`: faltaban seis ids opcionales en
+  `IDS_OPCIONALES` (`bfb`, `cp-kit`, `destacadas`, `piezas`, `promo-esc`, `tot-ahorro`).
+- **Al publicar:** los anuncios y mensajes de Black Friday prometen «envío gratis» sin condición
+  hasta el 30-nov; el propietario decide la fecha. Avisar a la Sesión 3 (prompt del bot: lee
+  `reglas`) y a la Sesión 5 (anuncios).
 ## El pago revisa el inventario vivo, no el último conteo — desplegado el 2026-11-27 (PR #69)
 
 Falla encontrada el 2026-11-27 (Black Friday): la página mostraba disponibles piezas que el pago
@@ -661,7 +720,7 @@ cambia textos.
 - Pruebas: `regresion.js` (portada y Marvel), `mas-vendidos.js` (ranking) y
   `paginas.js` (cuenta piezas enlazadas, no enlaces). Suite en verde.
 
-## Sistecrédito reactivado — 2026-11-27 (NO desplegado: espera el «deploy» del propietario)
+## Sistecrédito reactivado — desplegado el 2026-11-27, 2:51 p. m. (PR #70)
 
 Estuvo en pausa del 2026-10-23 al 2026-11-27 porque su integración no funcionaba.
 Sistecrédito le confirmó al propietario que activó el comercio, y el 27-nov se

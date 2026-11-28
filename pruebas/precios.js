@@ -218,45 +218,55 @@ const entre = (a, b) => a + Math.floor(azar() * (b - a + 1));
   /* El envío gratis es solo del pago anticipado. Es la regla más fácil de
      desincronizar entre las tres calculadoras, porque el mismo carrito da dos
      totales distintos según cómo se pague. */
-  console.log('\nEnvío gratis: beneficio exclusivo del prepago');
+  console.log('\nEnvío por zonas: gratis desde 2 piezas, destinos especiales aparte');
   {
     const R = require(path.join(__dirname, '..', 'assets', 'catalogo.json')).reglas;
+    const D = R.envioGratisDesdePiezas, E = R.envioEspecial;
+    ok(D === 2, 'el envío es gratis desde 2 piezas', String(D));
+    ok(R.envio.anticipado === 15000 && R.envio.contraentrega === 25000,
+      'una pieza paga $15.000 en línea y $25.000 contraentrega', JSON.stringify(R.envio));
+    ok(E && E.precio === 38000 && E.departamentos.length >= 4, 'hay destinos especiales con su precio', JSON.stringify(E));
+    ok(!('envioGratisDesde' in R) && !('envioGratisSoloAnticipado' in R) && !('contraentregaGratisDesde' in R),
+      'las reglas viejas de envío ya no existen (nadie debe leerlas)');
     const gordo = { base: { id: 'pulsera-corazon-con-diamante', talla: '21' },
       charms: ['mickey-mouse', 'stitch', 'minnie-mouse'], empaque: false };
     const ant = calcular(leerPedido(Object.assign({}, gordo, { pago: 'anticipado' })));
     const con = calcular(leerPedido(Object.assign({}, gordo, { pago: 'contraentrega' })));
-    ok(ant.subtotal >= R.envioGratisDesde, 'el carrito de prueba pasa del umbral',
-      cop(ant.subtotal));
-    ok(ant.envio === 0, 'anticipado por encima del umbral: envío gratis');
-    /* Desde el 2026-11-20 la contraentrega tampoco paga envío con
-       `contraentregaGratisDesde` piezas o más (2). Con menos, lo paga. */
-    const D = R.contraentregaGratisDesde;
-    ok(D === 2, 'la contraentrega es gratis desde 2 piezas', String(D));
+    ok(ant.envio === 0 && ant.envioGratis && ant.zona === 'nacional', 'cuatro piezas pagando en línea: envío gratis');
     ok(con.envio === 0 && con.total === ant.total,
-      `contraentrega con ${gordo.charms.length + 1} piezas: envío gratis, mismo total que pagando en línea`, cop(con.envio));
-    const dos = calcular(leerPedido({ charms: ['mickey-mouse', 'stitch'], pago: 'contraentrega' }));
-    const brzUno = calcular(leerPedido({ base: gordo.base, charms: ['mickey-mouse'], pago: 'contraentrega' }));
-    ok(dos.envio === 0 && brzUno.envio === 0, 'justo en 2 piezas (dos charms, o brazalete + charm) ya es gratis',
-      cop(dos.envio) + ' / ' + cop(brzUno.envio));
-    const soloB = calcular(leerPedido({ base: gordo.base, charms: [], pago: 'contraentrega' }));
-    ok(soloB.envio === R.envio.contraentrega, 'un brazalete solo, contraentrega: paga el envío', cop(soloB.envio));
-
-    /* El carrito más chico posible: un solo charm. Con umbral 0 ya no existe
-       el «por debajo del mínimo», y eso es justo lo que hay que comprobar —el
-       envío gratis del prepago no puede depender del tamaño del carrito—. Si
-       algún día vuelve un umbral, este bloque lo detecta solo. */
-    const flaco = { charms: ['mickey-mouse'] };
-    const fa = calcular(leerPedido(Object.assign({}, flaco, { pago: 'anticipado' })));
-    const fc = calcular(leerPedido(Object.assign({}, flaco, { pago: 'contraentrega' })));
-    const bajoUmbral = fa.subtotal < R.envioGratisDesde;
-    ok(fa.envio === (bajoUmbral ? R.envio.anticipado : 0),
-      bajoUmbral
-        ? 'por debajo del umbral el anticipado paga su tarifa'
-        : 'sin umbral, el carrito más chico también lleva envío gratis anticipado',
-      cop(fa.envio));
-    ok(fc.envio === R.envio.contraentrega && fc.total - fa.total === R.envio.contraentrega,
-      'con una sola pieza la contraentrega paga su tarifa, y es la única diferencia con el prepago',
-      cop(fc.envio));
+      'cuatro piezas contraentrega: envío gratis, mismo total que pagando en línea', cop(con.envio));
+    for (const pago of ['anticipado', 'contraentrega']) {
+      const dos = calcular(leerPedido({ charms: ['mickey-mouse', 'stitch'], pago }));
+      const iguales = calcular(leerPedido({ charms: ['mickey-mouse', 'mickey-mouse'], pago }));
+      const brzUno = calcular(leerPedido({ base: gordo.base, charms: ['mickey-mouse'], pago }));
+      ok(dos.envio === 0 && iguales.envio === 0 && brzUno.envio === 0,
+        `justo en 2 piezas (${pago}): dos charms, dos iguales o brazalete + charm ya es gratis`,
+        [dos, iguales, brzUno].map(x => cop(x.envio)).join(' / '));
+      const soloB = calcular(leerPedido({ base: gordo.base, charms: [], pago }));
+      const soloC = calcular(leerPedido({ charms: ['mickey-mouse'], pago }));
+      ok(soloB.envio === R.envio[pago] && soloC.envio === R.envio[pago] && !soloC.envioGratis
+        && soloC.total === soloC.subtotal + R.envio[pago],
+        `una sola pieza (${pago}) paga ${cop(R.envio[pago])}`, cop(soloB.envio) + ' / ' + cop(soloC.envio));
+    }
+    /* Destinos especiales: precio fijo con cualquier número de piezas. */
+    const { esDestinoEspecial } = require('../netlify/functions/_precios.js');
+    for (const d of E.departamentos) {
+      const uno = calcular(leerPedido({ charms: ['mickey-mouse'], pago: 'anticipado' }), undefined, d);
+      const cuatro = calcular(leerPedido(Object.assign({}, gordo, { pago: 'anticipado' })), undefined, d);
+      ok(esDestinoEspecial(d) && uno.envio === E.precio && cuatro.envio === E.precio && !cuatro.envioGratis
+        && cuatro.zona === 'especial' && cuatro.total === cuatro.subtotal + E.precio,
+        `${d}: ${cop(E.precio)} con 1 pieza y con 4`, cop(uno.envio) + ' / ' + cop(cuatro.envio));
+    }
+    const GEO = require(path.join(__dirname, '..', 'assets', 'codigos-dane.json')).departamentos;
+    ok(E.departamentos.every(d => d in GEO), 'cada destino especial se llama igual que en la lista de departamentos del pago',
+      E.departamentos.filter(d => !(d in GEO)).join(', '));
+    const normales = Object.keys(GEO).filter(d => !E.departamentos.includes(d));
+    ok(normales.length === Object.keys(GEO).length - E.departamentos.length && normales.every(d => {
+      const c = calcular(leerPedido({ charms: ['mickey-mouse'], pago: 'anticipado' }), undefined, d);
+      return !esDestinoEspecial(d) && c.envio === R.envio.anticipado && c.zona === 'nacional'; }),
+      `los otros ${normales.length} departamentos son zona nacional`);
+    ok(!esDestinoEspecial('') && !esDestinoEspecial(undefined) && esDestinoEspecial(' amazonas '),
+      'sin departamento se calcula la zona nacional; el nombre se compara sin mayúsculas ni espacios');
   }
 
   /* Oferta de temporada (Black Friday 2026). catalogo.json trae `precios`

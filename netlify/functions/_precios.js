@@ -244,7 +244,12 @@ class SinInventario extends Error {}
 
 /* El mismo cálculo que hace la página, con los mismos redondeos y en el mismo
    orden. Si esto y render() en index.html se separan, pruebas/precios.js falla. */
-function calcular(pedido, ahora) {
+const ESPECIALES = new Set(((reglas.envioEspecial || {}).departamentos || []).map(d => String(d).trim().toLowerCase()));
+/* ¿El departamento es de los destinos especiales? Se compara el nombre tal
+   como lo trae assets/codigos-dane.json, que es de donde lo elige la clienta. */
+const esDestinoEspecial = depto => ESPECIALES.has(String(depto || '').trim().toLowerCase());
+
+function calcular(pedido, ahora, destino) {
   const precios = tabla(ahora);
   const brutoC = pedido.charms.reduce((s, id) => s + precios[id], 0);
   const bases = brazaletesDe(pedido);
@@ -252,19 +257,22 @@ function calcular(pedido, ahora) {
   const gratis = piezasGratis(pedido, ahora);
   const desc = gratis.reduce((s, x) => s + x.precio, 0);
 
-  /* El umbral de envío gratis mide mercancía, no total: si contara el envío,
-     el propio envío ayudaría a alcanzarlo. Y el beneficio es solo del prepago:
-     la contraentrega le cuesta a la tienda la comisión de recaudo y el riesgo
-     de devolución, así que ahí el envío se cobra… salvo desde
-     `contraentregaGratisDesde` piezas (2, desde el 2026-11-20): con dos o más
-     la contraentrega tampoco lo paga. Cuenta piezas, no pesos. */
+  /* Envío por zonas (propietario, 2026-11-25).
+     · Nacional: con 1 pieza se cobra `reglas.envio` según el pago; desde
+       `envioGratisDesdePiezas` (2) es gratis en las dos modalidades. Cuenta
+       piezas —cada unidad de brazalete, charm o anillo—, no pesos.
+     · Destinos especiales (`reglas.envioEspecial.departamentos`): la guía vale
+       mucho más, así que se cobra `envioEspecial.precio`
+       siempre, sin gratis por piezas. Que ahí no haya contraentrega lo exige
+       crear-pago, no esta función.
+     Sin `destino` —el carrito, el bot, el catálogo— se calcula la zona nacional. */
   const subtotal = brutoC + brutoB - desc;
-  const alcanza = subtotal >= reglas.envioGratisDesde;
   const piezas = pedido.charms.length + bases.length;
-  const contraLibre = reglas.contraentregaGratisDesde > 0 && piezas >= reglas.contraentregaGratisDesde;
-  const envioGratis = alcanza
-    && (!reglas.envioGratisSoloAnticipado || pedido.pago === 'anticipado' || contraLibre);
-  const envio = (subtotal <= 0 || envioGratis) ? 0 : reglas.envio[pedido.pago];
+  const especial = esDestinoEspecial(destino);
+  const envioGratis = !especial && piezas >= reglas.envioGratisDesdePiezas;
+  const envio = subtotal <= 0 ? 0
+    : especial ? reglas.envioEspecial.precio
+    : envioGratis ? 0 : reglas.envio[pedido.pago];
 
   /* Wompi cobra en centavos y en enteros. Se redondea una sola vez, al final:
      redondear cada línea deja el total descuadrado frente al que vio la
@@ -281,6 +289,7 @@ function calcular(pedido, ahora) {
     subtotal: Math.round(subtotal),
     envio,
     envioGratis,
+    zona: especial ? 'especial' : 'nacional',
     total,
     centavos: total * 100,
   };
@@ -334,6 +343,6 @@ const cop = n => '$' + Math.round(n).toLocaleString('es-CO').replace(/,/g, '.');
    stock.json por su cuenta: siendo ESM, cargar JSON le obligaría a atributos de
    importación o a createRequire, y las dos formas se comportan distinto según
    si Netlify empaqueta o no. Pasando por aquí, hay un solo sitio que lo lee. */
-module.exports = { leerPedido, comprobarInventario, skusDeInventario, calcular, detallar, piezasGratis, brazaletesDe, cop,
+module.exports = { leerPedido, comprobarInventario, skusDeInventario, calcular, esDestinoEspecial, detallar, piezasGratis, brazaletesDe, cop,
   PedidoInvalido, SinInventario, reglas, nombres, fotos, grupos, inventario: INV,
   ofertaVigente, precioDe, listaDe };

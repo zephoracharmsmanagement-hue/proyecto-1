@@ -43,7 +43,7 @@ function disponibilidad() {
   const braz = (id, nombre, tallas) => ({ id, nombre, precio: 82000, foto: foto(id), tipo: 'brazalete', material: 'baño de plata sobre base de alta resistencia', tallas, agotado: !Object.values(tallas).some(n => n > 0) });
   return {
     generado: new Date().toISOString(),
-    reglas: { promo: { tramos: [[4, 1], [6, 2]] }, envioGratisDesde: 0, envioGratisSoloAnticipado: true, envio: { anticipado: 15000, contraentrega: 20000 } },
+    reglas: { promo: { tramos: [[4, 1], [6, 2]] }, envioGratisDesdePiezas: 2, envio: { anticipado: 15000, contraentrega: 25000 } },
     piezas,
     brazaletes: [braz('pulsera-corazon-abierto', 'Pulsera Corazón Abierto', { 19: 1 }), braz('pulsera-corazon-infinito', 'Pulsera Corazón Infinito', { 19: 0 }),
       braz('pulsera-corazon-arbol-de-la-vida', 'Pulsera Corazón Árbol de la Vida', { 18: 1, 20: 1 })],
@@ -105,7 +105,7 @@ async function main() {
     comprobar(!h.includes('Mano Rock'), 'la charm agotada no aparece');
     comprobar(!h.includes('Corazón Infinito'), 'el brazalete sin tallas no aparece');
     comprobar(r.d.piezas.anillos.includes('Anillo Doble Corazón (5, 6, 7)'), 'la talla agotada de un anillo no se ofrece', r.d.piezas.anillos.join(' | '));
-    comprobar(h.includes('$115.000') && h.includes('$95.000') && h.includes('$20.000'), 'precios y contraentrega salen de disponibilidad');
+    comprobar(h.includes('$115.000') && h.includes('$95.000') && h.includes('$25.000') && h.includes('$15.000'), 'precios y contraentrega salen de disponibilidad');
     comprobar(h.includes('&amp;fm=jpg') && !/\.webp"/.test(h), 'fotos en JPG del CDN');
     comprobar(!/todo es plata/i.test(h) && h.includes('Con baño de plata.'), 'brazaletes: baño de plata, nunca «todo es plata»');
     comprobar(h.includes('NIT 1.019.151.696-3') && h.includes('573018990672'), 'pie con NIT y WhatsApp');

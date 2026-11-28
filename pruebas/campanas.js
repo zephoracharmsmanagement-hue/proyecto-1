@@ -271,12 +271,8 @@ async function main() {
     const primera = c.destacados.find(id => true);
     await p.evaluate(id => document.querySelector('#destacadas .pc[data-id="' + id + '"] .pc-add').click(), primera);
     await p.waitForTimeout(400);
-    comprobar(await p.locator('#dock-send').textContent() === 'Ir a pagar' && /^Tienes 1 pieza/.test(await p.locator('#dock-n').textContent()),
-      '«Agregar» la pone en el carrito y la barra pasa a «Tienes 1 pieza» · «Ir a pagar»');
-    /* El aviso «Agregado» ya no repite «Ir a pagar» (2026-11-25) y en una
-       grilla solo sale cuando trae una noticia: aquí, con una pieza, no sale. */
-    comprobar(await p.evaluate(() => { const a = document.getElementById('aviso-corto'); return !a || (!a.querySelector('[data-ir-pagar]') && !a.classList.contains('is-on')); }),
-      'al agregar en la grilla no salta el aviso «Agregado · Ir a pagar»: basta el botón y la barra');
+    comprobar(await p.locator('#dock-send').textContent() === 'Ir a pagar' && /^1 pieza · 1 más: envío gratis/.test(await p.locator('#dock-n').textContent()),
+      '«Agregar» la pone en el carrito y la barra pasa a «1 pieza · 1 más: envío gratis» · «Ir a pagar»');
     const barra = await p.evaluate(() => { const g = s => document.querySelector(s).getBoundingClientRect(), d = g('#dock'), n = document.getElementById('dock-n');
       return { dentro: ['#dock-n', '#dock-p', '#dock-open', '#dock-send'].every(s => { const r = g(s); return r.width > 0 && r.top >= d.top && r.bottom <= d.bottom && r.left >= 0 && r.right <= innerWidth; }),
         cortado: n.scrollWidth > n.clientWidth, ver: document.getElementById('dock-open').textContent.trim(), ancho: Math.round(g('#dock-send').width) }; });

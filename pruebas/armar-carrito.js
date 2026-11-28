@@ -91,29 +91,24 @@ async function main() {
       d.totalTexto);
   }
   {
-    /* La regla más fácil de que un modelo se salte: el envío gratis es **solo**
-       del prepago (`envioGratisSoloAnticipado`), así que el mismo carrito vale
-       distinto según cómo se pague. Un bot que dijera el precio del prepago a
-       quien va a pagar contraentrega se equivoca en el envío sin que nada falle.
-       Se prueba por encima del umbral, que es donde las dos ramas divergen. */
+    /* El envío por zonas (2026-11-25): con 2 piezas o más es gratis pague como
+       pague; con una sola se paga, y la contraentrega cuesta más. El bot arma
+       el carrito sin saber el destino: aquí siempre es la zona nacional. */
     const grande = { base: { id: pulsera, talla }, charms: tres };
     const a = await pedir(Object.assign({ pago: 'anticipado' }, grande));
     const b = await pedir(Object.assign({ pago: 'contraentrega' }, grande));
-    comprobar(a.d.subtotal >= reglas.envioGratisDesde,
-      'el carrito de prueba pasa el umbral de envío gratis',
-      `${cop(a.d.subtotal)} ≥ ${cop(reglas.envioGratisDesde)}`);
     comprobar(a.d.envioGratis === true && a.d.envio === 0,
-      'pagando por adelantado, el envío sale gratis');
-    /* Desde el 2026-11-20, con `contraentregaGratisDesde` piezas o más (2) la
-       contraentrega tampoco paga envío; con una sola, sí. */
+      'con 2 piezas o más, pagando por adelantado el envío sale gratis');
     comprobar(b.d.envioGratis === true && b.d.envio === 0 && b.d.total === a.d.total,
-      'y contraentrega, con 2 piezas o más, tampoco lo paga: mismo total',
+      'y contraentrega tampoco lo paga: mismo total',
       `${a.d.totalTexto} vs ${b.d.totalTexto}`);
     const a1 = await pedir({ pago: 'anticipado', charms: tres.slice(0, 1) });
     const b1 = await pedir({ pago: 'contraentrega', charms: tres.slice(0, 1) });
+    comprobar(a1.d.envioGratis === false && a1.d.envio === reglas.envio.anticipado,
+      'con una sola pieza el pago anticipado paga su envío', a1.d.totalTexto);
     comprobar(b1.d.envioGratis === false && b1.d.envio === reglas.envio.contraentrega
-      && b1.d.total - a1.d.total === reglas.envio.contraentrega,
-      'con una sola pieza la contraentrega sí lo paga, y la diferencia es exactamente el envío',
+      && b1.d.total - a1.d.total === reglas.envio.contraentrega - reglas.envio.anticipado,
+      'con una sola pieza la contraentrega paga el suyo, y la diferencia es la de las dos tarifas',
       `${a1.d.totalTexto} vs ${b1.d.totalTexto}`);
   }
 

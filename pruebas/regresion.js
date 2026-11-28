@@ -468,12 +468,15 @@ const U = BASE + '/index.html';
     const textoDe = async u => { await p.goto(BASE + '/' + u, { waitUntil: 'domcontentloaded' });
       return p.evaluate(() => document.querySelector('main, body').textContent.replace(/\s+/g, ' ')); };
     const env = await textoDe('envios-y-devoluciones.html'), faq = await textoDe('preguntas-frecuentes.html');
-    const gratisSinMinimo = R.envioGratisDesde <= 0 && R.envioGratisSoloAnticipado;
     const malas = [];
     for (const [nombre, t] of [['envíos', env], ['preguntas', faq]]) {
       if (!t.includes(pesos(R.envio.contraentrega))) malas.push(`${nombre}: falta la contraentrega ${pesos(R.envio.contraentrega)}`);
-      if (gratisSinMinimo && !/gratis[^.]*sin monto m[ií]nimo/i.test(t)) malas.push(`${nombre}: no dice «gratis sin monto mínimo»`);
-      for (const viejo of ['$25.000', '$180.000']) if (t.includes(viejo) && !Object.values(R.envio).map(pesos).includes(viejo)) malas.push(`${nombre}: aún dice ${viejo}`);
+      if (!t.includes(pesos(R.envio.anticipado))) malas.push(`${nombre}: falta el envío anticipado ${pesos(R.envio.anticipado)}`);
+      if (!new RegExp(R.envioGratisDesdePiezas + ' piezas[^.]*gratis|gratis[^.]*' + R.envioGratisDesdePiezas + ' piezas', 'i').test(t)) malas.push(`${nombre}: no dice «gratis desde ${R.envioGratisDesdePiezas} piezas»`);
+      if (!t.includes(pesos(R.envioEspecial.precio))) malas.push(`${nombre}: falta el precio de destinos especiales ${pesos(R.envioEspecial.precio)}`);
+      for (const d of R.envioEspecial.departamentos) if (!t.includes(d)) malas.push(`${nombre}: no nombra ${d}`);
+      if (/sin monto m[ií]nimo|gratis a toda Colombia/i.test(t)) malas.push(`${nombre}: aún promete envío gratis sin condición`);
+      for (const viejo of ['$20.000', '$180.000']) if (t.includes(viejo) && !Object.values(R.envio).map(pesos).includes(viejo)) malas.push(`${nombre}: aún dice ${viejo}`);
     }
     out.push(`  las políticas dicen las tarifas de envío que cobra la tienda: ${malas.length ? 'NO ✗ ' + malas.join(' · ') : 'sí ✓'}`);
     /* Y se leen con margen: un `padding` abreviado en .doc dejaba el texto

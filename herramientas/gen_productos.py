@@ -61,7 +61,10 @@ IDS_OPCIONALES = {'pq-mas', 'b-mas', 'b-mas-wrap', 'pp-estrellas', 'pp-vendidas'
                   # Solo en la portada (EN_PORTADA) y en coleccion-mas-vendidos.html.
                   'charms', 'mv-aviso', 'mv-relleno', 'mv-relleno-sec', 'mv-vendidas',
                   # Solo en la página de un anillo (guía de talla).
-                  'guia-talla'}
+                  'guia-talla',
+                  # De la portada, las campañas y la hoja del carrito de otras páginas;
+                  # cada uno va con su `if(el)` (comprobado el 2026-11-25).
+                  'bfb', 'cp-kit', 'destacadas', 'piezas', 'promo-esc', 'tot-ahorro'}
 
 
 def archivo_de(pid):
@@ -71,6 +74,11 @@ def archivo_de(pid):
 def href_de(pid):
     """El enlace, con la ñ de letra-ñ codificada."""
     return urllib.parse.quote(archivo_de(pid))
+
+
+def lista_es(xs):
+    xs = list(xs)
+    return xs[0] if len(xs) == 1 else ', '.join(xs[:-1]) + ' y ' + xs[-1]
 
 
 def cop(n):
@@ -465,15 +473,12 @@ def beneficios(tipo, cat):
     (preguntas-frecuentes.html, envios-y-devoluciones.html)."""
     material = ('Baño de plata con capa e-coating' if tipo == 'brazalete'
                 else 'Plata Esterlina 925 con sello grabado')
-    items = [('envio', 'Envío gratis pagando en línea'),
+    items = [('envio', 'Envío gratis desde %d piezas' % cat['reglas']['envioGratisDesdePiezas']),
              # Confirmado por el propietario el 2026-09-26. Sin hora de corte no se
              # promete «pide hoy y llega mañana»: se cuenta desde el despacho,
              # igual que la tabla de envios-y-devoluciones.html.
              ('rapido', 'Bogotá: llega en 1 día hábil desde el despacho'),
-             # Desde el 2026-11-20 la contraentrega no paga envío con 2 piezas o más.
-             ('contra', 'Pago contraentrega: envío gratis desde %d piezas' % cat['reglas']['contraentregaGratisDesde']
-              if cat['reglas'].get('contraentregaGratisDesde') else
-              'Pago contraentrega (+%s)' % cop(cat['reglas']['envio']['contraentrega'])),
+             ('contra', 'Pago contraentrega disponible'),
              ('sello', material),
              ('regalo', 'Empaque de regalo: caja, paño y dedicatoria escrita a mano'),
              ('cambio', 'Cambio de talla o retracto en 5 días hábiles')]
@@ -498,10 +503,16 @@ def acordeones(tipo, meta, grupo, cat, pid=None):
     descripción por familia (#pp-desc) las escribe tienda.js desde el mismo
     specsDe()/FAMILIAS que la ficha emergente."""
     contra = cop(cat['reglas']['envio']['contraentrega'])
-    desde = cat['reglas'].get('contraentregaGratisDesde')
-    contra_tx = ('El envío contraentrega es gratis desde %d piezas; con una sola pieza cuesta %s, que es lo que '
-                 'cobra la transportadora al recaudar.' % (desde, contra) if desde else
-                 'El envío contraentrega cuesta %s: lo cobra la transportadora al recaudar.' % contra)
+    antic = cop(cat['reglas']['envio']['anticipado'])
+    desde = cat['reglas']['envioGratisDesdePiezas']
+    esp = cat['reglas']['envioEspecial']
+    contra_tx = ('Con %d piezas o más el envío contraentrega también es gratis; con una sola pieza cuesta %s, '
+                 'porque la transportadora cobra por recaudar.' % (desde, contra))
+    # Envío por zonas (propietario, 2026-11-25). Los destinos especiales se
+    # nombran aquí para que nadie se entere en la pantalla de pago.
+    envio_tx = ('Envío <b>gratis desde %d piezas</b>, pagando en línea o contraentrega. Con una sola pieza cuesta '
+                '%s pagando en línea. A %s cuesta %s, solo con pago anticipado.'
+                % (desde, antic, lista_es(esp['departamentos']), cop(esp['precio'])))
     # Texto del propietario (2026-09-26): el anterior «sí se oxida» asustaba.
     # En los brazaletes cambia solo el primer párrafo: son baño de plata con
     # e-coating, no Plata 925, y decir lo contrario ya costó una corrección.
@@ -548,7 +559,7 @@ def acordeones(tipo, meta, grupo, cat, pid=None):
                                    'confirmamos la talla antes de que pagues. Y si al recibirlo no te queda, tienes <b>5 días '
                                    'hábiles para cambiar la talla</b>.</p>' % talla_wa, False),
             ('Materiales', '<dl class="fx-specs" id="pp-specs"></dl>', False),
-            ('Envíos gratis', '<p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los '
+            ('Envíos', '<p>' + envio_tx + ' Enviamos por Inter Rapidísimo, y los '
                               'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
                               'a Bogotá 1 – 2; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de '
                               'guía por WhatsApp o correo.</p>', False),
@@ -565,7 +576,7 @@ def acordeones(tipo, meta, grupo, cat, pid=None):
             H.escape('Brazalete %s' % meta.lower()) if tipo == 'brazalete' else 'Colección %s' % H.escape(grupo),
             '<p class="pp-nota">%s</p>' % NOTAS_PIEZA[pid] if pid in NOTAS_PIEZA else ''), True),
         ('Materiales', '<dl class="fx-specs" id="pp-specs"></dl>', False),
-        ('Envíos gratis', '<p>Envío <b>gratis</b> a toda Colombia pagando en línea. Enviamos por Inter Rapidísimo, y los '
+        ('Envíos', '<p>' + envio_tx + ' Enviamos por Inter Rapidísimo, y los '
                           'tiempos se cuentan en días hábiles desde que despachamos: Bogotá 1 día; municipios cercanos '
                           'a Bogotá 1 – 2; ciudades principales 2 – 4; resto del país 3 – 6. Te mandamos el número de '
                           'guía por WhatsApp o correo.</p>', False),
@@ -768,8 +779,8 @@ def generar(pid, html, cat, stock, b, exigidos):
             for t in tarjetas(html, brazaletes_con_talla(stock, cat))))
 
     titulo = '%s · %s · Zephora Charms' % (nombre, sello)
-    desc = '%s · %s. %s. %s con envío gratis a toda Colombia pagando en línea, o contraentrega.' % (
-        nombre, sello, meta, cop(precio))
+    desc = '%s · %s. %s. %s. Envío gratis desde %d piezas, pagando en línea o contraentrega.' % (
+        nombre, sello, meta, cop(precio), cat['reglas']['envioGratisDesdePiezas'])
 
     pagina = PAGINA.format(
         titulo=H.escape(titulo), desc=H.escape(desc), canon=canon, imagen=imagen, precio=precio,

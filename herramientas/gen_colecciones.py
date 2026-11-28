@@ -295,7 +295,7 @@ PAGINA = '''<!DOCTYPE html>
     <a class="btn" href="#piezas">Ver las {n_piezas} piezas</a>
     <a class="btn btn--ghost" href="#combo">Armar el combo</a>
   </div>
-  <p class="col-envio">Envío <b>GRATIS</b> a toda Colombia pagando en línea · contraentrega disponible</p>
+  <p class="col-envio">Envío <b>GRATIS</b> desde 2 piezas · pagando en línea o contraentrega</p>
   <div class="promo-caja promo-esc promo-esc--pp promo-esc--col" data-esc-simple><p class="promo-caja-t">✨ Hasta <b>2 piezas GRATIS</b> · la de menor valor</p><div class="cpk-s" aria-hidden="true"><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 4.ª</span><span class="cpk-c"><b>+</b>Pieza</span><span class="cpk-c free"><b>GRATIS</b>la 6.ª</span></div><p class="cpk-m" aria-live="polite">Con 4 piezas, <b>1 te sale GRATIS</b>. Con 6, <b>2 GRATIS</b>.</p></div>
 </section>
 
@@ -575,7 +575,7 @@ TARJETA_KIT = '''    <article class="kit" id="kit-{id}">
         {vitrina}
       </div>
       <p class="kit-nota">Toca un paso para poner sus charms en tu carrito, o elígelos uno a uno aquí
-      mismo. El descuento se aplica solo. Envío gratis pagando en línea.</p>
+      mismo. El descuento se aplica solo. Envío gratis desde 2 piezas.</p>
     </article>
 '''
 
@@ -741,7 +741,7 @@ def generar_kits(html, escribir):
     desc = ('Kits con dijes en Plata Esterlina 925 con sello grabado y brazalete con '
             'baño de plata de alta calidad. '
             'Paga 3 y llévate 1 gratis (paga 4 y llévate 2): la de menor valor sale gratis, y se aplica solo. '
-            'Envío gratis a toda Colombia.')
+            'Envío gratis desde 2 piezas.')
 
     from gen_productos import bloques_media   # aquí: gen_productos importa este módulo
     pagina = PAGINA_KITS.format(
@@ -794,7 +794,7 @@ HERO_KIT = '''<section class="kp-hero wrap" id="top">
     <a class="kp-ver" href="#kit-{id}">o elige pieza por pieza, y tu talla</a>
     <ul class="kp-confia">
       <li>Charms en Plata 925 con sello grabado</li>
-      <li>Envío gratis pagando en línea</li>
+      <li>Envío gratis desde 2 piezas</li>
       <li>Llega en su caja, con paño y dedicatoria</li>
     </ul>
   </div>
@@ -896,7 +896,7 @@ def generar_paginas_kit(html, escribir):
         imagen = 'https://zephoracharms.com/assets/' + ((k.get('pagina') or {}).get('imagen') or 'avengers-marmol.webp')
         titulo = '%s · %s · Zephora Charms' % (k['nombre'], k['lema'])
         desc = ('%s: %s Brazalete + %d charms por %s (en vez de %s). Paga 3, lleva 1 gratis · paga 4, lleva 2. '
-                'Envío gratis a toda Colombia.' % (k['nombre'], k['entrada'], len(k['charms']),
+                'Envío gratis desde 2 piezas.' % (k['nombre'], k['entrada'], len(k['charms']),
                                                     todo['totalTexto'], todo['listaTexto']))
         cabeza = PAGINA_KITS[:ini]
         cabeza = re.sub(r'<title>[^<]*</title>', '<title>%s</title>' % titulo, cabeza)
